@@ -2343,9 +2343,9 @@ namespace adria
 		compute_programs[ComputeShader::eTiledLighting].Bind(context);
 		context->Dispatch((u32)std::ceil(width * 1.0f / 16), (height * 1.0f / 16), 1);
 
-		static ID3D11ShaderResourceView* const  null_srv[1] = { nullptr };
+		ID3D11ShaderResourceView* null_srv[4] = { nullptr };
 		context->CSSetShaderResources(0, 4, null_srv);
-		static ID3D11UnorderedAccessView* null_uav = nullptr;
+		ID3D11UnorderedAccessView* null_uav = nullptr;
 		context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 
 		auto rtv = main_render_target.RTV();

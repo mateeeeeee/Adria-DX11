@@ -2,6 +2,7 @@
 #include "../Core/Macros.h"
 
 
+
 namespace adria
 {
 	GraphicsCoreDX11::GraphicsCoreDX11(void* handle)
@@ -76,16 +77,10 @@ namespace adria
 
 		CreateBackBufferResources(width, height);
 
-		//initialize dependent systems 
-		
-		//ImGui_ImplDX11_Init(device.Get(), immediate_context.Get()); ovo premjesti
-
 	}
 	GraphicsCoreDX11::~GraphicsCoreDX11()
 	{
 		WaitForGPU();
-		
-		//ImGui_ImplDX11_Shutdown(); i ovo premjesti
 	}
 	void GraphicsCoreDX11::ResizeBackbuffer(u32 w, u32 h)
 	{

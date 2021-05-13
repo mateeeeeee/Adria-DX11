@@ -53,7 +53,7 @@ namespace adria
 		std::unique_ptr<ModelImporter> model_importer;
 	private:
 
-		virtual void InitializeScene();
+		virtual void InitializeScene(bool load_sponza);
 
 		virtual void Update(f32 dt);
 

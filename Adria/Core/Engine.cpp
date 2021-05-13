@@ -25,7 +25,16 @@ namespace adria
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		model_importer = std::make_unique<ModelImporter>(reg, gfx->Device(), renderer->GetTextureManager());
 		
-		if(init.load_default_scene) InitializeScene();
+		camera_desc_t camera_desc{};
+		camera_desc.aspect_ratio = static_cast<f32>(Window::Width()) / Window::Height();
+		camera_desc.near_plane = 1.0f;
+		camera_desc.far_plane = 1000.0f;
+		camera_desc.fov = pi_div_4<f32>;
+		camera_desc.position_x = 0.0f;
+		camera_desc.position_y = 25.0f;
+		camera_desc.position_z = 0.0f;
+		camera_manager.AddCamera(camera_desc);
+		InitializeScene(init.load_default_scene);
 
 		event_queue.Subscribe<ResizeEvent>([this](ResizeEvent const& e) 
 			{
@@ -98,30 +107,24 @@ namespace adria
 		gfx->SwapBuffers(vsync);
 	}
 
-	void Engine::InitializeScene() 
+	void Engine::InitializeScene(bool load_sponza) 
 	{
-		camera_desc_t camera_desc{};
-		camera_desc.aspect_ratio = static_cast<f32>(Window::Width()) / Window::Height();
-		camera_desc.near_plane = 1.0f;
-		camera_desc.far_plane = 1000.0f;
-		camera_desc.fov = pi_div_4<f32>;
-		camera_desc.position_x = 0.0f;
-		camera_desc.position_y = 25.0f;
-		camera_desc.position_z = 0.0f;
-		camera_manager.AddCamera(camera_desc);
+		
 		
 		skybox_parameters_t skybox_params{};
 		skybox_params.cubemap = L"Resources/Textures/Skybox/barcelona.hdr"; 
 
 		model_importer->LoadSkybox(skybox_params);
 
-		
-		model_parameters_t model_params{};
-		model_params.model_path = "Resources/GLTF Models/Sponza/glTF/Sponza.gltf";
-		model_params.textures_path = "Resources/GLTF Models/Sponza/glTF/";
-		model_params.model = DirectX::XMMatrixScaling(0.3f, 0.3f, 0.3f);
-		model_importer->LoadGLTFModel(model_params);
-		
+		if (load_sponza)
+		{
+			model_parameters_t model_params{};
+			model_params.model_path = "Resources/GLTF Models/Sponza/glTF/Sponza.gltf";
+			model_params.textures_path = "Resources/GLTF Models/Sponza/glTF/";
+			model_params.model = DirectX::XMMatrixScaling(0.3f, 0.3f, 0.3f);
+			model_importer->LoadGLTFModel(model_params);
+		}
+
 
 		light_parameters_t light_params{};
 		light_params.light_data.casts_shadows = true;
