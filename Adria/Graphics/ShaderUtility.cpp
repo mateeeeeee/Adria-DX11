@@ -1,0 +1,177 @@
+#include <wrl.h>
+#include <d3dcompiler.h> 
+#include "ShaderUtility.h"
+#include "../Utilities/HashUtil.h"
+#include "../Core/Macros.h" 
+#include "../Utilities/StringUtil.h"
+
+
+namespace adria
+{
+
+	namespace ShaderUtility
+	{
+
+		void GetBlobFromCompiledShader(std::string_view filename, ShaderBlob& blob)
+		{
+			Microsoft::WRL::ComPtr<ID3DBlob> pBytecodeBlob;
+
+			HRESULT hr = D3DReadFileToBlob(ConvertToWide(std::string(filename)).data(), &pBytecodeBlob);
+			BREAK_IF_FAILED(hr);
+
+			blob.bytecode.resize(pBytecodeBlob->GetBufferSize());
+			memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
+		}
+
+		void CompileShader(ShaderInfo const& input,
+			ShaderBlob& blob)
+		{
+
+			std::string entrypoint, model;
+			switch (input.stage)
+			{
+			case ShaderStage::VS:
+				entrypoint = "vs_main";
+				model = "vs_5_0";
+				break;
+			case ShaderStage::PS:
+				entrypoint = "ps_main";
+				model = "ps_5_0";
+				break;
+			case ShaderStage::HS:
+				entrypoint = "hs_main";
+				model = "hs_5_0";
+				break;
+			case ShaderStage::DS:
+				entrypoint = "ds_main";
+				model = "ds_5_0";
+				break;
+			case ShaderStage::GS:
+				entrypoint = "gs_main";
+				model = "gs_5_0";
+				break;
+			case ShaderStage::CS:
+				entrypoint = "cs_main";
+				model = "cs_5_0";
+				break;
+			default:
+				ADRIA_ASSERT(false && "Unsupported Shader Stage!");
+			}
+
+			entrypoint = input.entrypoint.empty() ? entrypoint : input.entrypoint;
+
+			UINT shader_compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
+			if (input.flags & ShaderInfo::FLAG_DISABLE_OPTIMIZATION)
+			{
+				shader_compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+			}
+
+			if (input.flags & ShaderInfo::FLAG_DEBUG)
+			{
+				shader_compile_flags |= D3DCOMPILE_DEBUG;
+			}
+
+			std::vector<D3D_SHADER_MACRO> defines{};
+			defines.resize(input.defines.size());
+			
+			for (uint32_t i = 0; i < input.defines.size(); ++i)
+			{
+				defines[i].Name = (char*)malloc(sizeof(input.defines[i].name));
+				defines[i].Definition = (char*)malloc(sizeof(input.defines[i].definition));
+
+				strcpy(const_cast<char*>(defines[i].Name), input.defines[i].name.c_str());
+				strcpy(const_cast<char*>(defines[i].Definition), input.defines[i].definition.c_str());
+			}
+			defines.push_back({ NULL,NULL });
+
+			Microsoft::WRL::ComPtr<ID3DBlob> pBytecodeBlob = nullptr;
+			Microsoft::WRL::ComPtr<ID3DBlob> pErrorBlob = nullptr;
+
+			HRESULT hr = D3DCompileFromFile(ConvertToWide(input.shadersource).c_str(), 
+				defines.data(),
+				D3D_COMPILE_STANDARD_FILE_INCLUDE, entrypoint.c_str(), model.c_str(),
+				shader_compile_flags, 0, &pBytecodeBlob, &pErrorBlob);
+
+			if (FAILED(hr) && pErrorBlob) OutputDebugStringA(reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer()));
+
+			for (auto& define : defines)
+			{
+				if (define.Name)		free((void*)define.Name);
+				if (define.Definition)  free((void*)define.Definition); //change malloc and free to new and delete
+			}
+
+
+			BREAK_IF_FAILED(hr);
+
+			blob.bytecode.resize(pBytecodeBlob->GetBufferSize());
+			memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
+
+		}
+
+		void CreateInputLayoutWithReflection(ID3D11Device* device, ShaderBlob const& blob, ID3D11InputLayout** il)
+		{
+			// Reflect shader info
+			Microsoft::WRL::ComPtr<ID3D11ShaderReflection> pVertexShaderReflection = nullptr;
+			BREAK_IF_FAILED(D3DReflect(blob.GetPointer(), blob.GetLength(), IID_ID3D11ShaderReflection, (void**)pVertexShaderReflection.GetAddressOf()));
+
+			// Get shader info
+			D3D11_SHADER_DESC shaderDesc;
+			pVertexShaderReflection->GetDesc(&shaderDesc);
+
+			// Read input layout description from shader info
+			std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc;
+			for (uint32_t i = 0; i < shaderDesc.InputParameters; i++)
+			{
+				D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
+				pVertexShaderReflection->GetInputParameterDesc(i, &paramDesc);
+
+				// fill out input element desc
+				D3D11_INPUT_ELEMENT_DESC elementDesc{};
+				elementDesc.SemanticName = paramDesc.SemanticName;
+				elementDesc.SemanticIndex = paramDesc.SemanticIndex;
+				elementDesc.InputSlot = 0;
+				elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+				elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+				elementDesc.InstanceDataStepRate = 0;
+
+				// determine DXGI format
+				if (paramDesc.Mask == 1)
+				{
+					if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32_UINT;
+					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32_SINT;
+					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32_FLOAT;
+				}
+				else if (paramDesc.Mask <= 3)
+				{
+					if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32_UINT;
+					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32_SINT;
+					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+				}
+				else if (paramDesc.Mask <= 7)
+				{
+					if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_UINT;
+					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_SINT;
+					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+				}
+				else if (paramDesc.Mask <= 15)
+				{
+					if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+				}
+
+				//save element desc
+				inputLayoutDesc.push_back(elementDesc);
+			}
+
+			// Try to create Input Layout
+			HRESULT hr = device->CreateInputLayout(inputLayoutDesc.data(), static_cast<UINT>(inputLayoutDesc.size()), blob.GetPointer(), blob.GetLength(), 
+				il);
+
+			//Free allocation shader reflection memory
+
+
+		}
+
+	}
+}

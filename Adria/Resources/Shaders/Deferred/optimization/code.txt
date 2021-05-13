@@ -1,0 +1,78 @@
+		device->EventBegin("Volumetric Light Render", cmd);
+
+		BindShadowmaps(PS, cmd);
+
+		device->BindResource(PS, &depthbuffer, TEXSLOT_DEPTH, cmd);
+
+		XMMATRIX VP = vis.camera->GetViewProjection();
+
+		for (int type = 0; type < LightComponent::LIGHTTYPE_COUNT; ++type)
+		{
+			const PipelineState& pso = PSO_volumetriclight[type];
+
+			if (!pso.IsValid())
+			{
+				continue;
+			}
+
+			device->BindPipelineState(&pso, cmd);
+
+			for (size_t i = 0; i < vis.visibleLights.size(); ++i)
+			{
+				const uint32_t lightIndex = vis.visibleLights[i].index;
+				const LightComponent& light = vis.scene->lights[lightIndex];
+				if (light.GetType() == type && light.IsVolumetricsEnabled())
+				{
+
+					switch (type)
+					{
+					case LightComponent::DIRECTIONAL:
+					{
+						MiscCB miscCb;
+						miscCb.g_xColor.x = float(i);
+						device->UpdateBuffer(&constantBuffers[CBTYPE_MISC], &miscCb, cmd);
+						device->BindConstantBuffer(VS, &constantBuffers[CBTYPE_MISC], CB_GETBINDSLOT(MiscCB), cmd);
+						device->BindConstantBuffer(PS, &constantBuffers[CBTYPE_MISC], CB_GETBINDSLOT(MiscCB), cmd);
+
+						device->Draw(3, 0, cmd); // full screen triangle
+					}
+					break;
+					case LightComponent::POINT:
+					{
+						MiscCB miscCb;
+						miscCb.g_xColor.x = float(i);
+						float sca = light.GetRange() + 1;
+						XMStoreFloat4x4(&miscCb.g_xTransform, XMMatrixScaling(sca, sca, sca)*XMMatrixTranslationFromVector(XMLoadFloat3(&light.position)) * VP);
+						device->UpdateBuffer(&constantBuffers[CBTYPE_MISC], &miscCb, cmd);
+						device->BindConstantBuffer(VS, &constantBuffers[CBTYPE_MISC], CB_GETBINDSLOT(MiscCB), cmd);
+						device->BindConstantBuffer(PS, &constantBuffers[CBTYPE_MISC], CB_GETBINDSLOT(MiscCB), cmd);
+
+						device->Draw(240, 0, cmd); // icosphere
+					}
+					break;
+					case LightComponent::SPOT:
+					{
+						MiscCB miscCb;
+						miscCb.g_xColor.x = float(i);
+						const float coneS = (const float)(light.fov / XM_PIDIV4);
+						XMStoreFloat4x4(&miscCb.g_xTransform, 
+							XMMatrixScaling(coneS*light.GetRange(), light.GetRange(), coneS*light.GetRange())*
+							XMMatrixRotationQuaternion(XMLoadFloat4(&light.rotation))*
+							XMMatrixTranslationFromVector(XMLoadFloat3(&light.position)) *
+							VP
+						);
+						device->UpdateBuffer(&constantBuffers[CBTYPE_MISC], &miscCb, cmd);
+						device->BindConstantBuffer(VS, &constantBuffers[CBTYPE_MISC], CB_GETBINDSLOT(MiscCB), cmd);
+						device->BindConstantBuffer(PS, &constantBuffers[CBTYPE_MISC], CB_GETBINDSLOT(MiscCB), cmd);
+
+						device->Draw(192, 0, cmd); // cone
+					}
+					break;
+					}
+
+				}
+			}
+
+		}
+
+		device->EventEnd(cmd);
