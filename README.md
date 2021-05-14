@@ -1,4 +1,7 @@
 # Adria-DX11
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/bf57622466be45c58d5a30735d989ad4)](https://app.codacy.com/gh/mate286/Adria-DX11?utm_source=github.com&utm_medium=referral&utm_content=mate286/Adria-DX11&utm_campaign=Badge_Grade_Settings)
+
 Graphics engine written in C++/DirectX11.
 
 ## Features
