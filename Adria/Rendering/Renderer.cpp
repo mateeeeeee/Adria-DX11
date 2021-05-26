@@ -477,7 +477,7 @@ namespace adria
 	{
 		BindGlobals();
 
-		this->camera = _camera;
+		camera = _camera;
 
 		frame_cbuf_data.global_ambient = XMVECTOR{ settings.ambient_color[0], settings.ambient_color[1], settings.ambient_color[2], 1.0f };
 
@@ -497,6 +497,22 @@ namespace adria
 		frame_cbuffer->Update(gfx->Context(), frame_cbuf_data);
 
 		frame_cbuf_data.previous_view_projection = camera->ViewProj(); //set for next frame
+
+		
+
+		static f32 _near = 0.0f, _far = 0.0f, _fov = 0.0f, _ar = 0.0f;
+		if (fabs(_near - camera->Near()) > 1e-4 || fabs(_far - camera->Far()) > 1e-4 || fabs(_fov - camera->Fov()) > 1e-4
+			|| fabs(_ar - camera->AspectRatio()) > 1e-4)
+		{
+			_near = camera->Near();
+			_far = camera->Far();
+			_fov = camera->Fov();
+			_ar = camera->AspectRatio();
+
+			recreate_clusters = true;
+		}
+			
+
 	}
 	TextureManager& Renderer::GetTextureManager()
 	{
@@ -2443,16 +2459,20 @@ namespace adria
 
 		auto context = gfx->Context();
 
-		ID3D11UnorderedAccessView* clusters_uav = clusters->UAV();
-		context->CSSetUnorderedAccessViews(0, 1, &clusters_uav, nullptr);
+		if (recreate_clusters)
+		{
+			ID3D11UnorderedAccessView* clusters_uav = clusters->UAV();
+			context->CSSetUnorderedAccessViews(0, 1, &clusters_uav, nullptr);
 
-		compute_programs[ComputeShader::eClusterBuilding].Bind(context);
-		context->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
-		compute_programs[ComputeShader::eClusterBuilding].Unbind(context);
+			compute_programs[ComputeShader::eClusterBuilding].Bind(context);
+			context->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
+			compute_programs[ComputeShader::eClusterBuilding].Unbind(context);
 
-		ID3D11UnorderedAccessView* null_uav = nullptr;
-		context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
+			ID3D11UnorderedAccessView* null_uav = nullptr;
+			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 
+			recreate_clusters = false;
+		}
 
 		ID3D11ShaderResourceView* srvs[] = { clusters->SRV(), lights->SRV() };
 		context->CSSetShaderResources(0, _countof(srvs), srvs);

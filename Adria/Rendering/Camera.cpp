@@ -136,7 +136,6 @@ namespace adria
 	void Camera::Yaw(i64 dx)
 	{
 		// Rotate the basis vectors about the world y-axis.
-
 		DirectX::XMMATRIX R = DirectX::XMMatrixRotationY(SENSITIVITY * DEGREES_TO_RADIANS((f32)dx));
 
 		DirectX::XMStoreFloat3(&right_vector, XMVector3TransformNormal(XMLoadFloat3(&right_vector), R));

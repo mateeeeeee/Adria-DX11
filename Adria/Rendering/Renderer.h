@@ -124,6 +124,7 @@ namespace adria
 		//other
 		//////////////////////////////////////////////////////////////////
 		bool ibl_textures_generated = false;
+		bool recreate_clusters = true;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> env_srv;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> irmap_srv;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> brdf_srv;
