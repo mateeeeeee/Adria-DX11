@@ -43,7 +43,6 @@ namespace adria
         auto UAV() const { return uav.Get(); }
         auto SRV() const { return srv.Get(); }
 
-
         void Update(ID3D11DeviceContext* context, void const* data, u64 data_size)
         {
             if (data_size == 0) return;
@@ -80,9 +79,7 @@ namespace adria
             context->Unmap(buffer.Get(), 0u);
         }
 
-
     private:
-        
 
         u32 const element_count;
         Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;

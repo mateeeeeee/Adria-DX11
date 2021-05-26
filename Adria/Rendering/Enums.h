@@ -44,6 +44,7 @@ namespace adria
 		eAmbientPBR_IBL,
 		eAmbientPBR_SSAO_IBL,
 		eLightingPBR,
+		eClusterLightingPBR,
 		eToneMap_Reinhard,
 		eToneMap_Hable,
 		eToneMap_Linear,
@@ -80,6 +81,8 @@ namespace adria
 		eOceanNormalMap,
 		eOceanPhase,
 		eTiledLighting,
+		eClusterBuilding,
+		eClusterCulling,
 		eVoxelCopy,
 		eVoxelSecondBounce
 	};

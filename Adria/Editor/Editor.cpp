@@ -34,18 +34,15 @@ namespace adria
     /////////////////////////////// PUBLIC //////////////////////////////////
     /////////////////////////////////////////////////////////////////////////
 
-
     Editor::Editor(editor_init_t const& init) : engine()
     {
 
         engine = std::make_unique<Engine>(init.engine_init);
-
         gui = std::make_unique<GUI>(engine->gfx.get());
 
         SetStyle();
 
         Log::AddLogCallback([this](std::string const& s) { editor_log.AddLog(s.c_str()); });
-
     }
 
     void Editor::HandleWindowMessage(window_message_t const& msg_data)
@@ -95,7 +92,6 @@ namespace adria
             engine->Present();
         }
     }
-
 
     /////////////////////////////////////////////////////////////////////////
     /////////////////////////////// PRIVATE /////////////////////////////////
@@ -226,7 +222,7 @@ namespace adria
         {
             //random lights
             {
-                ImGui::Text("For Easy Demonstration of Tiled Deferred Rendering");
+                ImGui::Text("For Easy Demonstration of Tiled/Clustered Deferred Rendering");
                 static int light_count_to_add = 1;
                 ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
 
@@ -766,8 +762,8 @@ namespace adria
 
             f32 _near = camera.Near(), _far = camera.Far();
             f32 _fov = camera.Fov(), _ar = camera.AspectRatio();
-            ImGui::SliderFloat("Near Plane", &_near, 0.0f, 2.0f);
-            ImGui::SliderFloat("Far Plane", &_far, 10.0f, 3000.0f);
+            bool near_changed = ImGui::SliderFloat("Near Plane", &_near, 0.0f, 2.0f);
+            bool far_changed = ImGui::SliderFloat("Far Plane", &_far, 10.0f, 3000.0f);
             ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
             camera.SetNearAndFar(_near, _far);
             camera.SetFov(_fov);
@@ -962,9 +958,12 @@ namespace adria
                 ImGui::TreePop();
             }
 
-            if (ImGui::TreeNode("Tiled Deferred"))
+            if (ImGui::TreeNode("Tiled & Clustered Deferred Shading"))
             {
+
                 ImGui::Checkbox("Tiled Deferred", &settings.use_tiled_deferred);
+                
+                ImGui::Checkbox("Clustered Deferred", &settings.use_clustered_deferred);
 
                 if (settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                 {

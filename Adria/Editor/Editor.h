@@ -133,6 +133,7 @@ namespace adria
         };
 
 	public:
+
         Editor(editor_init_t const& init);
 
 		~Editor() = default;

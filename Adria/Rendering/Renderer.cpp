@@ -394,6 +394,7 @@ namespace adria
 			PassDeferredLighting();
 		
 			if (settings.use_tiled_deferred) PassDeferredTiledLighting();
+			else if (settings.use_clustered_deferred) PassDeferredClusteredLighting();
 		
 			PassForward();
 		}
@@ -467,6 +468,10 @@ namespace adria
 			CreateBokehViews(width, height);
 		}
 
+	}
+	Texture2D Renderer::GetOffscreenTexture() const
+	{
+		return offscreen_ldr_target;
 	}
 	void Renderer::NewFrame(Camera const* _camera)
 	{
@@ -587,6 +592,11 @@ namespace adria
 
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/LightingPBR_PS.cso", ps_blob);
 			standard_programs[StandardShader::eLightingPBR].Create(device, vs_blob, ps_blob);
+
+			//eClusterLightingPBR
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ClusterLightingPBR_PS.cso", ps_blob);
+			standard_programs[StandardShader::eClusterLightingPBR].Create(device, vs_blob, ps_blob);
+
 		}
 
 		
@@ -700,6 +710,7 @@ namespace adria
 		
 		//shadows
 		{
+
 			ShaderBlob vs_blob, ps_blob;
 			ShaderInfo vs_input{}, ps_input{};
 			vs_input.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
@@ -723,6 +734,7 @@ namespace adria
 			ShaderUtility::CompileShader(ps_input, ps_blob);
 
 			standard_programs[StandardShader::eDepthMap_Transparent].Create(device, vs_blob, ps_blob);
+
 		}
 
 		//volumetric lighting
@@ -788,6 +800,12 @@ namespace adria
 
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/TiledLightingCS.cso", cs_blob);
 			compute_programs[ComputeShader::eTiledLighting].Create(device, cs_blob);
+
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ClusterBuildingCS.cso", cs_blob);
+			compute_programs[ComputeShader::eClusterBuilding].Create(device, cs_blob);
+
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ClusterCullingCS.cso", cs_blob);
+			compute_programs[ComputeShader::eClusterCulling].Create(device, cs_blob);
 
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelCopyCS.cso", cs_blob);
 			compute_programs[ComputeShader::eVoxelCopy].Create(device, cs_blob);
@@ -920,7 +938,13 @@ namespace adria
 
 		//for voxelization
 		voxels = std::make_unique<StructuredBuffer<VoxelType>>(device, VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION);
-		
+
+		//for clustered shading
+		static constexpr u32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
+		clusters = std::make_unique<StructuredBuffer<ClusterAABB>>(device, CLUSTER_COUNT);
+		light_counter = std::make_unique<StructuredBuffer<u32>>(device, 1);
+		light_list = std::make_unique<StructuredBuffer<u32>>(device, CLUSTER_COUNT * CLUSTER_MAX_LIGHTS);
+		light_grid = std::make_unique<StructuredBuffer<LightGrid>>(device, CLUSTER_COUNT);
 	}
 
 	void Renderer::CreateSamplers()
@@ -1701,6 +1725,10 @@ namespace adria
 		ibl_textures_generated = true;
 
 	}
+	bool Renderer::IblCreated() const
+	{
+		return env_srv || irmap_srv || brdf_srv;
+	}
 
 	///////////////////////////////////////////////////////////////////////
 
@@ -1993,7 +2021,6 @@ namespace adria
 			LightSBuffer light_data{};
 			auto& light = light_view.get(e);
 
-			if (light.casts_shadows || !light.active) continue;
 			light_data.color = light.color * light.energy;
 			light_data.position  = XMVector4Transform(light.position, camera->View());
 			light_data.direction = XMVector4Transform(light.direction, camera->View());
@@ -2242,7 +2269,8 @@ namespace adria
 			auto const& light_data = lights.get(light);
 
 			if (!light_data.active) continue;
-			if (settings.use_tiled_deferred && !light_data.casts_shadows) continue; //tiled deferred takes care of noncasting lights
+			if ((settings.use_tiled_deferred || settings.use_clustered_deferred) //tiled/clustered deferred takes care of noncasting lights
+				&& !light_data.casts_shadows) continue; 
 
 			//update cbuffer
 			{
@@ -2341,10 +2369,10 @@ namespace adria
 		}
 
 		compute_programs[ComputeShader::eTiledLighting].Bind(context);
-		context->Dispatch((u32)std::ceil(width * 1.0f / 16), (height * 1.0f / 16), 1);
+		context->Dispatch((u32)std::ceil(width * 1.0f / 16), (u32)std::ceil(height * 1.0f / 16), 1);
 
 		ID3D11ShaderResourceView* null_srv[4] = { nullptr };
-		context->CSSetShaderResources(0, 4, null_srv);
+		context->CSSetShaderResources(0, _countof(null_srv), null_srv);
 		ID3D11UnorderedAccessView* null_uav = nullptr;
 		context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 
@@ -2368,11 +2396,9 @@ namespace adria
 			context->OMSetBlendState(nullptr, nullptr, 0xfffffff);
 		}
 		
-		FLOAT black[4] = { 0.0f,0.0f,0.0f,0.0f };
+		f32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
 		context->ClearUnorderedAccessViewFloat(debug_uav, black);
 		context->ClearUnorderedAccessViewFloat(texture_uav, black);
-
-
 
 		std::vector<Light> volumetric_lights{};
 
@@ -2409,6 +2435,95 @@ namespace adria
 		}
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 		lighting_pass.End(context);
+
+	}
+	void Renderer::PassDeferredClusteredLighting()
+	{
+		ADRIA_ASSERT(settings.use_clustered_deferred);
+
+		auto context = gfx->Context();
+
+		ID3D11UnorderedAccessView* clusters_uav = clusters->UAV();
+		context->CSSetUnorderedAccessViews(0, 1, &clusters_uav, nullptr);
+
+		compute_programs[ComputeShader::eClusterBuilding].Bind(context);
+		context->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
+		compute_programs[ComputeShader::eClusterBuilding].Unbind(context);
+
+		ID3D11UnorderedAccessView* null_uav = nullptr;
+		context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
+
+
+		ID3D11ShaderResourceView* srvs[] = { clusters->SRV(), lights->SRV() };
+		context->CSSetShaderResources(0, _countof(srvs), srvs);
+		ID3D11UnorderedAccessView* uavs[] = { light_counter->UAV(), light_list->UAV(), light_grid->UAV() };
+		context->CSSetUnorderedAccessViews(0, _countof(uavs), uavs, nullptr);
+
+		compute_programs[ComputeShader::eClusterCulling].Bind(context);
+		context->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 4);
+		compute_programs[ComputeShader::eClusterCulling].Unbind(context);
+
+		ID3D11ShaderResourceView* null_srvs[2] = { nullptr };
+		context->CSSetShaderResources(0, _countof(null_srvs), null_srvs);
+		ID3D11UnorderedAccessView* null_uavs[3] = { nullptr };
+		context->CSSetUnorderedAccessViews(0, _countof(null_uavs), null_uavs, nullptr);
+
+		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
+
+		lighting_pass.Begin(context);
+		{
+			ID3D11ShaderResourceView* shader_views[6] = { nullptr };
+			shader_views[0] = gbuffer[0].SRV();
+			shader_views[1] = gbuffer[1].SRV();
+			shader_views[2] = depth_stencil_target.SRV();
+			shader_views[3] = lights->SRV();
+			shader_views[4] = light_list->SRV();
+			shader_views[5] = light_grid->SRV();
+
+			context->PSSetShaderResources(0, _countof(shader_views), shader_views);
+
+			context->IASetInputLayout(nullptr);
+			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+			standard_programs[StandardShader::eClusterLightingPBR].Bind(context);
+			context->Draw(4, 0);
+
+			static ID3D11ShaderResourceView* null_srv[6] = { nullptr};
+			context->PSSetShaderResources(0, _countof(null_srv), null_srv);
+
+			//Volumetric lighting for non-shadow casting lights
+			std::vector<Light> volumetric_lights{};
+			auto light_view = reg.view<Light>();
+			for (auto e : light_view)
+			{
+				auto const& light = light_view.get(e);
+				if (light.volumetric && !light.casts_shadows) volumetric_lights.push_back(light);
+			}
+			if (volumetric_lights.empty()) return;
+
+			for (auto const& light : volumetric_lights)
+			{
+				ADRIA_ASSERT(light.volumetric);
+				light_cbuf_data.casts_shadows = light.casts_shadows;
+				light_cbuf_data.color = light.color * light.energy;
+				light_cbuf_data.direction = light.direction;
+				light_cbuf_data.inner_cosine = light.inner_cosine;
+				light_cbuf_data.outer_cosine = light.outer_cosine;
+				light_cbuf_data.position = light.position;
+				light_cbuf_data.range = light.range;
+				light_cbuf_data.volumetric_strength = light.volumetric_strength;
+
+				XMMATRIX camera_view = camera->View();
+				light_cbuf_data.position = XMVector4Transform(light_cbuf_data.position, camera_view);
+				light_cbuf_data.direction = XMVector4Transform(light_cbuf_data.direction, camera_view);
+				light_cbuffer->Update(context, light_cbuf_data);
+
+				PassVolumetric(light);
+			}
+
+		}
+		lighting_pass.End(context);
+		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 
 	}
 	void Renderer::PassForward()

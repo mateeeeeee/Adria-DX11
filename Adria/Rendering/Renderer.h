@@ -35,6 +35,10 @@ namespace adria
 		static constexpr u32 RESOLUTION = 512;
 		static constexpr u32 VOXEL_RESOLUTION = 128;
 		static constexpr u32 VOXELIZE_MAX_LIGHTS = 8;
+		static constexpr u32 CLUSTER_SIZE_X = 16;
+		static constexpr u32 CLUSTER_SIZE_Y = 16;
+		static constexpr u32 CLUSTER_SIZE_Z = 16;
+		static constexpr u32 CLUSTER_MAX_LIGHTS = 128;
 		
 	public:
 
@@ -52,20 +56,13 @@ namespace adria
 
 		void OnResize(u32 width, u32 height);
 
-		Texture2D GetOffscreenTexture() const
-		{
-			return offscreen_ldr_target;
-		}
+		Texture2D GetOffscreenTexture() const;
 
 		TextureManager& GetTextureManager();
 
 		void CreateIBLTextures();
 
-		bool IblCreated() const
-		{
-			return env_srv || irmap_srv || brdf_srv;
-		}
-
+		bool IblCreated() const;
 	private:
 		u32 width, height;
 		tecs::registry& reg;
@@ -173,6 +170,10 @@ namespace adria
 		//Structured Buffers
 		std::unique_ptr<StructuredBuffer<LightSBuffer>> lights = nullptr;
 		std::unique_ptr<StructuredBuffer<VoxelType>>	voxels = nullptr;
+		std::unique_ptr<StructuredBuffer<ClusterAABB>>	clusters = nullptr;
+		std::unique_ptr<StructuredBuffer<u32>>			light_counter = nullptr;
+		std::unique_ptr<StructuredBuffer<u32>>			light_list = nullptr;
+		std::unique_ptr<StructuredBuffer<LightGrid>>	light_grid = nullptr;
 
 		//samplers
 		Microsoft::WRL::ComPtr<ID3D11SamplerState>			linear_wrap_sampler;
@@ -215,13 +216,14 @@ namespace adria
 		void UpdateVoxelData();
 		void CameraFrustumCulling();
 		void LightFrustumCulling(LightType type);
-
+		
 		//called in render
 		void PassGbuffer();
 		void PassSSAO();
 		void PassAmbient();
 		void PassDeferredLighting();  
 		void PassDeferredTiledLighting();
+		void PassDeferredClusteredLighting();
 		void PassForward(); 
 		void PassVoxelize();
 		void PassVoxelizeDebug();

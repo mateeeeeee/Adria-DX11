@@ -2,9 +2,7 @@
 #include "../Util/LightUtil.hlsli"
 
 #define MAX_TILE_LIGHTS 256
-#define TILED_LIGHTING_GROUP_SIZE 16
-
-
+#define TILED_GROUP_SIZE 16
 
 
 
@@ -24,7 +22,7 @@ groupshared uint tile_num_lights;
 
 
 
-[numthreads(TILED_LIGHTING_GROUP_SIZE, TILED_LIGHTING_GROUP_SIZE, 1)]
+[numthreads(TILED_GROUP_SIZE, TILED_GROUP_SIZE, 1)]
 void main(uint3 groupId : SV_GroupID,
           uint3 dispatchThreadId : SV_DispatchThreadID,
           uint3 groupThreadId : SV_GroupThreadID,
@@ -78,7 +76,7 @@ void main(uint3 groupId : SV_GroupID,
     // Relevant matrix columns for this tile frusta
     
     // Work out scale/bias from [0, 1]
-    float2 tileScale = screen_resolution * rcp(float(2 * TILED_LIGHTING_GROUP_SIZE));
+    float2 tileScale = screen_resolution * rcp(float(2 * TILED_GROUP_SIZE));
     float2 tileBias = tileScale - float2(groupId.xy);
     
     float4 c1 = float4(projection._11 * tileScale.x, 0.0f, tileBias.x, 0.0f);
@@ -103,7 +101,7 @@ void main(uint3 groupId : SV_GroupID,
     }
     
     
-    for (uint lightIndex = groupIndex; lightIndex < totalLights; lightIndex += TILED_LIGHTING_GROUP_SIZE * TILED_LIGHTING_GROUP_SIZE)
+    for (uint lightIndex = groupIndex; lightIndex < totalLights; lightIndex += TILED_GROUP_SIZE * TILED_GROUP_SIZE)
     {
         StructuredLight light = lights[lightIndex];
                 

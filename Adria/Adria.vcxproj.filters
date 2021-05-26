@@ -71,6 +71,9 @@
     <Filter Include="Editor">
       <UniqueIdentifier>{82f8fa3a-c2b4-4cd1-9a90-c46b3a0b1dfb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scripting">
+      <UniqueIdentifier>{64244739-b8c4-40a3-8d70-2ba594b0a8ae}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -652,6 +655,15 @@
       <Filter>Shaders\GI</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\Equirect2cubeCS.hlsl">
+      <Filter>Shaders\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Deferred\ClusterBuildingCS.hlsl">
+      <Filter>Shaders\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Deferred\ClusterCullingCS.hlsl">
+      <Filter>Shaders\Deferred</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Deferred\ClusterLightingPBR_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
   </ItemGroup>
