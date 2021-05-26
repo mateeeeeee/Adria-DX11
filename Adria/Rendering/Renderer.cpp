@@ -494,11 +494,11 @@ namespace adria
 		frame_cbuf_data.screen_resolution_y = height;
 		frame_cbuf_data.fog_near = settings.fog_near;
 		frame_cbuf_data.fog_far = settings.fog_far;
+
 		frame_cbuffer->Update(gfx->Context(), frame_cbuf_data);
 
 		frame_cbuf_data.previous_view_projection = camera->ViewProj(); //set for next frame
 
-		
 
 		static f32 _near = 0.0f, _far = 0.0f, _fov = 0.0f, _ar = 0.0f;
 		if (fabs(_near - camera->Near()) > 1e-4 || fabs(_far - camera->Far()) > 1e-4 || fabs(_fov - camera->Fov()) > 1e-4
@@ -508,7 +508,6 @@ namespace adria
 			_far = camera->Far();
 			_fov = camera->Fov();
 			_ar = camera->AspectRatio();
-
 			recreate_clusters = true;
 		}
 			

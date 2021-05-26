@@ -579,13 +579,25 @@ namespace adria
                     if (ImGui::CollapsingHeader("Forward")) ImGui::Checkbox("Transparent", &forward->transparent);
                 }
 
-
-                
                 static char const* const components[] = { "Mesh", "Transform", "Material",
-                "Visibility", "Light", "Skybox", "Deferred", "Forward"};
-
+               "Visibility", "Light", "Skybox", "Deferred", "Forward" };
+                
                 static int current_component = 0;
-                ImGui::ListBox("Components", &current_component, components, IM_ARRAYSIZE(components));
+                const char* combo_label = components[current_component];  
+                if (ImGui::BeginCombo("Components", combo_label, 0))
+                {
+                    for (int n = 0; n < IM_ARRAYSIZE(components); n++)
+                    {
+                        const bool is_selected = (current_component == n);
+                        if (ImGui::Selectable(components[n], is_selected))
+                            current_component = n;
+
+                        // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
 
                 static model_parameters_t params{};
                 if (current_component == MESH)
@@ -616,8 +628,7 @@ namespace adria
                     ImGui::ListBox("Light Types", &current_light_type, light_types, IM_ARRAYSIZE(light_types));
                     light_type = static_cast<LightType>(current_light_type);
                 }
-               
-                
+
                 if (ImGui::Button("Add Component"))
                 {
                     switch(current_component)
@@ -762,8 +773,8 @@ namespace adria
 
             f32 _near = camera.Near(), _far = camera.Far();
             f32 _fov = camera.Fov(), _ar = camera.AspectRatio();
-            bool near_changed = ImGui::SliderFloat("Near Plane", &_near, 0.0f, 2.0f);
-            bool far_changed = ImGui::SliderFloat("Far Plane", &_far, 10.0f, 3000.0f);
+            ImGui::SliderFloat("Near Plane", &_near, 0.0f, 2.0f);
+            ImGui::SliderFloat("Far Plane", &_far, 10.0f, 3000.0f);
             ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
             camera.SetNearAndFar(_near, _far);
             camera.SetFov(_fov);
@@ -845,6 +856,61 @@ namespace adria
         
         ImGui::Begin("Renderer Settings");
         {
+            
+            if (ImGui::TreeNode("Deferred Settings"))
+            {
+
+                const char* items[] = { "Regular", "Tiled", "Clustered" };
+                static int item_current_idx = 0; // Here we store our selection data as an index.
+                const char* combo_label = items[item_current_idx];  // Label to preview before opening the combo (technically it could be anything)
+                if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
+                {
+                    for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+                    {
+                        const bool is_selected = (item_current_idx == n);
+                        if (ImGui::Selectable(items[n], is_selected))
+                            item_current_idx = n;
+
+                        // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                settings.use_tiled_deferred = (item_current_idx == 1);
+                settings.use_clustered_deferred = (item_current_idx == 2);
+
+                if (settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                {
+                    ImGui::Checkbox("Visualize Tiles", &settings.visualize_tiled);
+                    if (settings.visualize_tiled) ImGui::SliderInt("Visualize Scale", &settings.visualize_max_lights, 1, 32);
+
+                    ImGui::TreePop();
+                    ImGui::Separator();
+                }
+
+                ImGui::TreePop();
+            }
+
+            if (ImGui::TreeNode("Voxel GI"))
+            {
+                ImGui::Checkbox("Voxel GI", &settings.voxel_gi);
+
+                if (settings.voxel_gi)
+                {
+                    bool voxel_size_changed = ImGui::SliderFloat("Voxel Size", &settings.voxel_size, 0.125f, 8.0f);
+                    ImGui::SliderInt("Cone Number", &settings.voxel_num_cones, 1, 6);
+                    ImGui::SliderFloat("Ray Step", &settings.voxel_ray_step_distance, 0.5f, 5.0f);
+                    ImGui::SliderFloat("Max Distance", &settings.voxel_max_distance, 1.0f, 50.0f);
+                    ImGui::Checkbox("Second Bounce", &settings.voxel_second_bounce);
+                    ImGui::Checkbox("Voxel GI Debug", &settings.voxel_debug);
+                }
+                settings.voxel_debug = settings.voxel_debug && settings.voxel_gi; //voxel debug cannot be true unless voxel_gi is true
+
+                ImGui::TreePop();
+            }
+
             if (ImGui::TreeNode("Postprocessing"))
             {
                 ImGui::Checkbox("Volumetric Clouds", &settings.clouds);
@@ -939,44 +1005,7 @@ namespace adria
 
                 ImGui::TreePop();
             }
-
-            if (ImGui::TreeNode("Voxel GI"))
-            {
-                ImGui::Checkbox("Voxel GI", &settings.voxel_gi);
-
-                if (settings.voxel_gi)
-                {
-                    bool voxel_size_changed = ImGui::SliderFloat("Voxel Size", &settings.voxel_size, 0.125f, 8.0f);
-                    ImGui::SliderInt("Cone Number", &settings.voxel_num_cones, 1, 6);
-                    ImGui::SliderFloat("Ray Step", &settings.voxel_ray_step_distance, 0.5f, 5.0f);
-                    ImGui::SliderFloat("Max Distance", &settings.voxel_max_distance, 1.0f, 50.0f);
-                    ImGui::Checkbox("Second Bounce", &settings.voxel_second_bounce);
-                    ImGui::Checkbox("Voxel GI Debug", &settings.voxel_debug);
-                }
-                settings.voxel_debug = settings.voxel_debug && settings.voxel_gi; //voxel debug cannot be true unless voxel_gi is true
-
-                ImGui::TreePop();
-            }
-
-            if (ImGui::TreeNode("Tiled & Clustered Deferred Shading"))
-            {
-
-                ImGui::Checkbox("Tiled Deferred", &settings.use_tiled_deferred);
-                
-                ImGui::Checkbox("Clustered Deferred", &settings.use_clustered_deferred);
-
-                if (settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
-                {
-                    ImGui::Checkbox("Visualize", &settings.visualize_tiled);
-                    if (settings.visualize_tiled) ImGui::SliderInt("Visualize Scale", &settings.visualize_max_lights, 1, 32);
-
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
-
-                ImGui::TreePop();
-            }
-
+            
             if (ImGui::TreeNode("Misc"))
             {
                 ImGui::ColorEdit3("Ambient Color", settings.ambient_color);
@@ -997,7 +1026,6 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-
 
                 if (settings.ibl && !engine->renderer->IblCreated()) engine->renderer->CreateIBLTextures();
 
