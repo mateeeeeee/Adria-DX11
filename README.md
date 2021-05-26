@@ -8,6 +8,7 @@ Graphics engine written in C++/DirectX11.
 * Entity-Component System
 * Deferred + Forward Rendering 
 * Tiled Deferred Rendering 
+* Clustered Deferred Rendering
 * Voxel Cone Tracing Global Illumination
 * Physically Based Shading
 * Image Based Lighting
