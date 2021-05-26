@@ -17,19 +17,7 @@ namespace adria
 {
 	using namespace tecs;
 
-
-	enum COMPONENT_INDEX
-        {
-            MESH,
-            TRANSFORM,
-            MATERIAL,
-            VISIBILITY,
-            LIGHT,
-            SKYBOX,
-            DEFERRED,
-            FORWARD
-        };
-
+	
     /////////////////////////////////////////////////////////////////////////
     /////////////////////////////// PUBLIC //////////////////////////////////
     /////////////////////////////////////////////////////////////////////////
@@ -598,6 +586,18 @@ namespace adria
                     }
                     ImGui::EndCombo();
                 }
+
+                enum COMPONENT_INDEX
+                {
+                    MESH,
+                    TRANSFORM,
+                    MATERIAL,
+                    VISIBILITY,
+                    LIGHT,
+                    SKYBOX,
+                    DEFERRED,
+                    FORWARD
+                };
 
                 static model_parameters_t params{};
                 if (current_component == MESH)
