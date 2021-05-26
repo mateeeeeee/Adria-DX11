@@ -40,8 +40,6 @@ Graphics engine written in C++/DirectX11.
 * Camera and Light Frustum Culling
 
 ### To Do
-* Postprocessing with downscaled textures
-* Blur Volumetric Lighting
 * Atmospheric Scattering
 * Terrain
 * Particle Engine
