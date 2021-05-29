@@ -19,13 +19,11 @@ namespace adria
         std::string textures_path = "";
         DirectX::XMMATRIX model = DirectX::XMMatrixIdentity();
 	};
-
     struct skybox_parameters_t
     {
         std::optional<std::wstring> cubemap;
         std::array<std::string, 6> cubemap_textures;
     };
-
     struct grid_parameters_t
     {
         u64 tile_count_x;
@@ -38,12 +36,15 @@ namespace adria
         u64 chunk_count_z;
         bool split_to_chunks = false;
         bool calculate_normals = false;
-        std::function<float(float, float)> height_callback = nullptr;
     };
-
     struct ocean_parameters_t
     {
         grid_parameters_t ocean_grid;
+    };
+
+    struct terrain_parameters_t
+    {
+        grid_parameters_t terrain_grid;
     };
 
     enum class LightMesh
@@ -52,7 +53,6 @@ namespace adria
         eQuad,
         eSphere
     };
-
     struct light_parameters_t
     {
         Light light_data;
@@ -61,17 +61,18 @@ namespace adria
         std::optional<std::string> light_texture = std::nullopt;
     };
 
+
+
     class TextureManager;
 
-	class ModelImporter
+	class EntityLoader
 	{
-
         [[nodiscard]]
         std::vector<tecs::entity> LoadGrid(grid_parameters_t const& args);
 
 	public:
         
-        ModelImporter(tecs::registry& reg, ID3D11Device* device, TextureManager& texture_manager);
+        EntityLoader(tecs::registry& reg, ID3D11Device* device, TextureManager& texture_manager);
 
         [[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(model_parameters_t const&);
 
@@ -80,6 +81,8 @@ namespace adria
         [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
 
         [[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
+
+        [[maybe_unused]] std::vector<tecs::entity> LoadTerrain(terrain_parameters_t const&);
 
         void LoadModelMesh(tecs::entity, model_parameters_t const&);
 	private:

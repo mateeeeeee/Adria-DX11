@@ -7,7 +7,7 @@
 #include "../Graphics/GraphicsCoreDX11.h"
 #include "../Rendering/Renderer.h"
 #include "../Editor/GUI.h"
-#include "../Rendering/ModelImporter.h"
+#include "../Rendering/EntityLoader.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/Timer.h"
 #include "../Audio/AudioSystem.h"
@@ -23,7 +23,7 @@ namespace adria
 
 		gfx = std::make_unique<GraphicsCoreDX11>(Window::Handle());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
-		model_importer = std::make_unique<ModelImporter>(reg, gfx->Device(), renderer->GetTextureManager());
+		model_importer = std::make_unique<EntityLoader>(reg, gfx->Device(), renderer->GetTextureManager());
 		
 		camera_desc_t camera_desc{};
 		camera_desc.aspect_ratio = static_cast<f32>(Window::Width()) / Window::Height();
@@ -112,7 +112,7 @@ namespace adria
 		
 		
 		skybox_parameters_t skybox_params{};
-		skybox_params.cubemap = L"Resources/Textures/Skybox/barcelona.hdr"; 
+		skybox_params.cubemap = L"Resources/Textures/Skybox/monoLake.hdr"; 
 
 		model_importer->LoadSkybox(skybox_params);
 
@@ -128,12 +128,12 @@ namespace adria
 
 		light_parameters_t light_params{};
 		light_params.light_data.casts_shadows = true;
-		light_params.light_data.color = DirectX::XMVectorSet(1.0f, 0.7f, 0.6f, 1.0f);
-		light_params.light_data.energy = 12;
-		light_params.light_data.direction = DirectX::XMVectorSet(0.1f, -1.0f, 0.1f, 0.0f);
+		light_params.light_data.color = DirectX::XMVectorSet(1.0f, 0.9f, 0.99f, 1.0f);
+		light_params.light_data.energy = 8;
+		light_params.light_data.direction = DirectX::XMVectorSet(0.1f, -1.0f, 0.25f, 0.0f);
 		light_params.light_data.type = LightType::eDirectional;
 		light_params.light_data.active = true;
-		light_params.light_data.use_cascades = false;
+		light_params.light_data.use_cascades = true;
 		light_params.light_data.volumetric = false;
 		light_params.light_data.volumetric_strength = 1.0f;
 		light_params.mesh_type = LightMesh::eQuad;

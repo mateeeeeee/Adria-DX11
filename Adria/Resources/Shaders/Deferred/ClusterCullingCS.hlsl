@@ -36,10 +36,9 @@ groupshared StructuredLight shared_lights[GROUP_SIZE];
 
 bool LightIntersectsCluster(StructuredLight light, ClusterAABB cluster)
 {
-    if (light.type == DIRECTIONAL_LIGHT)
-        return true;
+    if (light.type == DIRECTIONAL_LIGHT) return true;
 
-    float3 closest = max(cluster.min_point, min(light.position, cluster.max_point));
+    float3 closest = max(cluster.min_point, min(light.position, cluster.max_point)).xyz;
 
     float3 dist = closest - light.position.xyz;
     return dot(dist, dist) <= (light.range * light.range);

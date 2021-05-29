@@ -4,7 +4,7 @@
 #include "assimp/postprocess.h"
 #include "assimp/pbrmaterial.h"
 
-#include "ModelImporter.h"
+#include "EntityLoader.h"
 #include "../Graphics/VertexTypes.h"
 #include "../Graphics/TextureManager.h"
 #include "../Logging/Logger.h"
@@ -18,7 +18,7 @@ namespace adria
     using namespace tecs;
 
     [[nodiscard]]
-    std::vector<entity> ModelImporter::LoadGrid(grid_parameters_t const& args)
+    std::vector<entity> EntityLoader::LoadGrid(grid_parameters_t const& args)
     {
         std::vector<entity> chunks;
 
@@ -29,8 +29,6 @@ namespace adria
             {
                 TexturedNormalVertex vertex{};
                 vertex.position = XMFLOAT3(i * args.tile_size_x, 0.0f, j * args.tile_size_z);
-
-                vertex.position.y = args.height_callback ? args.height_callback(vertex.position.x, vertex.position.z) : 0.0f;
 
                 vertex.uv = XMFLOAT2(i * 1.0f * args.texture_scale_x / (args.tile_count_x - 1), j * 1.0f * args.texture_scale_z / (args.tile_count_z - 1));
                 vertex.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
@@ -164,12 +162,12 @@ namespace adria
 
     }
 
-    ModelImporter::ModelImporter(registry& reg,ID3D11Device* device, TextureManager& texture_manager) : reg(reg),
+    EntityLoader::EntityLoader(registry& reg,ID3D11Device* device, TextureManager& texture_manager) : reg(reg),
         texture_manager(texture_manager), device(device)
     {}
 
     [[maybe_unused]]
-    std::vector<entity> ModelImporter::LoadGLTFModel(model_parameters_t const& params)
+    std::vector<entity> EntityLoader::LoadGLTFModel(model_parameters_t const& params)
     {
         Assimp::Importer importer;
 
@@ -344,7 +342,7 @@ namespace adria
     }
 
     [[maybe_unused]]
-    entity ModelImporter::LoadSkybox(skybox_parameters_t const& params)
+    entity EntityLoader::LoadSkybox(skybox_parameters_t const& params)
     {
         entity skybox = reg.create();
 
@@ -406,7 +404,7 @@ namespace adria
     }
 
     [[maybe_unused]] 
-    entity ModelImporter::LoadLight(light_parameters_t const& params)
+    entity EntityLoader::LoadLight(light_parameters_t const& params)
     {
         entity light = reg.create();
 
@@ -503,9 +501,9 @@ namespace adria
     }
 
     [[maybe_unused]]
-    std::vector<entity> ModelImporter::LoadOcean(ocean_parameters_t const& params)
+    std::vector<entity> EntityLoader::LoadOcean(ocean_parameters_t const& params)
     {
-        std::vector<entity> ocean_chunks = ModelImporter::LoadGrid(params.ocean_grid);
+        std::vector<entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
 
         Material ocean_material{};
         ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
@@ -526,7 +524,7 @@ namespace adria
         return ocean_chunks;
     }
 
-    void ModelImporter::LoadModelMesh(tecs::entity e, model_parameters_t const& params)
+    void EntityLoader::LoadModelMesh(tecs::entity e, model_parameters_t const& params)
     {
         
         Assimp::Importer importer;

@@ -148,7 +148,7 @@ namespace adria
 		bool active = false;
 	};
 
-	struct COMPONENT Ocean {};
+	struct COMPONENT Ocean{};
 
 	struct COMPONENT Deferred {};
 
