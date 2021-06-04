@@ -542,6 +542,10 @@ namespace adria
     {
         std::vector<entity> terrain_chunks = EntityLoader::LoadGrid(params.terrain_grid);
 
+
+
+
+        return terrain_chunks;
     }
 
     void EntityLoader::LoadModelMesh(tecs::entity e, model_parameters_t const& params)

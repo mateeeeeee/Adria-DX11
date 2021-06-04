@@ -4,7 +4,7 @@
 #include "../Core/Definitions.h"
 #include "../Math/Constants.h"
 #include <DirectXCollision.h>
-
+#include "../Utilities/Heightmap.h"
 
 #include "../Graphics/VertexTypes.h"
 #include "../Graphics/VertexBuffer.h"
@@ -148,9 +148,7 @@ namespace adria
 		bool active = false;
 	};
 
-	struct COMPONENT Ocean{};
-
-	class Heightmap;
+	struct COMPONENT Ocean {};
 
 	struct COMPONENT Terrain
 	{

@@ -3,7 +3,7 @@
 #include <vector>
 #include <concepts>
 #include "../Core/Definitions.h"
-#include "NormalEnum.h"
+
 
 
 namespace adria

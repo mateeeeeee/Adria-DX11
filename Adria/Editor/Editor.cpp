@@ -256,7 +256,12 @@ namespace adria
                 ocean_params.texture_scale_z = texture_scale[1];
 
                 if (ImGui::Button("Load Ocean"))
-                    engine->model_importer->LoadOcean(ocean_parameters_t{ ocean_params });
+                {
+                    ocean_parameters_t params{};
+                    params.ocean_grid = std::move(ocean_params);
+                    engine->model_importer->LoadOcean(params);
+                }
+                   
             }
 
         }
