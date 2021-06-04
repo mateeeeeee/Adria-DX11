@@ -150,6 +150,13 @@ namespace adria
 
 	struct COMPONENT Ocean{};
 
+	class Heightmap;
+
+	struct COMPONENT Terrain
+	{
+		inline static std::unique_ptr<Heightmap> heightmap = nullptr;
+	};
+
 	struct COMPONENT Deferred {};
 
 	struct COMPONENT Forward 

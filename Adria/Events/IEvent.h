@@ -41,7 +41,7 @@ namespace adria
 				inline static const EventTypeID type = counter++;
 #else 
 			template<typename Type, typename = std::enable_if_t<IsEvent<Type>>>
-			inline static const EventTypeID type = counter++;
+			inline static const EventTypeID noise_type = counter++;
 #endif
 		};
 

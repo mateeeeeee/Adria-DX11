@@ -167,6 +167,9 @@
     <ClCompile Include="..\ThirdParty\ImGui\ImGuiFileDialog.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\Heightmap.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -405,6 +408,12 @@
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\ImGuiFileDialogConfig.h">
       <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\ComputeNormals.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Heightmap.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

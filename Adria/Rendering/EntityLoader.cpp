@@ -10,6 +10,7 @@
 #include "../Logging/Logger.h"
 #include "../Math/BoundingVolumeHelpers.h"
 #include "../Utilities/FilesUtil.h"
+#include "../Utilities/Heightmap.h"
 
 using namespace DirectX;
 
@@ -18,32 +19,39 @@ namespace adria
     using namespace tecs;
 
     [[nodiscard]]
-    std::vector<entity> EntityLoader::LoadGrid(grid_parameters_t const& args)
+    std::vector<entity> EntityLoader::LoadGrid(grid_parameters_t const& params)
     {
-        std::vector<entity> chunks;
-
-        std::vector<TexturedNormalVertex> vertices{};
-        for (u64 j = 0; j <= args.tile_count_z; j++)
+        if (params.heightmap)
         {
-            for (u64 i = 0; i <= args.tile_count_x; i++)
+            ADRIA_ASSERT(params.heightmap->Depth() == params.tile_count_z);
+            ADRIA_ASSERT(params.heightmap->Width() == params.tile_count_x);
+        }
+
+        std::vector<entity> chunks;
+        std::vector<TexturedNormalVertex> vertices{};
+        for (u64 j = 0; j <= params.tile_count_z; j++)
+        {
+            for (u64 i = 0; i <= params.tile_count_x; i++)
             {
                 TexturedNormalVertex vertex{};
-                vertex.position = XMFLOAT3(i * args.tile_size_x, 0.0f, j * args.tile_size_z);
 
-                vertex.uv = XMFLOAT2(i * 1.0f * args.texture_scale_x / (args.tile_count_x - 1), j * 1.0f * args.texture_scale_z / (args.tile_count_z - 1));
+                f32 height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
+
+                vertex.position = XMFLOAT3(i * params.tile_size_x, height, j * params.tile_size_z);
+                vertex.uv = XMFLOAT2(i * 1.0f * params.texture_scale_x / (params.tile_count_x - 1), j * 1.0f * params.texture_scale_z / (params.tile_count_z - 1));
                 vertex.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
                 vertices.push_back(vertex);
             }
         }
 
-        if (!args.split_to_chunks)
+        if (!params.split_to_chunks)
         {
             std::vector<u32> indices{};
             u32 i1 = 0;
             u32 i2 = 1;
-            u32 i3 = static_cast<u32>(i1 + args.tile_count_x + 1);
-            u32 i4 = static_cast<u32>(i2 + args.tile_count_x + 1);
-            for (u64 i = 0; i < args.tile_count_x * args.tile_count_z; ++i)
+            u32 i3 = static_cast<u32>(i1 + params.tile_count_x + 1);
+            u32 i4 = static_cast<u32>(i2 + params.tile_count_x + 1);
+            for (u64 i = 0; i < params.tile_count_x * params.tile_count_z; ++i)
             {
                 indices.push_back(i1);
                 indices.push_back(i3);
@@ -60,7 +68,7 @@ namespace adria
                 ++i3;
                 ++i4;
 
-                if (i1 % (args.tile_count_x + 1) == args.tile_count_x)
+                if (i1 % (params.tile_count_x + 1) == params.tile_count_x)
                 {
                     ++i1;
                     ++i2;
@@ -68,6 +76,8 @@ namespace adria
                     ++i4;
                 }
             }
+
+            ComputeNormals(params.normal_type, vertices, indices);
 
             entity grid = reg.create();
 
@@ -89,25 +99,25 @@ namespace adria
         else
         {
             std::vector<u32> indices{};
-            for (size_t j = 0; j < args.tile_count_z; j += args.chunk_count_z)
+            for (size_t j = 0; j < params.tile_count_z; j += params.chunk_count_z)
             {
-                for (size_t i = 0; i < args.tile_count_x; i += args.chunk_count_x)
+                for (size_t i = 0; i < params.tile_count_x; i += params.chunk_count_x)
                 {
                     entity chunk = reg.create();
 
-                    u32 const indices_count = static_cast<u32>(args.chunk_count_z * args.chunk_count_x * 3 * 2);
+                    u32 const indices_count = static_cast<u32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
                     u32 const indices_offset = static_cast<u32>(indices.size());
 
 
                     std::vector<TexturedNormalVertex> chunk_vertices_aabb{};
-                    for (size_t k = j; k < j + args.chunk_count_z; ++k)
+                    for (size_t k = j; k < j + params.chunk_count_z; ++k)
                     {
-                        for (size_t m = i; m < i + args.chunk_count_x; ++m)
+                        for (size_t m = i; m < i + params.chunk_count_x; ++m)
                         {
 
-                            u32 i1 = static_cast<u32>(k * (args.tile_count_x + 1) + m);
+                            u32 i1 = static_cast<u32>(k * (params.tile_count_x + 1) + m);
                             u32 i2 = static_cast<u32>(i1 + 1);
-                            u32 i3 = static_cast<u32>((k + 1) * (args.tile_count_x + 1) + m);
+                            u32 i3 = static_cast<u32>((k + 1) * (params.tile_count_x + 1) + m);
                             u32 i4 = static_cast<u32>(i3 + 1);
 
                             indices.push_back(i1);
@@ -142,6 +152,8 @@ namespace adria
 
                 }
             }
+
+            ComputeNormals(params.normal_type, vertices, indices);
 
             std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>();
             std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>();
@@ -503,6 +515,7 @@ namespace adria
     [[maybe_unused]]
     std::vector<entity> EntityLoader::LoadOcean(ocean_parameters_t const& params)
     {
+
         std::vector<entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
 
         Material ocean_material{};
@@ -522,6 +535,13 @@ namespace adria
         }
 
         return ocean_chunks;
+    }
+
+    [[maybe_unused]]
+    std::vector<tecs::entity> EntityLoader::LoadTerrain(terrain_parameters_t const& params)
+    {
+        std::vector<entity> terrain_chunks = EntityLoader::LoadGrid(params.terrain_grid);
+
     }
 
     void EntityLoader::LoadModelMesh(tecs::entity e, model_parameters_t const& params)

@@ -93,8 +93,8 @@ namespace adria
 	}
 	void GraphicsCoreDX11::ClearBackbuffer()
 	{
-		f32 clearColor[] = { 0.0f,0.0f, 0.0f,0.0f };
-		immediate_context->ClearRenderTargetView(backbuffer_rtv.Get(), clearColor);
+		f32 clear_color[] = { 0.0f,0.0f, 0.0f,0.0f };
+		immediate_context->ClearRenderTargetView(backbuffer_rtv.Get(), clear_color);
 	}
 	void GraphicsCoreDX11::SwapBuffers(bool vsync)
 	{

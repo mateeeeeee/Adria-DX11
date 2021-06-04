@@ -2552,7 +2552,7 @@ namespace IGFD
 
 				auto infos = &m_FilteredFileList[m_LocateFileByInputChar_lastFileIdx];
 
-				if (infos->type == 'd')
+				if (infos->noise_type == 'd')
 				{
 					if (dlg_filters.empty()) // directory chooser
 					{
@@ -2651,7 +2651,7 @@ namespace IGFD
 
 				auto infos = &m_FilteredFileList[m_LocateFileByInputChar_lastFileIdx];
 
-				if (infos->type == 'd')
+				if (infos->noise_type == 'd')
 				{
 					if (!dlg_filters.empty() || enterInDirectory)
 					{

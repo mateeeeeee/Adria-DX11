@@ -8,6 +8,7 @@
 #include "Components.h"
 #include "../Core/Definitions.h"
 #include "../tecs/registry.h"
+#include "../Math/ComputeNormals.h"
 
 struct ID3D11Device;
 
@@ -35,16 +36,20 @@ namespace adria
         u64 chunk_count_x;
         u64 chunk_count_z;
         bool split_to_chunks = false;
-        bool calculate_normals = false;
+        NormalCalculation normal_type = NormalCalculation::eNone;
+        std::unique_ptr<Heightmap> heightmap = nullptr;
     };
     struct ocean_parameters_t
     {
         grid_parameters_t ocean_grid;
     };
-
     struct terrain_parameters_t
     {
         grid_parameters_t terrain_grid;
+        std::optional<std::string> terrain_texture_1;
+        std::optional<std::string> terrain_texture_2;
+        std::optional<std::string> terrain_texture_3;
+        std::optional<std::string> terrain_texture_4;
     };
 
     enum class LightMesh
