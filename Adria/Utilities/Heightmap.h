@@ -21,7 +21,7 @@ namespace adria
 		eRidged,
 		ePingPong
 	};
-	struct noise_desc
+	struct noise_desc_t
 	{
 		u32 width;
 		u32 depth;
@@ -41,7 +41,7 @@ namespace adria
 
 	public:
 		
-		Heightmap(noise_desc const& desc);
+		Heightmap(noise_desc_t const& desc);
 
 		Heightmap(std::string_view heightmap_path);
 

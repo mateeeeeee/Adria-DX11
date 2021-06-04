@@ -28,6 +28,7 @@ namespace adria
         {
             std::vector<XMVECTOR> normals(vertices.size());
 
+           
             for (size_t face = 0; face < indices.size() / 3; ++face)
             {
                 index_t i0 = indices[face * 3];
@@ -42,7 +43,7 @@ namespace adria
                 if (i0 >= vertices.size()
                     || i1 >= vertices.size()
                     || i2 >= vertices.size())
-                    return;
+                    break;
 
                 XMVECTOR p1 = XMLoadFloat3(&vertices[i0].position);
                 XMVECTOR p2 = XMLoadFloat3(&vertices[i1].position);

@@ -23,8 +23,8 @@ namespace adria
     {
         if (params.heightmap)
         {
-            ADRIA_ASSERT(params.heightmap->Depth() == params.tile_count_z);
-            ADRIA_ASSERT(params.heightmap->Width() == params.tile_count_x);
+            ADRIA_ASSERT(params.heightmap->Depth() == params.tile_count_z + 1);
+            ADRIA_ASSERT(params.heightmap->Width() == params.tile_count_x + 1);
         }
 
         std::vector<entity> chunks;
@@ -543,7 +543,16 @@ namespace adria
         std::vector<entity> terrain_chunks = EntityLoader::LoadGrid(params.terrain_grid);
 
 
+        Terrain terrain_component{};
+        //Terrain::heightmap = params.terrain_grid.heightmap;
+        Terrain::albedo_texture = texture_manager.LoadTexture(params.terrain_texture_1.value());
 
+        for (auto terrain_chunk : terrain_chunks)
+        {
+            reg.emplace<Terrain>(terrain_chunk, terrain_component);
+
+            reg.emplace<Tag>(terrain_chunk, "Terrain Chunk" + std::to_string(as_integer(terrain_chunk)));
+        }
 
         return terrain_chunks;
     }

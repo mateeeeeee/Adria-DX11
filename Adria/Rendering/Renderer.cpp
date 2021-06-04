@@ -572,6 +572,11 @@ namespace adria
 			geometry_pass_input_ps.defines.push_back(ShaderDefine{ "HAS_EMISSIVE", "1" });
 			ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
 			standard_programs[StandardShader::eGbufferPBR_Emissive].Create(device, vs_blob, ps_blob); 
+
+			
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/GeometryPassTerrain_VS.cso", vs_blob);
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/GeometryPassTerrain_PS.cso", ps_blob);
+			standard_programs[StandardShader::eTerrain].Create(device, vs_blob, ps_blob);
 		}
 
 		
@@ -2133,8 +2138,8 @@ namespace adria
 		
 		gbuffer_pass.Begin(context);
 		{
-			auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
 			//sort entities by adding them in std::set with custom key
+			auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
 			for (auto e : gbuffer_view)
 			{
 				auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
@@ -2199,11 +2204,37 @@ namespace adria
 				}
 				else mesh.Draw(context);
 			}
+
+			standard_programs[StandardShader::eTerrain].Bind(context);
+			auto terrain_view = reg.view<Mesh, Transform, Visibility, Terrain>();
+			for (auto e : terrain_view)
+			{
+				auto [mesh, transform, visibility] = terrain_view.get<Mesh, Transform, Visibility>(e);
+
+				if (!visibility.camera_visible) continue;
+
+				object_cbuf_data.model = transform.current_transform;
+				object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuffer->Update(context, object_cbuf_data);
+
+
+				if (Terrain::albedo_texture != INVALID_TEXTURE_HANDLE)
+				{
+					auto view = texture_manager.GetTextureView(Terrain::albedo_texture);
+
+					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
+				}
+
+				mesh.Draw(context);
+			}
+			standard_programs[StandardShader::eTerrain].Unbind(context);
 		}
 
 		gbuffer_pass.End(context);
 
 	}
+
+
 	void Renderer::PassSSAO()
 	{
 		ID3D11DeviceContext* context = gfx->Context();

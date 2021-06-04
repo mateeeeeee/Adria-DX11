@@ -23,7 +23,7 @@ namespace adria
 
 		gfx = std::make_unique<GraphicsCoreDX11>(Window::Handle());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
-		model_importer = std::make_unique<EntityLoader>(reg, gfx->Device(), renderer->GetTextureManager());
+		entity_loader = std::make_unique<EntityLoader>(reg, gfx->Device(), renderer->GetTextureManager());
 		
 		camera_desc_t camera_desc{};
 		camera_desc.aspect_ratio = static_cast<f32>(Window::Width()) / Window::Height();
@@ -109,12 +109,11 @@ namespace adria
 
 	void Engine::InitializeScene(bool load_sponza) 
 	{
-		
-		
+
 		skybox_parameters_t skybox_params{};
 		skybox_params.cubemap = L"Resources/Textures/Skybox/monoLake.hdr"; 
 
-		model_importer->LoadSkybox(skybox_params);
+		entity_loader->LoadSkybox(skybox_params);
 
 		if (load_sponza)
 		{
@@ -122,7 +121,29 @@ namespace adria
 			model_params.model_path = "Resources/GLTF Models/Sponza/glTF/Sponza.gltf";
 			model_params.textures_path = "Resources/GLTF Models/Sponza/glTF/";
 			model_params.model = DirectX::XMMatrixScaling(0.3f, 0.3f, 0.3f);
-			model_importer->LoadGLTFModel(model_params);
+			entity_loader->LoadGLTFModel(model_params);
+		}
+
+
+		//terrain test
+		{
+			terrain_parameters_t terrain_params{};
+			terrain_params.terrain_grid.tile_count_x = 100;
+			terrain_params.terrain_grid.tile_count_z = 100;
+			terrain_params.terrain_grid.normal_type = NormalCalculation::eEqualWeight;
+			terrain_params.terrain_grid.tile_size_x = 1.0f;
+			terrain_params.terrain_grid.tile_size_z = 1.0f;
+			terrain_params.terrain_grid.texture_scale_x = 25;
+			terrain_params.terrain_grid.texture_scale_z = 25;
+			terrain_params.terrain_grid.split_to_chunks = false; //change this later
+
+			noise_desc_t noise_desc{};
+			noise_desc.width = 101;
+			noise_desc.depth = 101;
+			noise_desc.max_height = 25;
+			terrain_params.terrain_grid.heightmap = std::make_unique<Heightmap>(noise_desc);
+			terrain_params.terrain_texture_1 = "Resources/Textures/Random/grass.dds";
+			entity_loader->LoadTerrain(terrain_params);
 		}
 
 
@@ -139,7 +160,7 @@ namespace adria
 		light_params.mesh_type = LightMesh::eQuad;
 		light_params.mesh_size = 150;
 		
-		model_importer->LoadLight(light_params);
+		entity_loader->LoadLight(light_params);
 
 	}
 }

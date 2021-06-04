@@ -45,7 +45,7 @@ namespace adria
 	}
 
 
-	Heightmap::Heightmap(noise_desc const& desc)
+	Heightmap::Heightmap(noise_desc_t const& desc)
 	{
 		FastNoiseLite noise{};
 		noise.SetFractalType(GetFractalType(desc.fractal_type));

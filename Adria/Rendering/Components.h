@@ -153,6 +153,7 @@ namespace adria
 	struct COMPONENT Terrain
 	{
 		inline static std::unique_ptr<Heightmap> heightmap = nullptr;
+		inline static TEXTURE_HANDLE albedo_texture = INVALID_TEXTURE_HANDLE;
 	};
 
 	struct COMPONENT Deferred {};

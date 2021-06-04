@@ -25,7 +25,6 @@ struct VS_OUTPUT
     float3 TangentWS    : TANGENT;
     float3 BitangentWS  : BITANGENT;
     float3 NormalWS     : NORMAL1;
-    matrix view_matrix  : MATRIX0;
 
 };
 
@@ -67,7 +66,7 @@ PS_GBUFFER_OUT ps_main(VS_OUTPUT In)
     BumpMapNormal = 2.0f*BumpMapNormal - 1.0f;
     float3x3 TBN = float3x3(Tangent, Bitangent, Normal);
     float3 NewNormal = mul(BumpMapNormal, TBN);
-    In.NormalVS = normalize(mul(NewNormal, (float3x3)In.view_matrix));
+    In.NormalVS = normalize(mul(NewNormal, (float3x3)view));
 
     float3 ao_roughness_metallic = txMetallicRoughness.Sample(linear_wrap_sampler, In.Uvs).rgb;
     
