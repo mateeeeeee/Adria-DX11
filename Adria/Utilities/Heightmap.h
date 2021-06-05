@@ -29,10 +29,10 @@ namespace adria
 		FractalType fractal_type = FractalType::eNone;
 		NoiseType noise_type = NoiseType::ePerlin;
 		i32 seed = 1337;
-		u32 noise_size = 10;
 		f32 persistence = 0.5f;
 		f32 lacunarity = 2.0f;
 		i32 octaves = 3;
+		f32 noise_scale = 10;
 	};
 
 	

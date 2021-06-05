@@ -161,6 +161,11 @@ namespace adria
 		u32   mips;
 	};
 
+	DECLSPEC_ALIGN(16) struct TerrainCBuffer
+	{
+
+	};
+
 	//Structured Buffers
 	struct VoxelType
 	{

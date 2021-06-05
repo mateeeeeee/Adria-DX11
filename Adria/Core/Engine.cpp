@@ -128,21 +128,29 @@ namespace adria
 		//terrain test
 		{
 			terrain_parameters_t terrain_params{};
-			terrain_params.terrain_grid.tile_count_x = 100;
-			terrain_params.terrain_grid.tile_count_z = 100;
+			terrain_params.terrain_grid.tile_count_x = 1000;
+			terrain_params.terrain_grid.tile_count_z = 1000;
 			terrain_params.terrain_grid.normal_type = NormalCalculation::eEqualWeight;
-			terrain_params.terrain_grid.tile_size_x = 1.0f;
-			terrain_params.terrain_grid.tile_size_z = 1.0f;
-			terrain_params.terrain_grid.texture_scale_x = 25;
-			terrain_params.terrain_grid.texture_scale_z = 25;
+			terrain_params.terrain_grid.tile_size_x = 4.0f;
+			terrain_params.terrain_grid.tile_size_z = 4.0f;
+			terrain_params.terrain_grid.texture_scale_x = 50;
+			terrain_params.terrain_grid.texture_scale_z = 50;
 			terrain_params.terrain_grid.split_to_chunks = false; //change this later
 
 			noise_desc_t noise_desc{};
-			noise_desc.width = 101;
-			noise_desc.depth = 101;
-			noise_desc.max_height = 25;
+			noise_desc.width = 1001;
+			noise_desc.depth = 1001;
+			noise_desc.max_height = 200;
+			noise_desc.seed = 13372;
+			noise_desc.persistence = 0.5f;
+			noise_desc.fractal_type = FractalType::eRidged;
+			noise_desc.noise_scale = 100;
+
 			terrain_params.terrain_grid.heightmap = std::make_unique<Heightmap>(noise_desc);
-			terrain_params.terrain_texture_1 = "Resources/Textures/Random/grass.dds";
+			terrain_params.grass_texture = "Resources/Textures/Random/grass.dds";
+			terrain_params.rock_texture = "Resources/Textures/Random/stone.dds";
+			terrain_params.snow_texture = "Resources/Textures/Random/snow.dds";
+			terrain_params.sand_texture = "Resources/Textures/Random/sand2.jpg";
 			entity_loader->LoadTerrain(terrain_params);
 		}
 

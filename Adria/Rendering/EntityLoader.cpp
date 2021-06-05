@@ -545,12 +545,14 @@ namespace adria
 
         Terrain terrain_component{};
         //Terrain::heightmap = params.terrain_grid.heightmap;
-        Terrain::albedo_texture = texture_manager.LoadTexture(params.terrain_texture_1.value());
+        Terrain::grass_texture = texture_manager.LoadTexture(params.grass_texture);
+        Terrain::rock_texture = texture_manager.LoadTexture(params.rock_texture);
+        Terrain::snow_texture = texture_manager.LoadTexture(params.snow_texture);
+        Terrain::sand_texture = texture_manager.LoadTexture(params.sand_texture);
 
         for (auto terrain_chunk : terrain_chunks)
         {
             reg.emplace<Terrain>(terrain_chunk, terrain_component);
-
             reg.emplace<Tag>(terrain_chunk, "Terrain Chunk" + std::to_string(as_integer(terrain_chunk)));
         }
 

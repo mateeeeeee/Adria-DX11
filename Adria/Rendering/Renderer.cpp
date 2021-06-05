@@ -2217,19 +2217,35 @@ namespace adria
 				object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 				object_cbuffer->Update(context, object_cbuf_data);
 
-
-				if (Terrain::albedo_texture != INVALID_TEXTURE_HANDLE)
+				if (Terrain::grass_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = texture_manager.GetTextureView(Terrain::albedo_texture);
+					auto view = texture_manager.GetTextureView(Terrain::grass_texture);
 
-					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
+					context->PSSetShaderResources(TEXTURE_SLOT_GRASS, 1, &view);
+				}
+				if (Terrain::snow_texture != INVALID_TEXTURE_HANDLE)
+				{
+					auto view = texture_manager.GetTextureView(Terrain::snow_texture);
+
+					context->PSSetShaderResources(TEXTURE_SLOT_SNOW, 1, &view);
+				}
+				if (Terrain::rock_texture != INVALID_TEXTURE_HANDLE)
+				{
+					auto view = texture_manager.GetTextureView(Terrain::rock_texture);
+
+					context->PSSetShaderResources(TEXTURE_SLOT_ROCK, 1, &view);
+				}
+				if (Terrain::sand_texture != INVALID_TEXTURE_HANDLE)
+				{
+					auto view = texture_manager.GetTextureView(Terrain::sand_texture);
+
+					context->PSSetShaderResources(TEXTURE_SLOT_SAND, 1, &view);
 				}
 
 				mesh.Draw(context);
 			}
 			standard_programs[StandardShader::eTerrain].Unbind(context);
 		}
-
 		gbuffer_pass.End(context);
 
 	}

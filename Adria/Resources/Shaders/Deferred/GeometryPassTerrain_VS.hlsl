@@ -13,10 +13,10 @@ struct VS_INPUT
 struct VS_OUTPUT
 {
     float4 Position : SV_POSITION;
-    float2 Uvs : TEX;
+    float4 PosWS    : POS;
+    float2 Uvs      : TEX;
     float3 NormalVS : NORMAL0;
     float3 NormalWS : NORMAL1;
-
 };
 
 
@@ -25,6 +25,7 @@ VS_OUTPUT main(VS_INPUT input)
     VS_OUTPUT Output;
     
     float4 pos = mul(float4(input.Position, 1.0), model);
+    Output.PosWS = pos;
     Output.Position = mul(pos, viewprojection);
 
     Output.Uvs = input.Uvs;

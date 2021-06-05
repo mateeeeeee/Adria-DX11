@@ -46,10 +46,10 @@ namespace adria
     struct terrain_parameters_t
     {
         grid_parameters_t terrain_grid;
-        std::optional<std::string> terrain_texture_1;
-        std::optional<std::string> terrain_texture_2;
-        std::optional<std::string> terrain_texture_3;
-        std::optional<std::string> terrain_texture_4;
+        std::string grass_texture;
+        std::string snow_texture;
+        std::string rock_texture;
+        std::string sand_texture;
     };
 
     enum class LightMesh
@@ -65,8 +65,6 @@ namespace adria
         u32 mesh_size = 0u;
         std::optional<std::string> light_texture = std::nullopt;
     };
-
-
 
     class TextureManager;
 
@@ -90,6 +88,7 @@ namespace adria
         [[maybe_unused]] std::vector<tecs::entity> LoadTerrain(terrain_parameters_t const&);
 
         void LoadModelMesh(tecs::entity, model_parameters_t const&);
+
 	private:
         tecs::registry& reg;
 		TextureManager& texture_manager;

@@ -2,19 +2,19 @@
 
 
 
-Texture2D txAlbedo : register(t0);
-
-
+Texture2D txGrass   : register(t0);
+Texture2D txSnow    : register(t1);
+Texture2D txRock    : register(t2);
+Texture2D txSand    : register(t3);
 
 struct VS_OUTPUT
 {
     float4 Position : SV_POSITION;
+    float4 PosWS    : POS;
     float2 Uvs      : TEX;
     float3 NormalVS : NORMAL0;
     float3 NormalWS : NORMAL1;
 };
-
-
 
 
 struct PS_GBUFFER_OUT
@@ -35,20 +35,73 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float3 emissive, f
     return Out;
 }
 
+/*
+// from http://www.iquilezles.org/www/articles/fog/fog.htm
+vec3 applyFog(vec3  rgb, float gDistance) {
+    float b = 0.1;
+    float fogAmount = max(0.0, 1.0 - exp(gDistance*b));
+    vec3  fogColor  = vec3(0.5, 0.6, 0.7);
+    return mix(rgb, fogColor, fogAmount );
+}
+*/
+
+//TO CBUFFER LATER!
+
+static const float snow_height = 100;
+static const float grass_height = 50;
+static const float mix_zone = 10;
+
 
 PS_GBUFFER_OUT main(VS_OUTPUT In)
 {
 
     In.Uvs.y = 1 - In.Uvs.y;
  
-    float4 DiffuseColor = txAlbedo.Sample(linear_wrap_sampler, In.Uvs) * albedo_factor;
+    float4 grass = txGrass.Sample(linear_wrap_sampler, In.Uvs);
+    float4 snow = txSnow.Sample(linear_wrap_sampler, In.Uvs);
+    float4 rock = txRock.Sample(linear_wrap_sampler, In.Uvs);
+    float4 sand = txSand.Sample(linear_wrap_sampler, In.Uvs);
 
-    if (DiffuseColor.a < 0.1)
-        discard;
+    float4 color = 0.0f;
+    float3 normal = normalize(In.NormalWS);
+    
+    
+    float angleDiff = abs(dot(normal.xyz, float3(0, 1, 0)));
+    float pureRock = 0.6;
+    float lerpRock = 0.7;
+    float coef = 1.0 - smoothstep(pureRock, lerpRock, angleDiff);
+    grass = lerp(grass, rock, coef);
+    snow = lerp(snow, rock, coef);
+    coef = smoothstep(0.90, 0.98, angleDiff);
+    grass = lerp(grass, snow, coef);
 
-    float3 Normal = normalize(In.NormalWS);
+    float height = In.PosWS.y;
+    
+    if (height > snow_height + mix_zone) 
+    {
+        color = snow;
+    }
+    else if (height > snow_height - mix_zone)
+    {
+        float coef = (height - (snow_height - mix_zone)) / (2.0 * mix_zone);
+        color = lerp(grass, snow, coef);
+    }
+    else if (height > grass_height + mix_zone)
+    {
+        color = grass;
+    }
+    else if (height > grass_height - mix_zone)
+    {
+        float coef = (height - (grass_height - mix_zone)) / (2.0 * mix_zone);
+        color = lerp(sand, grass, coef);
+    }
+    else
+    {
+        color = sand;
+    }
+    
 
-    return PackGBuffer(DiffuseColor.xyz, normalize(In.NormalVS), float3(0, 0, 0),
+    return PackGBuffer(color.xyz, normalize(In.NormalVS), float3(0, 0, 0),
     1.0f, 0.0f, 1.0f); 
 
 }
