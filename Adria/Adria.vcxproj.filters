@@ -681,5 +681,8 @@
     <FxCompile Include="Resources\Shaders\Deferred\GeometryPassTerrain_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\FogPS.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

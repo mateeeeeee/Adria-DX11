@@ -14,8 +14,6 @@ cbuffer FrameCBuf : register(b0)
     float camera_near;
     float camera_far;
     float2 screen_resolution;
-    float fog_near;
-    float fog_far;
 }
 
 cbuffer ObjectCBuf : register(b1)

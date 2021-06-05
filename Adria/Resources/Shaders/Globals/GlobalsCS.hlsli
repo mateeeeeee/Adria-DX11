@@ -25,10 +25,6 @@ cbuffer PerFrame : register(b0)
     float camera_far;
     
     float2 screen_resolution;
-    
-    float fog_near;
-    
-    float fog_far;
 }
 
 

@@ -31,10 +31,6 @@ cbuffer PerFrame : register(b0)
     float camera_far;
     
     float2 screen_resolution;
-    
-    float fog_near;
-    
-    float fog_far;
 }
 
 cbuffer LightCbuf : register(b2)
@@ -78,8 +74,13 @@ cbuffer PostprocessCBuf : register(b5)
     float   ssr_ray_step;
     float   ssr_ray_hit_threshold;
     float   motion_blur_intensity;
-    float4  dof_params;
     float   tone_map_exposure;
+    float4  dof_params;
+    float   fog_near;
+    float   fog_far;
+    float   fog_density;
+    float   fog_height;
+    float4  fog_color;
 };
 
 cbuffer WeatherCBuf : register(b7)
@@ -146,9 +147,44 @@ float ConvertZToLinearDepth(float depth)
 
 }
 
-float GetFogAmount(float dist)
+float GetFogMultiplier(float dist)
 {
     return saturate((dist - fog_near) / (fog_far - fog_near));
+}
+
+
+float CalculateFog(float4 pos_vs)
+{
+    float4 pos_ws = mul(pos_vs, inverse_view);
+    pos_ws /= pos_ws.w;
+
+    float3 obj_to_camera = camera_position - pos_ws;
+    float t;
+    if (pos_ws.y < fog_height)
+    {
+        if (camera_position.y > fog_height)
+        {
+            t = (fog_height - pos_ws.y) / obj_to_camera.y;
+        }
+        else
+        {
+            t = 1.0;
+        }
+    }
+    else
+    {
+        if (camera_position.y < fog_height)
+        {
+            t = (camera_position.y - fog_height) / obj_to_camera.y;
+        }
+        else
+        {
+            t = 0.0;
+        }
+    }
+    float distance = length(obj_to_camera) * t;
+    float fog = exp(-distance * fog_density) * GetFogMultiplier(distance);
+    return fog;
 }
 
 

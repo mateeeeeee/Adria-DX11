@@ -492,8 +492,7 @@ namespace adria
 		frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
 		frame_cbuf_data.screen_resolution_x = width;
 		frame_cbuf_data.screen_resolution_y = height;
-		frame_cbuf_data.fog_near = settings.fog_near;
-		frame_cbuf_data.fog_far = settings.fog_far;
+		
 
 		frame_cbuffer->Update(gfx->Context(), frame_cbuf_data);
 
@@ -725,35 +724,42 @@ namespace adria
 
 				standard_programs[StandardShader::eMotionBlur].Create(device, vs_blob, ps_blob);
 			}
+
+			//fog
+			{
+				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FogPS.cso", ps_blob);
+
+				standard_programs[StandardShader::eFog].Create(device, vs_blob, ps_blob);
+			}
 		}
 
 		
 		//shadows
 		{
 
-			ShaderBlob vs_blob, ps_blob;
-			ShaderInfo vs_input{}, ps_input{};
-			vs_input.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
-			vs_input.stage = ShaderStage::VS;
+		ShaderBlob vs_blob, ps_blob;
+		ShaderInfo vs_input{}, ps_input{};
+		vs_input.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
+		vs_input.stage = ShaderStage::VS;
 
-			ps_input.shadersource = "Resources/Shaders/Shadows/DepthMapPS.hlsl";
-			ps_input.stage = ShaderStage::PS;
+		ps_input.shadersource = "Resources/Shaders/Shadows/DepthMapPS.hlsl";
+		ps_input.stage = ShaderStage::PS;
 
-			ShaderUtility::CompileShader(vs_input, vs_blob);
-			ShaderUtility::CompileShader(ps_input, ps_blob);
+		ShaderUtility::CompileShader(vs_input, vs_blob);
+		ShaderUtility::CompileShader(ps_input, ps_blob);
 
-			//eDepthMap_Transparent
-			standard_programs[StandardShader::eDepthMap].Create(device, vs_blob, ps_blob);
+		//eDepthMap_Transparent
+		standard_programs[StandardShader::eDepthMap].Create(device, vs_blob, ps_blob);
 
-			std::vector<ShaderDefine> transparent_define = { ShaderDefine{"TRANSPARENT", "1"} };
+		std::vector<ShaderDefine> transparent_define = { ShaderDefine{"TRANSPARENT", "1"} };
 
-			vs_input.defines = transparent_define;
-			ps_input.defines = transparent_define;
+		vs_input.defines = transparent_define;
+		ps_input.defines = transparent_define;
 
-			ShaderUtility::CompileShader(vs_input, vs_blob);
-			ShaderUtility::CompileShader(ps_input, ps_blob);
+		ShaderUtility::CompileShader(vs_input, vs_blob);
+		ShaderUtility::CompileShader(ps_input, ps_blob);
 
-			standard_programs[StandardShader::eDepthMap_Transparent].Create(device, vs_blob, ps_blob);
+		standard_programs[StandardShader::eDepthMap_Transparent].Create(device, vs_blob, ps_blob);
 
 		}
 
@@ -3580,6 +3586,10 @@ namespace adria
 		context->Draw(4, 0);
 
 		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+	}
+
+	void Renderer::PassFog()
+	{
 	}
 
 	void Renderer::BlurTexture(Texture2D const& src)

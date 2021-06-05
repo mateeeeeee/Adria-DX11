@@ -23,8 +23,6 @@ namespace adria
 		f32 camera_far;
 		f32 screen_resolution_x;
 		f32 screen_resolution_y;
-		f32 fog_near;
-		f32 fog_far;
 	};
 
 	DECLSPEC_ALIGN(16) struct LightCBuffer
@@ -92,9 +90,13 @@ namespace adria
 		f32 ssr_ray_step;
 		f32 ssr_ray_hit_threshold;
 		f32 motion_blur_intensity;
-		f32 _padd[1];
-		DirectX::XMVECTOR dof_params;
 		f32 tone_map_exposure;
+		DirectX::XMVECTOR dof_params;
+		f32   fog_near;
+		f32   fog_far;
+		f32   fog_density;
+		f32	  fog_height;
+		DirectX::XMVECTOR fog_color;
 	};
 
 	DECLSPEC_ALIGN(16) struct ComputeCBuffer

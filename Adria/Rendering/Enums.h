@@ -69,6 +69,7 @@ namespace adria
 		eGodRays,
 		eMotionBlur,
 		eDof,
+		eFog,
 		eOcean,
 		eVoxelGI,
         eUnknown
@@ -128,8 +129,4 @@ namespace adria
 		eCross
 	};
 
-	enum RendererOptions : u32
-	{
-
-	};
 }

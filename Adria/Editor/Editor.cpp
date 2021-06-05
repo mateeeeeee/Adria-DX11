@@ -57,7 +57,7 @@ namespace adria
                 
                 ListEntities();
                 
-                AddEntities();
+                TerrainAndOcean();
 
                 Camera();
 
@@ -204,10 +204,38 @@ namespace adria
         }
     }
 
-    void Editor::AddEntities()
+    void Editor::TerrainAndOcean()
     {
-        ImGui::Begin("Add Entities");
+        ImGui::Begin("Terrain & Ocean");
         {
+            
+            //ocean
+            {
+                static grid_parameters_t ocean_params{};
+                static i32 tile_count[2] = { 512, 512 };
+                static f32 tile_size[2] = { 40.0f, 40.0f };
+                static f32 texture_scale[2] = { 20.0f, 20.0f };
+
+                ImGui::SliderInt2("Tile Count", tile_count, 32, 1024);
+                ImGui::SliderFloat2("Tile Size", tile_size, 1.0, 100.0f);
+                ImGui::SliderFloat2("Texture Scale", texture_scale, 0.1f, 10.0f);
+
+                ocean_params.tile_count_x = tile_count[0];
+                ocean_params.tile_count_z = tile_count[1];
+                ocean_params.tile_size_x  = tile_size[0];
+                ocean_params.tile_size_z  = tile_size[1];
+                ocean_params.texture_scale_x = texture_scale[0];
+                ocean_params.texture_scale_z = texture_scale[1];
+
+                if (ImGui::Button("Load Ocean"))
+                {
+                    ocean_parameters_t params{};
+                    params.ocean_grid = std::move(ocean_params);
+                    engine->entity_loader->LoadOcean(params);
+                }
+                   
+            }
+
             //random lights
             {
                 ImGui::Text("For Easy Demonstration of Tiled/Clustered Deferred Rendering");
@@ -236,33 +264,7 @@ namespace adria
                 }
 
             }
-            
-            //ocean
-            {
-                static grid_parameters_t ocean_params{};
-                static i32 tile_count[2] = { 512, 512 };
-                static f32 tile_size[2] = { 40.0f, 40.0f };
-                static f32 texture_scale[2] = { 20.0f, 20.0f };
 
-                ImGui::SliderInt2("Tile Count", tile_count, 32, 1024);
-                ImGui::SliderFloat2("Tile Size", tile_size, 1.0, 100.0f);
-                ImGui::SliderFloat2("Texture Scale", texture_scale, 0.1f, 10.0f);
-
-                ocean_params.tile_count_x = tile_count[0];
-                ocean_params.tile_count_z = tile_count[1];
-                ocean_params.tile_size_x  = tile_size[0];
-                ocean_params.tile_size_z  = tile_size[1];
-                ocean_params.texture_scale_x = texture_scale[0];
-                ocean_params.texture_scale_z = texture_scale[1];
-
-                if (ImGui::Button("Load Ocean"))
-                {
-                    ocean_parameters_t params{};
-                    params.ocean_grid = std::move(ocean_params);
-                    engine->entity_loader->LoadOcean(params);
-                }
-                   
-            }
 
         }
         ImGui::End();
@@ -925,6 +927,8 @@ namespace adria
                 ImGui::Checkbox("Bloom", &settings.bloom);
                 ImGui::Checkbox("Motion Blur", &settings.motion_blur);
                 ImGui::Checkbox("FXAA", &settings.fxaa);
+                ImGui::Checkbox("Fog", &settings.fog);
+
 
                 if (settings.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))
                 {
@@ -940,8 +944,6 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-
-
                 if (settings.ssao && ImGui::TreeNodeEx("Screen-Space Ambient Occlusion", 0))
                 {
                     ImGui::SliderFloat("Power", &settings.ssao_power, 1.0f, 16.0f);
@@ -997,6 +999,17 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
+                if (settings.fog && ImGui::TreeNodeEx("Fog", 0))
+                {
+                    ImGui::SliderFloat("Fog Near", &settings.fog_near, 0.0f, 1000.0f);
+                    ImGui::SliderFloat("Fog Far", &settings.fog_far, settings.fog_near, 10000.0f);
+                    ImGui::SliderFloat("Fog Density", &settings.fog_density, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Fog Height", &settings.fog_height, 50.0f, 10000.0f);
+                    ImGui::ColorEdit3("Fog Color", settings.fog_color);
+
+                    ImGui::TreePop();
+                    ImGui::Separator();
+                }
                 if (ImGui::TreeNodeEx("Tone Mapping", 0))
                 {
                     ImGui::SliderFloat("Exposure", &settings.tone_map_exposure, 0.01f, 10.0f);
@@ -1014,9 +1027,8 @@ namespace adria
             if (ImGui::TreeNode("Misc"))
             {
                 ImGui::ColorEdit3("Ambient Color", settings.ambient_color);
-               
-                ImGui::SliderFloat("Fog Near", &settings.fog_near, 0.0f, 1000.0f);
-                ImGui::SliderFloat("Fog Far", &settings.fog_far, settings.fog_near, 2000.0f);
+
+
                 ImGui::SliderFloat("Shadow Softness", &settings.shadow_softness, 0.01f, 5.0f);
                 ImGui::Checkbox("IBL", &settings.ibl);
                 if (ImGui::TreeNodeEx("Ocean FFT", 0))

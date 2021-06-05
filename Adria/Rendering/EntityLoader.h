@@ -14,6 +14,20 @@ struct ID3D11Device;
 
 namespace adria
 {
+    enum class LightMesh
+    {
+        eNoMesh,
+        eQuad,
+        eSphere
+    };
+
+    struct light_parameters_t
+    {
+        Light light_data;
+        LightMesh mesh_type = LightMesh::eNoMesh;
+        u32 mesh_size = 0u;
+        std::optional<std::string> light_texture = std::nullopt;
+    };
 	struct model_parameters_t
 	{
         std::string model_path = "";
@@ -52,20 +66,7 @@ namespace adria
         std::string sand_texture;
     };
 
-    enum class LightMesh
-    {
-        eNoMesh,
-        eQuad,
-        eSphere
-    };
-    struct light_parameters_t
-    {
-        Light light_data;
-        LightMesh mesh_type = LightMesh::eNoMesh;
-        u32 mesh_size = 0u;
-        std::optional<std::string> light_texture = std::nullopt;
-    };
-
+   
     class TextureManager;
 
 	class EntityLoader

@@ -38,7 +38,7 @@ int APIENTRY wWinMain(
         engine_init.log_file = "adria_log.log";
         engine_init.multithreaded_init = false;
         engine_init.vsync = false;
-        engine_init.load_default_scene = false;
+        engine_init.load_default_scene = true;
 
         Editor editor{ {engine_init} };
 

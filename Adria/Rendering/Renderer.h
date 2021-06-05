@@ -255,6 +255,7 @@ namespace adria
 		void PassMotionBlur();
 		void PassToneMap();
 		void PassFxaa();
+		void PassFog();
 
 		//result is in final compute texture
 		void BlurTexture(Texture2D const& src);

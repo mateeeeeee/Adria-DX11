@@ -125,7 +125,8 @@ namespace adria
 		}
 
 
-		//terrain test
+		static bool test_terrain = false;
+		if(test_terrain)
 		{
 			terrain_parameters_t terrain_params{};
 			terrain_params.terrain_grid.tile_count_x = 1000;

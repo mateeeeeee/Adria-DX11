@@ -23,10 +23,6 @@ cbuffer PerFrame : register(b0)
     float camera_far;
     
     float2 screen_resolution;
-    
-    float fog_near;
-    
-    float fog_far;
 }
 
 SamplerState linear_wrap_sampler : register(s0);

@@ -69,7 +69,7 @@ float4 main(VertexOut input) : SV_TARGET
             attenuation *= shadow_factor;
         }
         
-        attenuation *= GetFogAmount(cameraDistance - marchedDistance);
+        attenuation *= GetFogMultiplier(cameraDistance - marchedDistance);
 
         accumulation += attenuation;
 

@@ -35,15 +35,6 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float3 emissive, f
     return Out;
 }
 
-/*
-// from http://www.iquilezles.org/www/articles/fog/fog.htm
-vec3 applyFog(vec3  rgb, float gDistance) {
-    float b = 0.1;
-    float fogAmount = max(0.0, 1.0 - exp(gDistance*b));
-    vec3  fogColor  = vec3(0.5, 0.6, 0.7);
-    return mix(rgb, fogColor, fogAmount );
-}
-*/
 
 //TO CBUFFER LATER!
 
