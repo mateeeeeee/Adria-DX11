@@ -233,7 +233,25 @@ namespace adria
                     params.ocean_grid = std::move(ocean_params);
                     engine->entity_loader->LoadOcean(params);
                 }
+
+                if (ImGui::TreeNodeEx("Ocean Settings", 0))
+                {
+                    ImGui::Checkbox("Tesselation", &settings.ocean_tesselation);
+                    ImGui::Checkbox("Wireframe", &settings.ocean_wireframe);
+
+                    settings.recreate_initial_spectrum = ImGui::SliderFloat2("Wind Direction", settings.wind_direction, 0.0f, 50.0f);
+
+                    ImGui::SliderFloat("Choppiness", &settings.ocean_choppiness, 0.0f, 10.0f);
+                    settings.ocean_color_changed = ImGui::ColorEdit3("Ocean Color", settings.ocean_color);
+                    ImGui::TreePop();
+                    ImGui::Separator();
+                }
                    
+            }
+
+            //terrain
+            {
+
             }
 
             //random lights
@@ -1003,7 +1021,7 @@ namespace adria
                 {
                     ImGui::SliderFloat("Fog Near", &settings.fog_near, 0.0f, 1000.0f);
                     ImGui::SliderFloat("Fog Far", &settings.fog_far, settings.fog_near, 10000.0f);
-                    ImGui::SliderFloat("Fog Density", &settings.fog_density, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Fog Density", &settings.fog_density, 0.0f, 0.01f);
                     ImGui::SliderFloat("Fog Height", &settings.fog_height, 50.0f, 10000.0f);
                     ImGui::ColorEdit3("Fog Color", settings.fog_color);
 
@@ -1031,18 +1049,6 @@ namespace adria
 
                 ImGui::SliderFloat("Shadow Softness", &settings.shadow_softness, 0.01f, 5.0f);
                 ImGui::Checkbox("IBL", &settings.ibl);
-                if (ImGui::TreeNodeEx("Ocean FFT", 0))
-                {
-                    ImGui::Checkbox("Tesselation", &settings.ocean_tesselation);
-                    ImGui::Checkbox("Wireframe", &settings.ocean_wireframe);
-
-                    settings.recreate_initial_spectrum = ImGui::SliderFloat2("Wind Direction", settings.wind_direction, 0.0f, 50.0f);
-
-                    ImGui::SliderFloat("Choppiness", &settings.ocean_choppiness, 0.0f, 10.0f);
-                    settings.ocean_color_changed = ImGui::ColorEdit3("Ocean Color", settings.ocean_color);
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
 
                 if (settings.ibl && !engine->renderer->IblCreated()) engine->renderer->CreateIBLTextures();
 

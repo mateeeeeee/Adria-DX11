@@ -419,9 +419,7 @@ namespace adria
 			PassToneMap();
 			fxaa_pass.End(context);
 
-			
-
-			gfx->SetBackbuffer(); //change this to 
+			gfx->SetBackbuffer(); 
 			PassFxaa();
 		}
 		else
@@ -2797,8 +2795,17 @@ namespace adria
 			postprocess_passes[pong_postprocess_pass].End(context);
 
 			pong_postprocess_pass = !pong_postprocess_pass;
-
 		}
+
+		if (settings.fog)
+		{
+			postprocess_passes[pong_postprocess_pass].Begin(context);
+			PassFog();
+			postprocess_passes[pong_postprocess_pass].End(context);
+
+			pong_postprocess_pass = !pong_postprocess_pass;
+		}
+
 
 		if (settings.ssr)
 		{
@@ -2808,7 +2815,7 @@ namespace adria
 
 			pong_postprocess_pass = !pong_postprocess_pass;
 		}
-
+		
 		if (settings.dof)
 		{
 			postprocess_passes[pong_postprocess_pass].Begin(context);
@@ -2838,6 +2845,7 @@ namespace adria
 			pong_postprocess_pass = !pong_postprocess_pass;
 		}
 
+		
 		for (entity light : lights)
 		{
 			auto const& light_data = lights.get(light);
@@ -2850,7 +2858,7 @@ namespace adria
 			
 		}
 
-		
+
 
 	}
 
@@ -3292,6 +3300,8 @@ namespace adria
 	}
 	void Renderer::PassVolumetricClouds()
 	{
+		ADRIA_ASSERT(settings.clouds);
+
 		ID3D11DeviceContext* context = gfx->Context();
 		ID3D11ShaderResourceView* const srv_array[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_stencil_target.SRV()};
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
@@ -3318,6 +3328,8 @@ namespace adria
 	}
 	void Renderer::PassSSR()
 	{
+		ADRIA_ASSERT(settings.ssr);
+
 		ID3D11DeviceContext* context = gfx->Context();
 		postprocess_cbuf_data.ssr_ray_hit_threshold = settings.ssr_ray_hit_threshold;
 		postprocess_cbuf_data.ssr_ray_step = settings.ssr_ray_step;
@@ -3393,6 +3405,8 @@ namespace adria
 	}
 	void Renderer::PassDepthOfField()
 	{
+		ADRIA_ASSERT(settings.dof);
+
 		ID3D11DeviceContext* context = gfx->Context();
 		//GENERATE BOKEH
 		if (settings.bokeh)
@@ -3489,6 +3503,9 @@ namespace adria
 	}
 	void Renderer::PassBloom()
 	{
+		ADRIA_ASSERT(settings.bloom);
+
+
 		ID3D11DeviceContext* context = gfx->Context();
 
 		compute_cbuf_data.threshold = settings.bloom_threshold;
@@ -3516,6 +3533,8 @@ namespace adria
 	}
 	void Renderer::PassMotionBlur()
 	{
+		ADRIA_ASSERT(settings.motion_blur);
+
 		ID3D11DeviceContext* context = gfx->Context();
 
 		postprocess_cbuf_data.motion_blur_intensity = settings.motion_blur_intensity;
@@ -3535,6 +3554,33 @@ namespace adria
 
 		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 	}
+	void Renderer::PassFog()
+	{
+		ADRIA_ASSERT(settings.fog);
+
+		ID3D11DeviceContext* context = gfx->Context();
+		postprocess_cbuf_data.fog_near = settings.fog_near;
+		postprocess_cbuf_data.fog_far = settings.fog_far;
+		postprocess_cbuf_data.fog_density = settings.fog_density;
+		postprocess_cbuf_data.fog_height = settings.fog_height;
+		postprocess_cbuf_data.fog_color = XMVectorSet(settings.fog_color[0], settings.fog_color[1], settings.fog_color[2], 1);
+		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
+
+		ID3D11ShaderResourceView* srv_array[] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_stencil_target.SRV() };
+
+		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+
+		context->IASetInputLayout(nullptr);
+
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		standard_programs[StandardShader::eFog].Bind(context);
+		context->Draw(4, 0);
+
+		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
+
+		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+	}
+
 	void Renderer::PassToneMap()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
@@ -3588,10 +3634,7 @@ namespace adria
 		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 	}
 
-	void Renderer::PassFog()
-	{
-	}
-
+	
 	void Renderer::BlurTexture(Texture2D const& src)
 	{
 		std::array<f32, 9> gauss{};

@@ -147,18 +147,19 @@ float ConvertZToLinearDepth(float depth)
 
 }
 
-float GetFogMultiplier(float dist)
+float LinearFog(float dist)
 {
     return saturate((dist - fog_near) / (fog_far - fog_near));
 }
 
 
-float CalculateFog(float4 pos_vs)
+float ExponentialFog(float4 pos_vs)
 {
+        
     float4 pos_ws = mul(pos_vs, inverse_view);
     pos_ws /= pos_ws.w;
-
     float3 obj_to_camera = camera_position - pos_ws;
+    
     float t;
     if (pos_ws.y < fog_height)
     {
@@ -182,9 +183,10 @@ float CalculateFog(float4 pos_vs)
             t = 0.0;
         }
     }
+
     float distance = length(obj_to_camera) * t;
-    float fog = exp(-distance * fog_density) * GetFogMultiplier(distance);
-    return fog;
+    float fog = exp(-distance * fog_density);
+    return saturate(1 - fog);
 }
 
 
