@@ -30,6 +30,7 @@ Graphics engine written in C++/DirectX11.
 * Fog
 * God Rays
 * Lens Flare
+* Fog
 * Motion Blur
 * Volumetric Clouds
 * Ocean FFT
