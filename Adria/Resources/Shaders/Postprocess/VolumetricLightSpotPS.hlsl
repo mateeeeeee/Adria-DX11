@@ -79,7 +79,7 @@ float4 main(VertexOut input) : SV_TARGET
                 }
 
             }
-            attenuation *= LinearFog(cameraDistance - marchedDistance);
+            attenuation *= ExponentialFog(cameraDistance - marchedDistance);
 
             accumulation += attenuation;
         }

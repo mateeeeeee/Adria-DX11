@@ -65,6 +65,9 @@ cbuffer MaterialCBuf : register(b4)
 };
 
 
+#define EXPONENTIAL_FOG 0
+#define EXPONENTIAL_HEIGHT_FOG 1
+
 cbuffer PostprocessCBuf : register(b5)
 {
     float2  ssao_noise_scale;
@@ -76,11 +79,11 @@ cbuffer PostprocessCBuf : register(b5)
     float   motion_blur_intensity;
     float   tone_map_exposure;
     float4  dof_params;
-    float   fog_near;
-    float   fog_far;
-    float   fog_density;
-    float   fog_height;
     float4  fog_color;
+    float   fog_falloff;
+    float   fog_density;
+    float   fog_start;
+    int     fog_type;
 };
 
 cbuffer WeatherCBuf : register(b7)
@@ -147,48 +150,55 @@ float ConvertZToLinearDepth(float depth)
 
 }
 
-float LinearFog(float dist)
+float ExponentialFog(float dist)
 {
-    return saturate((dist - fog_near) / (fog_far - fog_near));
+    float fog_dist = max(dist - fog_start, 0.0);
+    
+    float fog = exp(-fog_dist * fog_density);
+    return 1 - fog;
 }
-
 
 float ExponentialFog(float4 pos_vs)
 {
-        
     float4 pos_ws = mul(pos_vs, inverse_view);
     pos_ws /= pos_ws.w;
     float3 obj_to_camera = camera_position - pos_ws;
-    
-    float t;
-    if (pos_ws.y < fog_height)
-    {
-        if (camera_position.y > fog_height)
-        {
-            t = (fog_height - pos_ws.y) / obj_to_camera.y;
-        }
-        else
-        {
-            t = 1.0;
-        }
-    }
-    else
-    {
-        if (camera_position.y < fog_height)
-        {
-            t = (camera_position.y - fog_height) / obj_to_camera.y;
-        }
-        else
-        {
-            t = 0.0;
-        }
-    }
 
-    float distance = length(obj_to_camera) * t;
-    float fog = exp(-distance * fog_density);
-    return saturate(1 - fog);
+    float distance = length(obj_to_camera);
+    
+    float fog_dist = max(distance - fog_start, 0.0);
+    
+    float fog = exp(-fog_dist * fog_density);
+    return 1 - fog;
 }
 
+float3 ExponentialHeightFog(float4 pos_vs)
+{
+    float4 pos_ws = mul(pos_vs, inverse_view);
+    pos_ws /= pos_ws.w;
+    float3 camera_to_world = pos_ws - camera_position;
+
+    float distance = length(camera_to_world);
+    
+	// Find the fog staring distance to pixel distance
+    float fogDist = max(distance - fog_start, 0.0);
+
+	// Distance based fog intensity
+    float fogHeightDensityAtViewer = exp(-fog_falloff * camera_position.y);
+    float fogDistInt = fogDist * fogHeightDensityAtViewer;
+
+	// Height based fog intensity
+    float eyeToPixelY = camera_to_world.y * (fogDist / distance);
+    float t = fog_falloff * eyeToPixelY;
+    const float thresholdT = 0.01;
+    float fogHeightInt = abs(t) > thresholdT ?
+		(1.0 - exp(-t)) / t : 1.0;
+
+	// Combine both factors to get the final factor
+    float fog = exp(-fog_density * fogDistInt * fogHeightInt);
+
+    return 1 - fog;
+}
 
 
 bool IsSaturated(float value)

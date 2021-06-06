@@ -121,6 +121,12 @@ namespace adria
 		eSpot
 	};
 
+	enum class FogType : i32
+	{
+		eExponential, //for now
+		eExponentialHeight
+	};
+
 	enum class BokehType : u8
 	{
 		eHex,

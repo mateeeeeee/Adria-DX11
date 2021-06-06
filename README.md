@@ -27,6 +27,7 @@ Graphics engine written in C++/DirectX11.
 * SSAO
 * SSR
 * FXAA
+* Fog
 * God Rays
 * Lens Flare
 * Motion Blur

@@ -3083,11 +3083,15 @@ namespace adria
 	void Renderer::PassVolumetric(Light const& light)
 	{
 		ADRIA_ASSERT(light.volumetric);
-
 		if (light.type == LightType::eDirectional && !light.casts_shadows)
 		{
-			Log::Warning("Calling PassVolumetric on a Directional Light \
-				that does not cast shadows does not make sense!");
+			Log::Warning("Volumetric Directional Light \
+				that does not cast shadows does not make sense!\n");
+			return;
+		}
+		if (!settings.fog)
+		{
+			Log::Warning("Volumetric Lighting requires Fog to be enabled!\n");
 			return;
 		}
 
@@ -3558,11 +3562,13 @@ namespace adria
 	{
 		ADRIA_ASSERT(settings.fog);
 
+		
+
 		ID3D11DeviceContext* context = gfx->Context();
-		postprocess_cbuf_data.fog_near = settings.fog_near;
-		postprocess_cbuf_data.fog_far = settings.fog_far;
+		postprocess_cbuf_data.fog_falloff = settings.fog_falloff;
 		postprocess_cbuf_data.fog_density = settings.fog_density;
-		postprocess_cbuf_data.fog_height = settings.fog_height;
+		postprocess_cbuf_data.fog_type = static_cast<i32>(settings.fog_type);
+		postprocess_cbuf_data.fog_start = settings.fog_start;
 		postprocess_cbuf_data.fog_color = XMVectorSet(settings.fog_color[0], settings.fog_color[1], settings.fog_color[2], 1);
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 

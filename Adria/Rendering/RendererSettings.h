@@ -3,16 +3,18 @@
 
 namespace adria
 {
+
+
 	struct RendererSettings
 	{
 		f32 ambient_color[3] = { 15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f };
 		f32 wind_direction[2] = { 10.0f, 10.0f };
 
 		bool fog = false;
-		f32 fog_near = 100.0f;
-		f32 fog_far = 400.0f;
-		f32 fog_density = 0.1f;
-		f32 fog_height = 1000.0f;
+		FogType fog_type = FogType::eExponential;
+		f32 fog_falloff = 0.02f;
+		f32 fog_density = 0.02f;
+		f32 fog_start = 100.0f;
 		f32 fog_color[3] = { 0.5f,0.6f,0.7f };
 		
 		bool ibl = false;
