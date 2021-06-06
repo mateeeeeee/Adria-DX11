@@ -339,6 +339,12 @@ bool IntersectSphere(float3 o, float3 d, out float3 minT, out float3 maxT)
 }
 
 
+//struct Output
+//{
+//    float4 color : SV_TARGET;
+//    float4 depth : SV_Depth;
+//};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 float4 main(VertexOut pin) : SV_TARGET

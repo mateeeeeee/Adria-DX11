@@ -471,7 +471,8 @@ namespace adria
 
             reg.emplace<Visibility>(light, aabb, true, false);
             reg.emplace<Transform>(light, translation_matrix, translation_matrix);
-            reg.emplace<Forward>(light, true);
+            //sun rendered in separate pass
+            if (params.light_data.type != LightType::eDirectional) reg.emplace<Forward>(light, true);
         }
         else if (params.mesh_type == LightMesh::eSphere)
         {

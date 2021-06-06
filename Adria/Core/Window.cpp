@@ -13,8 +13,6 @@ namespace adria
         const u32 window_height = init.height;
         const LPCWSTR class_name = L"MyWindowClass";
 
-        // Register the Window Class
-
         WNDCLASSEX wcex{};
         wcex.cbSize = sizeof(WNDCLASSEX);
         wcex.style = CS_HREDRAW | CS_VREDRAW;

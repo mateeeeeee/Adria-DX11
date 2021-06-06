@@ -469,7 +469,7 @@ namespace adria
 	}
 	Texture2D Renderer::GetOffscreenTexture() const
 	{
-		return offscreen_ldr_target;
+		return offscreen_ldr_render_target;
 	}
 	void Renderer::NewFrame(Camera const* _camera)
 	{
@@ -1154,7 +1154,8 @@ namespace adria
 		render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		render_target_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
-		main_render_target = Texture2D(gfx->Device(), render_target_desc);
+		hdr_render_target = Texture2D(gfx->Device(), render_target_desc);
+		sun_target = Texture2D(gfx->Device(), render_target_desc);
 
 		ping_pong_postprocess_textures[0] = Texture2D(gfx->Device(), render_target_desc);
 		ping_pong_postprocess_textures[1] = Texture2D(gfx->Device(), render_target_desc);
@@ -1167,7 +1168,7 @@ namespace adria
 		depth_target_desc.dsv_desc.depth_format = DXGI_FORMAT_D32_FLOAT;
 		depth_target_desc.srv_desc.format = DXGI_FORMAT_R32_FLOAT;
 
-		depth_stencil_target = Texture2D(gfx->Device(), depth_target_desc);
+		depth_target = Texture2D(gfx->Device(), depth_target_desc);
 
 		texture2d_desc_t fxaa_source_desc{};
 		fxaa_source_desc.width = width;
@@ -1179,7 +1180,7 @@ namespace adria
 		fxaa_source = Texture2D(gfx->Device(), fxaa_source_desc);
 
 		texture2d_desc_t offscreeen_desc = fxaa_source_desc;
-		offscreen_ldr_target = Texture2D(gfx->Device(), offscreeen_desc);
+		offscreen_ldr_render_target = Texture2D(gfx->Device(), offscreeen_desc);
 
 		texture2d_desc_t depth_map_desc{};
 		depth_map_desc.width = SHADOW_MAP_SIZE;
@@ -1305,22 +1306,22 @@ namespace adria
 		gbuffer_emissive_attachment.load_op = LoadOp::eClear;
 
 		dsv_attachment_desc_t depth_clear_attachment{};
-		depth_clear_attachment.view = depth_stencil_target.DSV();
+		depth_clear_attachment.view = depth_target.DSV();
 		depth_clear_attachment.clear_depth = 1.0f;
 		depth_clear_attachment.load_op = LoadOp::eClear;
 
 		rtv_attachment_desc_t hdr_color_clear_attachment{};
-		hdr_color_clear_attachment.view = main_render_target.RTV();
+		hdr_color_clear_attachment.view = hdr_render_target.RTV();
 		hdr_color_clear_attachment.clear_color = clear_black;
 		hdr_color_clear_attachment.load_op = LoadOp::eClear;
 
 		rtv_attachment_desc_t hdr_color_load_attachment{};
-		hdr_color_load_attachment.view = main_render_target.RTV();
+		hdr_color_load_attachment.view = hdr_render_target.RTV();
 		hdr_color_load_attachment.load_op = LoadOp::eLoad;
 
 		
 		dsv_attachment_desc_t depth_load_attachment{};
-		depth_load_attachment.view = depth_stencil_target.DSV();
+		depth_load_attachment.view = depth_target.DSV();
 		depth_load_attachment.clear_depth = 1.0f;
 		depth_load_attachment.load_op = LoadOp::eLoad;
 
@@ -1346,7 +1347,7 @@ namespace adria
 		pong_color_load_attachment.load_op = LoadOp::eLoad;
 
 		rtv_attachment_desc_t offscreen_clear_attachment{};
-		offscreen_clear_attachment.view = offscreen_ldr_target.RTV();
+		offscreen_clear_attachment.view = offscreen_ldr_render_target.RTV();
 		offscreen_clear_attachment.clear_color = clear_black;
 		offscreen_clear_attachment.load_op = LoadOp::eClear;
 
@@ -2274,7 +2275,7 @@ namespace adria
 
 		ssao_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* srvs[] = { gbuffer[0].SRV(), depth_stencil_target.SRV(), random_texture.SRV() };
+			ID3D11ShaderResourceView* srvs[] = { gbuffer[0].SRV(), depth_target.SRV(), random_texture.SRV() };
 			context->PSSetShaderResources(1, _countof(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2293,7 +2294,7 @@ namespace adria
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
-		ID3D11ShaderResourceView* srvs[] = { gbuffer[0].SRV(),gbuffer[1].SRV(), depth_stencil_target.SRV(), gbuffer[2].SRV() };
+		ID3D11ShaderResourceView* srvs[] = { gbuffer[0].SRV(),gbuffer[1].SRV(), depth_target.SRV(), gbuffer[2].SRV() };
 		context->PSSetShaderResources(0, _countof(srvs), srvs);
 
 		ambient_pass.Begin(context);
@@ -2387,7 +2388,7 @@ namespace adria
 				ID3D11ShaderResourceView* shader_views[3] = { nullptr };
 				shader_views[0] = gbuffer[0].SRV();
 				shader_views[1] = gbuffer[1].SRV();
-				shader_views[2] = depth_stencil_target.SRV();
+				shader_views[2] = depth_target.SRV();
 
 				context->PSSetShaderResources(0, _countof(shader_views), shader_views);
 
@@ -2421,7 +2422,7 @@ namespace adria
 		ID3D11ShaderResourceView* shader_views[3] = { nullptr };
 		shader_views[0] = gbuffer[0].SRV();
 		shader_views[1] = gbuffer[1].SRV();
-		shader_views[2] = depth_stencil_target.SRV();
+		shader_views[2] = depth_target.SRV();
 		context->CSSetShaderResources(0, _countof(shader_views), shader_views);
 		ID3D11ShaderResourceView* lights_srv = lights->SRV();
 		context->CSSetShaderResources(3, 1, &lights_srv);
@@ -2442,7 +2443,7 @@ namespace adria
 		ID3D11UnorderedAccessView* null_uav = nullptr;
 		context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 
-		auto rtv = main_render_target.RTV();
+		auto rtv = hdr_render_target.RTV();
 		context->OMSetRenderTargets(1, &rtv, nullptr);
 
 		if (settings.visualize_tiled)
@@ -2545,7 +2546,7 @@ namespace adria
 			ID3D11ShaderResourceView* shader_views[6] = { nullptr };
 			shader_views[0] = gbuffer[0].SRV();
 			shader_views[1] = gbuffer[1].SRV();
-			shader_views[2] = depth_stencil_target.SRV();
+			shader_views[2] = depth_target.SRV();
 			shader_views[3] = lights->SRV();
 			shader_views[4] = light_list->SRV();
 			shader_views[5] = light_grid->SRV();
@@ -2747,7 +2748,7 @@ namespace adria
 		{
 			ID3D11ShaderResourceView* shader_views[3] = { nullptr };
 			shader_views[0] = gbuffer[0].SRV();
-			shader_views[1] = depth_stencil_target.SRV();
+			shader_views[1] = depth_target.SRV();
 			shader_views[2] = settings.voxel_second_bounce ? voxel_texture_second_bounce.SRV() : voxel_texture.SRV();
 
 			context->PSSetShaderResources(0, _countof(shader_views), shader_views);
@@ -2772,7 +2773,7 @@ namespace adria
 
 		postprocess_passes[pong_postprocess_pass].Begin(context); //set ping as rt
 
-		CopyTexture(main_render_target);
+		CopyTexture(hdr_render_target);
 		
 		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
 		for (entity light : lights)
@@ -2845,20 +2846,33 @@ namespace adria
 			pong_postprocess_pass = !pong_postprocess_pass;
 		}
 
-		
 		for (entity light : lights)
 		{
 			auto const& light_data = lights.get(light);
-			if (!light_data.active || !light_data.god_rays) continue;
-			
-			postprocess_passes[pong_postprocess_pass].Begin(context);
-			PassGodRays(light_data);
-			postprocess_passes[pong_postprocess_pass].End(context);
-			pong_postprocess_pass = !pong_postprocess_pass;
-			
+			if (!light_data.active) continue;
+
+			if (light_data.type == LightType::eDirectional)
+			{
+				if (light_data.god_rays)
+				{
+					DrawSun(light);
+					postprocess_passes[!pong_postprocess_pass].Begin(context);
+					PassGodRays(light_data);
+					postprocess_passes[!pong_postprocess_pass].End(context);
+				}
+				else
+				{
+					DrawSun(light);
+					postprocess_passes[!pong_postprocess_pass].Begin(context);
+					context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
+					CopyTexture(sun_target);
+					context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+					postprocess_passes[!pong_postprocess_pass].End(context);
+				}
+
+			}
+
 		}
-
-
 
 	}
 
@@ -3097,7 +3111,7 @@ namespace adria
 
 		ID3D11DeviceContext* context = gfx->Context();
 
-		ID3D11ShaderResourceView* srv[] = { depth_stencil_target.SRV() };
+		ID3D11ShaderResourceView* srv[] = { depth_target.SRV() };
 		context->PSSetShaderResources(2, 1, srv);
 
 		context->IASetInputLayout(nullptr);
@@ -3282,7 +3296,7 @@ namespace adria
 
 		//render
 		{
-			ID3D11ShaderResourceView* depth_srv_array[1] = { depth_stencil_target.SRV() };
+			ID3D11ShaderResourceView* depth_srv_array[1] = { depth_target.SRV() };
 			context->GSSetShaderResources(7, _countof(depth_srv_array), depth_srv_array);
 			context->GSSetShaderResources(0, static_cast<u32>(lens_flare_textures.size()), lens_flare_textures.data());
 			context->PSSetShaderResources(0, static_cast<u32>(lens_flare_textures.size()), lens_flare_textures.data());
@@ -3307,7 +3321,7 @@ namespace adria
 		ADRIA_ASSERT(settings.clouds);
 
 		ID3D11DeviceContext* context = gfx->Context();
-		ID3D11ShaderResourceView* const srv_array[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_stencil_target.SRV()};
+		ID3D11ShaderResourceView* const srv_array[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target.SRV()};
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 
@@ -3340,7 +3354,7 @@ namespace adria
 
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* srv_array[] = { gbuffer[0].SRV(), ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_stencil_target.SRV() };
+		ID3D11ShaderResourceView* srv_array[] = { gbuffer[0].SRV(), ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_target.SRV() };
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
 
@@ -3359,7 +3373,12 @@ namespace adria
 	{
 		ADRIA_ASSERT(light.god_rays);
 		ID3D11DeviceContext* context = gfx->Context();
-		if (light.type != LightType::eDirectional) Log::Warning("Using God Rays on a Non-Directional Light Source\n");
+		if (light.type != LightType::eDirectional)
+		{
+			Log::Warning("Using God Rays on a Non-Directional Light Source\n");
+			return;
+		}
+
 
 		//update
 		{
@@ -3381,18 +3400,20 @@ namespace adria
 			auto ss_sun_pos = XMFLOAT4(0.5f * light_posH.x / light_posH.w + 0.5f, -0.5f * light_posH.y / light_posH.w + 0.5f, light_posH.z / light_posH.w, 1.0f);
 			light_cbuf_data.screenspace_position = XMLoadFloat4(&ss_sun_pos);
 
-			static f32 const fMaxSunDist = 1.3f;
+			static f32 const max_light_dist = 1.3f;
 
 			f32 fMaxDist = (std::max)(abs(XMVectorGetX(light_cbuf_data.screenspace_position)), abs(XMVectorGetY(light_cbuf_data.screenspace_position)));
 			if (fMaxDist >= 1.0f)
-				light_cbuf_data.color = XMVector3Transform(light_cbuf_data.color, XMMatrixScaling((fMaxSunDist - fMaxDist), (fMaxSunDist - fMaxDist), (fMaxSunDist - fMaxDist)));
+				light_cbuf_data.color = XMVector3Transform(light_cbuf_data.color, XMMatrixScaling((max_light_dist - fMaxDist), (max_light_dist - fMaxDist), (max_light_dist - fMaxDist)));
 
 			light_cbuffer->Update(context, light_cbuf_data);
 		}
 
 		//render
+		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
 		{
-			ID3D11ShaderResourceView* srv_array[1] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV() };
+			
+			ID3D11ShaderResourceView* srv_array[1] = { sun_target.SRV() };
 			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 
 			context->PSSetShaderResources(0, _countof(srv_array), srv_array);
@@ -3406,6 +3427,8 @@ namespace adria
 
 			context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 		}
+		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+
 	}
 	void Renderer::PassDepthOfField()
 	{
@@ -3428,7 +3451,7 @@ namespace adria
 			compute_programs[ComputeShader::eBokehGenerate].Bind(context);
 			
 			
-			ID3D11ShaderResourceView* srv_array[2] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_stencil_target.SRV() };
+			ID3D11ShaderResourceView* srv_array[2] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_target.SRV() };
 			u32 initial_count = 0;
 			context->CSSetUnorderedAccessViews(0, 1, bokeh_uav.GetAddressOf(), &initial_count);
 			context->CSSetShaderResources(0, 2, srv_array);
@@ -3442,9 +3465,9 @@ namespace adria
 			compute_programs[ComputeShader::eBokehGenerate].Unbind(context);
 		}
 
-		BlurTexture(main_render_target);
+		BlurTexture(hdr_render_target);
 
-		ID3D11ShaderResourceView* srv_array[3] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), blur_texture_final.SRV(), depth_stencil_target.SRV()};
+		ID3D11ShaderResourceView* srv_array[3] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), blur_texture_final.SRV(), depth_target.SRV()};
 		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
 
 		postprocess_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
@@ -3544,7 +3567,7 @@ namespace adria
 		postprocess_cbuf_data.motion_blur_intensity = settings.motion_blur_intensity;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* const srv_array[2] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_stencil_target.SRV() };
+		ID3D11ShaderResourceView* const srv_array[2] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_target.SRV() };
 		static ID3D11ShaderResourceView* const srv_null[2] = { nullptr, nullptr };
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
@@ -3562,8 +3585,6 @@ namespace adria
 	{
 		ADRIA_ASSERT(settings.fog);
 
-		
-
 		ID3D11DeviceContext* context = gfx->Context();
 		postprocess_cbuf_data.fog_falloff = settings.fog_falloff;
 		postprocess_cbuf_data.fog_density = settings.fog_density;
@@ -3572,7 +3593,7 @@ namespace adria
 		postprocess_cbuf_data.fog_color = XMVectorSet(settings.fog_color[0], settings.fog_color[1], settings.fog_color[2], 1);
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* srv_array[] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_stencil_target.SRV() };
+		ID3D11ShaderResourceView* srv_array[] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_target.SRV() };
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
 
@@ -3641,6 +3662,50 @@ namespace adria
 	}
 
 	
+	void Renderer::DrawSun(entity sun)
+	{
+		ID3D11DeviceContext* context = gfx->Context();
+		
+		ID3D11RenderTargetView* rtv = sun_target.RTV();
+		ID3D11DepthStencilView* dsv = depth_target.DSV();
+		
+		f32 black[4] = { 0.0f };
+		context->ClearRenderTargetView(rtv, black);
+
+		context->OMSetRenderTargets(1, &rtv, dsv);
+		context->OMSetBlendState(alpha_blend.Get(), nullptr, 0xffffffff);
+		{
+			auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
+			standard_programs[StandardShader::eSun].Bind(context);
+
+			object_cbuf_data.model = transform.current_transform;
+			object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+			object_cbuffer->Update(context, object_cbuf_data);
+			material_cbuf_data.diffuse = material.diffuse;
+			material_cbuf_data.albedo_factor = material.albedo_factor;
+
+			material_cbuffer->Update(context, material_cbuf_data);
+
+			if (material.diffuse_texture != INVALID_TEXTURE_HANDLE)
+			{
+				auto view = texture_manager.GetTextureView(material.diffuse_texture);
+
+				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
+			}
+			else if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
+			{
+				auto view = texture_manager.GetTextureView(material.albedo_texture);
+
+				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
+			}
+
+			mesh.Draw(context);
+
+		}
+		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+		context->OMSetRenderTargets(0, nullptr, nullptr);
+	}
+
 	void Renderer::BlurTexture(Texture2D const& src)
 	{
 		std::array<f32, 9> gauss{};

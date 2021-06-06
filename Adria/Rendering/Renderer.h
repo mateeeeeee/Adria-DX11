@@ -74,11 +74,11 @@ namespace adria
 		RendererSettings settings;
 
 		//textures
-		Texture2D main_render_target;
+		Texture2D hdr_render_target;
 		Texture2D uav_target;
-		Texture2D depth_stencil_target;
+		Texture2D depth_target;
 		Texture2D fxaa_source;
-		Texture2D offscreen_ldr_target;
+		Texture2D offscreen_ldr_render_target;
 		std::vector<Texture2D> gbuffer;
 		Texture2D shadow_depth_map;
 		TextureCube shadow_depth_cubemap;
@@ -98,6 +98,7 @@ namespace adria
 		bool pong_spectrum = true;
 		Texture3D voxel_texture;
 		Texture3D voxel_texture_second_bounce;
+		Texture2D sun_target;
 
 		//shaders
 		std::unordered_map<StandardShader, StandardProgram> standard_programs;
@@ -257,6 +258,8 @@ namespace adria
 		void PassFxaa();
 		void PassFog();
 
+		//result is in sun texture
+		void DrawSun(tecs::entity sun);
 		//result is in final compute texture
 		void BlurTexture(Texture2D const& src);
 		//result is in currently set render target

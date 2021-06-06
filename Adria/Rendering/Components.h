@@ -105,9 +105,9 @@ namespace adria
 		bool screen_space_shadows = false;
 		bool lens_flare = false;
 		bool god_rays = false;
-		f32 godrays_decay = 0.85f;
-		f32 godrays_weight = 0.0625f;
-		f32 godrays_density = 1.0f;
+		f32 godrays_decay = 0.95f;
+		f32 godrays_weight = 0.25f;
+		f32 godrays_density = 0.95f;
 		f32 godrays_exposure = 1.0f;
 	};
 
