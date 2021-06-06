@@ -2807,7 +2807,6 @@ namespace adria
 			pong_postprocess_pass = !pong_postprocess_pass;
 		}
 
-
 		if (settings.ssr)
 		{
 			postprocess_passes[pong_postprocess_pass].Begin(context);

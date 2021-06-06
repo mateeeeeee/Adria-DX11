@@ -31,17 +31,18 @@ float4 main(VertexOut pin) : SV_TARGET
     
     
     //tex_coord -= dither(pin.Tex) * tex_coord;
+    float3 accumulated = 0.0f;
     
     for (int i = 0; i < NUM_SAMPLES; i++)
     {
         tex_coord.xy -= delta_tex_coord;
         float3 sam = scene_texture.SampleLevel(linear_clamp_sampler, tex_coord.xy, 0).rgb;
         sam *= illumination_decay * current_light.godrays_weight;
-        color.rgb += sam;
+        accumulated += sam;
         illumination_decay *= current_light.godrays_decay;
     }
     
-    color *= current_light.godrays_exposure;
+    accumulated *= current_light.godrays_exposure;
     
-    return float4(color, 1.0f); 
+    return float4(color + accumulated, 1.0f);
 }
