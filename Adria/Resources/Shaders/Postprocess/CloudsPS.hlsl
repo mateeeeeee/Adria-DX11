@@ -339,23 +339,24 @@ bool IntersectSphere(float3 o, float3 d, out float3 minT, out float3 maxT)
 }
 
 
-//struct Output
-//{
-//    float4 color : SV_TARGET;
-//    float4 depth : SV_Depth;
-//};
+struct Output
+{
+    float4 color : SV_TARGET;
+    float  depth : SV_Depth;
+};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
-float4 main(VertexOut pin) : SV_TARGET
+Output main(VertexOut pin) 
 {
-    
-    float4 cloudsColor = float4(0.0, 0.0, 0.0, 0.0f);
-    
     float depth = depthTex.SampleLevel(point_wrap_sampler, pin.Tex, 0.0f).r;
     
+    Output output = (Output)0;
+    output.color = 0.0f;
+    output.depth = depth;
+
     if (depth < 0.99999f)
-        return float4(0.0, 0.0, 0.0, 0.0f);
+        return output;
     
 	//compute ray direction in world space
     float4 rayClipSpace = float4(ToClipSpaceCoord(pin.Tex), 1.0);
@@ -371,18 +372,17 @@ float4 main(VertexOut pin) : SV_TARGET
     
     if (intersect)
     {
-        float4 outColor = 0.0f;
+        float4 cloudsColor = 0.0f;
 
         float4 cloudDistance;
         cloudsColor = RaymarchToCloud(pin.Tex, startPos, endPos, float3(0,0,0), cloudDistance);
-        //cloudsColor.rgb = max(cloudsColor.rgb * 1.8f - 0.1f, 0.0f);
-        
-        //cloudsColor.a = cloudsColor.a > 0.2f ? cloudsColor.a : 0.0f;
-        
-        return cloudsColor;
+
+        output.color = cloudsColor;
+        output.depth = 0.9999f;
     }
     
-    return float4(0.0, 0.0, 0.0, 0.0f);
+    
+    return output;
 
    
 }

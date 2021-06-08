@@ -28,9 +28,7 @@ float4 main(VertexOut pin) : SV_TARGET
     float illumination_decay = 1.0f;
   
     float3 accumulated_god_rays = float3(0.0f,0.0f,0.0f);
-    
-    
-    //tex_coord -= dither(pin.Tex) * tex_coord;
+
     float3 accumulated = 0.0f;
     
     for (int i = 0; i < NUM_SAMPLES; i++)
