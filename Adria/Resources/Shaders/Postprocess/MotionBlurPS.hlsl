@@ -38,7 +38,6 @@ float4 main(VertexOut pin) : SV_TARGET
     
     for (int i = 1; i < SAMPLE_COUNT; ++i)
     {
-       
         float4 currentColor = scene_texture.Sample(linear_wrap_sampler, tex_coord);
    
     	 color += currentColor;

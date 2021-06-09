@@ -946,10 +946,10 @@ namespace adria
                 ImGui::Checkbox("Motion Blur", &settings.motion_blur);
                 ImGui::Checkbox("Fog", &settings.fog);
 
-                const char* items[] = { "Fast Approximative (FXAA)", "Temporal (TAA)"};
+                const char* items[] = { "None", "Fast Approximative (FXAA)", "Temporal (TAA)"};
                 static int item_current_idx = 0; // Here we store our selection data as an index.
                 const char* combo_label = items[item_current_idx];  // Label to preview before opening the combo (technically it could be anything)
-                if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
+                if (ImGui::BeginCombo("Anti-Aliasing", combo_label, 0))
                 {
                     for (int n = 0; n < IM_ARRAYSIZE(items); n++)
                     {

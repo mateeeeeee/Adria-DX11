@@ -420,15 +420,9 @@ namespace adria
 			fxaa_pass.End(context);
 
 			gfx->SetBackbuffer(); 
-			PassFxaa();
+			PassFXAA();
 		}
-		else if (settings.anti_aliasing == AntiAliasing::eTAA)
-		{
-			Log::Error("Temporal Anti-Aliasing not implemented, reverting to No-AA mode\n");
-			gfx->SetBackbuffer();
-			PassToneMap();
-		}
-		else if(settings.anti_aliasing == AntiAliasing::eNone)
+		else
 		{
 			gfx->SetBackbuffer();
 			PassToneMap();
@@ -445,23 +439,13 @@ namespace adria
 			fxaa_pass.End(context);
 			
 			offscreen_resolve_pass.Begin(context);
-
-			PassFxaa();
-
+			PassFXAA();
 			offscreen_resolve_pass.End(context);
 		}
-		else if (settings.anti_aliasing == AntiAliasing::eTAA)
-		{
-			Log::Error("Temporal Anti-Aliasing not implemented, reverting to No-AA mode\n");
-			gfx->SetBackbuffer();
-			PassToneMap();
-		}
-		else if(settings.anti_aliasing == AntiAliasing::eNone)
+		else
 		{
 			offscreen_resolve_pass.Begin(context);
-
 			PassToneMap();
-
 			offscreen_resolve_pass.End(context);
 		}
 
@@ -1175,8 +1159,9 @@ namespace adria
 		render_target_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
 		hdr_render_target = Texture2D(gfx->Device(), render_target_desc);
+		prev_hdr_render_target = Texture2D(gfx->Device(), render_target_desc);
 		sun_target = Texture2D(gfx->Device(), render_target_desc);
-
+		
 		ping_pong_postprocess_textures[0] = Texture2D(gfx->Device(), render_target_desc);
 		ping_pong_postprocess_textures[1] = Texture2D(gfx->Device(), render_target_desc);
 
@@ -1197,7 +1182,7 @@ namespace adria
 		fxaa_source_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 		fxaa_source_desc.srv_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		fxaa_source = Texture2D(gfx->Device(), fxaa_source_desc);
+		fxaa_texture = Texture2D(gfx->Device(), fxaa_source_desc);
 
 		texture2d_desc_t offscreeen_desc = fxaa_source_desc;
 		offscreen_ldr_render_target = Texture2D(gfx->Device(), offscreeen_desc);
@@ -1346,7 +1331,7 @@ namespace adria
 		depth_load_attachment.load_op = LoadOp::eLoad;
 
 		rtv_attachment_desc_t fxaa_source_attachment{};
-		fxaa_source_attachment.view = fxaa_source.RTV();
+		fxaa_source_attachment.view = fxaa_texture.RTV();
 		fxaa_source_attachment.load_op = LoadOp::eDontCare;
 
 		dsv_attachment_desc_t shadow_map_attachment{};
@@ -2890,6 +2875,19 @@ namespace adria
 
 		}
 
+		if (settings.anti_aliasing == AntiAliasing::eTAA)
+		{
+			postprocess_passes[pong_postprocess_pass].Begin(context);
+			PassTAA();
+			postprocess_passes[pong_postprocess_pass].End(context);
+			pong_postprocess_pass = !pong_postprocess_pass;
+
+			//copy hdr for next frame, todo: improve by using two hdr targets 
+			auto rtv = prev_hdr_render_target.RTV();
+			context->OMSetRenderTargets(1, &rtv, nullptr);
+			CopyTexture(ping_pong_postprocess_textures[!pong_postprocess_pass]);
+			context->OMSetRenderTargets(0, nullptr, nullptr);
+		}
 	}
 
 	void Renderer::PassShadowMapDirectional(Light const& light)
@@ -3658,13 +3656,13 @@ namespace adria
 
 		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 	}
-	void Renderer::PassFxaa()
+	void Renderer::PassFXAA()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
 
-		ID3D11ShaderResourceView* srv_array[1] = { fxaa_source.SRV() };
+		ID3D11ShaderResourceView* srv_array[1] = { fxaa_texture.SRV() };
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
 
@@ -3676,27 +3674,24 @@ namespace adria
 
 		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 	}
-
-	void Renderer::PassTaa()
+	void Renderer::PassTAA()
 	{
-		//ID3D11DeviceContext* context = gfx->Context();
-		//
-		//static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
-		//
-		//ID3D11ShaderResourceView* srv_array[1] = { fxaa_source.SRV() };
-		//
-		//context->PSSetShaderResources(0, _countof(srv_array), srv_array);
-		//
-		//context->IASetInputLayout(nullptr);
-		//context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		//standard_programs[StandardShader::eFXAA].Bind(context);
-		//
-		//context->Draw(4, 0);
-		//
-		//context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+		ID3D11DeviceContext* context = gfx->Context();
+		
+		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
+		ID3D11ShaderResourceView* srv_array[2] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), prev_hdr_render_target.SRV() };
+		
+		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+		
+		context->IASetInputLayout(nullptr);
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		standard_programs[StandardShader::eTAA].Bind(context);
+		
+		context->Draw(4, 0);
+		
+		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 	}
 
-	
 	void Renderer::DrawSun(entity sun)
 	{
 		ID3D11DeviceContext* context = gfx->Context();

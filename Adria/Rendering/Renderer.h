@@ -24,8 +24,6 @@ namespace adria
 	struct Light;
 	
 
-	
-
 	class Renderer
 	{
 
@@ -75,9 +73,10 @@ namespace adria
 
 		//textures
 		Texture2D hdr_render_target;
+		Texture2D prev_hdr_render_target;
 		Texture2D uav_target;
 		Texture2D depth_target;
-		Texture2D fxaa_source;
+		Texture2D fxaa_texture;
 		Texture2D offscreen_ldr_render_target;
 		std::vector<Texture2D> gbuffer;
 		Texture2D shadow_depth_map;
@@ -113,6 +112,7 @@ namespace adria
 		RenderPass lighting_pass;
 		RenderPass forward_pass;
 		RenderPass fxaa_pass;
+		RenderPass taa_pass;
 		RenderPass shadow_map_pass;
 		RenderPass ssao_pass;
 		RenderPass voxel_debug_pass;
@@ -253,10 +253,10 @@ namespace adria
 		void PassDepthOfField(); 
 		void PassBloom(); 
 		void PassMotionBlur();
-		void PassToneMap();
-		void PassFxaa();
-		void PassTaa();
 		void PassFog();
+		void PassFXAA();
+		void PassTAA();
+		void PassToneMap();
 
 		//result is in sun texture
 		void DrawSun(tecs::entity sun);
