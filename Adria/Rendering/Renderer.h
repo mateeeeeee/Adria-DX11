@@ -121,7 +121,6 @@ namespace adria
 		std::vector<RenderPass> cascade_shadow_pass;
 		std::array<RenderPass, 2> postprocess_passes; 
 		
-		
 		//other
 		//////////////////////////////////////////////////////////////////
 		bool ibl_textures_generated = false;

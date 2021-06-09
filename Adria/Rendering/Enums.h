@@ -123,7 +123,7 @@ namespace adria
 
 	enum class FogType : i32
 	{
-		eExponential, //for now
+		eExponential, 
 		eExponentialHeight
 	};
 

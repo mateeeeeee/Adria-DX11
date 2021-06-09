@@ -1,7 +1,4 @@
 
-
-
-
 #include "../Globals/GlobalsPS.hlsli"
 
 Texture2D sceneTx : register(t0);

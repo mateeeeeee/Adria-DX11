@@ -172,7 +172,7 @@ float ExponentialFog(float4 pos_vs)
     return 1 - fog;
 }
 
-float3 ExponentialHeightFog(float4 pos_vs)
+float ExponentialHeightFog(float4 pos_vs)
 {
     float4 pos_ws = mul(pos_vs, inverse_view);
     pos_ws /= pos_ws.w;

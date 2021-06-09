@@ -2254,8 +2254,6 @@ namespace adria
 		gbuffer_pass.End(context);
 
 	}
-
-
 	void Renderer::PassSSAO()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
@@ -2790,7 +2788,6 @@ namespace adria
 
 		if (settings.clouds)
 		{
-			
 			postprocess_passes[pong_postprocess_pass].Begin(context);
 			PassVolumetricClouds();
 			postprocess_passes[pong_postprocess_pass].End(context);
@@ -3801,9 +3798,6 @@ namespace adria
 
 	}
 }
-
-
-
 
 
 
