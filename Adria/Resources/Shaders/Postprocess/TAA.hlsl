@@ -67,8 +67,8 @@ float4 main(VertexOut pin) : SV_TARGET
     // if history sample is outside screen, switch to aliased image as a fallback.
     blend = any(bool2(any(a), any(b))) ? 1.0 : blend;
         
-    float3 curSample = neighbourhood[4];
-    float3 c = lerp(hist_sample, curSample, blend);
+    float3 cur_sample = neighbourhood[4];
+    float3 c = lerp(hist_sample, cur_sample, blend);
     
     return float4(c, 1.0f);
 }

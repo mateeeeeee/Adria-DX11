@@ -413,7 +413,7 @@ namespace adria
 	{
 		
 		ID3D11DeviceContext* context = gfx->Context();
-		if (settings.fxaa)
+		if (settings.anti_aliasing == AntiAliasing::eFXAA)
 		{
 			fxaa_pass.Begin(context);
 			PassToneMap();
@@ -422,16 +422,23 @@ namespace adria
 			gfx->SetBackbuffer(); 
 			PassFxaa();
 		}
-		else
+		else if (settings.anti_aliasing == AntiAliasing::eTAA)
+		{
+			Log::Error("Temporal Anti-Aliasing not implemented, reverting to No-AA mode\n");
+			gfx->SetBackbuffer();
+			PassToneMap();
+		}
+		else if(settings.anti_aliasing == AntiAliasing::eNone)
 		{
 			gfx->SetBackbuffer();
 			PassToneMap();
 		}
+
 	}
 	void Renderer::ResolveToOffscreenFramebuffer()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		if (settings.fxaa)
+		if (settings.anti_aliasing == AntiAliasing::eFXAA)
 		{
 			fxaa_pass.Begin(context);
 			PassToneMap();
@@ -443,7 +450,13 @@ namespace adria
 
 			offscreen_resolve_pass.End(context);
 		}
-		else
+		else if (settings.anti_aliasing == AntiAliasing::eTAA)
+		{
+			Log::Error("Temporal Anti-Aliasing not implemented, reverting to No-AA mode\n");
+			gfx->SetBackbuffer();
+			PassToneMap();
+		}
+		else if(settings.anti_aliasing == AntiAliasing::eNone)
 		{
 			offscreen_resolve_pass.Begin(context);
 
@@ -451,6 +464,7 @@ namespace adria
 
 			offscreen_resolve_pass.End(context);
 		}
+
 
 	}
 	void Renderer::OnResize(u32 w, u32 h)
@@ -651,7 +665,13 @@ namespace adria
 			//fxaa
 			{
 				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FXAA.cso", ps_blob);
-				standard_programs[StandardShader::eFxaa].Create(device, vs_blob, ps_blob);
+				standard_programs[StandardShader::eFXAA].Create(device, vs_blob, ps_blob);
+			}
+
+			//taa
+			{
+				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/TAA.cso", ps_blob);
+				standard_programs[StandardShader::eTAA].Create(device, vs_blob, ps_blob);
 			}
 
 			//copy
@@ -735,29 +755,29 @@ namespace adria
 		//shadows
 		{
 
-		ShaderBlob vs_blob, ps_blob;
-		ShaderInfo vs_input{}, ps_input{};
-		vs_input.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
-		vs_input.stage = ShaderStage::VS;
+			ShaderBlob vs_blob, ps_blob;
+			ShaderInfo vs_input{}, ps_input{};
+			vs_input.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
+			vs_input.stage = ShaderStage::VS;
 
-		ps_input.shadersource = "Resources/Shaders/Shadows/DepthMapPS.hlsl";
-		ps_input.stage = ShaderStage::PS;
+			ps_input.shadersource = "Resources/Shaders/Shadows/DepthMapPS.hlsl";
+			ps_input.stage = ShaderStage::PS;
 
-		ShaderUtility::CompileShader(vs_input, vs_blob);
-		ShaderUtility::CompileShader(ps_input, ps_blob);
+			ShaderUtility::CompileShader(vs_input, vs_blob);
+			ShaderUtility::CompileShader(ps_input, ps_blob);
 
-		//eDepthMap_Transparent
-		standard_programs[StandardShader::eDepthMap].Create(device, vs_blob, ps_blob);
+			//eDepthMap_Transparent
+			standard_programs[StandardShader::eDepthMap].Create(device, vs_blob, ps_blob);
 
-		std::vector<ShaderDefine> transparent_define = { ShaderDefine{"TRANSPARENT", "1"} };
+			std::vector<ShaderDefine> transparent_define = { ShaderDefine{"TRANSPARENT", "1"} };
 
-		vs_input.defines = transparent_define;
-		ps_input.defines = transparent_define;
+			vs_input.defines = transparent_define;
+			ps_input.defines = transparent_define;
 
-		ShaderUtility::CompileShader(vs_input, vs_blob);
-		ShaderUtility::CompileShader(ps_input, ps_blob);
+			ShaderUtility::CompileShader(vs_input, vs_blob);
+			ShaderUtility::CompileShader(ps_input, ps_blob);
 
-		standard_programs[StandardShader::eDepthMap_Transparent].Create(device, vs_blob, ps_blob);
+			standard_programs[StandardShader::eDepthMap_Transparent].Create(device, vs_blob, ps_blob);
 
 		}
 
@@ -3650,7 +3670,7 @@ namespace adria
 
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		standard_programs[StandardShader::eFxaa].Bind(context);
+		standard_programs[StandardShader::eFXAA].Bind(context);
 
 		context->Draw(4, 0);
 
@@ -3659,6 +3679,21 @@ namespace adria
 
 	void Renderer::PassTaa()
 	{
+		//ID3D11DeviceContext* context = gfx->Context();
+		//
+		//static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
+		//
+		//ID3D11ShaderResourceView* srv_array[1] = { fxaa_source.SRV() };
+		//
+		//context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+		//
+		//context->IASetInputLayout(nullptr);
+		//context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		//standard_programs[StandardShader::eFXAA].Bind(context);
+		//
+		//context->Draw(4, 0);
+		//
+		//context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 	}
 
 	

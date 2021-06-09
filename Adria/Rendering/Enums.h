@@ -54,7 +54,8 @@ namespace adria
 		eToneMap_Reinhard,
 		eToneMap_Hable,
 		eToneMap_Linear,
-		eFxaa,
+		eFXAA,
+		eTAA,
 		eCopy,
 		eAdd,
 		eDepthMap,
@@ -119,6 +120,13 @@ namespace adria
 		eDirectional,
 		ePoint,
 		eSpot
+	};
+
+	enum class AntiAliasing : u8
+	{
+		eNone,
+		eFXAA,
+		eTAA
 	};
 
 	enum class FogType : i32

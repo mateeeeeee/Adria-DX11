@@ -944,9 +944,26 @@ namespace adria
                 ImGui::Checkbox("DoF", &settings.dof);
                 ImGui::Checkbox("Bloom", &settings.bloom);
                 ImGui::Checkbox("Motion Blur", &settings.motion_blur);
-                ImGui::Checkbox("FXAA", &settings.fxaa);
                 ImGui::Checkbox("Fog", &settings.fog);
 
+                const char* items[] = { "Fast Approximative (FXAA)", "Temporal (TAA)"};
+                static int item_current_idx = 0; // Here we store our selection data as an index.
+                const char* combo_label = items[item_current_idx];  // Label to preview before opening the combo (technically it could be anything)
+                if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
+                {
+                    for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+                    {
+                        const bool is_selected = (item_current_idx == n);
+                        if (ImGui::Selectable(items[n], is_selected))
+                            item_current_idx = n;
+
+                        // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+                        if (is_selected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+                settings.anti_aliasing = static_cast<AntiAliasing>(item_current_idx);
 
                 if (settings.clouds && ImGui::TreeNodeEx("Volumetric Clouds", 0))
                 {
