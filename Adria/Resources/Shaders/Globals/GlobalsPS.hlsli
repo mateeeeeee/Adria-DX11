@@ -162,7 +162,7 @@ float ExponentialFog(float4 pos_vs)
 {
     float4 pos_ws = mul(pos_vs, inverse_view);
     pos_ws /= pos_ws.w;
-    float3 obj_to_camera = camera_position - pos_ws;
+    float3 obj_to_camera = (camera_position - pos_ws).xyz;
 
     float distance = length(obj_to_camera);
     
@@ -176,7 +176,7 @@ float ExponentialHeightFog(float4 pos_vs)
 {
     float4 pos_ws = mul(pos_vs, inverse_view);
     pos_ws /= pos_ws.w;
-    float3 camera_to_world = pos_ws - camera_position;
+    float3 camera_to_world = (pos_ws - camera_position).xyz;
 
     float distance = length(camera_to_world);
     

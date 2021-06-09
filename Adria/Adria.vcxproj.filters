@@ -684,5 +684,8 @@
     <FxCompile Include="Resources\Shaders\Postprocess\FogPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\TAA.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -255,6 +255,7 @@ namespace adria
 		void PassMotionBlur();
 		void PassToneMap();
 		void PassFxaa();
+		void PassTaa();
 		void PassFog();
 
 		//result is in sun texture

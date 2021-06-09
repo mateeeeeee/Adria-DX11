@@ -3657,6 +3657,10 @@ namespace adria
 		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 	}
 
+	void Renderer::PassTaa()
+	{
+	}
+
 	
 	void Renderer::DrawSun(entity sun)
 	{
