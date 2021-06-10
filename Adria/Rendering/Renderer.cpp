@@ -654,7 +654,7 @@ namespace adria
 
 			//taa
 			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/TAA.cso", ps_blob);
+				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/TAA_PS.cso", ps_blob);
 				standard_programs[StandardShader::eTAA].Create(device, vs_blob, ps_blob);
 			}
 

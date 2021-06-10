@@ -137,7 +137,6 @@ namespace adria
 		eCross
 	};
 
-
 	enum AntiAliasing : u8
 	{
 		AntiAliasing_None = 0x0,
