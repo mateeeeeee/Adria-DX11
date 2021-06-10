@@ -413,7 +413,7 @@ namespace adria
 	{
 		
 		ID3D11DeviceContext* context = gfx->Context();
-		if (settings.anti_aliasing == AntiAliasing::eFXAA)
+		if (settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			fxaa_pass.Begin(context);
 			PassToneMap();
@@ -432,7 +432,7 @@ namespace adria
 	void Renderer::ResolveToOffscreenFramebuffer()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		if (settings.anti_aliasing == AntiAliasing::eFXAA)
+		if (settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			fxaa_pass.Begin(context);
 			PassToneMap();
@@ -2875,7 +2875,7 @@ namespace adria
 
 		}
 
-		if (settings.anti_aliasing == AntiAliasing::eTAA)
+		if (settings.anti_aliasing & AntiAliasing_TAA)
 		{
 			postprocess_passes[pong_postprocess_pass].Begin(context);
 			PassTAA();

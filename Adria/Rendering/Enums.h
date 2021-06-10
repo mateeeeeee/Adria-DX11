@@ -122,12 +122,6 @@ namespace adria
 		eSpot
 	};
 
-	enum class AntiAliasing : u8
-	{
-		eNone,
-		eFXAA,
-		eTAA
-	};
 
 	enum class FogType : i32
 	{
@@ -141,6 +135,14 @@ namespace adria
 		eOct,
 		eCircle,
 		eCross
+	};
+
+
+	enum AntiAliasing : u8
+	{
+		AntiAliasing_None = 0x0,
+		AntiAliasing_FXAA = 0x1,
+		AntiAliasing_TAA = 0x2
 	};
 
 }

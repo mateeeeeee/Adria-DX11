@@ -22,7 +22,7 @@ namespace adria
 		bool shadow_transparent = false;
 		f32 split_lambda = 0.5f;
 		//fxaa
-		AntiAliasing anti_aliasing = AntiAliasing::eNone;
+		AntiAliasing anti_aliasing = AntiAliasing_None;
 		//tonemap
 		f32 tone_map_exposure = 1.0f;
 		ToneMap tone_map_op = ToneMap::eHable;
