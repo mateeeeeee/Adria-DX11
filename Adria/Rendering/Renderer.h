@@ -58,9 +58,6 @@ namespace adria
 
 		TextureManager& GetTextureManager();
 
-		void CreateIBLTextures();
-
-		bool IblCreated() const;
 	private:
 		u32 width, height;
 		tecs::registry& reg;
@@ -207,6 +204,7 @@ namespace adria
 		void CreateSsaoTextures(u32 width, u32 height);
 		void CreateRenderPasses(u32 width, u32 height);
 		void CreateComputeTextures(u32 width, u32 height);
+		void CreateIBLTextures();
 
 		//called in update
 		void BindGlobals();

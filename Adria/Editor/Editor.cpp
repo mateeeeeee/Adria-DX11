@@ -1091,9 +1091,6 @@ namespace adria
 
                 ImGui::SliderFloat("Shadow Softness", &settings.shadow_softness, 0.01f, 5.0f);
                 ImGui::Checkbox("IBL", &settings.ibl);
-
-                if (settings.ibl && !engine->renderer->IblCreated()) engine->renderer->CreateIBLTextures();
-
                 ImGui::TreePop();
             }
         }

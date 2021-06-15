@@ -139,9 +139,7 @@ TEXTURE_HANDLE TextureManager::LoadCubeMap(std::wstring const& name)
 		}
 		else //HDR
 		{
-
 			Image equirect_hdr_image(ConvertToNarrow(name));
-
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> cubemap_tex = nullptr;
 			D3D11_TEXTURE2D_DESC desc{};
@@ -187,16 +185,16 @@ TEXTURE_HANDLE TextureManager::LoadCubeMap(std::wstring const& name)
 			device->CreateComputeShader(blob.GetPointer(), blob.GetLength(), nullptr, &equirect_to_cube);
 
 
-			D3D11_SAMPLER_DESC sampDesc = {};
-			sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-			sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-			sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-			sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-			sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-			sampDesc.MinLOD = 0;
-			sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+			D3D11_SAMPLER_DESC samp_desc = {};
+			samp_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+			samp_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+			samp_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+			samp_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+			samp_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+			samp_desc.MinLOD = 0;
+			samp_desc.MaxLOD = D3D11_FLOAT32_MAX;
 			Microsoft::WRL::ComPtr<ID3D11SamplerState> linear_wrap_sampler;
-			BREAK_IF_FAILED(device->CreateSamplerState(&sampDesc, &linear_wrap_sampler));
+			BREAK_IF_FAILED(device->CreateSamplerState(&samp_desc, &linear_wrap_sampler));
 			context->CSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> equirect_tex = nullptr;
@@ -323,8 +321,6 @@ void TextureManager::SetMipMaps(bool mipmaps)
 {
 	this->mipmaps = mipmaps;
 }
-
-
 
 TEXTURE_HANDLE TextureManager::LoadDDSTexture(std::wstring const& name)
 {

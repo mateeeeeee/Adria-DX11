@@ -343,7 +343,6 @@ namespace adria
 		}
 
 	}
-
 	/////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// PUBLIC //////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////
@@ -380,8 +379,8 @@ namespace adria
 	void Renderer::Render(RendererSettings const& _settings)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-
 		settings = _settings;
+		if (settings.ibl && !ibl_textures_generated) CreateIBLTextures();
 
 		PassGbuffer();
 
@@ -1619,10 +1618,10 @@ namespace adria
 			context->CSSetShaderResources(0, 1, &unfiltered_env_srv);
 
 
-			f32 const deltaRoughness = 1.0f / (std::max)(f32(tex_desc.MipLevels - 1), 1.0f);
+			f32 const delta_roughness = 1.0f / (std::max)(f32(tex_desc.MipLevels - 1), 1.0f);
 
 			u32 size = (std::max)(tex_desc.Width, tex_desc.Height);
-			RoughnessCBuffer  spmapConstants{};
+			RoughnessCBuffer  spmap_constants{};
 
 			Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> env_uav;
 			D3D11_UNORDERED_ACCESS_VIEW_DESC env_uav_desc{};
@@ -1640,15 +1639,15 @@ namespace adria
 
 				BREAK_IF_FAILED(device->CreateUnorderedAccessView(env_tex.Get(), &env_uav_desc, &env_uav));
 
-				spmapConstants = { level * deltaRoughness };
+				spmap_constants = { level * delta_roughness };
 
-				roughness_cb.Update(context, spmapConstants);
+				roughness_cb.Update(context, spmap_constants);
 				context->CSSetUnorderedAccessViews(0, 1, env_uav.GetAddressOf(), nullptr);
 				context->Dispatch(numGroups, numGroups, 6);
 			}
 
-			ID3D11Buffer* nullBuffer[] = { nullptr };
-			context->CSSetConstantBuffers(0, 1, nullBuffer);
+			ID3D11Buffer* null_buffer[] = { nullptr };
+			context->CSSetConstantBuffers(0, 1, null_buffer);
 			ID3D11UnorderedAccessView* nullUAV[] = { nullptr };
 			context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
 		}
@@ -1707,13 +1706,13 @@ namespace adria
 
 		// Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.
 		{
-			ComputeProgram spBRDF_program{};
+			ComputeProgram BRDFprogram{};
 
 			ShaderBlob cs_blob;
 
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpbrdfCS.cso", cs_blob);
 
-			spBRDF_program.Create(device, cs_blob);
+			BRDFprogram.Create(device, cs_blob);
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> brdf_tex = nullptr;
 			D3D11_TEXTURE2D_DESC brdf_desc = {};
@@ -1746,7 +1745,7 @@ namespace adria
 
 			context->CSSetUnorderedAccessViews(0, 1, brdf_uav.GetAddressOf(), nullptr);
 
-			spBRDF_program.Bind(context);
+			BRDFprogram.Bind(context);
 			context->Dispatch(brdf_desc.Width / 32, brdf_desc.Height / 32, 1);
 			ID3D11UnorderedAccessView* nullUAV[] = { nullptr };
 			context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
@@ -1754,10 +1753,6 @@ namespace adria
 
 		ibl_textures_generated = true;
 
-	}
-	bool Renderer::IblCreated() const
-	{
-		return env_srv || irmap_srv || brdf_srv;
 	}
 
 	///////////////////////////////////////////////////////////////////////
@@ -3392,7 +3387,6 @@ namespace adria
 			Log::Warning("Using God Rays on a Non-Directional Light Source\n");
 			return;
 		}
-
 
 		//update
 		{
