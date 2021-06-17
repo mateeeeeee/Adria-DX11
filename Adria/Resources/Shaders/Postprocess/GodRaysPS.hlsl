@@ -1,7 +1,7 @@
 #include "../Globals/GlobalsPS.hlsli"
 #include "../Util/DitherUtil.hlsli"
 
-Texture2D scene_texture : register(t0);
+Texture2D sun_texture : register(t0);
 
 
 static const int NUM_SAMPLES = 32;
@@ -13,12 +13,10 @@ struct VertexOut
 };
 
 
-
-
 float4 main(VertexOut pin) : SV_TARGET
 {
     float2 tex_coord = pin.Tex;
-    float3 color = scene_texture.SampleLevel(linear_clamp_sampler, tex_coord, 0).rgb;
+    float3 color = sun_texture.SampleLevel(linear_clamp_sampler, tex_coord, 0).rgb;
     
     float2 light_pos = current_light.screen_space_position.xy;
     
@@ -34,7 +32,7 @@ float4 main(VertexOut pin) : SV_TARGET
     for (int i = 0; i < NUM_SAMPLES; i++)
     {
         tex_coord.xy -= delta_tex_coord;
-        float3 sam = scene_texture.SampleLevel(linear_clamp_sampler, tex_coord.xy, 0).rgb;
+        float3 sam = sun_texture.SampleLevel(linear_clamp_sampler, tex_coord.xy, 0).rgb;
         sam *= illumination_decay * current_light.godrays_weight;
         accumulated += sam;
         illumination_decay *= current_light.godrays_decay;

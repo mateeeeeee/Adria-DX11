@@ -242,7 +242,7 @@ namespace adria
                 );
             }
 
-
+            
             
             
             indices.reserve(indices.size() + mesh->mNumFaces * 3);
@@ -290,31 +290,25 @@ namespace adria
             if (AI_SUCCESS == srcMat->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 1), texAlbedoPath))
             {
                 std::string texalbedo = params.textures_path + texAlbedoPath.C_Str();
-
                 material.albedo_texture = texture_manager.LoadTexture(texalbedo);
             }
 
             if (AI_SUCCESS == srcMat->Get(AI_MATKEY_TEXTURE(aiTextureType_UNKNOWN, 0), texRoughnessMetallicPath))
             {
                 std::string texmetallicroughness = params.textures_path + texRoughnessMetallicPath.C_Str();
-
                 material.metallic_roughness_texture = texture_manager.LoadTexture(texmetallicroughness);
             }
 
             if (AI_SUCCESS == srcMat->Get(AI_MATKEY_TEXTURE(aiTextureType_NORMALS, 0), texNormalPath))
             {
-
                 std::string texnorm = params.textures_path + texNormalPath.C_Str();
-
                 material.normal_texture = texture_manager.LoadTexture(texnorm);
             }
-
+            
             if (AI_SUCCESS == srcMat->Get(AI_MATKEY_TEXTURE(aiTextureType_EMISSIVE, 0), texEmissivePath))
             {
                 std::string texemissive = params.textures_path + texEmissivePath.C_Str();
-
                 material.emissive_texture = texture_manager.LoadTexture(texemissive);
-
             }
 
             material.shader = (material.emissive_texture == INVALID_TEXTURE_HANDLE ? 

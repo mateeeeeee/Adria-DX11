@@ -43,7 +43,7 @@ void main(uint3 dispatchThreadId : SV_DispatchThreadID)
     
     float centerDepth = ConvertZToLinearDepth(depth);
     
-    if (depth < camera_near) 
+    if (depth < 1.0f) 
     {
 
         float centerBlur = BlurFactor(centerDepth, dof_params);

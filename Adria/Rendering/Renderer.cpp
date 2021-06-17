@@ -376,7 +376,7 @@ namespace adria
 		UpdateWeather(dt);
 		UpdateOcean(dt);
 	}
-	void Renderer::Render(RendererSettings const& _settings)
+	void Renderer::Render(RendererSettings const& _settings) 
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 		settings = _settings;
@@ -3761,7 +3761,11 @@ namespace adria
 		ID3D11UnorderedAccessView* const blur_uav[1] = { nullptr };
 		ID3D11ShaderResourceView* const  blur_srv[1] = { nullptr };
 
+		u32 width = src.Width();
+		u32 height = src.Height();
+		
 		ID3D11ShaderResourceView* src_srv = src.SRV();
+
 		context->CSSetShaderResources(0, 1, &src_srv);
 		context->CSSetUnorderedAccessViews(0, 1, &uavs[0], nullptr);
 
