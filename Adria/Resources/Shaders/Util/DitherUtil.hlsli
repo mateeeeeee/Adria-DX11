@@ -31,6 +31,7 @@ static const float BayerMatrix8[8][8] =
     { 43.0 / 65.0, 27.0 / 65.0, 39.0 / 65.0, 23.0 / 65.0, 42.0 / 65.0, 26.0 / 65.0, 38.0 / 65.0, 22.0 / 65.0 }
 };
 
+//bayer dithering
 
 inline float ditherMask2(in float2 pixel)
 {
@@ -55,4 +56,22 @@ inline float ditherMask8(in float2 pixel)
 inline float dither(in float2 pixel)
 {
     return ditherMask8(pixel);
+}
+
+
+
+//other
+
+float2 dither(float2 coord, float seed, float2 size)
+{
+    float noiseX = ((frac(1.0 - (coord.x + seed * 1.0) * (size.x / 2.0)) * 0.25) + (frac((coord.y + seed * 2.0) * (size.y / 2.0)) * 0.75)) * 2.0 - 1.0;
+    float noiseY = ((frac(1.0 - (coord.x + seed * 3.0) * (size.x / 2.0)) * 0.75) + (frac((coord.y + seed * 4.0) * (size.y / 2.0)) * 0.25)) * 2.0 - 1.0;
+    return float2(noiseX, noiseY);
+}
+
+float2 mod_dither(float2 u)
+{
+    float noiseX = fmod(u.x + u.y + fmod(208. + u.x * 3.58, 13. + fmod(u.y * 22.9, 9.)), 7.) * .143;
+    float noiseY = fmod(u.y + u.x + fmod(203. + u.y * 3.18, 12. + fmod(u.x * 27.4, 8.)), 6.) * .139;
+    return float2(noiseX, noiseY) * 2.0 - 1.0;
 }
