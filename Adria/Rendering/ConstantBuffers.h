@@ -81,10 +81,9 @@ namespace adria
 		i32 visualize;
 	};
 
-	//float4  fog_color;
-	//float   fog_falloff;
-	//float   fog_density;
-	//int     fog_type;
+
+
+
 	DECLSPEC_ALIGN(16) struct PostprocessCBuffer
 	{
 		DirectX::XMFLOAT2 noise_scale;
@@ -101,6 +100,9 @@ namespace adria
 		f32   fog_density;
 		f32	  fog_start;
 		i32	  fog_type;
+		i32   ssgi_noise;
+		f32   ssgi_noise_amount;
+		f32   ssgi_indirect_amount;
 	};
 
 	DECLSPEC_ALIGN(16) struct ComputeCBuffer

@@ -16,6 +16,62 @@ TextureCube     depthCubeMap    : register(t5);
 Texture2DArray  cascadeDepthMap : register(t6);
 
 
+//has artifacts, fix later
+//https://panoskarabelas.com/posts/screen_space_shadows/
+static const uint SSS_MAX_STEPS = 16; // Max ray steps, affects quality and performance.
+static const float SSS_RAY_MAX_DISTANCE = 0.05f; // Max shadow length, longer shadows are less accurate.
+static const float SSS_THICKNESS = 0.01f; // Depth testing thickness.
+static const float SSS_STEP_LENGTH = SSS_RAY_MAX_DISTANCE / SSS_MAX_STEPS;
+
+float ScreenSpaceShadows(float2 uv)
+{
+    float depth = depthTx.Sample(linear_wrap_sampler, uv);
+    float3 ray_position = GetPositionVS(uv, depth);
+    
+    float3 ray_direction = -current_light.direction.xyz;
+    float3 ray_step = ray_direction * SSS_STEP_LENGTH;
+    ray_position += ray_step * dither(uv);
+    
+     // Ray march towards the light
+    float occlusion = 0.0;
+    float2 ray_uv = 0.0f;
+    
+    for (uint i = 0; i < SSS_MAX_STEPS; i++)
+    {
+        // Step the ray
+        ray_position += ray_step;
+
+        float4 ray_projection = mul(float4(ray_position, 1.0), projection);
+        ray_uv = ray_projection.xy / ray_projection.w;
+        ray_uv.xy = 0.5 * ray_uv.xy + 0.5;
+        ray_uv.y = 1.0 - ray_uv.y;
+
+        // Ensure the UV coordinates are inside the screen
+        if (IsSaturated(ray_uv))
+        {
+            float depth_z = depthTx.Sample(linear_wrap_sampler, ray_uv);
+            
+            // Compute the difference between the ray's and the camera's depth
+            float depth_linear = ConvertZToLinearDepth(depth_z);
+            float depth_delta = ray_position.z - depth_linear;
+
+            // Check if the camera can't "see" the ray (ray depth must be larger than the camera depth, so positive depth_delta)
+            if ((depth_delta > 0.0f) && (depth_delta < SSS_THICKNESS))
+            {
+                // Mark as occluded
+                occlusion = 1.0f;
+
+                // Fade out as we approach the edges of the screen
+                occlusion *= ScreenFade(ray_uv);
+
+                break;
+            }
+        }
+    }
+
+    // Convert to visibility
+    return 1.0f - occlusion;
+}
 
 
 
@@ -111,69 +167,11 @@ float4 main(VertexOut pin) : SV_TARGET
         }
         Lo = Lo * shadow_factor;
     }
+    
+    if (current_light.screen_space_shadows)
+        Lo = Lo * ScreenSpaceShadows(pin.Tex);
 
     return float4(Lo, 1.0f);
 }
 
 
-
-/*
-//has artifacts, fix later
-//https://panoskarabelas.com/posts/screen_space_shadows/
-static const uint SSS_MAX_STEPS = 8; // Max ray steps, affects quality and performance.
-static const float SSS_RAY_MAX_DISTANCE = 0.05f; // Max shadow length, longer shadows are less accurate.
-static const float SSS_THICKNESS = 0.01f; // Depth testing thickness.
-static const float SSS_STEP_LENGTH = SSS_RAY_MAX_DISTANCE / SSS_MAX_STEPS;
-
-float ScreenSpaceShadows(float2 uv)
-{
-    float depth = depthTx.Sample(linear_wrap_sampler, uv);
-    float3 ray_position = GetPositionVS(uv, depth);
-    
-    float3 ray_direction = -current_light.direction.xyz;
-    float3 ray_step = ray_direction * SSS_STEP_LENGTH;
-    ray_position += ray_step * dither(uv);
-    
-     // Ray march towards the light
-    float occlusion = 0.0;
-    float2 ray_uv = 0.0f;
-    
-    for (uint i = 0; i < SSS_MAX_STEPS; i++)
-    {
-        // Step the ray
-        ray_position += ray_step;
-
-        float4 ray_projection = mul(float4(ray_position, 1.0), projection);
-        ray_uv = ray_projection.xy / ray_projection.w;
-        ray_uv.xy = 0.5 * ray_uv.xy + 0.5;
-        ray_uv.y = 1.0 - ray_uv.y;
-
-        // Ensure the UV coordinates are inside the screen
-        if (IsSaturated(ray_uv))
-        {
-            float depth_z = depthTx.Sample(linear_wrap_sampler, ray_uv);
-            
-            // Compute the difference between the ray's and the camera's depth
-            float depth_linear = ConvertZToLinearDepth(depth_z);
-            float depth_delta = ray_position.z - depth_linear;
-
-            // Check if the camera can't "see" the ray (ray depth must be larger than the camera depth, so positive depth_delta)
-            if ((depth_delta > 0.0f) && (depth_delta < SSS_THICKNESS))
-            {
-                // Mark as occluded
-                occlusion = 1.0f;
-
-                // Fade out as we approach the edges of the screen
-                occlusion *= ScreenFade(ray_uv);
-
-                break;
-            }
-        }
-    }
-
-    // Convert to visibility
-    return 1.0f - occlusion;
-}
-
-if(current_light.screen_space_shadows) Lo = Lo * ScreenSpaceShadows(pin.Tex);
-*/

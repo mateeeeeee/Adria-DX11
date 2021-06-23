@@ -65,7 +65,6 @@ namespace adria
 		TextureManager texture_manager;
 		Profiler profiler;
 		Camera const* camera;
-
 		RendererSettings settings;
 
 		//textures
@@ -85,8 +84,8 @@ namespace adria
 		Texture2D blur_texture_intermediate;
 		Texture2D blur_texture_final;
 		Texture2D bloom_extract_texture;
-		std::array<Texture2D, 2> ping_pong_postprocess_textures;
-		bool pong_postprocess_pass = false;
+		std::array<Texture2D, 2> postprocess_textures;
+		bool postprocess_index = false;
 		Texture2D ocean_initial_spectrum;
 		std::array<Texture2D, 2> ping_pong_phase_textures;
 		bool pong_phase_pass = false;
@@ -245,6 +244,7 @@ namespace adria
 		
 		//called in postprocessing pass
 		void PassLensFlare(Light const& light);
+		void PassSSGI();
 		void PassVolumetricClouds();
 		void PassSSR(); 
 		void PassGodRays(Light const& light); 

@@ -732,6 +732,13 @@ namespace adria
 
 				standard_programs[StandardShader::eFog].Create(device, vs_blob, ps_blob);
 			}
+
+			//ssgi
+			{
+				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SSGI_PS.cso", ps_blob);
+
+				standard_programs[StandardShader::eSSGI].Create(device, vs_blob, ps_blob);
+			}
 		}
 
 		
@@ -1161,8 +1168,8 @@ namespace adria
 		prev_hdr_render_target = Texture2D(gfx->Device(), render_target_desc);
 		sun_target = Texture2D(gfx->Device(), render_target_desc);
 		
-		ping_pong_postprocess_textures[0] = Texture2D(gfx->Device(), render_target_desc);
-		ping_pong_postprocess_textures[1] = Texture2D(gfx->Device(), render_target_desc);
+		postprocess_textures[0] = Texture2D(gfx->Device(), render_target_desc);
+		postprocess_textures[1] = Texture2D(gfx->Device(), render_target_desc);
 
 		texture2d_desc_t depth_target_desc{};
 		depth_target_desc.width = width;
@@ -1343,11 +1350,11 @@ namespace adria
 		ssao_attachment.load_op = LoadOp::eDontCare;
 
 		rtv_attachment_desc_t ping_color_load_attachment{};
-		ping_color_load_attachment.view = ping_pong_postprocess_textures[0].RTV();
+		ping_color_load_attachment.view = postprocess_textures[0].RTV();
 		ping_color_load_attachment.load_op = LoadOp::eLoad;
 
 		rtv_attachment_desc_t pong_color_load_attachment{};
-		pong_color_load_attachment.view = ping_pong_postprocess_textures[1].RTV();
+		pong_color_load_attachment.view = postprocess_textures[1].RTV();
 		pong_color_load_attachment.load_op = LoadOp::eLoad;
 
 		rtv_attachment_desc_t offscreen_clear_attachment{};
@@ -2769,7 +2776,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		auto lights = reg.view<Light>();
 
-		postprocess_passes[pong_postprocess_pass].Begin(context); //set ping as rt
+		postprocess_passes[postprocess_index].Begin(context); //set ping as rt
 
 		CopyTexture(hdr_render_target);
 		
@@ -2782,64 +2789,72 @@ namespace adria
 		}
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 
-		postprocess_passes[pong_postprocess_pass].End(context); 
-		pong_postprocess_pass = !pong_postprocess_pass;
+		postprocess_passes[postprocess_index].End(context); 
+		postprocess_index = !postprocess_index;
 
+		if (settings.ssgi)
+		{
+			postprocess_passes[postprocess_index].Begin(context);
+			PassSSGI();
+			postprocess_passes[postprocess_index].End(context);
+
+			postprocess_index = !postprocess_index;
+		}
 
 		if (settings.clouds)
 		{
-			postprocess_passes[pong_postprocess_pass].Begin(context);
+			postprocess_passes[postprocess_index].Begin(context);
 			PassVolumetricClouds();
-			postprocess_passes[pong_postprocess_pass].End(context);
+			postprocess_passes[postprocess_index].End(context);
 
-			pong_postprocess_pass = !pong_postprocess_pass;
+			postprocess_index = !postprocess_index;
 		}
 
 		if (settings.fog)
 		{
-			postprocess_passes[pong_postprocess_pass].Begin(context);
+			postprocess_passes[postprocess_index].Begin(context);
 			PassFog();
-			postprocess_passes[pong_postprocess_pass].End(context);
+			postprocess_passes[postprocess_index].End(context);
 
-			pong_postprocess_pass = !pong_postprocess_pass;
+			postprocess_index = !postprocess_index;
 		}
 
 		if (settings.ssr)
 		{
-			postprocess_passes[pong_postprocess_pass].Begin(context);
+			postprocess_passes[postprocess_index].Begin(context);
 			PassSSR();
-			postprocess_passes[pong_postprocess_pass].End(context);
+			postprocess_passes[postprocess_index].End(context);
 
-			pong_postprocess_pass = !pong_postprocess_pass;
+			postprocess_index = !postprocess_index;
 		}
 		
 		if (settings.dof)
 		{
-			postprocess_passes[pong_postprocess_pass].Begin(context);
+			postprocess_passes[postprocess_index].Begin(context);
 			PassDepthOfField();
-			postprocess_passes[pong_postprocess_pass].End(context);
+			postprocess_passes[postprocess_index].End(context);
 
-			pong_postprocess_pass = !pong_postprocess_pass;
+			postprocess_index = !postprocess_index;
 
 			}
 
 		if (settings.bloom)
 		{
-			postprocess_passes[pong_postprocess_pass].Begin(context);
+			postprocess_passes[postprocess_index].Begin(context);
 			PassBloom();
-			postprocess_passes[pong_postprocess_pass].End(context);
+			postprocess_passes[postprocess_index].End(context);
 
-			pong_postprocess_pass = !pong_postprocess_pass;
+			postprocess_index = !postprocess_index;
 			
 		}
 
 		if (settings.motion_blur)
 		{
-			postprocess_passes[pong_postprocess_pass].Begin(context);
+			postprocess_passes[postprocess_index].Begin(context);
 			PassMotionBlur();
-			postprocess_passes[pong_postprocess_pass].End(context);
+			postprocess_passes[postprocess_index].End(context);
 
-			pong_postprocess_pass = !pong_postprocess_pass;
+			postprocess_index = !postprocess_index;
 		}
 
 		for (entity light : lights)
@@ -2852,18 +2867,18 @@ namespace adria
 				if (light_data.god_rays)
 				{
 					DrawSun(light);
-					postprocess_passes[!pong_postprocess_pass].Begin(context);
+					postprocess_passes[!postprocess_index].Begin(context);
 					PassGodRays(light_data);
-					postprocess_passes[!pong_postprocess_pass].End(context);
+					postprocess_passes[!postprocess_index].End(context);
 				}
 				else
 				{
 					DrawSun(light);
-					postprocess_passes[!pong_postprocess_pass].Begin(context);
+					postprocess_passes[!postprocess_index].Begin(context);
 					context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
 					CopyTexture(sun_target);
 					context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-					postprocess_passes[!pong_postprocess_pass].End(context);
+					postprocess_passes[!postprocess_index].End(context);
 				}
 
 			}
@@ -2872,15 +2887,15 @@ namespace adria
 
 		if (settings.anti_aliasing & AntiAliasing_TAA)
 		{
-			postprocess_passes[pong_postprocess_pass].Begin(context);
+			postprocess_passes[postprocess_index].Begin(context);
 			PassTAA();
-			postprocess_passes[pong_postprocess_pass].End(context);
-			pong_postprocess_pass = !pong_postprocess_pass;
+			postprocess_passes[postprocess_index].End(context);
+			postprocess_index = !postprocess_index;
 
 			//copy hdr for next frame, todo: improve by using two hdr targets 
 			auto rtv = prev_hdr_render_target.RTV();
 			context->OMSetRenderTargets(1, &rtv, nullptr);
-			CopyTexture(ping_pong_postprocess_textures[!pong_postprocess_pass]);
+			CopyTexture(postprocess_textures[!postprocess_index]);
 			context->OMSetRenderTargets(0, nullptr, nullptr);
 		}
 	}
@@ -3325,6 +3340,30 @@ namespace adria
 		}
 
 	}
+	void Renderer::PassSSGI()
+	{
+		ADRIA_ASSERT(settings.ssgi);
+
+		ID3D11DeviceContext* context = gfx->Context();
+		postprocess_cbuf_data.ssgi_noise = settings.ssgi_noise;
+		postprocess_cbuf_data.ssgi_noise_amount = settings.ssgi_noise_amount;
+		postprocess_cbuf_data.ssgi_indirect_amount = settings.ssgi_indirect_amount;
+		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
+
+		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index].SRV(), gbuffer[0].SRV(), depth_target.SRV() };
+
+		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+
+		context->IASetInputLayout(nullptr);
+
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+		standard_programs[StandardShader::eSSGI].Bind(context);
+		context->Draw(4, 0);
+		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };
+
+		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+
+	}
 	void Renderer::PassVolumetricClouds()
 	{
 		ADRIA_ASSERT(settings.clouds);
@@ -3341,11 +3380,11 @@ namespace adria
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 
-		postprocess_passes[pong_postprocess_pass].End(context);
-		pong_postprocess_pass = !pong_postprocess_pass;
-		postprocess_passes[pong_postprocess_pass].Begin(context);
+		postprocess_passes[postprocess_index].End(context);
+		postprocess_index = !postprocess_index;
+		postprocess_passes[postprocess_index].Begin(context);
 
-		BlurTexture(ping_pong_postprocess_textures[!pong_postprocess_pass]);
+		BlurTexture(postprocess_textures[!postprocess_index]);
 
 		context->OMSetBlendState(alpha_blend.Get(), nullptr, 0xfffffff);
 
@@ -3363,7 +3402,7 @@ namespace adria
 
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* srv_array[] = { gbuffer[0].SRV(), ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_target.SRV() };
+		ID3D11ShaderResourceView* srv_array[] = { gbuffer[0].SRV(), postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
 
@@ -3459,7 +3498,7 @@ namespace adria
 			compute_programs[ComputeShader::eBokehGenerate].Bind(context);
 			
 			
-			ID3D11ShaderResourceView* srv_array[2] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_target.SRV() };
+			ID3D11ShaderResourceView* srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 			u32 initial_count = 0;
 			context->CSSetUnorderedAccessViews(0, 1, bokeh_uav.GetAddressOf(), &initial_count);
 			context->CSSetShaderResources(0, 2, srv_array);
@@ -3475,7 +3514,7 @@ namespace adria
 
 		BlurTexture(hdr_render_target);
 
-		ID3D11ShaderResourceView* srv_array[3] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), blur_texture_final.SRV(), depth_target.SRV()};
+		ID3D11ShaderResourceView* srv_array[3] = { postprocess_textures[!postprocess_index].SRV(), blur_texture_final.SRV(), depth_target.SRV()};
 		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
 
 		postprocess_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
@@ -3551,7 +3590,7 @@ namespace adria
 		static ID3D11ShaderResourceView*  const null_srv[1] = { nullptr };
 
 		ID3D11UnorderedAccessView* const uav[1] = { bloom_extract_texture.UAV() };
-		ID3D11ShaderResourceView* const srv[1] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV() };
+		ID3D11ShaderResourceView* const srv[1] = { postprocess_textures[!postprocess_index].SRV() };
 		context->CSSetShaderResources(0, 1, srv); 
 
 		context->CSSetUnorderedAccessViews(0, _countof(uav), uav, nullptr);
@@ -3564,7 +3603,7 @@ namespace adria
 
 		BlurTexture(bloom_extract_texture);
 
-		AddTextures(ping_pong_postprocess_textures[!pong_postprocess_pass], blur_texture_final);
+		AddTextures(postprocess_textures[!postprocess_index], blur_texture_final);
 	}
 	void Renderer::PassMotionBlur()
 	{
@@ -3575,7 +3614,7 @@ namespace adria
 		postprocess_cbuf_data.motion_blur_intensity = settings.motion_blur_intensity;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* const srv_array[2] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_target.SRV() };
+		ID3D11ShaderResourceView* const srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 		static ID3D11ShaderResourceView* const srv_null[2] = { nullptr, nullptr };
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
@@ -3601,7 +3640,7 @@ namespace adria
 		postprocess_cbuf_data.fog_color = XMVectorSet(settings.fog_color[0], settings.fog_color[1], settings.fog_color[2], 1);
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* srv_array[] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), depth_target.SRV() };
+		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
 
@@ -3623,7 +3662,7 @@ namespace adria
 		postprocess_cbuf_data.tone_map_exposure = settings.tone_map_exposure;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* const srv_array[1] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV() };
+		ID3D11ShaderResourceView* const srv_array[1] = { postprocess_textures[!postprocess_index].SRV() };
 		static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
@@ -3673,7 +3712,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
-		ID3D11ShaderResourceView* srv_array[2] = { ping_pong_postprocess_textures[!pong_postprocess_pass].SRV(), prev_hdr_render_target.SRV() };
+		ID3D11ShaderResourceView* srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), prev_hdr_render_target.SRV() };
 		
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
 		

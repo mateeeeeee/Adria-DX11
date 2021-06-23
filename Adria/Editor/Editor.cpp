@@ -918,9 +918,10 @@ namespace adria
                 ImGui::TreePop();
             }
 
-            if (ImGui::TreeNode("Voxel GI"))
+            if (ImGui::TreeNode("Global Illumination"))
             {
-                ImGui::Checkbox("Voxel GI", &settings.voxel_gi);
+
+                ImGui::Checkbox("Voxel Cone Tracing GI", &settings.voxel_gi);
 
                 if (settings.voxel_gi)
                 {
@@ -932,6 +933,15 @@ namespace adria
                     ImGui::Checkbox("Voxel GI Debug", &settings.voxel_debug);
                 }
                 settings.voxel_debug = settings.voxel_debug && settings.voxel_gi; //voxel debug cannot be true unless voxel_gi is true
+
+                ImGui::Checkbox("SSGI", &settings.ssgi);
+
+                if (settings.ssgi)
+                {
+                    ImGui::Checkbox("Noise", &settings.ssgi_noise);
+                    ImGui::SliderFloat("Noise Amount", &settings.ssgi_noise_amount, 0.0f, 5.0f);
+                    ImGui::SliderFloat("Indirect Amount", &settings.ssgi_indirect_amount, 0.0f, 16.0f);
+                }
 
                 ImGui::TreePop();
             }
@@ -1087,8 +1097,6 @@ namespace adria
             if (ImGui::TreeNode("Misc"))
             {
                 ImGui::ColorEdit3("Ambient Color", settings.ambient_color);
-
-
                 ImGui::SliderFloat("Shadow Softness", &settings.shadow_softness, 0.01f, 5.0f);
                 ImGui::Checkbox("IBL", &settings.ibl);
                 ImGui::TreePop();

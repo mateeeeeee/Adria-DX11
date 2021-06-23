@@ -76,7 +76,12 @@ namespace adria
 		i32 visualize_max_lights = 16;
 		//clustered deferred
 		bool use_clustered_deferred = false;
-		//voxel
+		//ssgi
+		bool  ssgi = false;
+		bool  ssgi_noise = true;
+		f32   ssgi_noise_amount = 2.0f;
+		f32   ssgi_indirect_amount = 3.0f;
+		//voxel gi
 		bool voxel_gi = false;
 		bool voxel_debug = false;
 		bool voxel_second_bounce = false;
