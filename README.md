@@ -41,8 +41,6 @@ Graphics engine written in C++/DirectX11.
 * Profiler
 * Camera and Light Frustum Culling
 
-### To Do
-* Fix: SSGI and Screen Space Shadows have artifacts 
 
 ## Dependencies
 [assimp](https://github.com/assimp/assimp)

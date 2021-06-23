@@ -934,15 +934,6 @@ namespace adria
                 }
                 settings.voxel_debug = settings.voxel_debug && settings.voxel_gi; //voxel debug cannot be true unless voxel_gi is true
 
-                ImGui::Checkbox("SSGI", &settings.ssgi);
-
-                if (settings.ssgi)
-                {
-                    ImGui::Checkbox("Noise", &settings.ssgi_noise);
-                    ImGui::SliderFloat("Noise Amount", &settings.ssgi_noise_amount, 0.0f, 5.0f);
-                    ImGui::SliderFloat("Indirect Amount", &settings.ssgi_indirect_amount, 0.0f, 16.0f);
-                }
-
                 ImGui::TreePop();
             }
 

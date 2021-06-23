@@ -84,9 +84,6 @@ cbuffer PostprocessCBuf : register(b5)
     float   fog_density;
     float   fog_start;
     int     fog_type;
-    int     ssgi_noise;
-    float   ssgi_noise_amount;
-    float   ssgi_indirect_amount;
 };
 
 cbuffer WeatherCBuf : register(b7)

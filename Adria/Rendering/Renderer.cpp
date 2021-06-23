@@ -732,13 +732,6 @@ namespace adria
 
 				standard_programs[StandardShader::eFog].Create(device, vs_blob, ps_blob);
 			}
-
-			//ssgi
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SSGI_PS.cso", ps_blob);
-
-				standard_programs[StandardShader::eSSGI].Create(device, vs_blob, ps_blob);
-			}
 		}
 
 		
@@ -2792,15 +2785,6 @@ namespace adria
 		postprocess_passes[postprocess_index].End(context); 
 		postprocess_index = !postprocess_index;
 
-		if (settings.ssgi)
-		{
-			postprocess_passes[postprocess_index].Begin(context);
-			PassSSGI();
-			postprocess_passes[postprocess_index].End(context);
-
-			postprocess_index = !postprocess_index;
-		}
-
 		if (settings.clouds)
 		{
 			postprocess_passes[postprocess_index].Begin(context);
@@ -3338,30 +3322,6 @@ namespace adria
 			context->GSSetShaderResources(0, static_cast<u32>(lens_null_array.size()), lens_null_array.data());
 			context->PSSetShaderResources(0, static_cast<u32>(lens_null_array.size()), lens_null_array.data());
 		}
-
-	}
-	void Renderer::PassSSGI()
-	{
-		ADRIA_ASSERT(settings.ssgi);
-
-		ID3D11DeviceContext* context = gfx->Context();
-		postprocess_cbuf_data.ssgi_noise = settings.ssgi_noise;
-		postprocess_cbuf_data.ssgi_noise_amount = settings.ssgi_noise_amount;
-		postprocess_cbuf_data.ssgi_indirect_amount = settings.ssgi_indirect_amount;
-		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
-
-		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index].SRV(), gbuffer[0].SRV(), depth_target.SRV() };
-
-		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
-
-		context->IASetInputLayout(nullptr);
-
-		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		standard_programs[StandardShader::eSSGI].Bind(context);
-		context->Draw(4, 0);
-		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };
-
-		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 
 	}
 	void Renderer::PassVolumetricClouds()

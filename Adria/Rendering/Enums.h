@@ -67,7 +67,6 @@ namespace adria
 		eVolumetric_Clouds,
 		eSSAO,
 		eSSR,
-		eSSGI,
 		eGodRays,
 		eMotionBlur,
 		eDof,
