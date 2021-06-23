@@ -220,8 +220,4 @@ bool IsSaturated(float4 value)
 {
     return IsSaturated(value.x) && IsSaturated(value.y) && IsSaturated(value.z) && IsSaturated(value.w);
 }
-float ScreenFade(float2 uv)
-{
-    float2 fade = max(12.0f * abs(uv - 0.5f) - 5.0f, 0.0f);
-    return saturate(1.0 - dot(fade, fade));
-}
+

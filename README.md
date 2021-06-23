@@ -42,9 +42,7 @@ Graphics engine written in C++/DirectX11.
 * Camera and Light Frustum Culling
 
 ### To Do
-* Atmospheric Scattering
-* Terrain
-* Particle Engine
+* Fix: SSGI and Screen Space Shadows have artifacts 
 
 ## Dependencies
 [assimp](https://github.com/assimp/assimp)
