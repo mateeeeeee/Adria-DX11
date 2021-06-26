@@ -24,7 +24,7 @@ Graphics engine written in C++/DirectX11.
 * Bloom
 * Depth Of Field + Bokeh  
     - Bokeh shapes supported - Hexagon, Octagon, Circle, Cross
-* SSAO
+* Ambient Occlusion: SSAO, HBAO
 * SSR
 * FXAA
 * TAA
