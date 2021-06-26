@@ -5,7 +5,7 @@ Texture2D normalTx : register(t1);
 Texture2D<float> depthTx : register(t2);
 Texture2D noiseTx : register(t3);
 
-
+static const float NdotVBias = 0.1f;
 
 struct VertexOut
 {
@@ -33,7 +33,7 @@ float ComputeAO(float3 P, float3 N, float3 S)
     float NdotV = dot(N, V) * 1.0 / sqrt(VdotV);
 
   // Use saturate(x) instead of max(x,0.f) because that is faster on Kepler
-    return clamp(NdotV - 0.1f, 0, 1) * clamp(Falloff(VdotV), 0, 1);
+    return clamp(NdotV - NdotVBias, 0, 1) * clamp(Falloff(VdotV), 0, 1);
 }
 
 //----------------------------------------------------------------------------------
@@ -75,7 +75,7 @@ float ComputeCoarseAO(float2 UV, float radius_in_pixels, float3 rand, float3 pos
         }
     }
 
-    AO *= hbao_multiplier / (HBAO_NUM_DIRECTIONS * HBAO_NUM_STEPS);
+    AO *= (1.0f / (1.0f - NdotVBias)) / (HBAO_NUM_DIRECTIONS * HBAO_NUM_STEPS);
     return clamp(1.0 - AO * 2.0, 0, 1);
 }
 
@@ -94,7 +94,7 @@ float main(VertexOut pin) : SV_TARGET
     // Compute projection of disk of radius control.R into screen space
     float radius_in_pixels = hbao_radius_to_screen / pos_vs.z;
     
-    float3 rand = normalize(noiseTx.Sample(point_wrap_sampler, pin.Tex * ssao_noise_scale).xyz); //use wrap sampler
+    float3 rand = noiseTx.Sample(point_wrap_sampler, pin.Tex * ssao_noise_scale).xyz; //use wrap sampler
 
     float AO = ComputeCoarseAO(pin.Tex, radius_in_pixels, rand, pos_vs, normal_vs);
     

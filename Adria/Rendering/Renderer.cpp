@@ -386,7 +386,8 @@ namespace adria
 
 		if(!settings.voxel_debug)
 		{
-			if (settings.ssao) PassSSAO();
+			if (settings.ambient_oclussion == AmbientOclussion::eSSAO) PassSSAO();
+			else if (settings.ambient_oclussion == AmbientOclussion::eHBAO) PassHBAO();
 		
 			PassAmbient();
 		
@@ -591,11 +592,11 @@ namespace adria
 
 			input.defines.push_back(ShaderDefine{ "SSAO", "1" });
 			ShaderUtility::CompileShader(input, ps_blob);
-			standard_programs[StandardShader::eAmbientPBR_SSAO].Create(device, vs_blob, ps_blob);
+			standard_programs[StandardShader::eAmbientPBR_AO].Create(device, vs_blob, ps_blob);
 
 			input.defines.push_back(ShaderDefine{ "IBL", "1" });
 			ShaderUtility::CompileShader(input, ps_blob);
-			standard_programs[StandardShader::eAmbientPBR_SSAO_IBL].Create(device, vs_blob, ps_blob);
+			standard_programs[StandardShader::eAmbientPBR_AO_IBL].Create(device, vs_blob, ps_blob);
 
 			input.defines.clear();
 			input.defines.push_back(ShaderDefine{ "IBL", "1" });
@@ -673,6 +674,12 @@ namespace adria
 			{
 				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SSAO_PS.cso", ps_blob);
 				standard_programs[StandardShader::eSSAO].Create(device, vs_blob, ps_blob);
+			}
+
+			//hbao
+			{
+				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/HBAO_PS.cso", ps_blob);
+				standard_programs[StandardShader::eHBAO].Create(device, vs_blob, ps_blob);
 			}
 			
 			//ssr
@@ -1248,35 +1255,7 @@ namespace adria
 
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 
-		
-		for (int i = 0; i < SSAO_NOISE_DIM * SSAO_NOISE_DIM; i++)
-		{
-			random_texture_data.push_back(rand_float()); 
-			random_texture_data.push_back(rand_float());
-			random_texture_data.push_back(0.0f);
-			random_texture_data.push_back(1.0f);
-		}
-
-		texture2d_desc_t random_tex_desc{};
-		random_tex_desc.width = SSAO_NOISE_DIM;
-		random_tex_desc.height = SSAO_NOISE_DIM;
-		random_tex_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		random_tex_desc.init_data.data = (void*)random_texture_data.data();
-		random_tex_desc.init_data.pitch = SSAO_NOISE_DIM * 4 * sizeof(f32);
-		random_tex_desc.srv_desc.format = random_tex_desc.format;
-
-		random_texture = Texture2D(gfx->Device(), random_tex_desc);
-
-		texture2d_desc_t ssao_tex_desc{};
-		ssao_tex_desc.width = width;
-		ssao_tex_desc.height = height;
-		ssao_tex_desc.format = DXGI_FORMAT_R8_UNORM;
-		ssao_tex_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		ssao_tex_desc.srv_desc.format = ssao_tex_desc.format;
-
-		ssao_texture = Texture2D(gfx->Device(), ssao_tex_desc);
-
-		//ssao_texture(device, width, height, DXGI_FORMAT_R8_UNORM), rtvsrvtexture
+		//ssao kernel
 		for (u32 i = 0; i < ssao_kernel.size(); i++)
 		{
 			XMFLOAT4 offset = XMFLOAT4(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
@@ -1289,6 +1268,48 @@ namespace adria
 			ssao_kernel[i] = _offset;
 		}
 
+		
+		for (i32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
+		{
+			random_texture_data.push_back(rand_float()); 
+			random_texture_data.push_back(rand_float());
+			random_texture_data.push_back(0.0f);
+			random_texture_data.push_back(1.0f);
+		}
+
+		texture2d_desc_t random_tex_desc{};
+		random_tex_desc.width = AO_NOISE_DIM;
+		random_tex_desc.height = AO_NOISE_DIM;
+		random_tex_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+		random_tex_desc.init_data.data = (void*)random_texture_data.data();
+		random_tex_desc.init_data.pitch = AO_NOISE_DIM * 4 * sizeof(f32);
+		random_tex_desc.srv_desc.format = random_tex_desc.format;
+		
+		ssao_random_texture = Texture2D(gfx->Device(), random_tex_desc);
+
+		random_texture_data.clear();
+		for (i32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
+		{
+			f32 rand = rand_float() * pi<f32> * 2.0f;
+			random_texture_data.push_back(sin(rand));
+			random_texture_data.push_back(cos(rand));
+			random_texture_data.push_back(rand_float());
+			random_texture_data.push_back(rand_float());
+		}
+
+		random_tex_desc.init_data.data = (void*)random_texture_data.data();
+		hbao_random_texture = Texture2D(gfx->Device(), random_tex_desc);
+
+
+		texture2d_desc_t ao_tex_desc{};
+		ao_tex_desc.width = width;
+		ao_tex_desc.height = height;
+		ao_tex_desc.format = DXGI_FORMAT_R8_UNORM;
+		ao_tex_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		ao_tex_desc.srv_desc.format = ao_tex_desc.format;
+
+		ao_texture = Texture2D(gfx->Device(), ao_tex_desc);
+		
 	}
 	void Renderer::CreateRenderPasses(u32 width, u32 height)
 	{
@@ -1339,7 +1360,7 @@ namespace adria
 		shadow_map_attachment.load_op = LoadOp::eClear;
 
 		rtv_attachment_desc_t ssao_attachment{};
-		ssao_attachment.view = ssao_texture.RTV();
+		ssao_attachment.view = ao_texture.RTV();
 		ssao_attachment.load_op = LoadOp::eDontCare;
 
 		rtv_attachment_desc_t ping_color_load_attachment{};
@@ -1456,6 +1477,7 @@ namespace adria
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(ssao_attachment);
 			ssao_pass = RenderPass(render_pass_desc);
+			hbao_pass = ssao_pass;
 		}
 
 		//ping pong passes
@@ -2273,7 +2295,7 @@ namespace adria
 
 		ssao_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* srvs[] = { gbuffer[0].SRV(), depth_target.SRV(), random_texture.SRV() };
+			ID3D11ShaderResourceView* srvs[] = { gbuffer[0].SRV(), depth_target.SRV(), ssao_random_texture.SRV() };
 			context->PSSetShaderResources(1, _countof(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2283,7 +2305,39 @@ namespace adria
 		}
 		ssao_pass.End(context);
 
-		BlurTexture(ssao_texture);
+		BlurTexture(ao_texture);
+
+		ID3D11ShaderResourceView* blurred_ssao = blur_texture_final.SRV();
+		context->PSSetShaderResources(7, 1, &blurred_ssao);
+	}
+	void Renderer::PassHBAO()
+	{
+		ID3D11DeviceContext* context = gfx->Context();
+		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
+		context->PSSetShaderResources(7, 1, srv_null);
+
+		//Update
+		{
+			postprocess_cbuf_data.noise_scale = XMFLOAT2((f32)width / 8, (f32)height / 8);
+			postprocess_cbuf_data.hbao_r2 = settings.hbao_radius * settings.hbao_radius;
+			postprocess_cbuf_data.hbao_radius_to_screen = settings.ssao_radius * 0.5f * f32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
+			postprocess_cbuf_data.hbao_power = settings.hbao_power;
+			postprocess_cbuffer->Update(context, postprocess_cbuf_data);
+		}
+
+		hbao_pass.Begin(context);
+		{
+			ID3D11ShaderResourceView* srvs[] = { gbuffer[0].SRV(), depth_target.SRV(), hbao_random_texture.SRV() };
+			context->PSSetShaderResources(1, _countof(srvs), srvs);
+			context->IASetInputLayout(nullptr);
+			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+			standard_programs[StandardShader::eHBAO].Bind(context);
+			context->Draw(4, 0);
+			context->PSSetShaderResources(1, _countof(srv_null), srv_null);
+		}
+		hbao_pass.End(context);
+
+		BlurTexture(ao_texture);
 
 		ID3D11ShaderResourceView* blurred_ssao = blur_texture_final.SRV();
 		context->PSSetShaderResources(7, 1, &blurred_ssao);
@@ -2309,9 +2363,11 @@ namespace adria
 
 		if (!ibl_textures_generated) settings.ibl = false;
 
-		if (settings.ssao && settings.ibl) standard_programs[StandardShader::eAmbientPBR_SSAO_IBL].Bind(context);
-		else if (settings.ssao && !settings.ibl) standard_programs[StandardShader::eAmbientPBR_SSAO].Bind(context);
-		else if (!settings.ssao && settings.ibl) standard_programs[StandardShader::eAmbientPBR_IBL].Bind(context);
+		bool has_ao = settings.ambient_oclussion != AmbientOclussion::eNone;
+
+		if (has_ao && settings.ibl) standard_programs[StandardShader::eAmbientPBR_AO_IBL].Bind(context);
+		else if (has_ao && !settings.ibl) standard_programs[StandardShader::eAmbientPBR_AO].Bind(context);
+		else if (!has_ao && settings.ibl) standard_programs[StandardShader::eAmbientPBR_IBL].Bind(context);
 		else standard_programs[StandardShader::eAmbientPBR].Bind(context);
 
 		context->Draw(4, 0);

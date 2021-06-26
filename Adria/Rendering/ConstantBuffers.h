@@ -100,6 +100,9 @@ namespace adria
 		f32   fog_density;
 		f32	  fog_start;
 		i32	  fog_type;
+		f32   hbao_r2;
+		f32   hbao_radius_to_screen;
+		f32   hbao_power;
 	};
 
 	DECLSPEC_ALIGN(16) struct ComputeCBuffer

@@ -89,7 +89,6 @@ cbuffer PostprocessCBuf : register(b5)
     int     fog_type;
     float   hbao_r2;
     float   hbao_radius_to_screen;
-    float   hbao_multiplier;
     float   hbao_power;
 };
 

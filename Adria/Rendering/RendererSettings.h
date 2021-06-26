@@ -30,9 +30,12 @@ namespace adria
 		bool motion_blur = false;
 		f32 motion_blur_intensity = 32.0f;
 		//ssao
-		bool ssao = false;
-		f32 ssao_power = 4.0f;
-		f32 ssao_radius = 1.0f;
+		AmbientOclussion ambient_oclussion = AmbientOclussion::eNone;
+		f32   ssao_power = 4.0f;
+		f32   ssao_radius = 1.0f;
+		f32   hbao_power = 1.5f;
+		f32   hbao_radius = 2.0f;
+		
 		//ssr
 		bool ssr = false;
 		f32 ssr_ray_step = 1.60f;

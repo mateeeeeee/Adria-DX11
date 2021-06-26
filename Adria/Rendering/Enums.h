@@ -46,9 +46,9 @@ namespace adria
 		eGbufferPBR_Emissive,
 		eTerrain,
 		eAmbientPBR,
-		eAmbientPBR_SSAO,
+		eAmbientPBR_AO,
 		eAmbientPBR_IBL,
-		eAmbientPBR_SSAO_IBL,
+		eAmbientPBR_AO_IBL,
 		eLightingPBR,
 		eClusterLightingPBR,
 		eToneMap_Reinhard,
@@ -67,6 +67,7 @@ namespace adria
 		eVolumetric_Clouds,
 		eSSAO,
 		eSSR,
+		eHBAO,
 		eGodRays,
 		eMotionBlur,
 		eDof,
@@ -127,6 +128,13 @@ namespace adria
 	{
 		eExponential, 
 		eExponentialHeight
+	};
+
+	enum class AmbientOclussion : u8
+	{
+		eNone,
+		eSSAO,
+		eHBAO
 	};
 
 	enum class BokehType : u8

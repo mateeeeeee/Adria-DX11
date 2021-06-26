@@ -28,7 +28,7 @@ namespace adria
 	{
 
 		static constexpr u32 GBUFFER_SIZE = 3;
-		static constexpr u32 SSAO_NOISE_DIM = 8;
+		static constexpr u32 AO_NOISE_DIM = 8;
 		static constexpr u32 SSAO_KERNEL_SIZE = 16;
 		static constexpr u32 RESOLUTION = 512;
 		static constexpr u32 VOXEL_RESOLUTION = 128;
@@ -78,9 +78,10 @@ namespace adria
 		Texture2D shadow_depth_map;
 		TextureCube shadow_depth_cubemap;
 		Texture2DArray shadow_cascade_maps;
-		Texture2D ssao_texture;
+		Texture2D ao_texture;
 		Texture2D debug_tiled_texture;
-		Texture2D random_texture;
+		Texture2D ssao_random_texture;
+		Texture2D hbao_random_texture;
 		Texture2D blur_texture_intermediate;
 		Texture2D blur_texture_final;
 		Texture2D bloom_extract_texture;
@@ -111,6 +112,7 @@ namespace adria
 		RenderPass taa_pass;
 		RenderPass shadow_map_pass;
 		RenderPass ssao_pass;
+		RenderPass hbao_pass;
 		RenderPass voxel_debug_pass;
 		RenderPass offscreen_resolve_pass;
 		std::array<RenderPass, 6> shadow_cubemap_pass;
@@ -218,6 +220,7 @@ namespace adria
 		//called in render
 		void PassGbuffer();
 		void PassSSAO();
+		void PassHBAO();
 		void PassAmbient();
 		void PassDeferredLighting();  
 		void PassDeferredTiledLighting();
