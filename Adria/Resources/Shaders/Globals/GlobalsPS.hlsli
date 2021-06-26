@@ -5,6 +5,9 @@
 
 static const int SSAO_KERNEL_SIZE = 16;
 
+static const int HBAO_NUM_STEPS = 4;
+static const int HBAO_NUM_DIRECTIONS = 8; 
+
 
 cbuffer PerFrame : register(b0)
 {
@@ -84,6 +87,10 @@ cbuffer PostprocessCBuf : register(b5)
     float   fog_density;
     float   fog_start;
     int     fog_type;
+    float   hbao_r2;
+    float   hbao_radius_to_screen;
+    float   hbao_multiplier;
+    float   hbao_power;
 };
 
 cbuffer WeatherCBuf : register(b7)
