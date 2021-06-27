@@ -82,6 +82,7 @@ namespace adria
 		eBlur_Horizontal,
 		eBlur_Vertical,
 		eBloomExtract,
+		eBloomCombine,
 		eBokehGenerate,
 		eOceanInitialSpectrum,
 		eOceanSpectrum,

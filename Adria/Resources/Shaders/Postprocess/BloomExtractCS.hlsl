@@ -8,17 +8,16 @@ RWTexture2D<float4> outputTexture : register(u0);
 [numthreads(32,32, 1)]
 void main(uint3 groupID : SV_GroupID, uint3 groupThreadID : SV_GroupThreadID, uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_DispatchThreadID)
 {
+    float2 uv = dispatchID.xy;
     
-    uint3 location = uint3(dispatchID.x, dispatchID.y, 0);
-    
-    float4 color = inputTexture.Load(location);
-    
-    float intensity = dot(color.xyz, float3(0.2126f, 0.7152f, 0.0722f));
-    
-    if (intensity > threshold)
-        outputTexture[location.xy] = bloom_scale * color;
-    else
-        outputTexture[location.xy] = float4(0, 0, 0, 1);
+   
+    float3 color = inputTexture[dispatchID.xy].rgb;
+
+    //float intensity = dot(color.xyz, float3(0.2126f, 0.7152f, 0.0722f));
+    color = min(color, 10.0f);
+    color = max(color - threshold, 0.0f);
+
+    outputTexture[dispatchID.xy] = float4(bloom_scale * color, 1.0f);
 }
 
 

@@ -814,6 +814,9 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BloomExtractCS.cso", cs_blob);
 			compute_programs[ComputeShader::eBloomExtract].Create(device, cs_blob);
 
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BloomCombineCS.cso", cs_blob);
+			compute_programs[ComputeShader::eBloomCombine].Create(device, cs_blob);
+
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/InitialSpectrumCS.cso", cs_blob);
 			compute_programs[ComputeShader::eOceanInitialSpectrum].Create(device, cs_blob);
 
@@ -1167,7 +1170,8 @@ namespace adria
 		hdr_render_target = Texture2D(gfx->Device(), render_target_desc);
 		prev_hdr_render_target = Texture2D(gfx->Device(), render_target_desc);
 		sun_target = Texture2D(gfx->Device(), render_target_desc);
-		
+
+		render_target_desc.bind_flags |= D3D11_BIND_UNORDERED_ACCESS; //postprocessing with ComputeShader
 		postprocess_textures[0] = Texture2D(gfx->Device(), render_target_desc);
 		postprocess_textures[1] = Texture2D(gfx->Device(), render_target_desc);
 
@@ -1528,8 +1532,9 @@ namespace adria
 		
 		blur_texture_intermediate = Texture2D(gfx->Device(), desc);
 		blur_texture_final = Texture2D(gfx->Device(), desc);
+		desc.generate_mipmaps = true;
 		bloom_extract_texture = Texture2D(gfx->Device(), desc);
-
+		desc.generate_mipmaps = false;
 
 		desc.width = RESOLUTION;
 		desc.height = RESOLUTION;
@@ -1557,6 +1562,7 @@ namespace adria
 		ping_pong_spectrum_textures[1] = Texture2D(gfx->Device(), desc);
 		ocean_normal_map = Texture2D(gfx->Device(), desc);
 
+		
 		texture3d_desc_t voxel_desc{};
 		voxel_desc.width = VOXEL_RESOLUTION;
 		voxel_desc.height = VOXEL_RESOLUTION;
@@ -2880,9 +2886,9 @@ namespace adria
 
 		if (settings.bloom)
 		{
-			postprocess_passes[postprocess_index].Begin(context);
+			//postprocess_passes[postprocess_index].Begin(context);
 			PassBloom();
-			postprocess_passes[postprocess_index].End(context);
+			//postprocess_passes[postprocess_index].End(context);
 
 			postprocess_index = !postprocess_index;
 			
@@ -3603,7 +3609,7 @@ namespace adria
 		compute_cbuffer->Update(context, compute_cbuf_data);
 
 		static ID3D11UnorderedAccessView* const null_uav[1] = { nullptr };
-		static ID3D11ShaderResourceView*  const null_srv[1] = { nullptr };
+		static ID3D11ShaderResourceView*  const null_srv[2] = { nullptr };
 
 		ID3D11UnorderedAccessView* const uav[1] = { bloom_extract_texture.UAV() };
 		ID3D11ShaderResourceView* const srv[1] = { postprocess_textures[!postprocess_index].SRV() };
@@ -3617,9 +3623,27 @@ namespace adria
 		context->CSSetShaderResources(0, 1, null_srv);
 		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
 
-		BlurTexture(bloom_extract_texture);
+		//BlurTexture(bloom_extract_texture);
 
-		AddTextures(postprocess_textures[!postprocess_index], blur_texture_final);
+		//bloom combine
+		{
+
+			bloom_extract_texture.GenerateMips(context);
+
+			ID3D11UnorderedAccessView* const uav[1] = { postprocess_textures[postprocess_index].UAV() };
+			ID3D11ShaderResourceView* const srv[2] = { postprocess_textures[!postprocess_index].SRV(), bloom_extract_texture.SRV() };
+			context->CSSetShaderResources(0, 2, srv);
+
+			context->CSSetUnorderedAccessViews(0, _countof(uav), uav, nullptr);
+
+			compute_programs[ComputeShader::eBloomCombine].Bind(context);
+			context->Dispatch((u32)std::ceil(width / 32.0f), (u32)std::ceil(height / 32.0f), 1);
+
+			context->CSSetShaderResources(0, 2, null_srv);
+			context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
+		}
+
+		//AddTextures(postprocess_textures[!postprocess_index], blur_texture_final);
 	}
 	void Renderer::PassMotionBlur()
 	{
