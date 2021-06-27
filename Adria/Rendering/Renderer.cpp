@@ -2320,7 +2320,7 @@ namespace adria
 		{
 			postprocess_cbuf_data.noise_scale = XMFLOAT2((f32)width / 8, (f32)height / 8);
 			postprocess_cbuf_data.hbao_r2 = settings.hbao_radius * settings.hbao_radius;
-			postprocess_cbuf_data.hbao_radius_to_screen = settings.ssao_radius * 0.5f * f32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
+			postprocess_cbuf_data.hbao_radius_to_screen = settings.hbao_radius * 0.5f * f32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
 			postprocess_cbuf_data.hbao_power = settings.hbao_power;
 			postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 		}
