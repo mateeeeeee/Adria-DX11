@@ -68,13 +68,18 @@ namespace adria
 		RendererSettings settings;
 
 		//textures
+		std::vector<Texture2D> gbuffer; 
+		Texture2D depth_target;
+		std::vector<Texture2D> gbuffer2;//for deep gbuffer gi
+		Texture2D depth_target2;		//for deep gbuffer gi
+		Texture2D prev_depth_target;	//for deep gbuffer gi
+
 		Texture2D hdr_render_target;
 		Texture2D prev_hdr_render_target;
 		Texture2D uav_target;
-		Texture2D depth_target;
 		Texture2D fxaa_texture;
 		Texture2D offscreen_ldr_render_target;
-		std::vector<Texture2D> gbuffer;
+		
 		Texture2D shadow_depth_map;
 		TextureCube shadow_depth_cubemap;
 		Texture2DArray shadow_cascade_maps;

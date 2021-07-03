@@ -1240,6 +1240,7 @@ namespace adria
 	void Renderer::CreateGbuffer(u32 width, u32 height)
 	{
 		gbuffer.clear();
+		gbuffer2.clear();
 
 		texture2d_desc_t render_target_desc{};
 		render_target_desc.width = width;
@@ -1250,8 +1251,11 @@ namespace adria
 
 		
 		for (u32 i = 0; i < GBUFFER_SIZE; ++i)
+		{
 			gbuffer.emplace_back(gfx->Device(), render_target_desc);
-
+			gbuffer2.emplace_back(gfx->Device(), render_target_desc);
+		}
+			
 	}
 	void Renderer::CreateSsaoTextures(u32 width, u32 height)
 	{
@@ -3623,27 +3627,23 @@ namespace adria
 		context->CSSetShaderResources(0, 1, null_srv);
 		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
 
-		//BlurTexture(bloom_extract_texture);
-
+		
 		//bloom combine
-		{
 
-			bloom_extract_texture.GenerateMips(context);
+		bloom_extract_texture.GenerateMips(context);
 
-			ID3D11UnorderedAccessView* const uav[1] = { postprocess_textures[postprocess_index].UAV() };
-			ID3D11ShaderResourceView* const srv[2] = { postprocess_textures[!postprocess_index].SRV(), bloom_extract_texture.SRV() };
-			context->CSSetShaderResources(0, 2, srv);
+		ID3D11UnorderedAccessView* const uav2[1] = { postprocess_textures[postprocess_index].UAV() };
+		ID3D11ShaderResourceView* const srv2[2] = { postprocess_textures[!postprocess_index].SRV(), bloom_extract_texture.SRV() };
+		context->CSSetShaderResources(0, 2, srv2);
 
-			context->CSSetUnorderedAccessViews(0, _countof(uav), uav, nullptr);
+		context->CSSetUnorderedAccessViews(0, _countof(uav2), uav2, nullptr);
 
-			compute_programs[ComputeShader::eBloomCombine].Bind(context);
-			context->Dispatch((u32)std::ceil(width / 32.0f), (u32)std::ceil(height / 32.0f), 1);
+		compute_programs[ComputeShader::eBloomCombine].Bind(context);
+		context->Dispatch((u32)std::ceil(width / 32.0f), (u32)std::ceil(height / 32.0f), 1);
 
-			context->CSSetShaderResources(0, 2, null_srv);
-			context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
-		}
+		context->CSSetShaderResources(0, 2, null_srv);
+		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
 
-		//AddTextures(postprocess_textures[!postprocess_index], blur_texture_final);
 	}
 	void Renderer::PassMotionBlur()
 	{

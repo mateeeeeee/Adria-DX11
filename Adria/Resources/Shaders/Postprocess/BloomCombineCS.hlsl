@@ -11,7 +11,7 @@ RWTexture2D<float4> outputTexture : register(u0);
 void main(uint3 groupID : SV_GroupID, uint3 groupThreadID : SV_GroupThreadID, uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_DispatchThreadID)
 {
     uint3 dims;
-    inputTexture.GetDimensions(0, dims.x, dims.y, dims.z);
+    bloomTexture.GetDimensions(0, dims.x, dims.y, dims.z);
 
     float3 bloom = bloomTexture.SampleLevel(linear_clamp_sampler, dispatchID.xy * 1.0f / dims.xy, 1.5f);
     bloom += bloomTexture.SampleLevel(linear_clamp_sampler, dispatchID.xy * 1.0f / dims.xy, 2.5f);

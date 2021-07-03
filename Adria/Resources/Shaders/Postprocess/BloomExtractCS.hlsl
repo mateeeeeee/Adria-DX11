@@ -9,12 +9,11 @@ RWTexture2D<float4> outputTexture : register(u0);
 void main(uint3 groupID : SV_GroupID, uint3 groupThreadID : SV_GroupThreadID, uint groupIndex : SV_GroupIndex, uint3 dispatchID : SV_DispatchThreadID)
 {
     float2 uv = dispatchID.xy;
-    
-   
+
     float3 color = inputTexture[dispatchID.xy].rgb;
 
     //float intensity = dot(color.xyz, float3(0.2126f, 0.7152f, 0.0722f));
-    color = min(color, 10.0f);
+    color = min(color, 10.0f); 
     color = max(color - threshold, 0.0f);
 
     outputTexture[dispatchID.xy] = float4(bloom_scale * color, 1.0f);
