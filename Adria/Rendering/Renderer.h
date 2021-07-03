@@ -28,6 +28,7 @@ namespace adria
 	{
 
 		static constexpr u32 GBUFFER_SIZE = 3;
+		static constexpr u32 DEEP_GBUFFER_LAYER_COUNT = 2;
 		static constexpr u32 AO_NOISE_DIM = 8;
 		static constexpr u32 SSAO_KERNEL_SIZE = 16;
 		static constexpr u32 RESOLUTION = 512;
@@ -70,9 +71,6 @@ namespace adria
 		//textures
 		std::vector<Texture2D> gbuffer; 
 		Texture2D depth_target;
-		std::vector<Texture2D> gbuffer2;//for deep gbuffer gi
-		Texture2D depth_target2;		//for deep gbuffer gi
-		Texture2D prev_depth_target;	//for deep gbuffer gi
 
 		Texture2D hdr_render_target;
 		Texture2D prev_hdr_render_target;
@@ -110,6 +108,7 @@ namespace adria
 		//render passes
 		
 		RenderPass gbuffer_pass;
+		RenderPass deep_gbuffer_pass;
 		RenderPass ambient_pass;
 		RenderPass lighting_pass;
 		RenderPass forward_pass;
@@ -223,7 +222,7 @@ namespace adria
 		void LightFrustumCulling(LightType type);
 		
 		//called in render
-		void PassGbuffer();
+		void PassGBuffer();
 		void PassSSAO();
 		void PassHBAO();
 		void PassAmbient();

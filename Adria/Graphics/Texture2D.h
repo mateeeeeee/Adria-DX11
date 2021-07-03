@@ -186,6 +186,11 @@ namespace adria
             return tex2d_desc.Format;
         }
 
+        ID3D11Texture2D* Resource() const
+        {
+            return tex2d.Get();
+        }
+
     private:
         D3D11_TEXTURE2D_DESC tex2d_desc{};
         Microsoft::WRL::ComPtr<ID3D11Texture2D> tex2d             = nullptr;

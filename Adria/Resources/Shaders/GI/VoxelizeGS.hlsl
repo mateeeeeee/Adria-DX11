@@ -55,5 +55,6 @@ void main(
         output.PositionWS = input[i].PositionWS;
 
         outputStream.Append(output);
+        
     }
 }

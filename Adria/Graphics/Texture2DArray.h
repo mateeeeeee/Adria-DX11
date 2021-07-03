@@ -18,6 +18,8 @@ namespace adria
         u32 bind_flags = D3D11_BIND_SHADER_RESOURCE;
         bool generate_mipmaps = false;
         u32 mipmap_count = 0;
+        bool single_rtv = false;
+        bool single_dsv = false;
         DXGI_FORMAT srv_format = DXGI_FORMAT_R32_FLOAT;
         DXGI_FORMAT dsv_format = DXGI_FORMAT_D32_FLOAT;
         DXGI_FORMAT rtv_format = DXGI_FORMAT_R32_FLOAT;
@@ -69,38 +71,75 @@ namespace adria
 
             if (tex2darray_desc.BindFlags & D3D11_BIND_DEPTH_STENCIL)
             {
-                D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
-                dsv_desc.Flags = 0;
-                dsv_desc.Format = desc.dsv_format;
-                dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-                dsv_desc.Texture2DArray.ArraySize = 1;
-                dsv_desc.Texture2DArray.MipSlice = 0;
 
-                tex_dsv.resize(tex2darray_desc.ArraySize);
-                for (u32 i = 0; i < tex2darray_desc.ArraySize; ++i)
+                if (desc.single_dsv)
                 {
-                    dsv_desc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, i, 1);
+                    D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
+                    dsv_desc.Flags = 0;
+                    dsv_desc.Format = desc.dsv_format;
+                    dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+                    dsv_desc.Texture2DArray.ArraySize = desc.array_size;
+                    dsv_desc.Texture2DArray.MipSlice = 0;
+                    dsv_desc.Texture2DArray.FirstArraySlice = 0;
 
-                    hr = device->CreateDepthStencilView(tex2darray.Get(), &dsv_desc, tex_dsv[i].GetAddressOf());
+                    tex_dsv.resize(1);
+                    hr = device->CreateDepthStencilView(tex2darray.Get(), &dsv_desc, tex_dsv[0].GetAddressOf());
+
                 }
+                else
+                {
+                    D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
+                    dsv_desc.Flags = 0;
+                    dsv_desc.Format = desc.dsv_format;
+                    dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
+                    dsv_desc.Texture2DArray.ArraySize = 1;
+                    dsv_desc.Texture2DArray.MipSlice = 0;
+
+                    tex_dsv.resize(tex2darray_desc.ArraySize);
+                    for (u32 i = 0; i < tex2darray_desc.ArraySize; ++i)
+                    {
+                        dsv_desc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, i, 1);
+
+                        hr = device->CreateDepthStencilView(tex2darray.Get(), &dsv_desc, tex_dsv[i].GetAddressOf());
+                    }
+                }
+
+                
             }
 
             if (tex2darray_desc.BindFlags & D3D11_BIND_RENDER_TARGET)
             {
                 D3D11_RENDER_TARGET_VIEW_DESC rtv_desc{};
-               
-                rtv_desc.Format = desc.rtv_format;
-                rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-                rtv_desc.Texture2DArray.ArraySize = 1;
-                rtv_desc.Texture2DArray.MipSlice = 0;
 
-                tex_rtv.resize(tex2darray_desc.ArraySize);
-                for (u32 i = 0; i < tex2darray_desc.ArraySize; ++i)
+                if (desc.single_rtv)
                 {
-                    rtv_desc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, i, 1);
+                    rtv_desc.Format = desc.rtv_format;
+                    rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+                    rtv_desc.Texture2DArray.ArraySize = desc.array_size;
+                    rtv_desc.Texture2DArray.FirstArraySlice = 0;
+                    rtv_desc.Texture2DArray.MipSlice = 0;
 
-                    hr = device->CreateRenderTargetView(tex2darray.Get(), &rtv_desc, tex_rtv[i].GetAddressOf());
+                    tex_rtv.resize(1);
+
+                    hr = device->CreateRenderTargetView(tex2darray.Get(), &rtv_desc, tex_rtv[0].GetAddressOf());
                 }
+                else
+                {
+
+                    rtv_desc.Format = desc.rtv_format;
+                    rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+                    rtv_desc.Texture2DArray.ArraySize = 1;
+                    rtv_desc.Texture2DArray.MipSlice = 0;
+
+                    tex_rtv.resize(tex2darray_desc.ArraySize);
+                    for (u32 i = 0; i < tex2darray_desc.ArraySize; ++i)
+                    {
+                        rtv_desc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, i, 1);
+
+                        hr = device->CreateRenderTargetView(tex2darray.Get(), &rtv_desc, tex_rtv[i].GetAddressOf());
+                    }
+                }
+
             }
         }
 
@@ -130,6 +169,10 @@ namespace adria
             return tex_srv.Get();
         }
 
+        ID3D11Texture2D* Resource() const
+        {
+            return tex2darray.Get();
+        }
 
 	private:
         D3D11_TEXTURE2D_DESC tex2darray_desc{};

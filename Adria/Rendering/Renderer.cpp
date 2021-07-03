@@ -382,8 +382,8 @@ namespace adria
 		settings = _settings;
 		if (settings.ibl && !ibl_textures_generated) CreateIBLTextures();
 
-		PassGbuffer();
-
+		PassGBuffer();
+		
 		if(!settings.voxel_debug)
 		{
 			if (settings.ambient_oclussion == AmbientOclussion::eSSAO) PassSSAO();
@@ -492,7 +492,10 @@ namespace adria
 
 		frame_cbuffer->Update(gfx->Context(), frame_cbuf_data);
 
-		frame_cbuf_data.previous_view_projection = camera->ViewProj(); //set for next frame
+		//set for next frame
+		frame_cbuf_data.previous_view = camera->View();
+		frame_cbuf_data.previous_view = camera->Proj();
+		frame_cbuf_data.previous_view_projection = camera->ViewProj(); 
 
 
 		static f32 _near = 0.0f, _far = 0.0f, _fov = 0.0f, _ar = 0.0f;
@@ -574,6 +577,7 @@ namespace adria
 			standard_programs[StandardShader::eTerrain].Create(device, vs_blob, ps_blob);
 		}
 
+		
 		
 		//ambient & lighting (not compiled)
 		{
@@ -1184,6 +1188,8 @@ namespace adria
 		depth_target_desc.srv_desc.format = DXGI_FORMAT_R32_FLOAT;
 
 		depth_target = Texture2D(gfx->Device(), depth_target_desc);
+		
+
 
 		texture2d_desc_t fxaa_source_desc{};
 		fxaa_source_desc.width = width;
@@ -1240,8 +1246,7 @@ namespace adria
 	void Renderer::CreateGbuffer(u32 width, u32 height)
 	{
 		gbuffer.clear();
-		gbuffer2.clear();
-
+		
 		texture2d_desc_t render_target_desc{};
 		render_target_desc.width = width;
 		render_target_desc.height = height;
@@ -1249,13 +1254,12 @@ namespace adria
 		render_target_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 		render_target_desc.srv_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		
 		for (u32 i = 0; i < GBUFFER_SIZE; ++i)
 		{
 			gbuffer.emplace_back(gfx->Device(), render_target_desc);
-			gbuffer2.emplace_back(gfx->Device(), render_target_desc);
 		}
-			
+
+		
 	}
 	void Renderer::CreateSsaoTextures(u32 width, u32 height)
 	{
@@ -1343,6 +1347,7 @@ namespace adria
 		depth_clear_attachment.clear_depth = 1.0f;
 		depth_clear_attachment.load_op = LoadOp::eClear;
 
+		
 		rtv_attachment_desc_t hdr_color_clear_attachment{};
 		hdr_color_clear_attachment.view = hdr_render_target.RTV();
 		hdr_color_clear_attachment.clear_color = clear_black;
@@ -1395,6 +1400,7 @@ namespace adria
 			render_pass_desc.dsv_attachment = depth_clear_attachment;
 			gbuffer_pass = RenderPass(render_pass_desc);
 		}
+
 
 		//ambient pass
 		{
@@ -2166,7 +2172,7 @@ namespace adria
 
 	///////////////////////////////////////////////////////////////////////
 
-	void Renderer::PassGbuffer()
+	void Renderer::PassGBuffer()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 

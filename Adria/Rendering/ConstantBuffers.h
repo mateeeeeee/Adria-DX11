@@ -17,6 +17,8 @@ namespace adria
 		DirectX::XMMATRIX inverse_view;
 		DirectX::XMMATRIX inverse_projection;
 		DirectX::XMMATRIX inverse_view_projection;
+		DirectX::XMMATRIX previous_view;
+		DirectX::XMMATRIX previous_projection;
 		DirectX::XMMATRIX previous_view_projection;
 		DirectX::XMVECTOR camera_position;
 		f32 camera_near;

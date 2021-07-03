@@ -120,6 +120,11 @@ namespace adria
             return tex_srv.Get();
         }
 
+        ID3D11Texture2D* Resource() const
+        {
+            return texcube.Get();
+        }
+
 	private:
         D3D11_TEXTURE2D_DESC texcube_desc{};
         Microsoft::WRL::ComPtr<ID3D11Texture2D> texcube = nullptr;

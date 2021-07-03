@@ -9,6 +9,8 @@ cbuffer FrameCBuf : register(b0)
     row_major matrix inverse_view;
     row_major matrix inverse_projection;
     row_major matrix inverse_view_projection;
+    row_major matrix prev_view;
+    row_major matrix prev_projection;
     row_major matrix prev_view_projection;
     float4 camera_position;
     float camera_near;

@@ -127,6 +127,11 @@ namespace adria
             return tex3d_desc.Format;
         }
 
+        ID3D11Texture3D* Resource() const
+        {
+            return tex3d.Get();
+        }
+
     private:
         D3D11_TEXTURE3D_DESC tex3d_desc{};
         Microsoft::WRL::ComPtr<ID3D11Texture3D> tex3d = nullptr;
