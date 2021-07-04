@@ -83,9 +83,6 @@ namespace adria
 		i32 visualize;
 	};
 
-
-
-
 	DECLSPEC_ALIGN(16) struct PostprocessCBuffer
 	{
 		DirectX::XMFLOAT2 noise_scale;
@@ -169,11 +166,6 @@ namespace adria
 		f32   max_distance;
 		f32   ray_step_size;
 		u32   mips;
-	};
-
-	DECLSPEC_ALIGN(16) struct TerrainCBuffer
-	{
-
 	};
 
 	//Structured Buffers

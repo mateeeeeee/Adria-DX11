@@ -44,7 +44,6 @@ namespace adria
 		eBillboard,
 		eGbufferPBR,
 		eGbufferPBR_Emissive,
-		eTerrain,
 		eAmbientPBR,
 		eAmbientPBR_AO,
 		eAmbientPBR_IBL,

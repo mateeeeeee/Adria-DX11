@@ -158,7 +158,7 @@ namespace adria
 
         void MenuBar();
 
-        void TerrainAndOcean();
+        void OceanSettings();
 
         void ListEntities();
 

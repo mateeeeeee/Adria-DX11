@@ -83,7 +83,7 @@ namespace adria
 		bool voxel_gi = false;
 		bool voxel_debug = false;
 		bool voxel_second_bounce = false;
-		f32  voxel_size = 4;
+		f32 voxel_size = 4;
 		f32 voxel_center_x = 0;
 		f32 voxel_center_y = 0;
 		f32 voxel_center_z = 0;

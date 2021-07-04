@@ -57,7 +57,7 @@ namespace adria
                 
                 ListEntities();
                 
-                TerrainAndOcean();
+                OceanSettings();
 
                 Camera();
 
@@ -204,9 +204,9 @@ namespace adria
         }
     }
 
-    void Editor::TerrainAndOcean()
+    void Editor::OceanSettings()
     {
-        ImGui::Begin("Terrain & Ocean");
+        ImGui::Begin("Ocean");
         {
             
             //ocean
@@ -248,41 +248,6 @@ namespace adria
                 }
                    
             }
-
-            //terrain
-            {
-
-            }
-
-            //random lights
-            {
-                ImGui::Text("For Easy Demonstration of Tiled/Clustered Deferred Rendering");
-                static int light_count_to_add = 1;
-                ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
-
-                if (ImGui::Button("Create Random Lights"))
-                {
-                    static RealRandomGenerator real(0.0f, 1.0f);
-
-                    for (u32 i = 0; i < light_count_to_add; ++i)
-                    {
-                        light_parameters_t light_params{};
-                        light_params.light_data.casts_shadows = false;
-                        light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
-                        light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
-                        light_params.light_data.position = DirectX::XMVectorSet(real() * 500 - 250, real() * 500.0f, real() * 500 - 250, 1.0f);
-                        light_params.light_data.type = LightType::ePoint;
-                        light_params.mesh_type = LightMesh::eNoMesh;
-                        light_params.light_data.range = real() * 100.0f + 40.0f;
-                        light_params.light_data.active = true;
-                        light_params.light_data.volumetric = false;
-                        light_params.light_data.volumetric_strength = 1.0f;
-                        engine->entity_loader->LoadLight(light_params);
-                    }
-                }
-
-            }
-
 
         }
         ImGui::End();
@@ -1120,10 +1085,42 @@ namespace adria
                 ImGui::ColorEdit3("Ambient Color", settings.ambient_color);
                 ImGui::SliderFloat("Shadow Softness", &settings.shadow_softness, 0.01f, 5.0f);
                 ImGui::Checkbox("IBL", &settings.ibl);
+
+                //random lights
+                {
+                    ImGui::Text("For Easy Demonstration of Tiled/Clustered Deferred Rendering");
+                    static int light_count_to_add = 1;
+                    ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
+
+                    if (ImGui::Button("Random Point Lights"))
+                    {
+                        static RealRandomGenerator real(0.0f, 1.0f);
+
+                        for (u32 i = 0; i < light_count_to_add; ++i)
+                        {
+                            light_parameters_t light_params{};
+                            light_params.light_data.casts_shadows = false;
+                            light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
+                            light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
+                            light_params.light_data.position = DirectX::XMVectorSet(real() * 500 - 250, real() * 500.0f, real() * 500 - 250, 1.0f);
+                            light_params.light_data.type = LightType::ePoint;
+                            light_params.mesh_type = LightMesh::eNoMesh;
+                            light_params.light_data.range = real() * 100.0f + 40.0f;
+                            light_params.light_data.active = true;
+                            light_params.light_data.volumetric = false;
+                            light_params.light_data.volumetric_strength = 1.0f;
+                            engine->entity_loader->LoadLight(light_params);
+                        }
+                    }
+
+                }
+
                 ImGui::TreePop();
             }
         }
         ImGui::End();
+
+        
     }
 
     void Editor::StatsAndProfiling()

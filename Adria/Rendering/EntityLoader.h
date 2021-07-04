@@ -57,15 +57,7 @@ namespace adria
     {
         grid_parameters_t ocean_grid;
     };
-    struct terrain_parameters_t
-    {
-        grid_parameters_t terrain_grid;
-        std::string grass_texture;
-        std::string snow_texture;
-        std::string rock_texture;
-        std::string sand_texture;
-    };
-
+    
    
     class TextureManager;
 
@@ -85,8 +77,6 @@ namespace adria
         [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
 
         [[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
-
-        [[maybe_unused]] std::vector<tecs::entity> LoadTerrain(terrain_parameters_t const&);
 
         void LoadModelMesh(tecs::entity, model_parameters_t const&);
 
