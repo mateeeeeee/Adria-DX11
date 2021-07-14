@@ -16,6 +16,7 @@ namespace adria
 	struct editor_init_t
 	{
 		engine_init_t engine_init;
+        std::string log_file = "";
 	};
 
     struct Material;
