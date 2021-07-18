@@ -477,7 +477,7 @@ namespace adria
                         ImGui::SliderFloat("Albedo Factor", &material->albedo_factor, 0.0f, 1.0f);
                         ImGui::SliderFloat("Metallic Factor", &material->metallic_factor, 0.0f, 1.0f);
                         ImGui::SliderFloat("Roughness Factor", &material->roughness_factor, 0.0f, 1.0f);
-                        ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 1.0f);
+                        ImGui::SliderFloat("Emissive Factor", &material->emissive_factor, 0.0f, 32.0f);
 
                         //add shader changing
                         if (engine->reg.has<Forward>(selected_entity))

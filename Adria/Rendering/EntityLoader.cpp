@@ -296,7 +296,7 @@ namespace adria
             {
                 if (tex_metallic_path.length != 0)
                 {
-					std::string texmetallic = params.textures_path + tex_roughness_metallic_path.C_Str();
+					std::string texmetallic = params.textures_path + tex_metallic_path.C_Str();
 					material.metallic_texture = texture_manager.LoadTexture(texmetallic);
                 }
 				if (tex_roughness_path.length != 0)
@@ -318,7 +318,8 @@ namespace adria
                 material.emissive_texture = texture_manager.LoadTexture(texemissive);
             }
 
-            material.shader = StandardShader::eGbufferPBR;
+            material.shader = material.metallic_roughness_texture == INVALID_TEXTURE_HANDLE ?
+                StandardShader::eGBufferPBR_Separated : StandardShader::eGbufferPBR;
 
             reg.emplace<Material>(e, material);
 

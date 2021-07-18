@@ -567,9 +567,9 @@ namespace adria
 			ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
 			standard_programs[StandardShader::eGbufferPBR].Create(device, vs_blob, ps_blob); 
 
-			//geometry_pass_input_ps.defines.push_back(ShaderDefine{ "HAS_EMISSIVE", "1" });
-			//ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
-			//standard_programs[StandardShader::eGbufferPBR_Emissive].Create(device, vs_blob, ps_blob); 
+			geometry_pass_input_ps.defines.push_back(ShaderDefine{ "METALLIC_ROUGHNESS_SEPARATED", "1" });
+			ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
+			standard_programs[StandardShader::eGBufferPBR_Separated].Create(device, vs_blob, ps_blob); 
 		}
 
 		
@@ -2203,9 +2203,21 @@ namespace adria
 
 				if (material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE)
 				{
+					standard_programs[StandardShader::eGbufferPBR].Bind(context);
+
 					auto view = texture_manager.GetTextureView(material.metallic_roughness_texture);
 
 					context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS_METALLIC, 1, &view);
+				}
+				else
+				{
+					standard_programs[StandardShader::eGBufferPBR_Separated].Bind(context);
+
+					auto view = texture_manager.GetTextureView(material.metallic_texture);
+					context->PSSetShaderResources(TEXTURE_SLOT_METALLIC, 1, &view);
+
+					view = texture_manager.GetTextureView(material.roughness_texture);
+					context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS, 1, &view);
 				}
 
 				if (material.normal_texture != INVALID_TEXTURE_HANDLE)
@@ -2222,7 +2234,7 @@ namespace adria
 					context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &view);
 				}
 
-				standard_programs[StandardShader::eGbufferPBR].Bind(context);
+				
 
 				if (reg.has<RenderState>(e))
 				{
