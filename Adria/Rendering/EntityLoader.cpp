@@ -254,65 +254,71 @@ namespace adria
                 indices.push_back(mesh->mFaces[i].mIndices[2]);
             }
 
-            const aiMaterial* srcMat = scene->mMaterials[mesh->mMaterialIndex];
+            aiMaterial const* src_mat = scene->mMaterials[mesh->mMaterialIndex];
 
 
-            Material material{};
+			Material material{};
+			f32 albedo_factor[4] = {}, metallic_factor = 1.0f, roughness_factor = 1.0f, emissive_factor[4] = {};
 
-            float albedo_factor = 1.0f, metallic_factor = 1.0f, roughness_factor = 1.0f, emissive_factor = 1.0f;
+			if (src_mat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, albedo_factor) == AI_SUCCESS)
+			{
+				material.albedo_factor = albedo_factor[0];
+			}
+			if (src_mat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, metallic_factor) == AI_SUCCESS)
+			{
+				material.metallic_factor = metallic_factor;
+			}
+			if (src_mat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, roughness_factor) == AI_SUCCESS)
+			{
+				material.roughness_factor = roughness_factor;
+			}
+			if (src_mat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive_factor) == AI_SUCCESS)
+			{
+				material.emissive_factor = emissive_factor[0];
+			}
 
+            aiString tex_albedo_path, tex_metallic_path, tex_roughness_path,
+                tex_roughness_metallic_path,tex_normal_path, tex_emissive_path;
 
-            //if (srcMat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, albedo_factor) == AI_SUCCESS)
-            //{
-            //    material.albedo_factor = albedo_factor;
-            //}
-
-            if (srcMat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, metallic_factor) == AI_SUCCESS)
+            if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_DIFFUSE, 0, &tex_albedo_path))
             {
-                material.metallic_factor = metallic_factor;
-            }
-
-            if (srcMat->Get(AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, roughness_factor) == AI_SUCCESS)
-            {
-                material.roughness_factor = roughness_factor;
-            }
-            //if (srcMat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive_factor) == AI_SUCCESS)
-            //{
-            //    material.emissive_factor = emissive_factor;
-            //}
-
-            aiString texAlbedoPath;
-            aiString texRoughnessMetallicPath;
-            aiString texNormalPath;
-            aiString texEmissivePath;
-
-
-            if (AI_SUCCESS == srcMat->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 1), texAlbedoPath))
-            {
-                std::string texalbedo = params.textures_path + texAlbedoPath.C_Str();
+                std::string texalbedo = params.textures_path + tex_albedo_path.C_Str();
                 material.albedo_texture = texture_manager.LoadTexture(texalbedo);
             }
 
-            if (AI_SUCCESS == srcMat->Get(AI_MATKEY_TEXTURE(aiTextureType_UNKNOWN, 0), texRoughnessMetallicPath))
+            if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_UNKNOWN, 0, &tex_roughness_metallic_path))
             {
-                std::string texmetallicroughness = params.textures_path + texRoughnessMetallicPath.C_Str();
+                std::string texmetallicroughness = params.textures_path + tex_roughness_metallic_path.C_Str();
                 material.metallic_roughness_texture = texture_manager.LoadTexture(texmetallicroughness);
             }
-
-            if (AI_SUCCESS == srcMat->Get(AI_MATKEY_TEXTURE(aiTextureType_NORMALS, 0), texNormalPath))
+            else if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_AMBIENT, 0, &tex_metallic_path)
+                  || AI_SUCCESS == src_mat->GetTexture(aiTextureType_SHININESS, 0, &tex_roughness_path))
             {
-                std::string texnorm = params.textures_path + texNormalPath.C_Str();
+                if (tex_metallic_path.length != 0)
+                {
+					std::string texmetallic = params.textures_path + tex_roughness_metallic_path.C_Str();
+					material.metallic_texture = texture_manager.LoadTexture(texmetallic);
+                }
+				if (tex_roughness_path.length != 0)
+				{
+					std::string texroughness = params.textures_path + tex_roughness_path.C_Str();
+					material.roughness_texture = texture_manager.LoadTexture(texroughness);
+				}
+            }
+
+            if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_NORMALS, 0, &tex_normal_path))
+            {
+                std::string texnorm = params.textures_path + tex_normal_path.C_Str();
                 material.normal_texture = texture_manager.LoadTexture(texnorm);
             }
             
-            if (AI_SUCCESS == srcMat->Get(AI_MATKEY_TEXTURE(aiTextureType_EMISSIVE, 0), texEmissivePath))
+            if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_EMISSIVE, 0, &tex_emissive_path))
             {
-                std::string texemissive = params.textures_path + texEmissivePath.C_Str();
+                std::string texemissive = params.textures_path + tex_emissive_path.C_Str();
                 material.emissive_texture = texture_manager.LoadTexture(texemissive);
             }
 
-            material.shader = (material.emissive_texture == INVALID_TEXTURE_HANDLE ? 
-                StandardShader::eGbufferPBR : StandardShader::eGbufferPBR_Emissive);
+            material.shader = StandardShader::eGbufferPBR;
 
             reg.emplace<Material>(e, material);
 
@@ -324,7 +330,6 @@ namespace adria
             reg.emplace<Visibility>(e, aabb, true, true);
             reg.emplace<Transform>(e, model, model);
             reg.emplace<Deferred>(e);
-
         }
 
 
@@ -446,13 +451,13 @@ namespace adria
             XMStoreFloat3(&material.diffuse, params.light_data.color);
 
             if (params.light_texture.has_value())
-                material.diffuse_texture = texture_manager.LoadTexture(params.light_texture.value()); //
+                material.albedo_texture = texture_manager.LoadTexture(params.light_texture.value()); //
             else if(params.light_data.type == LightType::eDirectional)
-                material.diffuse_texture = texture_manager.LoadTexture(L"Resources/Textures/sun.png");
+                material.albedo_texture = texture_manager.LoadTexture(L"Resources/Textures/sun.png");
 
             if (params.light_data.type == LightType::eDirectional)
                 material.shader = StandardShader::eSun;
-            else if (material.diffuse_texture != INVALID_TEXTURE_HANDLE)
+            else if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
                 material.shader = StandardShader::eBillboard;
             else GLOBAL_LOG_ERROR("Light with quad mesh needs diffuse texture!");
 
@@ -514,7 +519,7 @@ namespace adria
 
         Material ocean_material{};
         ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
-        ocean_material.specular = XMFLOAT3(0.8f, 0.8f, 0.8f);
+
         ocean_material.shader = StandardShader::eUnknown; //not necessary
 
         Ocean ocean_component{};

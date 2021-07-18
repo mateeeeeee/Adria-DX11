@@ -482,16 +482,13 @@ namespace adria
                         //add shader changing
                         if (engine->reg.has<Forward>(selected_entity))
                         {
-                            if (material->diffuse_texture != INVALID_TEXTURE_HANDLE ||
-                                material->albedo_texture != INVALID_TEXTURE_HANDLE)
+                            if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
                                 material->shader = StandardShader::eTexture;
                             else material->shader = StandardShader::eSolid;
                         }
                         else
                         {
-                            if (material->emissive_texture != INVALID_TEXTURE_HANDLE)
-                                material->shader = StandardShader::eGbufferPBR_Emissive;
-                            else material->shader = StandardShader::eGbufferPBR;
+                           material->shader = StandardShader::eGbufferPBR;
                         }
                     }
 

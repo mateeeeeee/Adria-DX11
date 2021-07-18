@@ -567,9 +567,9 @@ namespace adria
 			ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
 			standard_programs[StandardShader::eGbufferPBR].Create(device, vs_blob, ps_blob); 
 
-			geometry_pass_input_ps.defines.push_back(ShaderDefine{ "HAS_EMISSIVE", "1" });
-			ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
-			standard_programs[StandardShader::eGbufferPBR_Emissive].Create(device, vs_blob, ps_blob); 
+			//geometry_pass_input_ps.defines.push_back(ShaderDefine{ "HAS_EMISSIVE", "1" });
+			//ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
+			//standard_programs[StandardShader::eGbufferPBR_Emissive].Create(device, vs_blob, ps_blob); 
 		}
 
 		
@@ -2213,20 +2213,16 @@ namespace adria
 					auto view = texture_manager.GetTextureView(material.normal_texture);
 
 					context->PSSetShaderResources(TEXTURE_SLOT_NORMAL, 1, &view);
-
 				}
 
 				if (material.emissive_texture != INVALID_TEXTURE_HANDLE)
 				{
-
-					standard_programs[StandardShader::eGbufferPBR_Emissive].Bind(context);
-
 					auto view = texture_manager.GetTextureView(material.emissive_texture);
 
 					context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &view);
-
 				}
-				else standard_programs[StandardShader::eGbufferPBR].Bind(context);
+
+				standard_programs[StandardShader::eGbufferPBR].Bind(context);
 
 				if (reg.has<RenderState>(e))
 				{
@@ -3284,13 +3280,7 @@ namespace adria
 
 			material_cbuffer->Update(context, material_cbuf_data);
 
-			if (material.diffuse_texture != INVALID_TEXTURE_HANDLE)
-			{
-				auto view = texture_manager.GetTextureView(material.diffuse_texture);
-
-				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
-			}
-			else if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
+			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{
 				auto view = texture_manager.GetTextureView(material.albedo_texture);
 
@@ -3747,13 +3737,7 @@ namespace adria
 
 			material_cbuffer->Update(context, material_cbuf_data);
 
-			if (material.diffuse_texture != INVALID_TEXTURE_HANDLE)
-			{
-				auto view = texture_manager.GetTextureView(material.diffuse_texture);
-
-				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
-			}
-			else if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
+			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{
 				auto view = texture_manager.GetTextureView(material.albedo_texture);
 

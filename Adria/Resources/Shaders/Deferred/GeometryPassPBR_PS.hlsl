@@ -3,29 +3,18 @@
 
 
 Texture2D txAlbedo              : register(t0);
-
 Texture2D txMetallicRoughness   : register(t1);
-
 Texture2D txNormal              : register(t2);
-
-#if HAS_EMISSIVE
-
 Texture2D txEmissive            : register(t3);
-
-#endif
-
 
 struct VS_OUTPUT
 {
     float4 Position     : SV_POSITION; 
     float2 Uvs          : TEX;
-
     float3 NormalVS     : NORMAL0; 
-
     float3 TangentWS    : TANGENT;
     float3 BitangentWS  : BITANGENT;
     float3 NormalWS     : NORMAL1;
-
 };
 
 
@@ -70,12 +59,7 @@ PS_GBUFFER_OUT ps_main(VS_OUTPUT In)
 
     float3 ao_roughness_metallic = txMetallicRoughness.Sample(linear_wrap_sampler, In.Uvs).rgb;
     
-#if HAS_EMISSIVE
     float3 EmissiveColor = txEmissive.Sample(linear_wrap_sampler, In.Uvs).rgb;
-    return PackGBuffer(DiffuseColor.xyz, normalize(In.NormalVS), EmissiveColor, // * emissive_factor
+    return PackGBuffer(DiffuseColor.xyz, normalize(In.NormalVS), EmissiveColor * emissive_factor,
     ao_roughness_metallic.g * roughness_factor, ao_roughness_metallic.b * metallic_factor, 1.0f); //ao_roughness_metallic.r
-#else
-    return PackGBuffer(DiffuseColor.xyz, normalize(In.NormalVS), float3(0, 0, 0),
-    ao_roughness_metallic.g * roughness_factor, ao_roughness_metallic.b * metallic_factor, 1.0f); //ao_roughness_metallic.r
-    #endif
 }

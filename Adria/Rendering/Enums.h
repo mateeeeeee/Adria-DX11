@@ -43,7 +43,6 @@ namespace adria
 		eSun,
 		eBillboard,
 		eGbufferPBR,
-		eGbufferPBR_Emissive,
 		eAmbientPBR,
 		eAmbientPBR_AO,
 		eAmbientPBR_IBL,
@@ -122,7 +121,6 @@ namespace adria
 		ePoint,
 		eSpot
 	};
-
 
 	enum class FogType : i32
 	{
