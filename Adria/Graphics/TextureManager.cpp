@@ -280,7 +280,7 @@ TEXTURE_HANDLE TextureManager::LoadCubeMap(std::array<std::string, 6> const& cub
 
 	if (mipmaps)
 	{
-		device->CreateTexture2D(&desc, nullptr, &tex_ptr);
+		BREAK_IF_FAILED(device->CreateTexture2D(&desc, nullptr, &tex_ptr));
 		for (UINT i = 0; i < cubemap_textures.size(); ++i)
 			context->UpdateSubresource(tex_ptr.Get(), D3D11CalcSubresource(0, i, desc.MipLevels), nullptr,
 				subresource_data_array[i].pSysMem,
@@ -288,7 +288,7 @@ TEXTURE_HANDLE TextureManager::LoadCubeMap(std::array<std::string, 6> const& cub
 	}
 	else
 	{
-		device->CreateTexture2D(&desc, subresource_data_array.data(), &tex_ptr);
+		BREAK_IF_FAILED(device->CreateTexture2D(&desc, subresource_data_array.data(), &tex_ptr));
 	}
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -405,7 +405,8 @@ TEXTURE_HANDLE TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
 
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> tex_ptr = nullptr;
 
-		device->CreateTexture2D(&desc, nullptr, tex_ptr.GetAddressOf());
+		HRESULT hr = device->CreateTexture2D(&desc, nullptr, tex_ptr.GetAddressOf());
+		BREAK_IF_FAILED(hr);
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
 		srvDesc.Format = desc.Format;
@@ -415,7 +416,8 @@ TEXTURE_HANDLE TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
 
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> view_ptr = nullptr;
 
-		device->CreateShaderResourceView(tex_ptr.Get(), &srvDesc, view_ptr.GetAddressOf());
+		hr = device->CreateShaderResourceView(tex_ptr.Get(), &srvDesc, view_ptr.GetAddressOf());
+		BREAK_IF_FAILED(hr);
 
 		context->UpdateSubresource(tex_ptr.Get(), 0, nullptr, img.Data<void>(), img.Pitch(), 0);
 

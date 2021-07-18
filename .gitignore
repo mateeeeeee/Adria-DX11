@@ -7,6 +7,7 @@
 features.txt
 Unused/
 Adria/Resources/Textures/
+/Adria/Resources/GLTF Models/SunTemple
 
 # User-specific files
 *.rsuser
@@ -391,3 +392,4 @@ FodyWeavers.xsd
 # JetBrains Rider
 .idea/
 *.sln.iml
+

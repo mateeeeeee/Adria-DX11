@@ -183,11 +183,10 @@ namespace adria
     {
         Assimp::Importer importer;
 
-       auto importer_flags =
+       u32 importer_flags =
             aiProcess_CalcTangentSpace |
             aiProcess_GenSmoothNormals |
             aiProcess_JoinIdenticalVertices |
-            aiProcess_OptimizeMeshes |
             aiProcess_ImproveCacheLocality |
             aiProcess_RemoveRedundantMaterials |
             aiProcess_LimitBoneWeights |
@@ -200,6 +199,10 @@ namespace adria
             aiProcess_FindInstances |
             aiProcess_ValidateDataStructure |
             aiProcess_Debone;
+
+       if(params.merge_meshes)
+           importer_flags |= aiProcess_OptimizeMeshes;
+
 
         
         aiScene const* scene = importer.ReadFile(params.model_path, importer_flags);
@@ -242,9 +245,6 @@ namespace adria
                 );
             }
 
-            
-            
-            
             indices.reserve(indices.size() + mesh->mNumFaces * 3);
 
             for (u32 i = 0; i < mesh->mNumFaces; ++i)
@@ -316,12 +316,13 @@ namespace adria
 
             reg.emplace<Material>(e, material);
 
-            //reg.AddComponent<DeferredTag>(e);
+            XMMATRIX model = XMMatrixScaling(params.model_scale, params.model_scale, params.model_scale);
+
             BoundingBox aabb = AABBFromRange(vertices.end() - mesh->mNumVertices, vertices.end());
-            aabb.Transform(aabb, params.model);
+            aabb.Transform(aabb, model);
 
             reg.emplace<Visibility>(e, aabb, true, true);
-            reg.emplace<Transform>(e, params.model, params.model);
+            reg.emplace<Transform>(e, model, model);
             reg.emplace<Deferred>(e);
 
         }
@@ -337,9 +338,7 @@ namespace adria
             auto& mesh = reg.get<Mesh>(e);
             mesh.vb = vb;
             mesh.ib = ib;
-            mesh.vertices = vertices;
             reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
-
         }
 
         Log::Info("Model" + params.model_path + " successfully loaded!");

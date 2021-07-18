@@ -119,7 +119,10 @@ namespace adria
 			model_parameters_t model_params{};
 			model_params.model_path = "Resources/GLTF Models/Sponza/glTF/Sponza.gltf";
 			model_params.textures_path = "Resources/GLTF Models/Sponza/glTF/";
-			model_params.model = DirectX::XMMatrixScaling(0.3f, 0.3f, 0.3f);
+			//model_params.model_path = "Resources/GLTF Models/SunTemple/SunTemple.fbx";
+			//model_params.textures_path = "Resources/GLTF Models/SunTemple/";
+			model_params.model_scale = 0.3f;
+			model_params.merge_meshes = true;
 			entity_loader->LoadGLTFModel(model_params);
 		}
 
