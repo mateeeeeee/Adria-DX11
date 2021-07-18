@@ -179,7 +179,7 @@ namespace adria
     {}
 
     [[maybe_unused]]
-    std::vector<entity> EntityLoader::LoadGLTFModel(model_parameters_t const& params)
+    std::vector<entity> EntityLoader::LoadModel(model_parameters_t const& params)
     {
         Assimp::Importer importer;
 
@@ -299,11 +299,17 @@ namespace adria
 					std::string texmetallic = params.textures_path + tex_metallic_path.C_Str();
 					material.metallic_texture = texture_manager.LoadTexture(texmetallic);
                 }
+
 				if (tex_roughness_path.length != 0)
 				{
 					std::string texroughness = params.textures_path + tex_roughness_path.C_Str();
 					material.roughness_texture = texture_manager.LoadTexture(texroughness);
 				}
+                //assimp doesnt load roughness texture for gold meshes?
+                //else
+                //{
+                //    material.roughness_texture = texture_manager.LoadTexture("Resources/GLTF Models/SunTemple/Textures/Gold_R.dds");
+                //}
             }
 
             if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_NORMALS, 0, &tex_normal_path))
