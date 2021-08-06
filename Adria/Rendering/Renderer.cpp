@@ -549,7 +549,6 @@ namespace adria
 			standard_programs[StandardShader::eBillboard].Create(device, vs_blob, ps_blob);
 		}
 
-		
 		//gbuffer (not compiled)
 		{
 			ShaderBlob vs_blob, ps_blob;
@@ -563,6 +562,7 @@ namespace adria
 			geometry_pass_input_ps.shadersource = "Resources/Shaders/Deferred/GeometryPassPBR_PS.hlsl";
 			geometry_pass_input_ps.stage = ShaderStage::PS;
 			geometry_pass_input_ps.defines = {};
+			geometry_pass_input_ps.flags = ShaderInfo::FLAG_DISABLE_OPTIMIZATION | ShaderInfo::FLAG_DEBUG;
 			
 			ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
 			standard_programs[StandardShader::eGbufferPBR].Create(device, vs_blob, ps_blob); 
@@ -572,8 +572,6 @@ namespace adria
 			standard_programs[StandardShader::eGBufferPBR_Separated].Create(device, vs_blob, ps_blob); 
 		}
 
-		
-		
 		//ambient & lighting (not compiled)
 		{
 			ShaderBlob vs_blob, ps_blob;
@@ -613,7 +611,6 @@ namespace adria
 
 		}
 
-		
 		//postprocess
 		{
 			ShaderBlob vs_blob, ps_blob;
@@ -740,7 +737,6 @@ namespace adria
 			}
 		}
 
-		
 		//shadows
 		{
 
@@ -888,7 +884,6 @@ namespace adria
 
 		}
 
-		
 	}
 	void Renderer::LoadTextures()
 	{
@@ -2194,12 +2189,15 @@ namespace adria
 				material_cbuf_data.emissive_factor = material.emissive_factor;
 				material_cbuffer->Update(context, material_cbuf_data);
 
+				static ID3D11ShaderResourceView* const null_view = nullptr;
+
 				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = texture_manager.GetTextureView(material.albedo_texture);
 
 					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 				}
+				
 
 				if (material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE)
 				{
@@ -2226,6 +2224,10 @@ namespace adria
 
 					context->PSSetShaderResources(TEXTURE_SLOT_NORMAL, 1, &view);
 				}
+				else
+				{
+					context->PSSetShaderResources(TEXTURE_SLOT_NORMAL, 1, &null_view);
+				}
 
 				if (material.emissive_texture != INVALID_TEXTURE_HANDLE)
 				{
@@ -2233,8 +2235,10 @@ namespace adria
 
 					context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &view);
 				}
-
-				
+				else
+				{
+					context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &null_view);
+				}
 
 				if (reg.has<RenderState>(e))
 				{
@@ -2247,6 +2251,8 @@ namespace adria
 					states.Unbind(context);
 				}
 				else mesh.Draw(context);
+
+
 			}
 		}
 		gbuffer_pass.End(context);

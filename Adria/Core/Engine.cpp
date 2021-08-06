@@ -117,18 +117,18 @@ namespace adria
 		if (load_sponza)
 		{
 			model_parameters_t model_params{};
-			model_params.model_path = "Resources/GLTF Models/Sponza/glTF/Sponza.gltf";
-			model_params.textures_path = "Resources/GLTF Models/Sponza/glTF/";
-			//model_params.model_path = "Resources/GLTF Models/SunTemple/SunTemple.fbx";
-			//model_params.textures_path = "Resources/GLTF Models/SunTemple/";
+			model_params.model_path = "Resources/Models/Sponza/glTF/Sponza.gltf";
+			model_params.textures_path = "Resources/Models/Sponza/glTF/";
+			//model_params.model_path = "Resources/Models/SunTemple/SunTemple.fbx";
+			//model_params.textures_path = "Resources/Models/SunTemple/";
 			model_params.model_scale = 0.3f;
 			model_params.merge_meshes = true;
 			entity_loader->LoadModel(model_params);
 
-			model_params.model_path = "Resources/GLTF Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
-			model_params.textures_path = "Resources/GLTF Models/DamagedHelmet/glTF/";
-			model_params.model_scale = 3.0f;
-			entity_loader->LoadModel(model_params);
+			//model_params.model_path = "Resources/GLTF Models/DamagedHelmet/glTF/DamagedHelmet.gltf";
+			//model_params.textures_path = "Resources/GLTF Models/DamagedHelmet/glTF/";
+			//model_params.model_scale = 3.0f;
+			//entity_loader->LoadModel(model_params);
 		}
 
 		light_parameters_t light_params{};

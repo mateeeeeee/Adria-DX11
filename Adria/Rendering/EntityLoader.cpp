@@ -183,7 +183,7 @@ namespace adria
     {
         Assimp::Importer importer;
 
-       u32 importer_flags =
+       u32 importer_flags =  
             aiProcess_CalcTangentSpace |
             aiProcess_GenSmoothNormals |
             aiProcess_JoinIdenticalVertices |
@@ -291,6 +291,11 @@ namespace adria
                 std::string texmetallicroughness = params.textures_path + tex_roughness_metallic_path.C_Str();
                 material.metallic_roughness_texture = texture_manager.LoadTexture(texmetallicroughness);
             }
+            else if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_SPECULAR, 0, &tex_roughness_metallic_path))
+            {
+				std::string texmetallicroughness = params.textures_path + tex_roughness_metallic_path.C_Str();
+				material.metallic_roughness_texture = texture_manager.LoadTexture(texmetallicroughness);
+            }
             else if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_AMBIENT, 0, &tex_metallic_path)
                   || AI_SUCCESS == src_mat->GetTexture(aiTextureType_SHININESS, 0, &tex_roughness_path))
             {
@@ -311,6 +316,7 @@ namespace adria
                 //    material.roughness_texture = texture_manager.LoadTexture("Resources/GLTF Models/SunTemple/Textures/Gold_R.dds");
                 //}
             }
+
 
             if (AI_SUCCESS == src_mat->GetTexture(aiTextureType_NORMALS, 0, &tex_normal_path))
             {
