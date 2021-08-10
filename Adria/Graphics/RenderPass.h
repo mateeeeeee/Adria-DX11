@@ -1,6 +1,8 @@
 #pragma once
-#include <variant>
+#include <optional>
 #include <vector>
+#include <array>
+#include <unordered_map>
 #include <d3d11.h>
 #include "../Core/Definitions.h" 
 
