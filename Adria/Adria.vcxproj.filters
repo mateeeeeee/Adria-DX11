@@ -170,6 +170,10 @@
     <ClCompile Include="Utilities\Heightmap.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\CommonStates.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\RenderPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">

@@ -165,9 +165,11 @@
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\GUI.cpp" />
     <ClCompile Include="Events\EventQueue.cpp" />
+    <ClCompile Include="Graphics\CommonStates.cpp" />
     <ClCompile Include="Graphics\DDSTextureLoader.cpp" />
     <ClCompile Include="Graphics\GraphicsCoreDX11.cpp" />
     <ClCompile Include="Graphics\Profiler.cpp" />
+    <ClCompile Include="Graphics\RenderPass.cpp" />
     <ClCompile Include="Graphics\ShaderProgram.cpp" />
     <ClCompile Include="Graphics\ShaderUtility.cpp" />
     <ClCompile Include="Graphics\TextureManager.cpp" />
