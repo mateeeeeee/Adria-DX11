@@ -486,8 +486,8 @@ namespace adria
 		frame_cbuf_data.inverse_view = XMMatrixInverse(nullptr, camera->View());
 		frame_cbuf_data.inverse_projection = XMMatrixInverse(nullptr, camera->Proj());
 		frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
-		frame_cbuf_data.screen_resolution_x = width;
-		frame_cbuf_data.screen_resolution_y = height;
+		frame_cbuf_data.screen_resolution_x = (f32)width;
+		frame_cbuf_data.screen_resolution_y = (f32)height;
 		
 
 		frame_cbuffer->Update(gfx->Context(), frame_cbuf_data);
@@ -2054,7 +2054,7 @@ namespace adria
 	void Renderer::UpdateLights()
 	{
 
-		u32 current_light_count = reg.size<Light>();
+		u32 current_light_count = (u32)reg.size<Light>();
 		static u32 light_count = 0;
 		bool light_count_changed = current_light_count != light_count;
 		if (light_count_changed)
@@ -2668,7 +2668,7 @@ namespace adria
 			if (light.type == LightType::eDirectional && light.casts_shadows && settings.voxel_debug)
 				PassShadowMapDirectional(light);
 		}
-		lights->Update(gfx->Context(), _lights.data(), (std::min<u32>)(_lights.size(), VOXELIZE_MAX_LIGHTS) * sizeof(LightSBuffer));
+		lights->Update(gfx->Context(), _lights.data(), (std::min<u64>)(_lights.size(), VOXELIZE_MAX_LIGHTS) * sizeof(LightSBuffer));
 
 		auto voxel_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
 
