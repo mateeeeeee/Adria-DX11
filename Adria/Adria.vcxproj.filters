@@ -419,6 +419,9 @@
     <ClInclude Include="Utilities\Heightmap.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Utilities\CommandLineParser.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
