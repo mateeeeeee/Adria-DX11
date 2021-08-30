@@ -75,6 +75,7 @@ namespace adria
 		eFog,
 		eOcean,
 		eVoxelGI,
+		eVelocityBuffer,
         eUnknown
 	};
 
@@ -153,4 +154,13 @@ namespace adria
 		AntiAliasing_TAA = 0x2
 	};
 
+	enum GBUFFER : u8
+	{
+		GBUFFER_NORMAL_METALLIC,
+		GBUFFER_DIFFUSE_ROUGHNESS,
+		GBUFFER_EMISSIVE,
+		GBUFFER_SIZE
+	};
+
+	
 }

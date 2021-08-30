@@ -361,7 +361,7 @@ namespace adria
 		AddProfilerBlocks();
 
 		CreateRenderTargets(w, h);
-		CreateGbuffer(w, h);
+		CreateGBuffer(w, h);
 		CreateSsaoTextures(w, h);
 		CreateRenderPasses(w, h);
 		CreateComputeTextures(w, h);
@@ -457,7 +457,7 @@ namespace adria
 		if (width != 0 || height != 0)
 		{
 			CreateRenderTargets(width, height);
-			CreateGbuffer(width, height);
+			CreateGBuffer(width, height);
 			CreateSsaoTextures(width, height);
 			CreateRenderPasses(width, height);
 			CreateComputeTextures(width, height);
@@ -488,7 +488,6 @@ namespace adria
 		frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
 		frame_cbuf_data.screen_resolution_x = (f32)width;
 		frame_cbuf_data.screen_resolution_y = (f32)height;
-		
 
 		frame_cbuffer->Update(gfx->Context(), frame_cbuf_data);
 
@@ -722,6 +721,13 @@ namespace adria
 				standard_programs[StandardShader::eVolumetric_Clouds].Create(device, vs_blob, ps_blob);
 			}
 
+			//velocity buffer
+			{
+				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VelocityBufferPS.cso", ps_blob);
+
+				standard_programs[StandardShader::eVelocityBuffer].Create(device, vs_blob, ps_blob);
+			}
+
 			//motion blur
 			{
 				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/MotionBlurPS.cso", ps_blob);
@@ -911,11 +917,15 @@ namespace adria
 		lens_flare_textures.push_back(texture_manager.GetTextureView(tex_handle));
 
 		clouds_textures.resize(3);
-		HRESULT hr = CreateDDSTextureFromFile(gfx->Device(), gfx->Context(), L"Resources\\Textures\\clouds\\weather.dds", nullptr, &clouds_textures[0]);
+
+		ID3D11Device* device = gfx->Device();
+		ID3D11DeviceContext* context = gfx->Context();
+
+		HRESULT hr = CreateDDSTextureFromFile(device, context, L"Resources\\Textures\\clouds\\weather.dds", nullptr, &clouds_textures[0]);
 		BREAK_IF_FAILED(hr);
-		hr = CreateDDSTextureFromFile(gfx->Device(), gfx->Context(), L"Resources\\Textures\\clouds\\cloud.dds", nullptr, &clouds_textures[1]);
+		hr = CreateDDSTextureFromFile(device, context, L"Resources\\Textures\\clouds\\cloud.dds", nullptr, &clouds_textures[1]);
 		BREAK_IF_FAILED(hr);
-		hr = CreateDDSTextureFromFile(gfx->Device(), gfx->Context(), L"Resources\\Textures\\clouds\\worley.dds", nullptr, &clouds_textures[2]);
+		hr = CreateDDSTextureFromFile(device, context, L"Resources\\Textures\\clouds\\worley.dds", nullptr, &clouds_textures[2]);
 		BREAK_IF_FAILED(hr);
 
 		foam_handle		= texture_manager.LoadTexture("Resources/Textures/foam.jpg");
@@ -925,7 +935,6 @@ namespace adria
 		oct_bokeh_handle = texture_manager.LoadTexture("Resources/Textures/bokeh/Bokeh_Oct.dds");
 		circle_bokeh_handle = texture_manager.LoadTexture("Resources/Textures/bokeh/Bokeh_Circle.dds");
 		cross_bokeh_handle = texture_manager.LoadTexture("Resources/Textures/bokeh/Bokeh_Cross.dds");
-
 
 	}
 	void Renderer::AddProfilerBlocks()
@@ -942,7 +951,7 @@ namespace adria
 	}
 	void Renderer::CreateBuffers()
 	{
-		auto device = gfx->Device();
+		ID3D11Device* device = gfx->Device();
 
 		frame_cbuffer = std::make_unique<ConstantBuffer<FrameCBuffer>>(device);
 		light_cbuffer = std::make_unique<ConstantBuffer<LightCBuffer>>(device);
@@ -954,7 +963,6 @@ namespace adria
 		weather_cbuffer = std::make_unique<ConstantBuffer<WeatherCBuffer>>(device);
 		voxel_cbuffer = std::make_unique<ConstantBuffer<VoxelCBuffer>>(device);
 
-		
 		//for bokeh
 		D3D11_BUFFER_DESC buffer_desc{};
 		buffer_desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
@@ -1079,29 +1087,31 @@ namespace adria
 	}
 	void Renderer::CreateRenderStates()
 	{
+		ID3D11Device* device = gfx->Device();
+
 		CD3D11_BLEND_DESC bs_desc{ CD3D11_DEFAULT{} };
 		bs_desc.RenderTarget[0].BlendEnable = true;
 		bs_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
 		bs_desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
 		bs_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-		gfx->Device()->CreateBlendState(&bs_desc, additive_blend.GetAddressOf());
+		device->CreateBlendState(&bs_desc, additive_blend.GetAddressOf());
 
 		bs_desc.RenderTarget[0].BlendEnable = true;
 		bs_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
 		bs_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 		bs_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 
-		gfx->Device()->CreateBlendState(&bs_desc, alpha_blend.GetAddressOf());
+		device->CreateBlendState(&bs_desc, alpha_blend.GetAddressOf());
 
 		D3D11_DEPTH_STENCIL_DESC ds_desc = CommonStates::DepthDefault();
-		gfx->Device()->CreateDepthStencilState(&ds_desc, leq_depth.GetAddressOf());
+		device->CreateDepthStencilState(&ds_desc, leq_depth.GetAddressOf());
 
 		CD3D11_RASTERIZER_DESC rasterizer_state_desc(CD3D11_DEFAULT{});
 		rasterizer_state_desc.ScissorEnable = TRUE;
-		gfx->Device()->CreateRasterizerState(&rasterizer_state_desc, scissor_enabled.GetAddressOf());
+		device->CreateRasterizerState(&rasterizer_state_desc, scissor_enabled.GetAddressOf());
 
 		D3D11_RASTERIZER_DESC raster_desc = CommonStates::CullNone();
-		gfx->Device()->CreateRasterizerState(&raster_desc, cull_none.GetAddressOf());
+		device->CreateRasterizerState(&raster_desc, cull_none.GetAddressOf());
 
 		D3D11_RASTERIZER_DESC shadow_render_state_desc{};
 		shadow_render_state_desc.CullMode = D3D11_CULL_FRONT;
@@ -1111,10 +1121,10 @@ namespace adria
 		shadow_render_state_desc.DepthBiasClamp = 0.0f;
 		shadow_render_state_desc.SlopeScaledDepthBias = 1.0f;
 
-		gfx->Device()->CreateRasterizerState(&shadow_render_state_desc, shadow_depth_bias.GetAddressOf());
+		device->CreateRasterizerState(&shadow_render_state_desc, shadow_depth_bias.GetAddressOf());
 
 		D3D11_RASTERIZER_DESC wireframe_desc = CommonStates::Wireframe();
-		gfx->Device()->CreateRasterizerState(&wireframe_desc, wireframe.GetAddressOf());
+		device->CreateRasterizerState(&wireframe_desc, wireframe.GetAddressOf());
 	}
 	void Renderer::CreateBokehViews(u32 width, u32 height)
 	{
@@ -1155,19 +1165,21 @@ namespace adria
 	}
 	void Renderer::CreateRenderTargets(u32 width, u32 height)
 	{
+		ID3D11Device* device = gfx->Device();
+
 		texture2d_desc_t render_target_desc{};
 		render_target_desc.width = width;
 		render_target_desc.height = height;
 		render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		render_target_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 
-		hdr_render_target = Texture2D(gfx->Device(), render_target_desc);
-		prev_hdr_render_target = Texture2D(gfx->Device(), render_target_desc);
-		sun_target = Texture2D(gfx->Device(), render_target_desc);
+		hdr_render_target = Texture2D(device, render_target_desc);
+		prev_hdr_render_target = Texture2D(device, render_target_desc);
+		sun_target = Texture2D(device, render_target_desc);
 
 		render_target_desc.bind_flags |= D3D11_BIND_UNORDERED_ACCESS; //postprocessing with ComputeShader
-		postprocess_textures[0] = Texture2D(gfx->Device(), render_target_desc);
-		postprocess_textures[1] = Texture2D(gfx->Device(), render_target_desc);
+		postprocess_textures[0] = Texture2D(device, render_target_desc);
+		postprocess_textures[1] = Texture2D(device, render_target_desc);
 
 		texture2d_desc_t depth_target_desc{};
 		depth_target_desc.width = width;
@@ -1177,10 +1189,8 @@ namespace adria
 		depth_target_desc.dsv_desc.depth_format = DXGI_FORMAT_D32_FLOAT;
 		depth_target_desc.srv_desc.format = DXGI_FORMAT_R32_FLOAT;
 
-		depth_target = Texture2D(gfx->Device(), depth_target_desc);
+		depth_target = Texture2D(device, depth_target_desc);
 		
-
-
 		texture2d_desc_t fxaa_source_desc{};
 		fxaa_source_desc.width = width;
 		fxaa_source_desc.height = height;
@@ -1188,10 +1198,10 @@ namespace adria
 		fxaa_source_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 		fxaa_source_desc.srv_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-		fxaa_texture = Texture2D(gfx->Device(), fxaa_source_desc);
+		fxaa_texture = Texture2D(device, fxaa_source_desc);
 
 		texture2d_desc_t offscreeen_desc = fxaa_source_desc;
-		offscreen_ldr_render_target = Texture2D(gfx->Device(), offscreeen_desc);
+		offscreen_ldr_render_target = Texture2D(device, offscreeen_desc);
 
 		texture2d_desc_t depth_map_desc{};
 		depth_map_desc.width = SHADOW_MAP_SIZE;
@@ -1200,52 +1210,56 @@ namespace adria
 		depth_map_desc.bind_flags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 		depth_map_desc.dsv_desc.depth_format = DXGI_FORMAT_D32_FLOAT;
 		depth_map_desc.srv_desc.format = DXGI_FORMAT_R32_FLOAT;
-		shadow_depth_map = Texture2D(gfx->Device(), depth_map_desc);
+		shadow_depth_map = Texture2D(device, depth_map_desc);
 
 		texturecube_desc_t depth_cubemap_desc{};
 		depth_cubemap_desc.width = SHADOW_CUBE_SIZE;
 		depth_cubemap_desc.height = SHADOW_CUBE_SIZE;
 		depth_cubemap_desc.bind_flags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-		shadow_depth_cubemap = TextureCube(gfx->Device(), depth_cubemap_desc);
+		shadow_depth_cubemap = TextureCube(device, depth_cubemap_desc);
 
 		texture2darray_desc_t depth_cascade_maps_desc{};
 		depth_cascade_maps_desc.width = SHADOW_CASCADE_SIZE;
 		depth_cascade_maps_desc.height = SHADOW_CASCADE_SIZE;
 		depth_cascade_maps_desc.array_size = CASCADE_COUNT;
 		depth_cascade_maps_desc.bind_flags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-		shadow_cascade_maps = Texture2DArray(gfx->Device(), depth_cascade_maps_desc);
-
+		shadow_cascade_maps = Texture2DArray(device, depth_cascade_maps_desc);
 
 		texture2d_desc_t uav_target_desc{};
 		uav_target_desc.width = width;
 		uav_target_desc.height = height;
 		uav_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		uav_target_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-		uav_target = Texture2D(gfx->Device(), uav_target_desc);
-
+		uav_target = Texture2D(device, uav_target_desc);
 
 		texture2d_desc_t tiled_debug_desc{};
 		tiled_debug_desc.width = width;
 		tiled_debug_desc.height = height;
 		tiled_debug_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		tiled_debug_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+		debug_tiled_texture = Texture2D(device, tiled_debug_desc);
 
-		debug_tiled_texture = Texture2D(gfx->Device(), tiled_debug_desc);
-
+		texture2d_desc_t velocity_buffer_desc{};
+		velocity_buffer_desc.width = width;
+		velocity_buffer_desc.height = height;
+		velocity_buffer_desc.format = DXGI_FORMAT_R16G16_FLOAT;
+		velocity_buffer_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+		velocity_buffer_desc.srv_desc.format = DXGI_FORMAT_R16G16_FLOAT;
+		velocity_buffer = Texture2D(device, velocity_buffer_desc);
 	}
-	void Renderer::CreateGbuffer(u32 width, u32 height)
+	void Renderer::CreateGBuffer(u32 width, u32 height)
 	{
 		gbuffer.clear();
 		
 		texture2d_desc_t render_target_desc{};
 		render_target_desc.width = width;
 		render_target_desc.height = height;
-		render_target_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		render_target_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
-		render_target_desc.srv_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
+		
 		for (u32 i = 0; i < GBUFFER_SIZE; ++i)
 		{
+			render_target_desc.format = GBUFFER_FORMAT[i];
+			render_target_desc.srv_desc.format = GBUFFER_FORMAT[i];
 			gbuffer.emplace_back(gfx->Device(), render_target_desc);
 		}
 	}
@@ -1316,17 +1330,17 @@ namespace adria
 		static constexpr std::array<f32, 4> clear_black = { 0.0f,0.0f,0.0f,0.0f };
 
 		rtv_attachment_desc_t gbuffer_normal_attachment{};
-		gbuffer_normal_attachment.view = gbuffer[0].RTV();
+		gbuffer_normal_attachment.view = gbuffer[GBUFFER_NORMAL_METALLIC].RTV();
 		gbuffer_normal_attachment.clear_color = clear_black;
 		gbuffer_normal_attachment.load_op = LoadOp::eClear;
 
 		rtv_attachment_desc_t gbuffer_albedo_attachment{};
-		gbuffer_albedo_attachment.view = gbuffer[1].RTV();
+		gbuffer_albedo_attachment.view = gbuffer[GBUFFER_DIFFUSE_ROUGHNESS].RTV();
 		gbuffer_albedo_attachment.clear_color = clear_black;
 		gbuffer_albedo_attachment.load_op = LoadOp::eClear;
 
 		rtv_attachment_desc_t gbuffer_emissive_attachment{};
-		gbuffer_emissive_attachment.view = gbuffer[2].RTV();
+		gbuffer_emissive_attachment.view = gbuffer[GBUFFER_EMISSIVE].RTV();
 		gbuffer_emissive_attachment.clear_color = clear_black;
 		gbuffer_emissive_attachment.load_op = LoadOp::eClear;
 
@@ -1335,7 +1349,6 @@ namespace adria
 		depth_clear_attachment.clear_depth = 1.0f;
 		depth_clear_attachment.load_op = LoadOp::eClear;
 
-		
 		rtv_attachment_desc_t hdr_color_clear_attachment{};
 		hdr_color_clear_attachment.view = hdr_render_target.RTV();
 		hdr_color_clear_attachment.clear_color = clear_black;
@@ -1377,6 +1390,11 @@ namespace adria
 		offscreen_clear_attachment.clear_color = clear_black;
 		offscreen_clear_attachment.load_op = LoadOp::eClear;
 
+		rtv_attachment_desc_t velocity_clear_attachment{};
+		velocity_clear_attachment.view = velocity_buffer.RTV();
+		velocity_clear_attachment.clear_color = clear_black;
+		velocity_clear_attachment.load_op = LoadOp::eClear;
+
 		//gbuffer pass
 		{
 			render_pass_desc_t render_pass_desc{};
@@ -1388,7 +1406,6 @@ namespace adria
 			render_pass_desc.dsv_attachment = depth_clear_attachment;
 			gbuffer_pass = RenderPass(render_pass_desc);
 		}
-
 
 		//ambient pass
 		{
@@ -1516,6 +1533,15 @@ namespace adria
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(offscreen_clear_attachment);
 			offscreen_resolve_pass = RenderPass(render_pass_desc);
+		}
+
+		//velocity buffer pass
+		{
+			render_pass_desc_t render_pass_desc{};
+			render_pass_desc.width = width;
+			render_pass_desc.height = height;
+			render_pass_desc.rtv_attachments.push_back(velocity_clear_attachment);
+			velocity_buffer_pass = RenderPass(render_pass_desc);
 		}
 	}
 	void Renderer::CreateComputeTextures(u32 width, u32 height)
@@ -2277,7 +2303,7 @@ namespace adria
 
 		ssao_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* srvs[] = { gbuffer[0].SRV(), depth_target.SRV(), ssao_random_texture.SRV() };
+			ID3D11ShaderResourceView* srvs[] = { gbuffer[GBUFFER_NORMAL_METALLIC].SRV(), depth_target.SRV(), ssao_random_texture.SRV() };
 			context->PSSetShaderResources(1, _countof(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2309,7 +2335,7 @@ namespace adria
 
 		hbao_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* srvs[] = { gbuffer[0].SRV(), depth_target.SRV(), hbao_random_texture.SRV() };
+			ID3D11ShaderResourceView* srvs[] = { gbuffer[GBUFFER_NORMAL_METALLIC].SRV(), depth_target.SRV(), hbao_random_texture.SRV() };
 			context->PSSetShaderResources(1, _countof(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2328,7 +2354,7 @@ namespace adria
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
-		ID3D11ShaderResourceView* srvs[] = { gbuffer[0].SRV(),gbuffer[1].SRV(), depth_target.SRV(), gbuffer[2].SRV() };
+		ID3D11ShaderResourceView* srvs[] = { gbuffer[GBUFFER_NORMAL_METALLIC].SRV(),gbuffer[GBUFFER_DIFFUSE_ROUGHNESS].SRV(), depth_target.SRV(), gbuffer[GBUFFER_EMISSIVE].SRV() };
 		context->PSSetShaderResources(0, _countof(srvs), srvs);
 
 		ambient_pass.Begin(context);
@@ -2422,8 +2448,8 @@ namespace adria
 			lighting_pass.Begin(context);
 			{
 				ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-				shader_views[0] = gbuffer[0].SRV();
-				shader_views[1] = gbuffer[1].SRV();
+				shader_views[0] = gbuffer[GBUFFER_NORMAL_METALLIC].SRV();
+				shader_views[1] = gbuffer[GBUFFER_DIFFUSE_ROUGHNESS].SRV();
 				shader_views[2] = depth_target.SRV();
 
 				context->PSSetShaderResources(0, _countof(shader_views), shader_views);
@@ -2456,8 +2482,8 @@ namespace adria
 		compute_cbuffer->Update(context, compute_cbuf_data);
 
 		ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-		shader_views[0] = gbuffer[0].SRV();
-		shader_views[1] = gbuffer[1].SRV();
+		shader_views[0] = gbuffer[GBUFFER_NORMAL_METALLIC].SRV();
+		shader_views[1] = gbuffer[GBUFFER_DIFFUSE_ROUGHNESS].SRV();
 		shader_views[2] = depth_target.SRV();
 		context->CSSetShaderResources(0, _countof(shader_views), shader_views);
 		ID3D11ShaderResourceView* lights_srv = lights->SRV();
@@ -2580,8 +2606,8 @@ namespace adria
 		lighting_pass.Begin(context);
 		{
 			ID3D11ShaderResourceView* shader_views[6] = { nullptr };
-			shader_views[0] = gbuffer[0].SRV();
-			shader_views[1] = gbuffer[1].SRV();
+			shader_views[0] = gbuffer[GBUFFER_NORMAL_METALLIC].SRV();
+			shader_views[1] = gbuffer[GBUFFER_DIFFUSE_ROUGHNESS].SRV();
 			shader_views[2] = depth_target.SRV();
 			shader_views[3] = lights->SRV();
 			shader_views[4] = light_list->SRV();
@@ -2783,7 +2809,7 @@ namespace adria
 		lighting_pass.Begin(context);
 		{
 			ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-			shader_views[0] = gbuffer[0].SRV();
+			shader_views[0] = gbuffer[GBUFFER_NORMAL_METALLIC].SRV();
 			shader_views[1] = depth_target.SRV();
 			shader_views[2] = settings.voxel_second_bounce ? voxel_texture_second_bounce.SRV() : voxel_texture.SRV();
 
@@ -2862,13 +2888,11 @@ namespace adria
 
 		if (settings.bloom)
 		{
-			//postprocess_passes[postprocess_index].Begin(context);
 			PassBloom();
-			//postprocess_passes[postprocess_index].End(context);
-
 			postprocess_index = !postprocess_index;
-			
 		}
+
+		PassVelocityBuffer();
 
 		if (settings.motion_blur)
 		{
@@ -3394,7 +3418,7 @@ namespace adria
 
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* srv_array[] = { gbuffer[0].SRV(), postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
+		ID3D11ShaderResourceView* srv_array[] = { gbuffer[GBUFFER_NORMAL_METALLIC].SRV(), postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
 
@@ -3611,6 +3635,31 @@ namespace adria
 		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
 
 	}
+	void Renderer::PassVelocityBuffer()
+	{
+		if (!settings.motion_blur && !(settings.anti_aliasing & AntiAliasing_TAA)) return;
+
+		ID3D11DeviceContext* context = gfx->Context();
+
+		velocity_buffer_pass.Begin(context);
+		{
+			ID3D11ShaderResourceView* const srv_array[1] = { depth_target.SRV() };
+			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
+
+			context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+
+			context->IASetInputLayout(nullptr);
+			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+			standard_programs[StandardShader::eVelocityBuffer].Bind(context);
+
+			context->Draw(4, 0);
+
+			context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+		}
+		velocity_buffer_pass.End(context);
+	}
+
 	void Renderer::PassMotionBlur()
 	{
 		ADRIA_ASSERT(settings.motion_blur);
@@ -3620,7 +3669,7 @@ namespace adria
 		postprocess_cbuf_data.motion_blur_intensity = settings.motion_blur_intensity;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* const srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
+		ID3D11ShaderResourceView* const srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), velocity_buffer.SRV() };
 		static ID3D11ShaderResourceView* const srv_null[2] = { nullptr, nullptr };
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
@@ -3697,6 +3746,8 @@ namespace adria
 	}
 	void Renderer::PassFXAA()
 	{
+		ADRIA_ASSERT(settings.anti_aliasing & AntiAliasing_FXAA);
+
 		ID3D11DeviceContext* context = gfx->Context();
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
@@ -3715,10 +3766,12 @@ namespace adria
 	}
 	void Renderer::PassTAA()
 	{
+		ADRIA_ASSERT(settings.anti_aliasing & AntiAliasing_TAA);
+
 		ID3D11DeviceContext* context = gfx->Context();
 		
-		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
-		ID3D11ShaderResourceView* srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), prev_hdr_render_target.SRV() };
+		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };
+		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index].SRV(), prev_hdr_render_target.SRV(), velocity_buffer.SRV() };
 		
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
 		

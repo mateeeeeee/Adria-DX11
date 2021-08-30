@@ -26,9 +26,6 @@ namespace adria
 
 	class Renderer
 	{
-
-		static constexpr u32 GBUFFER_SIZE = 3;
-		static constexpr u32 DEEP_GBUFFER_LAYER_COUNT = 2;
 		static constexpr u32 AO_NOISE_DIM = 8;
 		static constexpr u32 SSAO_KERNEL_SIZE = 16;
 		static constexpr u32 RESOLUTION = 512;
@@ -38,7 +35,8 @@ namespace adria
 		static constexpr u32 CLUSTER_SIZE_Y = 16;
 		static constexpr u32 CLUSTER_SIZE_Z = 16;
 		static constexpr u32 CLUSTER_MAX_LIGHTS = 128;
-		
+		static constexpr DXGI_FORMAT GBUFFER_FORMAT[GBUFFER_SIZE] = { DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
+
 	public:
 
 		Renderer(tecs::registry& reg, GraphicsCoreDX11* gfx, u32 width, u32 height); 
@@ -98,6 +96,7 @@ namespace adria
 		Texture3D voxel_texture;
 		Texture3D voxel_texture_second_bounce;
 		Texture2D sun_target;
+		Texture2D velocity_buffer;
 
 		//shaders
 		std::unordered_map<StandardShader, StandardProgram> standard_programs;
@@ -113,6 +112,7 @@ namespace adria
 		RenderPass lighting_pass;
 		RenderPass forward_pass;
 		RenderPass fxaa_pass;
+		RenderPass velocity_buffer_pass;
 		RenderPass taa_pass;
 		RenderPass shadow_map_pass;
 		RenderPass ssao_pass;
@@ -205,7 +205,7 @@ namespace adria
 		void CreateRenderStates();
 		void CreateBokehViews(u32 width, u32 height);
 		void CreateRenderTargets(u32 width, u32 height);
-		void CreateGbuffer(u32 width, u32 height);
+		void CreateGBuffer(u32 width, u32 height);
 		void CreateSsaoTextures(u32 width, u32 height);
 		void CreateRenderPasses(u32 width, u32 height);
 		void CreateComputeTextures(u32 width, u32 height);
@@ -257,6 +257,7 @@ namespace adria
 		void PassGodRays(Light const& light); 
 		void PassDepthOfField(); 
 		void PassBloom(); 
+		void PassVelocityBuffer();
 		void PassMotionBlur();
 		void PassFog();
 		void PassFXAA();

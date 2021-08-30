@@ -702,5 +702,8 @@
     <FxCompile Include="Resources\Shaders\Postprocess\BloomCombineCS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\VelocityBufferPS.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
