@@ -28,7 +28,7 @@ namespace adria
 		ToneMap tone_map_op = ToneMap::eHable;
 		//motion blur
 		bool motion_blur = false;
-		f32 motion_blur_intensity = 32.0f;
+		f32 velocity_buffer_scale = 64.0f;
 		//ao
 		AmbientOclussion ambient_oclussion = AmbientOclussion::eNone;
 		f32   ssao_power = 4.0f;

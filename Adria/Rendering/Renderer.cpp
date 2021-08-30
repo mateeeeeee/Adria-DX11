@@ -2831,6 +2831,9 @@ namespace adria
 	void Renderer::PassPostprocessing()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
+
+		PassVelocityBuffer();
+
 		auto lights = reg.view<Light>();
 
 		postprocess_passes[postprocess_index].Begin(context); //set ping as rt
@@ -2891,8 +2894,6 @@ namespace adria
 			PassBloom();
 			postprocess_index = !postprocess_index;
 		}
-
-		PassVelocityBuffer();
 
 		if (settings.motion_blur)
 		{
@@ -3641,6 +3642,9 @@ namespace adria
 
 		ID3D11DeviceContext* context = gfx->Context();
 
+		postprocess_cbuf_data.velocity_buffer_scale = settings.velocity_buffer_scale;
+		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
+
 		velocity_buffer_pass.Begin(context);
 		{
 			ID3D11ShaderResourceView* const srv_array[1] = { depth_target.SRV() };
@@ -3665,9 +3669,6 @@ namespace adria
 		ADRIA_ASSERT(settings.motion_blur);
 
 		ID3D11DeviceContext* context = gfx->Context();
-
-		postprocess_cbuf_data.motion_blur_intensity = settings.motion_blur_intensity;
-		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
 		ID3D11ShaderResourceView* const srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), velocity_buffer.SRV() };
 		static ID3D11ShaderResourceView* const srv_null[2] = { nullptr, nullptr };

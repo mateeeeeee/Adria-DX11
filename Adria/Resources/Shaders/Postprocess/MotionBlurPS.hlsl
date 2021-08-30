@@ -17,7 +17,7 @@ static const int SAMPLE_COUNT = 16;
 
 float4 main(VertexOut pin) : SV_TARGET
 {
-    float2 velocity = velocity_buffer.SampleLevel(linear_wrap_sampler, pin.Tex, 0) / motion_blur_intensity;
+    float2 velocity = velocity_buffer.SampleLevel(linear_wrap_sampler, pin.Tex, 0);
     
     float2 tex_coord = pin.Tex;
 

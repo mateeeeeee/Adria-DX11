@@ -83,7 +83,7 @@ cbuffer PostprocessCBuf : register(b5)
     float4  ssao_samples[SSAO_KERNEL_SIZE];
     float   ssr_ray_step;
     float   ssr_ray_hit_threshold;
-    float   motion_blur_intensity;
+    float   velocity_buffer_scale;
     float   tone_map_exposure;
     float4  dof_params;
     float4  fog_color;
