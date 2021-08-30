@@ -1027,9 +1027,9 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-                if ((settings.motion_blur || (settings.anti_aliasing & AntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer Scale", 0))
+                if ((settings.motion_blur || (settings.anti_aliasing & AntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
                 {
-                    ImGui::SliderFloat("Motion Blur Intensity", &settings.velocity_buffer_scale, 32.0f, 128.0f);
+                    ImGui::SliderFloat("Motion Blur Scale", &settings.velocity_buffer_scale, 32.0f, 128.0f);
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
