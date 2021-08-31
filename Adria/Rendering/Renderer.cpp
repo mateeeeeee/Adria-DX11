@@ -518,6 +518,10 @@ namespace adria
 	{
 		return texture_manager;
 	}
+	Profiler& Renderer::GetProfiler()
+	{
+		return profiler;
+	}
 
 	/////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// PRIVATE /////////////////////////////////
@@ -2184,8 +2188,8 @@ namespace adria
 	void Renderer::PassGBuffer()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		ScopedProfileBlock(profiler, context, ProfilerFlag_GBuffer);
-
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, ProfilerFlag_GBuffer, profiler_flags);
+		
 		std::vector<ID3D11ShaderResourceView*> nullSRVs(gbuffer.size() + 1, nullptr);
 		context->PSSetShaderResources(0, static_cast<u32>(nullSRVs.size()), nullSRVs.data());
 		

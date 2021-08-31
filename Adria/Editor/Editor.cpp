@@ -208,7 +208,6 @@ namespace adria
     {
         ImGui::Begin("Ocean");
         {
-            
             //ocean
             {
                 static grid_parameters_t ocean_params{};
@@ -1116,39 +1115,44 @@ namespace adria
             }
         }
         ImGui::End();
-
-        
     }
 
     void Editor::StatsAndProfiling()
     {
-        static std::deque<f32> frame_times{};
+        static Profiler& profiler = engine->renderer->GetProfiler();
 
         if (ImGui::Begin("Stats"))
         {
             ImGuiIO io = ImGui::GetIO();
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 
-            frame_times.push_back(1000.0f / io.Framerate);
+			static bool enable_profiling = false;
+			ImGui::Checkbox("Enable Profiling", &enable_profiling);
+			if (enable_profiling)
+			{
+                static bool profile_gbuffer = false;
+
+				ImGui::Checkbox("Profile GBuffer Pass", &profile_gbuffer);
+				if (profile_gbuffer)
+				{
+					profiler_flags |= ProfilerFlag_GBuffer;
+				}
+				else profiler_flags &= (~ProfilerFlag_GBuffer);
+
+                engine->renderer->SetProfilerSettings(profiler_flags);
+
+				std::vector<std::string> results = profiler.GetProfilingResults(engine->gfx->Context(), false);
+				std::string concatenated_results;
+				for (auto const& result : results) concatenated_results += result;
+				ImGui::Text(concatenated_results.c_str());
+
+			}
+			else
+			{
+                engine->renderer->SetProfilerSettings(ProfilerFlag_None);
+			}
         }
-
-        if (frame_times.size() >= 60)
-        {
-            std::vector<f32> frame_times_vec(frame_times.size());
-
-            std::copy(frame_times.begin(), frame_times.end(), frame_times_vec.begin());
-
-            auto window_size = ImGui::GetWindowSize();
-            
-            ImGui::PlotLines("Milliseconds per Frame", frame_times_vec.data(), (i32)frame_times_vec.size(), 0, "ms/frame", 0, 30, 
-                ImVec2(window_size.x / 1.25f, window_size.y / 1.25f));
-
-            frame_times.pop_front();
-        }
-
-        
         ImGui::End();
-        
     }
 
     void Editor::OpenMaterialFileDialog(Material* material, MaterialTextureType type)

@@ -41,7 +41,7 @@ namespace adria
 
 		Renderer(tecs::registry& reg, GraphicsCoreDX11* gfx, u32 width, u32 height); 
 
-		void NewFrame(Camera const* camera);
+		void NewFrame(Camera const*);
 
 		void Update(f32 dt);
 
@@ -58,6 +58,8 @@ namespace adria
 		Texture2D GetOffscreenTexture() const;
 
 		TextureManager& GetTextureManager();
+
+		Profiler& GetProfiler();
 
 	private:
 		u32 width, height;

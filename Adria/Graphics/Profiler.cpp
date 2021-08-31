@@ -22,17 +22,17 @@ namespace adria
 
 	}
 
-	void Profiler::AddBlockProfiling(ProfilerFlags block)
+	void Profiler::AddBlockProfiling(ProfilerFlags flag)
 	{
 		D3D11_QUERY_DESC query_desc{};
 
 		for (auto& query : queries)
 		{
 			query_desc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
-			device->CreateQuery(&query_desc, query.block_queries[block].disjoint_query.GetAddressOf());
+			device->CreateQuery(&query_desc, query.block_queries[flag].disjoint_query.GetAddressOf());
 			query_desc.Query = D3D11_QUERY_TIMESTAMP;
-			device->CreateQuery(&query_desc, query.block_queries[block].timestamp_query_start.GetAddressOf());
-			device->CreateQuery(&query_desc, query.block_queries[block].timestamp_query_end.GetAddressOf());
+			device->CreateQuery(&query_desc, query.block_queries[flag].timestamp_query_start.GetAddressOf());
+			device->CreateQuery(&query_desc, query.block_queries[flag].timestamp_query_end.GetAddressOf());
 		}
 	}
 

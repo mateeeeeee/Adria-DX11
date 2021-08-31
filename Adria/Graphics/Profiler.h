@@ -33,7 +33,7 @@ namespace adria
 	public:
 		Profiler(ID3D11Device* device);
 
-		void AddBlockProfiling(ProfilerFlags query_name);
+		void AddBlockProfiling(ProfilerFlags flag);
 
 		void BeginFrameProfiling(ID3D11DeviceContext* context);
 
@@ -68,4 +68,8 @@ namespace adria
 		ID3D11DeviceContext* context;
 		ProfilerFlags flag;
 	};
+
+	#define DECLARE_SCOPED_PROFILE_BLOCK(profiler, context, flag) ScopedProfileBlock block(profiler, context, flag)
+	#define DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, flag, flags) std::unique_ptr<ScopedProfileBlock> block = nullptr; \
+																					  if(flags & flag) block = std::make_unique<ScopedProfileBlock>(profiler, context, flag)
 }
