@@ -4,7 +4,6 @@
 namespace adria
 {
 
-
 	struct RendererSettings
 	{
 		f32 ambient_color[3] = { 15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f };
@@ -95,28 +94,4 @@ namespace adria
 		bool ocean_color_changed = false;
 	};
 
-	//TODO: add profiler settings to editor
-	enum ProfilerSettings
-	{
-		Profile_None = 0x00,
-		Profile_Frame = 0x01,
-		Profile_Clouds = 0x02,
-		Profile_GBuffer = 0x04,
-		Profile_Lighting = 0x08,
-		Profile_Ocean = 0x10,
-		Profile_TiledDeferred = 0x20,
-		Profile_VoxelGI = 0x40,
-		Profile_SSAO = 0x80,
-		Profile_Dof = 0x100,
-		Profile_Bloom = 0x200,
-		Profile_SSR = 0x400,
-		Profile_MotionBlur = 0x800,
-		Profile_FXAA = 0x1000,
-		Profile_Tonemap = 0x2000,
-		Profile_LensFlare = 0x4000,
-		Profile_GodRays = 0x8000,
-		Profile_Postprocess = Profile_Clouds | Profile_SSAO | Profile_Dof |
-		Profile_Bloom | Profile_SSR | Profile_MotionBlur | Profile_Tonemap 
-		| Profile_LensFlare | Profile_GodRays
-	};
 }

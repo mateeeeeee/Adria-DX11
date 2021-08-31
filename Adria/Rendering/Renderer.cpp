@@ -376,33 +376,37 @@ namespace adria
 		UpdateWeather(dt);
 		UpdateOcean(dt);
 	}
-	void Renderer::Render(RendererSettings const& _settings) 
+	void Renderer::SetProfilerSettings(ProfilerFlags _profiler_flags)
+	{
+		profiler_flags = _profiler_flags;
+	}
+	void Renderer::Render(RendererSettings const& _settings)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		settings = _settings;
-		if (settings.ibl && !ibl_textures_generated) CreateIBLTextures();
+		renderer_settings = _settings;
+		if (renderer_settings.ibl && !ibl_textures_generated) CreateIBLTextures();
 
 		PassGBuffer();
 		
-		if(!settings.voxel_debug)
+		if(!renderer_settings.voxel_debug)
 		{
-			if (settings.ambient_oclussion == AmbientOclussion::eSSAO) PassSSAO();
-			else if (settings.ambient_oclussion == AmbientOclussion::eHBAO) PassHBAO();
+			if (renderer_settings.ambient_oclussion == AmbientOclussion::eSSAO) PassSSAO();
+			else if (renderer_settings.ambient_oclussion == AmbientOclussion::eHBAO) PassHBAO();
 		
 			PassAmbient();
 		
 			PassDeferredLighting();
 		
-			if (settings.use_tiled_deferred) PassDeferredTiledLighting();
-			else if (settings.use_clustered_deferred) PassDeferredClusteredLighting();
+			if (renderer_settings.use_tiled_deferred) PassDeferredTiledLighting();
+			else if (renderer_settings.use_clustered_deferred) PassDeferredClusteredLighting();
 		
 			PassForward();
 		}
 
-		if (settings.voxel_gi)
+		if (renderer_settings.voxel_gi)
 		{
 			PassVoxelize();
-			if (settings.voxel_debug) PassVoxelizeDebug();
+			if (renderer_settings.voxel_debug) PassVoxelizeDebug();
 			else PassVoxelGI();
 		}
 
@@ -413,7 +417,7 @@ namespace adria
 	{
 		
 		ID3D11DeviceContext* context = gfx->Context();
-		if (settings.anti_aliasing & AntiAliasing_FXAA)
+		if (renderer_settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			fxaa_pass.Begin(context);
 			PassToneMap();
@@ -432,7 +436,7 @@ namespace adria
 	void Renderer::ResolveToOffscreenFramebuffer()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		if (settings.anti_aliasing & AntiAliasing_FXAA)
+		if (renderer_settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			fxaa_pass.Begin(context);
 			PassToneMap();
@@ -475,7 +479,7 @@ namespace adria
 
 		camera = _camera;
 
-		frame_cbuf_data.global_ambient = XMVECTOR{ settings.ambient_color[0], settings.ambient_color[1], settings.ambient_color[2], 1.0f };
+		frame_cbuf_data.global_ambient = XMVECTOR{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1.0f };
 
 		frame_cbuf_data.camera_near = camera->Near();
 		frame_cbuf_data.camera_far = camera->Far();
@@ -522,8 +526,6 @@ namespace adria
 	void Renderer::LoadShaders()
 	{
 		auto device = gfx->Device();
-
-		
 		//misc (all compiled)
 		{
 			ShaderBlob vs_blob, ps_blob;
@@ -939,15 +941,8 @@ namespace adria
 	}
 	void Renderer::AddProfilerBlocks()
 	{
-		//profiler.AddBlockProfiling("GBuffer Pass");
-		//profiler.AddBlockProfiling("Ambient Pass");
-		//profiler.AddBlockProfiling("Skybox Pass");
-		//profiler.AddBlockProfiling("Resolve Pass");
-		//profiler.AddBlockProfiling("Volumetric Clouds");
-		//profiler.BeginBlockProfiling(context, "GBuffer Pass");
-		//profiler.EndBlockProfiling(context, "GBuffer Pass");
-		//profiler.BeginBlockProfiling(context, "Resolve Pass");
-		//profiler.EndBlockProfiling(context, "Resolve Pass");
+		profiler.AddBlockProfiling(ProfilerFlag_Frame);
+		profiler.AddBlockProfiling(ProfilerFlag_GBuffer);
 	}
 	void Renderer::CreateBuffers()
 	{
@@ -1879,29 +1874,29 @@ namespace adria
 
 		if (reg.size<Ocean>() == 0) return;
 
-		if (settings.ocean_color_changed)
+		if (renderer_settings.ocean_color_changed)
 		{
 			auto ocean_view = reg.view<Ocean, Material>();
 			for (auto e : ocean_view)
 			{
 				auto& material = ocean_view.get<Material>(e);
-				material.diffuse = XMFLOAT3(settings.ocean_color);
+				material.diffuse = XMFLOAT3(renderer_settings.ocean_color);
 			}
 		}
 
 		
 
-		compute_cbuf_data.ocean_choppiness = settings.ocean_choppiness;
+		compute_cbuf_data.ocean_choppiness = renderer_settings.ocean_choppiness;
 		compute_cbuf_data.ocean_size = 512;
 		compute_cbuf_data.resolution = RESOLUTION;
-		compute_cbuf_data.wind_direction_x = settings.wind_direction[0];
-		compute_cbuf_data.wind_direction_y = settings.wind_direction[1];
+		compute_cbuf_data.wind_direction_x = renderer_settings.wind_direction[0];
+		compute_cbuf_data.wind_direction_y = renderer_settings.wind_direction[1];
 		compute_cbuf_data.delta_time = dt;
 
 		ID3D11DeviceContext* context = gfx->Context();
 		compute_cbuffer->Update(context, compute_cbuf_data);
 
-		if (settings.recreate_initial_spectrum)
+		if (renderer_settings.recreate_initial_spectrum)
 		{
 			compute_programs[ComputeShader::eOceanInitialSpectrum].Bind(context);
 
@@ -1915,7 +1910,7 @@ namespace adria
 
 			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 
-			settings.recreate_initial_spectrum = false;
+			renderer_settings.recreate_initial_spectrum = false;
 		}
 
 		//phase
@@ -2061,18 +2056,18 @@ namespace adria
 			}
 		}
 
-		weather_cbuf_data.ambient_color = XMVECTOR{ settings.ambient_color[0], settings.ambient_color[1],settings.ambient_color[2], 1.0f };
-		weather_cbuf_data.wind_dir = XMVECTOR{ settings.wind_direction[0], 0.0f, settings.wind_direction[1], 0.0f };
-		weather_cbuf_data.wind_speed = settings.wind_speed;
+		weather_cbuf_data.ambient_color = XMVECTOR{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1],renderer_settings.ambient_color[2], 1.0f };
+		weather_cbuf_data.wind_dir = XMVECTOR{ renderer_settings.wind_direction[0], 0.0f, renderer_settings.wind_direction[1], 0.0f };
+		weather_cbuf_data.wind_speed = renderer_settings.wind_speed;
 		weather_cbuf_data.time = total_time;
-		weather_cbuf_data.crispiness	= settings.crispiness;
-		weather_cbuf_data.curliness		= settings.curliness;
-		weather_cbuf_data.coverage		= settings.coverage;
-		weather_cbuf_data.absorption	= settings.light_absorption;
-		weather_cbuf_data.clouds_bottom_height = settings.clouds_bottom_height;
-		weather_cbuf_data.clouds_top_height = settings.clouds_top_height;
-		weather_cbuf_data.density_factor = settings.density_factor;
-		weather_cbuf_data.cloud_type = settings.cloud_type;
+		weather_cbuf_data.crispiness	= renderer_settings.crispiness;
+		weather_cbuf_data.curliness		= renderer_settings.curliness;
+		weather_cbuf_data.coverage		= renderer_settings.coverage;
+		weather_cbuf_data.absorption	= renderer_settings.light_absorption;
+		weather_cbuf_data.clouds_bottom_height = renderer_settings.clouds_bottom_height;
+		weather_cbuf_data.clouds_top_height = renderer_settings.clouds_top_height;
+		weather_cbuf_data.density_factor = renderer_settings.density_factor;
+		weather_cbuf_data.cloud_type = renderer_settings.cloud_type;
 
 		ID3D11DeviceContext* context = gfx->Context();
 		weather_cbuffer->Update(context, weather_cbuf_data);
@@ -2117,28 +2112,28 @@ namespace adria
 	void Renderer::UpdateVoxelData()
 	{
 		
-		f32 const f = 0.05f / settings.voxel_size;
+		f32 const f = 0.05f / renderer_settings.voxel_size;
 
 		XMFLOAT3 cam_pos;
 		XMStoreFloat3(&cam_pos, camera->Position());
 		XMFLOAT3 center = XMFLOAT3(floorf(cam_pos.x * f) / f, floorf(cam_pos.y * f) / f, floorf(cam_pos.z * f) / f);
 
-		if (XMVectorGetX(XMVector3LengthSq(XMVectorSet(settings.voxel_center_x, settings.voxel_center_y, settings.voxel_center_z, 1.0) - XMLoadFloat3(&center))) > 0.0001f)
+		if (XMVectorGetX(XMVector3LengthSq(XMVectorSet(renderer_settings.voxel_center_x, renderer_settings.voxel_center_y, renderer_settings.voxel_center_z, 1.0) - XMLoadFloat3(&center))) > 0.0001f)
 		{
-			settings.voxel_center_x = center.x;
-			settings.voxel_center_y = center.y;
-			settings.voxel_center_z = center.z;
+			renderer_settings.voxel_center_x = center.x;
+			renderer_settings.voxel_center_y = center.y;
+			renderer_settings.voxel_center_z = center.z;
 		}
 
 		voxel_cbuf_data.data_res = VOXEL_RESOLUTION;
 		voxel_cbuf_data.data_res_rcp = 1.0f / VOXEL_RESOLUTION;
-		voxel_cbuf_data.data_size = settings.voxel_size;
-		voxel_cbuf_data.data_size_rcp = 1.0f / settings.voxel_size;
+		voxel_cbuf_data.data_size = renderer_settings.voxel_size;
+		voxel_cbuf_data.data_size_rcp = 1.0f / renderer_settings.voxel_size;
 		voxel_cbuf_data.mips = 7;
-		voxel_cbuf_data.num_cones = settings.voxel_num_cones;
-		voxel_cbuf_data.num_cones_rcp = 1.0f / settings.voxel_num_cones;
-		voxel_cbuf_data.ray_step_size = settings.voxel_ray_step_distance;
-		voxel_cbuf_data.max_distance = settings.voxel_max_distance;
+		voxel_cbuf_data.num_cones = renderer_settings.voxel_num_cones;
+		voxel_cbuf_data.num_cones_rcp = 1.0f / renderer_settings.voxel_num_cones;
+		voxel_cbuf_data.ray_step_size = renderer_settings.voxel_ray_step_distance;
+		voxel_cbuf_data.max_distance = renderer_settings.voxel_max_distance;
 		voxel_cbuf_data.grid_center = center;
 
 		voxel_cbuffer->Update(gfx->Context(), voxel_cbuf_data);
@@ -2189,6 +2184,7 @@ namespace adria
 	void Renderer::PassGBuffer()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
+		ScopedProfileBlock(profiler, context, ProfilerFlag_GBuffer);
 
 		std::vector<ID3D11ShaderResourceView*> nullSRVs(gbuffer.size() + 1, nullptr);
 		context->PSSetShaderResources(0, static_cast<u32>(nullSRVs.size()), nullSRVs.data());
@@ -2282,7 +2278,6 @@ namespace adria
 			}
 		}
 		gbuffer_pass.End(context);
-
 	}
 	void Renderer::PassSSAO()
 	{
@@ -2296,8 +2291,8 @@ namespace adria
 				postprocess_cbuf_data.samples[i] = ssao_kernel[i];
 
 			postprocess_cbuf_data.noise_scale = XMFLOAT2((f32)width / 8, (f32)height / 8);
-			postprocess_cbuf_data.ssao_power = settings.ssao_power;
-			postprocess_cbuf_data.ssao_radius = settings.ssao_radius;
+			postprocess_cbuf_data.ssao_power = renderer_settings.ssao_power;
+			postprocess_cbuf_data.ssao_radius = renderer_settings.ssao_radius;
 			postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 		}
 
@@ -2327,9 +2322,9 @@ namespace adria
 		//Update
 		{
 			postprocess_cbuf_data.noise_scale = XMFLOAT2((f32)width / 8, (f32)height / 8);
-			postprocess_cbuf_data.hbao_r2 = settings.hbao_radius * settings.hbao_radius;
-			postprocess_cbuf_data.hbao_radius_to_screen = settings.hbao_radius * 0.5f * f32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
-			postprocess_cbuf_data.hbao_power = settings.hbao_power;
+			postprocess_cbuf_data.hbao_r2 = renderer_settings.hbao_radius * renderer_settings.hbao_radius;
+			postprocess_cbuf_data.hbao_radius_to_screen = renderer_settings.hbao_radius * 0.5f * f32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
+			postprocess_cbuf_data.hbao_power = renderer_settings.hbao_power;
 			postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 		}
 
@@ -2360,7 +2355,7 @@ namespace adria
 		ambient_pass.Begin(context);
 
 
-		if (settings.ibl)
+		if (renderer_settings.ibl)
 		{
 			std::vector<ID3D11ShaderResourceView*> ibl_views{ env_srv.Get(),irmap_srv.Get(), brdf_srv.Get() };
 			context->PSSetShaderResources(8, static_cast<u32>(ibl_views.size()), ibl_views.data());
@@ -2369,13 +2364,13 @@ namespace adria
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-		if (!ibl_textures_generated) settings.ibl = false;
+		if (!ibl_textures_generated) renderer_settings.ibl = false;
 
-		bool has_ao = settings.ambient_oclussion != AmbientOclussion::eNone;
+		bool has_ao = renderer_settings.ambient_oclussion != AmbientOclussion::eNone;
 
-		if (has_ao && settings.ibl) standard_programs[StandardShader::eAmbientPBR_AO_IBL].Bind(context);
-		else if (has_ao && !settings.ibl) standard_programs[StandardShader::eAmbientPBR_AO].Bind(context);
-		else if (!has_ao && settings.ibl) standard_programs[StandardShader::eAmbientPBR_IBL].Bind(context);
+		if (has_ao && renderer_settings.ibl) standard_programs[StandardShader::eAmbientPBR_AO_IBL].Bind(context);
+		else if (has_ao && !renderer_settings.ibl) standard_programs[StandardShader::eAmbientPBR_AO].Bind(context);
+		else if (!has_ao && renderer_settings.ibl) standard_programs[StandardShader::eAmbientPBR_IBL].Bind(context);
 		else standard_programs[StandardShader::eAmbientPBR].Bind(context);
 
 		context->Draw(4, 0);
@@ -2398,7 +2393,7 @@ namespace adria
 			auto const& light_data = lights.get(light);
 
 			if (!light_data.active) continue;
-			if ((settings.use_tiled_deferred || settings.use_clustered_deferred) //tiled/clustered deferred takes care of noncasting lights
+			if ((renderer_settings.use_tiled_deferred || renderer_settings.use_clustered_deferred) //tiled/clustered deferred takes care of noncasting lights
 				&& !light_data.casts_shadows) continue; 
 
 			//update cbuffer
@@ -2473,12 +2468,12 @@ namespace adria
 	}
 	void Renderer::PassDeferredTiledLighting()
 	{
-		ADRIA_ASSERT(settings.use_tiled_deferred);
+		ADRIA_ASSERT(renderer_settings.use_tiled_deferred);
 
 		auto context = gfx->Context();
 
-		compute_cbuf_data.visualize_tiled = static_cast<i32>(settings.visualize_tiled);
-		compute_cbuf_data.visualize_max_lights = settings.visualize_max_lights;
+		compute_cbuf_data.visualize_tiled = static_cast<i32>(renderer_settings.visualize_tiled);
+		compute_cbuf_data.visualize_max_lights = renderer_settings.visualize_max_lights;
 		compute_cbuffer->Update(context, compute_cbuf_data);
 
 		ID3D11ShaderResourceView* shader_views[3] = { nullptr };
@@ -2492,7 +2487,7 @@ namespace adria
 		context->CSSetUnorderedAccessViews(0, 1, &texture_uav, nullptr);
 
 		ID3D11UnorderedAccessView* debug_uav = debug_tiled_texture.UAV();
-		if (settings.visualize_tiled)
+		if (renderer_settings.visualize_tiled)
 		{
 			context->CSSetUnorderedAccessViews(1, 1, &debug_uav, nullptr);
 		}
@@ -2508,7 +2503,7 @@ namespace adria
 		auto rtv = hdr_render_target.RTV();
 		context->OMSetRenderTargets(1, &rtv, nullptr);
 
-		if (settings.visualize_tiled)
+		if (renderer_settings.visualize_tiled)
 		{
 			context->CSSetUnorderedAccessViews(1, 1, &null_uav, nullptr);
 
@@ -2539,7 +2534,7 @@ namespace adria
 		}
 
 		//Volumetric lighting
-		if (settings.visualize_tiled || volumetric_lights.empty()) return;
+		if (renderer_settings.visualize_tiled || volumetric_lights.empty()) return;
 		lighting_pass.Begin(context);
 		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
 		for (auto const& light : volumetric_lights)
@@ -2568,7 +2563,7 @@ namespace adria
 	}
 	void Renderer::PassDeferredClusteredLighting()
 	{
-		ADRIA_ASSERT(settings.use_clustered_deferred);
+		ADRIA_ASSERT(renderer_settings.use_clustered_deferred);
 
 		auto context = gfx->Context();
 
@@ -2691,7 +2686,7 @@ namespace adria
 			light_data.casts_shadows = light.casts_shadows;
 			_lights.push_back(light_data);
 
-			if (light.type == LightType::eDirectional && light.casts_shadows && settings.voxel_debug)
+			if (light.type == LightType::eDirectional && light.casts_shadows && renderer_settings.voxel_debug)
 				PassShadowMapDirectional(light);
 		}
 		lights->Update(gfx->Context(), _lights.data(), (std::min<u64>)(_lights.size(), VOXELIZE_MAX_LIGHTS) * sizeof(LightSBuffer));
@@ -2756,7 +2751,7 @@ namespace adria
 
 		context->GenerateMips(voxel_texture.SRV());
 
-		if (settings.voxel_second_bounce)
+		if (renderer_settings.voxel_second_bounce)
 		{
 			ID3D11UnorderedAccessView* uavs[] = { voxel_texture_second_bounce.UAV() };
 			context->CSSetUnorderedAccessViews(0, 1, uavs, nullptr);
@@ -2811,7 +2806,7 @@ namespace adria
 			ID3D11ShaderResourceView* shader_views[3] = { nullptr };
 			shader_views[0] = gbuffer[GBUFFER_NORMAL_METALLIC].SRV();
 			shader_views[1] = depth_target.SRV();
-			shader_views[2] = settings.voxel_second_bounce ? voxel_texture_second_bounce.SRV() : voxel_texture.SRV();
+			shader_views[2] = renderer_settings.voxel_second_bounce ? voxel_texture_second_bounce.SRV() : voxel_texture.SRV();
 
 			context->PSSetShaderResources(0, _countof(shader_views), shader_views);
 
@@ -2852,7 +2847,7 @@ namespace adria
 		postprocess_passes[postprocess_index].End(context); 
 		postprocess_index = !postprocess_index;
 
-		if (settings.clouds)
+		if (renderer_settings.clouds)
 		{
 			postprocess_passes[postprocess_index].Begin(context);
 			PassVolumetricClouds();
@@ -2861,7 +2856,7 @@ namespace adria
 			postprocess_index = !postprocess_index;
 		}
 
-		if (settings.fog)
+		if (renderer_settings.fog)
 		{
 			postprocess_passes[postprocess_index].Begin(context);
 			PassFog();
@@ -2870,7 +2865,7 @@ namespace adria
 			postprocess_index = !postprocess_index;
 		}
 
-		if (settings.ssr)
+		if (renderer_settings.ssr)
 		{
 			postprocess_passes[postprocess_index].Begin(context);
 			PassSSR();
@@ -2879,7 +2874,7 @@ namespace adria
 			postprocess_index = !postprocess_index;
 		}
 		
-		if (settings.dof)
+		if (renderer_settings.dof)
 		{
 			postprocess_passes[postprocess_index].Begin(context);
 			PassDepthOfField();
@@ -2889,13 +2884,13 @@ namespace adria
 
 			}
 
-		if (settings.bloom)
+		if (renderer_settings.bloom)
 		{
 			PassBloom();
 			postprocess_index = !postprocess_index;
 		}
 
-		if (settings.motion_blur)
+		if (renderer_settings.motion_blur)
 		{
 			postprocess_passes[postprocess_index].Begin(context);
 			PassMotionBlur();
@@ -2932,7 +2927,7 @@ namespace adria
 
 		}
 
-		if (settings.anti_aliasing & AntiAliasing_TAA)
+		if (renderer_settings.anti_aliasing & AntiAliasing_TAA)
 		{
 			postprocess_passes[postprocess_index].Begin(context);
 			PassTAA();
@@ -2959,7 +2954,7 @@ namespace adria
 			shadow_cbuf_data.lightview = V;
 			shadow_cbuf_data.lightviewprojection = V * P;
 			shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
-			shadow_cbuf_data.softness = settings.shadow_softness;
+			shadow_cbuf_data.softness = renderer_settings.shadow_softness;
 			shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
 			shadow_cbuffer->Update(context, shadow_cbuf_data);
 		}
@@ -3011,7 +3006,7 @@ namespace adria
 			shadow_cbuf_data.lightview = V;
 			shadow_cbuf_data.lightviewprojection = V * P;
 			shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
-			shadow_cbuf_data.softness = settings.shadow_softness;
+			shadow_cbuf_data.softness = renderer_settings.shadow_softness;
 			shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
 			shadow_cbuffer->Update(context, shadow_cbuf_data);
 		}
@@ -3108,7 +3103,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 
 		std::array<f32, CASCADE_COUNT> split_distances;
-		std::array<XMMATRIX, CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, settings.split_lambda, split_distances);
+		std::array<XMMATRIX, CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, renderer_settings.split_lambda, split_distances);
 		std::array<XMMATRIX, CASCADE_COUNT> light_view_projections{};
 
 		ID3D11ShaderResourceView* null_srv[] = { nullptr };
@@ -3160,7 +3155,7 @@ namespace adria
 		shadow_cbuf_data.split0 = split_distances[0];
 		shadow_cbuf_data.split1 = split_distances[1];
 		shadow_cbuf_data.split2 = split_distances[2];
-		shadow_cbuf_data.softness = settings.shadow_softness;
+		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
 		shadow_cbuf_data.visualize = static_cast<int>(false);
 		shadow_cbuffer->Update(context, shadow_cbuf_data);
 
@@ -3174,7 +3169,7 @@ namespace adria
 				that does not cast shadows does not make sense!\n");
 			return;
 		}
-		if (!settings.fog)
+		if (!renderer_settings.fog)
 		{
 			Log::Warning("Volumetric Lighting requires Fog to be enabled!\n");
 			return;
@@ -3246,7 +3241,7 @@ namespace adria
 
 		ID3D11DeviceContext* context = gfx->Context();
 
-		if (settings.ocean_wireframe) context->RSSetState(wireframe.Get());
+		if (renderer_settings.ocean_wireframe) context->RSSetState(wireframe.Get());
 		
 		auto skyboxes = reg.view<Skybox>();
 		ID3D11ShaderResourceView* skybox_srv = nullptr;
@@ -3258,14 +3253,14 @@ namespace adria
 		}
 
 		ID3D11ShaderResourceView* displacement_map_srv = ping_pong_spectrum_textures[!pong_spectrum].SRV();
-		settings.ocean_tesselation ? context->DSSetShaderResources(0, 1, &displacement_map_srv) :
+		renderer_settings.ocean_tesselation ? context->DSSetShaderResources(0, 1, &displacement_map_srv) :
 							context->VSSetShaderResources(0, 1, &displacement_map_srv);
 
 		ID3D11ShaderResourceView* srvs[] = { ocean_normal_map.SRV(), skybox_srv ,
 		 texture_manager.GetTextureView(foam_handle) };
 		context->PSSetShaderResources(0, _countof(srvs), srvs);
 
-		settings.ocean_tesselation ? tesselation_programs[TesselationShader::eOcean].Bind(context)
+		renderer_settings.ocean_tesselation ? tesselation_programs[TesselationShader::eOcean].Bind(context)
 						  : standard_programs[StandardShader::eOcean].Bind(context);
 
 		auto ocean_chunk_view = reg.view<Mesh, Material, Transform, Visibility, Ocean>();
@@ -3282,20 +3277,20 @@ namespace adria
 				material_cbuf_data.diffuse = material.diffuse;
 				material_cbuffer->Update(context, material_cbuf_data);
 
-				settings.ocean_tesselation ? mesh.Draw(context, D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST) : mesh.Draw(context);
+				renderer_settings.ocean_tesselation ? mesh.Draw(context, D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST) : mesh.Draw(context);
 			}
 		}
 
-		settings.ocean_tesselation ? tesselation_programs[TesselationShader::eOcean].Unbind(context) : standard_programs[StandardShader::eOcean].Unbind(context);
+		renderer_settings.ocean_tesselation ? tesselation_programs[TesselationShader::eOcean].Unbind(context) : standard_programs[StandardShader::eOcean].Unbind(context);
 
 		static ID3D11ShaderResourceView* null_srv = nullptr;
-		settings.ocean_tesselation ? context->DSSetShaderResources(0, 1, &null_srv) :
+		renderer_settings.ocean_tesselation ? context->DSSetShaderResources(0, 1, &null_srv) :
 							context->VSSetShaderResources(0, 1, &null_srv);
 		context->PSSetShaderResources(0, 1, &null_srv);
 		context->PSSetShaderResources(1, 1, &null_srv);
 		context->PSSetShaderResources(2, 1, &null_srv);
 
-		if (settings.ocean_wireframe) context->RSSetState(nullptr);
+		if (renderer_settings.ocean_wireframe) context->RSSetState(nullptr);
 	}
 	void Renderer::PassForwardCommon(bool transparent)
 	{
@@ -3383,7 +3378,7 @@ namespace adria
 	}
 	void Renderer::PassVolumetricClouds()
 	{
-		ADRIA_ASSERT(settings.clouds);
+		ADRIA_ASSERT(renderer_settings.clouds);
 
 		ID3D11DeviceContext* context = gfx->Context();
 		ID3D11ShaderResourceView* const srv_array[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target.SRV()};
@@ -3411,11 +3406,11 @@ namespace adria
 	}
 	void Renderer::PassSSR()
 	{
-		ADRIA_ASSERT(settings.ssr);
+		ADRIA_ASSERT(renderer_settings.ssr);
 
 		ID3D11DeviceContext* context = gfx->Context();
-		postprocess_cbuf_data.ssr_ray_hit_threshold = settings.ssr_ray_hit_threshold;
-		postprocess_cbuf_data.ssr_ray_step = settings.ssr_ray_step;
+		postprocess_cbuf_data.ssr_ray_hit_threshold = renderer_settings.ssr_ray_hit_threshold;
+		postprocess_cbuf_data.ssr_ray_step = renderer_settings.ssr_ray_step;
 
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
@@ -3496,19 +3491,19 @@ namespace adria
 	}
 	void Renderer::PassDepthOfField()
 	{
-		ADRIA_ASSERT(settings.dof);
+		ADRIA_ASSERT(renderer_settings.dof);
 
 		ID3D11DeviceContext* context = gfx->Context();
 		//GENERATE BOKEH
-		if (settings.bokeh)
+		if (renderer_settings.bokeh)
 		{
 			
-			compute_cbuf_data.bokeh_blur_threshold = settings.bokeh_blur_threshold;
-			compute_cbuf_data.bokeh_lum_threshold = settings.bokeh_lum_threshold;
-			compute_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
-			compute_cbuf_data.bokeh_radius_scale = settings.bokeh_radius_scale;
-			compute_cbuf_data.bokeh_color_scale = settings.bokeh_color_scale;
-			compute_cbuf_data.bokeh_fallout = settings.bokeh_fallout;
+			compute_cbuf_data.bokeh_blur_threshold = renderer_settings.bokeh_blur_threshold;
+			compute_cbuf_data.bokeh_lum_threshold = renderer_settings.bokeh_lum_threshold;
+			compute_cbuf_data.dof_params = XMVectorSet(renderer_settings.dof_near_blur, renderer_settings.dof_near, renderer_settings.dof_far, renderer_settings.dof_far_blur);
+			compute_cbuf_data.bokeh_radius_scale = renderer_settings.bokeh_radius_scale;
+			compute_cbuf_data.bokeh_color_scale = renderer_settings.bokeh_color_scale;
+			compute_cbuf_data.bokeh_fallout = renderer_settings.bokeh_fallout;
 
 			compute_cbuffer->Update(context, compute_cbuf_data);
 
@@ -3534,7 +3529,7 @@ namespace adria
 		ID3D11ShaderResourceView* srv_array[3] = { postprocess_textures[!postprocess_index].SRV(), blur_texture_final.SRV(), depth_target.SRV()};
 		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
 
-		postprocess_cbuf_data.dof_params = XMVectorSet(settings.dof_near_blur, settings.dof_near, settings.dof_far, settings.dof_far_blur);
+		postprocess_cbuf_data.dof_params = XMVectorSet(renderer_settings.dof_near_blur, renderer_settings.dof_near, renderer_settings.dof_far, renderer_settings.dof_far_blur);
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
@@ -3545,13 +3540,13 @@ namespace adria
 		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 
 		//DRAW BOKEH
-		if (settings.bokeh)
+		if (renderer_settings.bokeh)
 		{
 			context->CopyStructureCount(bokeh_indirect_draw_buffer.Get(), 0, bokeh_uav.Get());
 
 			ID3D11ShaderResourceView* bokeh = nullptr;
 
-			switch (settings.bokeh_type)
+			switch (renderer_settings.bokeh_type)
 			{
 			case BokehType::eHex:
 				bokeh = texture_manager.GetTextureView(hex_bokeh_handle);
@@ -3594,13 +3589,13 @@ namespace adria
 	}
 	void Renderer::PassBloom()
 	{
-		ADRIA_ASSERT(settings.bloom);
+		ADRIA_ASSERT(renderer_settings.bloom);
 
 
 		ID3D11DeviceContext* context = gfx->Context();
 
-		compute_cbuf_data.threshold = settings.bloom_threshold;
-		compute_cbuf_data.bloom_scale = settings.bloom_scale;
+		compute_cbuf_data.threshold = renderer_settings.bloom_threshold;
+		compute_cbuf_data.bloom_scale = renderer_settings.bloom_scale;
 		compute_cbuffer->Update(context, compute_cbuf_data);
 
 		static ID3D11UnorderedAccessView* const null_uav[1] = { nullptr };
@@ -3638,11 +3633,11 @@ namespace adria
 	}
 	void Renderer::PassVelocityBuffer()
 	{
-		if (!settings.motion_blur && !(settings.anti_aliasing & AntiAliasing_TAA)) return;
+		if (!renderer_settings.motion_blur && !(renderer_settings.anti_aliasing & AntiAliasing_TAA)) return;
 
 		ID3D11DeviceContext* context = gfx->Context();
 
-		postprocess_cbuf_data.velocity_buffer_scale = settings.velocity_buffer_scale;
+		postprocess_cbuf_data.velocity_buffer_scale = renderer_settings.velocity_buffer_scale;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
 		velocity_buffer_pass.Begin(context);
@@ -3666,7 +3661,7 @@ namespace adria
 
 	void Renderer::PassMotionBlur()
 	{
-		ADRIA_ASSERT(settings.motion_blur);
+		ADRIA_ASSERT(renderer_settings.motion_blur);
 
 		ID3D11DeviceContext* context = gfx->Context();
 
@@ -3686,14 +3681,14 @@ namespace adria
 	}
 	void Renderer::PassFog()
 	{
-		ADRIA_ASSERT(settings.fog);
+		ADRIA_ASSERT(renderer_settings.fog);
 
 		ID3D11DeviceContext* context = gfx->Context();
-		postprocess_cbuf_data.fog_falloff = settings.fog_falloff;
-		postprocess_cbuf_data.fog_density = settings.fog_density;
-		postprocess_cbuf_data.fog_type = static_cast<i32>(settings.fog_type);
-		postprocess_cbuf_data.fog_start = settings.fog_start;
-		postprocess_cbuf_data.fog_color = XMVectorSet(settings.fog_color[0], settings.fog_color[1], settings.fog_color[2], 1);
+		postprocess_cbuf_data.fog_falloff = renderer_settings.fog_falloff;
+		postprocess_cbuf_data.fog_density = renderer_settings.fog_density;
+		postprocess_cbuf_data.fog_type = static_cast<i32>(renderer_settings.fog_type);
+		postprocess_cbuf_data.fog_start = renderer_settings.fog_start;
+		postprocess_cbuf_data.fog_color = XMVectorSet(renderer_settings.fog_color[0], renderer_settings.fog_color[1], renderer_settings.fog_color[2], 1);
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
 		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
@@ -3715,7 +3710,7 @@ namespace adria
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
-		postprocess_cbuf_data.tone_map_exposure = settings.tone_map_exposure;
+		postprocess_cbuf_data.tone_map_exposure = renderer_settings.tone_map_exposure;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
 		ID3D11ShaderResourceView* const srv_array[1] = { postprocess_textures[!postprocess_index].SRV() };
@@ -3726,7 +3721,7 @@ namespace adria
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-		switch (settings.tone_map_op)
+		switch (renderer_settings.tone_map_op)
 		{
 		case ToneMap::eReinhard:
 			standard_programs[StandardShader::eToneMap_Reinhard].Bind(context);
@@ -3747,7 +3742,7 @@ namespace adria
 	}
 	void Renderer::PassFXAA()
 	{
-		ADRIA_ASSERT(settings.anti_aliasing & AntiAliasing_FXAA);
+		ADRIA_ASSERT(renderer_settings.anti_aliasing & AntiAliasing_FXAA);
 
 		ID3D11DeviceContext* context = gfx->Context();
 
@@ -3767,7 +3762,7 @@ namespace adria
 	}
 	void Renderer::PassTAA()
 	{
-		ADRIA_ASSERT(settings.anti_aliasing & AntiAliasing_TAA);
+		ADRIA_ASSERT(renderer_settings.anti_aliasing & AntiAliasing_TAA);
 
 		ID3D11DeviceContext* context = gfx->Context();
 		

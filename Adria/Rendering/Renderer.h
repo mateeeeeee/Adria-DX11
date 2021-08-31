@@ -45,6 +45,8 @@ namespace adria
 
 		void Update(f32 dt);
 
+		void SetProfilerSettings(ProfilerFlags);
+
 		void Render(RendererSettings const&);
 
 		void ResolveToOffscreenFramebuffer();
@@ -62,9 +64,10 @@ namespace adria
 		tecs::registry& reg;
 		GraphicsCoreDX11* gfx;
 		TextureManager texture_manager;
-		Profiler profiler;
 		Camera const* camera;
-		RendererSettings settings;
+		RendererSettings renderer_settings;
+		Profiler profiler;
+		ProfilerFlags profiler_flags;
 
 		//textures
 		std::vector<Texture2D> gbuffer; 

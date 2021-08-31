@@ -4,6 +4,7 @@
 #include "GUI.h"
 #include "../tecs/registry.h"
 #include "../Rendering/RendererSettings.h"
+#include "../Graphics/ProfilerFlags.h"
 #include "../ImGui/imgui_internal.h"
 #include "../ImGui/ImGuizmo.h"
 
@@ -151,7 +152,9 @@ namespace adria
         bool gizmo_enabled = true;
         bool mouse_in_scene = false;
         ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
-        RendererSettings settings{};
+        RendererSettings renderer_settings{};
+        ProfilerFlags profiler_flags{};
+
 	private:
         void SetStyle();
 

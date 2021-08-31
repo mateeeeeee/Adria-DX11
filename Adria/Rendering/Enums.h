@@ -162,5 +162,4 @@ namespace adria
 		GBUFFER_SIZE
 	};
 
-	
 }
