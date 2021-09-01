@@ -1230,8 +1230,6 @@ namespace adria
 
     void Editor::StatsAndProfiling()
     {
-        static Profiler& profiler = engine->renderer->GetProfiler();
-
         if (ImGui::Begin("Profiling"))
         {
             ImGuiIO io = ImGui::GetIO();
@@ -1254,7 +1252,7 @@ namespace adria
 
                 if (ImGui::Begin("Profiler Results"))
                 {
-					std::vector<std::string> results = profiler.GetProfilingResults(engine->gfx->Context(), false);
+					std::vector<std::string> results = engine->renderer->GetProfilerResults();
 					std::string concatenated_results;
 					for (auto const& result : results) concatenated_results += result;
 					ImGui::Text(concatenated_results.c_str());

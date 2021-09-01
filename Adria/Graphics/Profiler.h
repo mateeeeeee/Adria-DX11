@@ -13,7 +13,7 @@ namespace adria
 	{
 		static constexpr UINT64 FRAME_COUNT = 3;
 
-		struct BlockQuery
+		struct QueryData
 		{
 			Microsoft::WRL::ComPtr<ID3D11Query> disjoint_query;
 			Microsoft::WRL::ComPtr<ID3D11Query> timestamp_query_start;
@@ -23,7 +23,7 @@ namespace adria
 
 		struct FrameQueries
 		{
-			std::unordered_map<ProfilerFlags, BlockQuery> block_queries;
+			std::unordered_map<ProfilerFlags, QueryData> block_queries;
 			Microsoft::WRL::ComPtr<ID3D11Query> frame_disjoint_query;
 			Microsoft::WRL::ComPtr<ID3D11Query> frame_timestamp_query_start;
 			Microsoft::WRL::ComPtr<ID3D11Query> frame_timestamp_query_end;

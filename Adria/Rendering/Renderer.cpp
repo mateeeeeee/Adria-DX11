@@ -518,9 +518,9 @@ namespace adria
 	{
 		return texture_manager;
 	}
-	Profiler& Renderer::GetProfiler()
-	{
-		return profiler;
+	std::vector<std::string> Renderer::GetProfilerResults()
+{
+		return profiler.GetProfilingResults(gfx->Context(), false);
 	}
 
 	/////////////////////////////////////////////////////////////////////////
