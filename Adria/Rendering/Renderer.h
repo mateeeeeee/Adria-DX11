@@ -256,7 +256,6 @@ namespace adria
 		
 		//called in postprocessing pass
 		void PassLensFlare(Light const& light);
-		void PassSSGI();
 		void PassVolumetricClouds();
 		void PassSSR(); 
 		void PassGodRays(Light const& light); 
