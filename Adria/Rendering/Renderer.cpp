@@ -358,7 +358,6 @@ namespace adria
 		CreateSamplers();
 		LoadShaders();
 		LoadTextures();
-		AddProfilerBlocks();
 
 		CreateRenderTargets(w, h);
 		CreateGBuffer(w, h);
@@ -942,11 +941,6 @@ namespace adria
 		circle_bokeh_handle = texture_manager.LoadTexture("Resources/Textures/bokeh/Bokeh_Circle.dds");
 		cross_bokeh_handle = texture_manager.LoadTexture("Resources/Textures/bokeh/Bokeh_Cross.dds");
 
-	}
-	void Renderer::AddProfilerBlocks()
-	{
-		profiler.AddBlockProfiling(ProfilerBlock::eFrame);
-		profiler.AddBlockProfiling(ProfilerBlock::eGBufferPass);
 	}
 	void Renderer::CreateBuffers()
 	{

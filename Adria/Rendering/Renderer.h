@@ -204,7 +204,6 @@ namespace adria
 		//called in constructor
 		void LoadShaders();
 		void LoadTextures();
-		void AddProfilerBlocks();
 		void CreateBuffers();
 		void CreateSamplers();
 		void CreateRenderStates();

@@ -21,23 +21,9 @@ namespace adria
 			bool begin_called, end_called;
 		};
 
-		struct FrameQueries
-		{
-			std::unordered_map<ProfilerBlock, QueryData> block_queries;
-			Microsoft::WRL::ComPtr<ID3D11Query> frame_disjoint_query;
-			Microsoft::WRL::ComPtr<ID3D11Query> frame_timestamp_query_start;
-			Microsoft::WRL::ComPtr<ID3D11Query> frame_timestamp_query_end;
-			bool begin_called, end_called;
-		};
-
 	public:
+
 		Profiler(ID3D11Device* device);
-
-		void AddBlockProfiling(ProfilerBlock block);
-
-		void BeginFrameProfiling(ID3D11DeviceContext* context);
-
-		void EndFrameProfiling(ID3D11DeviceContext* context);
 
 		void BeginBlockProfiling(ID3D11DeviceContext* context, ProfilerBlock block);
 		
@@ -48,7 +34,7 @@ namespace adria
 	private:
 		ID3D11Device* device;
 		UINT64 current_frame = 0;
-		std::array<FrameQueries, FRAME_COUNT> queries;
+		std::array<std::array<QueryData, (size_t)ProfilerBlock::eCount>, FRAME_COUNT> queries;
 	};
 
 	struct ScopedProfileBlock
