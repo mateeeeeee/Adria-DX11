@@ -19,20 +19,19 @@ namespace adria
 			device->CreateQuery(&query_desc, query.frame_timestamp_query_start.GetAddressOf());
 			device->CreateQuery(&query_desc, query.frame_timestamp_query_end.GetAddressOf());
 		}
-
 	}
 
-	void Profiler::AddBlockProfiling(ProfilerFlags flag)
+	void Profiler::AddBlockProfiling(ProfilerBlock block)
 	{
 		D3D11_QUERY_DESC query_desc{};
 
 		for (auto& query : queries)
 		{
 			query_desc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
-			device->CreateQuery(&query_desc, query.block_queries[flag].disjoint_query.GetAddressOf());
+			device->CreateQuery(&query_desc, query.block_queries[block].disjoint_query.GetAddressOf());
 			query_desc.Query = D3D11_QUERY_TIMESTAMP;
-			device->CreateQuery(&query_desc, query.block_queries[flag].timestamp_query_start.GetAddressOf());
-			device->CreateQuery(&query_desc, query.block_queries[flag].timestamp_query_end.GetAddressOf());
+			device->CreateQuery(&query_desc, query.block_queries[block].timestamp_query_start.GetAddressOf());
+			device->CreateQuery(&query_desc, query.block_queries[block].timestamp_query_end.GetAddressOf());
 		}
 	}
 
@@ -56,12 +55,12 @@ namespace adria
 		queries[i].end_called = true;
 	}
 
-	void Profiler::BeginBlockProfiling(ID3D11DeviceContext* context, ProfilerFlags flag)
+	void Profiler::BeginBlockProfiling(ID3D11DeviceContext* context, ProfilerBlock block)
 	{
 		UINT64 i = current_frame % FRAME_COUNT;
 
-		if (auto it = queries[i].block_queries.find(flag); it == queries[i].block_queries.end())
-			Log::Error("Timestamp Query with name " + ToString(flag) + " does not exist\n");
+		if (auto it = queries[i].block_queries.find(block); it == queries[i].block_queries.end())
+			Log::Error("Timestamp Query with name " + ToString(block) + " does not exist\n");
 		else
 		{
 			context->Begin(it->second.disjoint_query.Get());
@@ -71,12 +70,12 @@ namespace adria
 
 	}
 
-	void Profiler::EndBlockProfiling(ID3D11DeviceContext* context, ProfilerFlags flag)
+	void Profiler::EndBlockProfiling(ID3D11DeviceContext* context, ProfilerBlock block)
 	{
 		UINT64 i = current_frame % FRAME_COUNT;
 
-		if (auto it = queries[i].block_queries.find(flag); it == queries[i].block_queries.end())
-			Log::Error("Timestamp Query with name " + ToString(flag) + " does not exist\n");
+		if (auto it = queries[i].block_queries.find(block); it == queries[i].block_queries.end())
+			Log::Error("Timestamp Query with name " + ToString(block) + " does not exist\n");
 		else
 		{
 			context->End(it->second.timestamp_query_end.Get());
@@ -142,20 +141,20 @@ namespace adria
 		old_queries.end_called = false;
 
 		
-		for (auto& [flag, query] : old_queries.block_queries)
+		for (auto& [block, query] : old_queries.block_queries)
 		{
 			if (query.begin_called && query.end_called)
 			{
 				while (context->GetData(query.disjoint_query.Get(), NULL, 0, 0) == S_FALSE)
 				{
-					Log::Info("Waiting for disjoint timestamp of " + ToString(flag) + " in frame " + std::to_string(current_frame) + "\n");
+					Log::Info("Waiting for disjoint timestamp of " + ToString(block) + " in frame " + std::to_string(current_frame) + "\n");
 					std::this_thread::sleep_for(std::chrono::nanoseconds(500));
 				}
 
 				hr = context->GetData(query.disjoint_query.Get(), &disjoint_ts, sizeof(D3D11_QUERY_DATA_TIMESTAMP_DISJOINT), 0);
 				if (disjoint_ts.Disjoint)
 				{
-					Log::Warning("Disjoint Timestamp Flag in " + ToString(flag) + "!\n");
+					Log::Warning("Disjoint Timestamp Flag in " + ToString(block) + "!\n");
 				}
 				else
 				{
@@ -174,7 +173,7 @@ namespace adria
 					FLOAT time_ms = (end_ts - begin_ts) * 1000.0f / disjoint_ts.Frequency;
 
 					std::string time_ms_string = std::to_string(time_ms);
-					std::string result = ToString(flag) + " time: " + time_ms_string + "ms\n";
+					std::string result = ToString(block) + " time: " + time_ms_string + "ms\n";
 
 					results.push_back(result);
 					if(log_results) Log::Info(result);

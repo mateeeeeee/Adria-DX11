@@ -376,9 +376,9 @@ namespace adria
 		UpdateWeather(dt);
 		UpdateOcean(dt);
 	}
-	void Renderer::SetProfilerSettings(ProfilerFlags _profiler_flags)
+	void Renderer::SetProfilerSettings(ProfilerSettings _profiler_settings)
 	{
-		profiler_flags = _profiler_flags;
+		profiler_settings = _profiler_settings;
 	}
 	void Renderer::Render(RendererSettings const& _settings)
 	{
@@ -945,8 +945,8 @@ namespace adria
 	}
 	void Renderer::AddProfilerBlocks()
 	{
-		profiler.AddBlockProfiling(ProfilerFlag_Frame);
-		profiler.AddBlockProfiling(ProfilerFlag_GBuffer);
+		profiler.AddBlockProfiling(ProfilerBlock::eFrame);
+		profiler.AddBlockProfiling(ProfilerBlock::eGBufferPass);
 	}
 	void Renderer::CreateBuffers()
 	{
@@ -2188,7 +2188,7 @@ namespace adria
 	void Renderer::PassGBuffer()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, ProfilerFlag_GBuffer, profiler_flags);
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, ProfilerBlock::eGBufferPass, profiler_settings.profile_gbuffer_pass);
 		
 		std::vector<ID3D11ShaderResourceView*> nullSRVs(gbuffer.size() + 1, nullptr);
 		context->PSSetShaderResources(0, static_cast<u32>(nullSRVs.size()), nullSRVs.data());

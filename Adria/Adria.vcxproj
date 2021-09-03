@@ -214,7 +214,7 @@
     <ClInclude Include="Graphics\GraphicsCoreDX11.h" />
     <ClInclude Include="Graphics\IndexBuffer.h" />
     <ClInclude Include="Graphics\Profiler.h" />
-    <ClInclude Include="Graphics\ProfilerFlags.h" />
+    <ClInclude Include="Graphics\ProfilerSettings.h" />
     <ClInclude Include="Graphics\RenderPass.h" />
     <ClInclude Include="Graphics\ShaderProgram.h" />
     <ClInclude Include="Graphics\ShaderUtility.h" />

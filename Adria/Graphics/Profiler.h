@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <string>
 #include <array>
-#include "ProfilerFlags.h"
+#include "ProfilerSettings.h"
 
 namespace adria
 {
@@ -23,7 +23,7 @@ namespace adria
 
 		struct FrameQueries
 		{
-			std::unordered_map<ProfilerFlags, QueryData> block_queries;
+			std::unordered_map<ProfilerBlock, QueryData> block_queries;
 			Microsoft::WRL::ComPtr<ID3D11Query> frame_disjoint_query;
 			Microsoft::WRL::ComPtr<ID3D11Query> frame_timestamp_query_start;
 			Microsoft::WRL::ComPtr<ID3D11Query> frame_timestamp_query_end;
@@ -33,15 +33,15 @@ namespace adria
 	public:
 		Profiler(ID3D11Device* device);
 
-		void AddBlockProfiling(ProfilerFlags flag);
+		void AddBlockProfiling(ProfilerBlock block);
 
 		void BeginFrameProfiling(ID3D11DeviceContext* context);
 
 		void EndFrameProfiling(ID3D11DeviceContext* context);
 
-		void BeginBlockProfiling(ID3D11DeviceContext* context, ProfilerFlags flag);
+		void BeginBlockProfiling(ID3D11DeviceContext* context, ProfilerBlock block);
 		
-		void EndBlockProfiling(ID3D11DeviceContext* context, ProfilerFlags flag);
+		void EndBlockProfiling(ID3D11DeviceContext* context, ProfilerBlock block);
 
 		std::vector<std::string> GetProfilingResults(ID3D11DeviceContext* context, bool log_results = false);
 
@@ -53,23 +53,23 @@ namespace adria
 
 	struct ScopedProfileBlock
 	{
-		ScopedProfileBlock(Profiler& profiler, ID3D11DeviceContext* context, ProfilerFlags flag)
-			: profiler{ profiler }, flag{ flag }, context{ context }
+		ScopedProfileBlock(Profiler& profiler, ID3D11DeviceContext* context, ProfilerBlock block)
+			: profiler{ profiler }, block{ block }, context{ context }
 		{
-			profiler.BeginBlockProfiling(context, flag);
+			profiler.BeginBlockProfiling(context, block);
 		}
 
 		~ScopedProfileBlock()
 		{
-			profiler.EndBlockProfiling(context, flag);
+			profiler.EndBlockProfiling(context, block);
 		}
 
 		Profiler& profiler;
 		ID3D11DeviceContext* context;
-		ProfilerFlags flag;
+		ProfilerBlock block;
 	};
 
-	#define DECLARE_SCOPED_PROFILE_BLOCK(profiler, context, flag) ScopedProfileBlock block(profiler, context, flag)
-	#define DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, flag, flags) std::unique_ptr<ScopedProfileBlock> block = nullptr; \
-																					  if(flags & flag) block = std::make_unique<ScopedProfileBlock>(profiler, context, flag)
+	#define DECLARE_SCOPED_PROFILE_BLOCK(profiler, context, block_id) ScopedProfileBlock block(profiler, context, block_id)
+	#define DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, block_id, cond) std::unique_ptr<ScopedProfileBlock> scoped_profile = nullptr; \
+																					  if(cond) scoped_profile = std::make_unique<ScopedProfileBlock>(profiler, context, block_id)
 }

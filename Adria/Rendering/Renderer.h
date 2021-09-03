@@ -45,7 +45,7 @@ namespace adria
 
 		void Update(f32 dt);
 
-		void SetProfilerSettings(ProfilerFlags);
+		void SetProfilerSettings(ProfilerSettings);
 
 		void Render(RendererSettings const&);
 
@@ -59,7 +59,7 @@ namespace adria
 
 		TextureManager& GetTextureManager();
 
-		std::vector<string> GetProfilerResults();
+		std::vector<std::string> GetProfilerResults();
 
 	private:
 		u32 width, height;
@@ -69,7 +69,7 @@ namespace adria
 		Camera const* camera;
 		RendererSettings renderer_settings;
 		Profiler profiler;
-		ProfilerFlags profiler_flags;
+		ProfilerSettings profiler_settings;
 
 		//textures
 		std::vector<Texture2D> gbuffer; 

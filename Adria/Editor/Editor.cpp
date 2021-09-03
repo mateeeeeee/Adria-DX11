@@ -1241,14 +1241,9 @@ namespace adria
 			{
                 static bool profile_gbuffer = false;
 
-				ImGui::Checkbox("Profile GBuffer Pass", &profile_gbuffer);
-				if (profile_gbuffer)
-				{
-					profiler_flags |= ProfilerFlag_GBuffer;
-				}
-				else profiler_flags &= (~ProfilerFlag_GBuffer);
+				ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
 
-                engine->renderer->SetProfilerSettings(profiler_flags);
+                engine->renderer->SetProfilerSettings(profiler_settings);
 
                 if (ImGui::Begin("Profiler Results"))
                 {
@@ -1262,7 +1257,7 @@ namespace adria
 			}
 			else
 			{
-                engine->renderer->SetProfilerSettings(ProfilerFlag_None);
+                engine->renderer->SetProfilerSettings(NO_PROFILING);
 			}
         }
         ImGui::End();
