@@ -1,19 +1,28 @@
-
+//REMOVE ASSIMP INCLUDES AND LIBS
+#pragma comment(lib, "assimp-vc142-mt.lib")
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
 #include "assimp/postprocess.h"
 #include "assimp/pbrmaterial.h"
+
+
+#define TINYGLTF_IMPLEMENTATION
+#define TINYGLTF_NO_EXTERNAL_IMAGE
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define TINYGLTF_NOEXCEPTION
+#include "tiny_gltf.h"
+
 
 #include "EntityLoader.h"
 #include "../Graphics/VertexTypes.h"
 #include "../Graphics/TextureManager.h"
 #include "../Logging/Logger.h"
 #include "../Math/BoundingVolumeHelpers.h"
+#include "../Math/ComputeTangentFrame.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/Heightmap.h"
 
 using namespace DirectX;
-
 namespace adria 
 {
     using namespace tecs;
@@ -361,6 +370,256 @@ namespace adria
 
         Log::Info("Model" + params.model_path + " successfully loaded!");
        
+        return entities;
+	
+	}
+
+    [[maybe_unused]]
+    std::vector<entity> EntityLoader::LoadGLTFModel(model_parameters_t const& params)
+    {
+        tinygltf::TinyGLTF loader;
+        tinygltf::Model model;
+        std::string err;
+        std::string warn;
+        bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, params.model_path);
+
+        std::string model_name = GetFilename(params.model_path);
+        if (!warn.empty()) Log::Warning(warn.c_str());
+        if (!err.empty()) Log::Error(err.c_str());
+        if (!ret) Log::Error("Failed to load model " + model_name);
+        
+		std::vector<CompleteVertex> vertices{};
+		std::vector<u32> indices{};
+		std::vector<entity> entities{};
+
+        tinygltf::Scene const& scene = model.scenes[model.defaultScene];
+        for (size_t i = 0; i < scene.nodes.size(); ++i)
+        {
+            tinygltf::Node const& node = model.nodes[scene.nodes[i]]; //has children: model.nodes[node.children[i]] todo
+            if (node.mesh < 0 || node.mesh >= model.meshes.size()) continue;
+
+            tinygltf::Mesh const& node_mesh = model.meshes[node.mesh];
+            for (size_t i = 0; i < node_mesh.primitives.size(); ++i)
+            {
+				tinygltf::Primitive primitive = node_mesh.primitives[i];
+				tinygltf::Accessor const& index_accessor = model.accessors[primitive.indices];
+
+				entity e = reg.create();
+				entities.push_back(e);
+
+				Mesh mesh_component{};
+				mesh_component.indices_count = static_cast<u32>(index_accessor.count);
+				mesh_component.start_index_location = static_cast<u32>(indices.size());
+				mesh_component.vertex_offset = static_cast<u32>(vertices.size());
+                switch (primitive.mode)
+                {
+				case TINYGLTF_MODE_POINTS:
+                    mesh_component.topology = D3D11_PRIMITIVE_TOPOLOGY_POINTLIST;
+					break;
+				case TINYGLTF_MODE_LINE:
+                    mesh_component.topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+					break;
+				case TINYGLTF_MODE_LINE_STRIP:
+                    mesh_component.topology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+					break;
+				case TINYGLTF_MODE_TRIANGLES:
+                    mesh_component.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+					break;
+				case TINYGLTF_MODE_TRIANGLE_STRIP:
+                    mesh_component.topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+					break;
+				default:
+					assert(false);
+                }
+				reg.emplace<Mesh>(e, mesh_component);
+
+                tinygltf::Accessor const& position_accessor = model.accessors[primitive.attributes["POSITION"]];
+                tinygltf::BufferView const& position_buffer_view = model.bufferViews[position_accessor.bufferView];
+				tinygltf::Buffer const& position_buffer = model.buffers[position_buffer_view.buffer];
+                int const position_byte_stride = position_accessor.ByteStride(position_buffer_view);
+				u8 const* positions = &position_buffer.data[position_buffer_view.byteOffset + position_accessor.byteOffset];
+
+				tinygltf::Accessor const& texcoord_accessor = model.accessors[primitive.attributes["TEXCOORD_0"]];
+				tinygltf::BufferView const& texcoord_buffer_view = model.bufferViews[texcoord_accessor.bufferView];
+				tinygltf::Buffer const& texcoord_buffer = model.buffers[texcoord_buffer_view.buffer];
+                int const texcoord_byte_stride = texcoord_accessor.ByteStride(texcoord_buffer_view);
+                u8 const* texcoords = &texcoord_buffer.data[texcoord_buffer_view.byteOffset + texcoord_accessor.byteOffset];
+
+				tinygltf::Accessor const& normal_accessor = model.accessors[primitive.attributes["NORMAL"]];
+				tinygltf::BufferView const& normal_buffer_view = model.bufferViews[normal_accessor.bufferView];
+				tinygltf::Buffer const& normal_buffer = model.buffers[normal_buffer_view.buffer];
+                int const normal_byte_stride = normal_accessor.ByteStride(normal_buffer_view);
+                u8 const* normals = &normal_buffer.data[normal_buffer_view.byteOffset + normal_accessor.byteOffset];
+
+				tinygltf::Accessor const& tangent_accessor = model.accessors[primitive.attributes["TANGENT"]];
+				tinygltf::BufferView const& tangent_buffer_view = model.bufferViews[tangent_accessor.bufferView];
+				tinygltf::Buffer const& tangent_buffer = model.buffers[tangent_buffer_view.buffer];
+				int const tangent_byte_stride = tangent_accessor.ByteStride(tangent_buffer_view);
+				u8 const* tangents = &tangent_buffer.data[tangent_buffer_view.byteOffset + tangent_accessor.byteOffset];
+
+                ADRIA_ASSERT(position_accessor.count == texcoord_accessor.count);
+                ADRIA_ASSERT(position_accessor.count == normal_accessor.count);
+                
+                std::vector<XMFLOAT3> position_array(position_accessor.count), normal_array(normal_accessor.count), 
+                    tangent_array(position_accessor.count), bitangent_array(position_accessor.count);
+                std::vector<XMFLOAT2> texcoord_array(texcoord_accessor.count);
+				for (size_t i = 0; i < position_accessor.count; ++i)
+				{
+                    XMFLOAT3 position;
+					position.x = ((float*)(positions + (i * position_byte_stride)))[0];
+					position.y = ((float*)(positions + (i * position_byte_stride)))[1];
+					position.z = ((float*)(positions + (i * position_byte_stride)))[2];
+                    position_array[i] = position;
+
+                    XMFLOAT2 texcoord;
+                    texcoord.x = ((float*)(texcoords + (i * texcoord_byte_stride)))[0];
+                    texcoord.y = ((float*)(texcoords + (i * texcoord_byte_stride)))[1];
+                    texcoord.y = 1.0f - texcoord.y;
+                    texcoord_array[i] = texcoord;
+
+					XMFLOAT3 normal;
+					normal.x = ((float*)(normals + (i * normal_byte_stride)))[0];
+					normal.y = ((float*)(normals + (i * normal_byte_stride)))[1];
+					normal.z = ((float*)(normals + (i * normal_byte_stride)))[2];
+                    normal_array[i] = normal;
+
+                    XMFLOAT3 tangent{};
+                    XMFLOAT3 bitangent{};
+                    if (tangents)
+                    {
+						tangent.x = ((float*)(tangents + (i * tangent_byte_stride)))[0];
+						tangent.y = ((float*)(tangents + (i * tangent_byte_stride)))[1];
+						tangent.z = ((float*)(tangents + (i * tangent_byte_stride)))[2];
+                        float tangent_w = ((float*)(tangents + (i * tangent_byte_stride)))[3];
+
+						XMVECTOR _bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&normal), XMLoadFloat3(&tangent)), tangent_w);
+
+						XMStoreFloat3(&bitangent, XMVector3Normalize(_bitangent));
+                    }
+
+                    tangent_array[i] = tangent;
+                    bitangent_array[i] = bitangent;
+				}
+
+                tinygltf::BufferView const& index_buffer_view = model.bufferViews[index_accessor.bufferView];
+                tinygltf::Buffer const& index_buffer = model.buffers[index_buffer_view.buffer];
+				int const index_byte_stride = index_accessor.ByteStride(index_buffer_view);
+                u8 const* indexes = index_buffer.data.data() + index_buffer_view.byteOffset + index_accessor.byteOffset;
+                        
+				indices.reserve(indices.size() + index_accessor.count);
+                for (size_t i = 0; i < index_accessor.count; ++i)
+                {
+                    u32 index = -1;
+                    switch (index_accessor.componentType)
+                    {
+                    case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
+                        index = (u32)((u16*)(indexes + (i * index_byte_stride)))[0];
+                        break;
+                    case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
+                        index = ((u32*)(indexes + (i * index_byte_stride)))[0];
+                        break;
+                    default:
+                        ADRIA_ASSERT(false);
+                    }
+                   
+                    indices.push_back(index);
+                }
+
+				if (!tangents) //need to generate tangents
+				{
+                    ComputeTangentFrame(indices.data() - index_accessor.count, index_accessor.count,
+                        position_array.data(), normal_array.data(), texcoord_array.data(), position_accessor.count,
+                        tangent_array.data(), bitangent_array.data());
+				}
+
+				vertices.reserve(vertices.size() + position_accessor.count);
+				for (size_t i = 0; i < position_accessor.count; ++i)
+				{
+					vertices.push_back(CompleteVertex{
+							position_array[i],
+							texcoord_array[i],
+							normal_array[i],
+							tangent_array[i],
+							bitangent_array[i]
+						});
+				}
+
+
+                Material material{};
+                tinygltf::Material gltf_material = model.materials[primitive.material];
+                tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
+                
+                
+               
+                if (pbr_metallic_roughness.baseColorTexture.index >= 0)
+                {
+					tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
+					tinygltf::Image const& base_image = model.images[base_texture.source];
+					std::string texbase = params.textures_path + base_image.uri;
+					material.albedo_texture = texture_manager.LoadTexture(texbase);
+                    material.albedo_factor = (f32)pbr_metallic_roughness.baseColorFactor[0];
+                }
+
+                if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
+                {
+					tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
+					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
+					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
+					material.metallic_roughness_texture = texture_manager.LoadTexture(texmetallicroughness);
+					material.metallic_factor = (f32)pbr_metallic_roughness.metallicFactor;
+					material.roughness_factor = (f32)pbr_metallic_roughness.roughnessFactor;
+                }
+
+				if (gltf_material.normalTexture.index >= 0)
+				{
+					tinygltf::Texture const& normal_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
+					tinygltf::Image const& normal_image = model.images[normal_texture.source];
+					std::string texnormal = params.textures_path + normal_image.uri;
+					material.normal_texture = texture_manager.LoadTexture(texnormal);
+				}
+
+                if (gltf_material.emissiveTexture.index >= 0)
+                {
+                    tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
+                    tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
+					std::string texemissive = params.textures_path + emissive_image.uri;
+					material.emissive_texture = texture_manager.LoadTexture(texemissive);
+                    material.emissive_factor = (f32)gltf_material.emissiveFactor[0];
+                }
+
+				material.shader = material.metallic_roughness_texture == INVALID_TEXTURE_HANDLE ?
+					StandardShader::eGBufferPBR_Separated : StandardShader::eGbufferPBR;
+
+				reg.emplace<Material>(e, material);
+
+				XMMATRIX model = XMMatrixScaling(params.model_scale, params.model_scale, params.model_scale);
+
+				BoundingBox aabb = AABBFromRange(vertices.end() - position_accessor.count, vertices.end());
+				aabb.Transform(aabb, model);
+
+				reg.emplace<Visibility>(e, aabb, true, true);
+				reg.emplace<Transform>(e, model, model);
+				reg.emplace<Deferred>(e);
+            }
+
+		}
+       
+
+		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>();
+		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>();
+		vb->Create(device, vertices);
+		ib->Create(device, indices);
+
+		for (entity e : entities)
+		{
+			auto& mesh = reg.get<Mesh>(e);
+			mesh.vb = vb;
+			mesh.ib = ib;
+			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
+		}
+
+		Log::Info("Model" + params.model_path + " successfully loaded!");
+
         return entities;
     }
 

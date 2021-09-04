@@ -430,6 +430,9 @@
     <ClInclude Include="Utilities\EnumUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Math\ComputeTangentFrame.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

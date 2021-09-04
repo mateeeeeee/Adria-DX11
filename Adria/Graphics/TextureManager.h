@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <variant>
 
+
 namespace adria
 {
 	using TEXTURE_HANDLE = size_t;

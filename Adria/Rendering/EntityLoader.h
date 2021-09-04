@@ -1,5 +1,5 @@
 #pragma once
-#pragma comment(lib, "assimp-vc142-mt.lib")
+
 #include <DirectXMath.h>
 #include <optional>
 #include <functional>
@@ -72,6 +72,8 @@ namespace adria
         EntityLoader(tecs::registry& reg, ID3D11Device* device, TextureManager& texture_manager);
 
         [[maybe_unused]] std::vector<tecs::entity> LoadModel(model_parameters_t const&);
+
+        [[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(model_parameters_t const&);
 
         [[maybe_unused]] tecs::entity LoadSkybox(skybox_parameters_t const&);
 
