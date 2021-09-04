@@ -466,31 +466,31 @@ namespace adria
 				for (size_t i = 0; i < position_accessor.count; ++i)
 				{
                     XMFLOAT3 position;
-					position.x = ((float*)(positions + (i * position_byte_stride)))[0];
-					position.y = ((float*)(positions + (i * position_byte_stride)))[1];
-					position.z = ((float*)(positions + (i * position_byte_stride)))[2];
+					position.x = (reinterpret_cast<f32 const*>(positions + (i * position_byte_stride)))[0];
+					position.y = (reinterpret_cast<f32 const*>(positions + (i * position_byte_stride)))[1];
+					position.z = (reinterpret_cast<f32 const*>(positions + (i * position_byte_stride)))[2];
                     position_array[i] = position;
 
                     XMFLOAT2 texcoord;
-                    texcoord.x = ((float*)(texcoords + (i * texcoord_byte_stride)))[0];
-                    texcoord.y = ((float*)(texcoords + (i * texcoord_byte_stride)))[1];
+					texcoord.x = (reinterpret_cast<f32 const*>(texcoords + (i * texcoord_byte_stride)))[0];
+					texcoord.y = (reinterpret_cast<f32 const*>(texcoords + (i * texcoord_byte_stride)))[1];
                     texcoord.y = 1.0f - texcoord.y;
                     texcoord_array[i] = texcoord;
 
 					XMFLOAT3 normal;
-					normal.x = ((float*)(normals + (i * normal_byte_stride)))[0];
-					normal.y = ((float*)(normals + (i * normal_byte_stride)))[1];
-					normal.z = ((float*)(normals + (i * normal_byte_stride)))[2];
+					normal.x = (reinterpret_cast<f32 const*>(normals + (i * normal_byte_stride)))[0];
+					normal.y = (reinterpret_cast<f32 const*>(normals + (i * normal_byte_stride)))[1];
+					normal.z = (reinterpret_cast<f32 const*>(normals + (i * normal_byte_stride)))[2];
                     normal_array[i] = normal;
 
                     XMFLOAT3 tangent{};
                     XMFLOAT3 bitangent{};
                     if (tangents)
                     {
-						tangent.x = ((float*)(tangents + (i * tangent_byte_stride)))[0];
-						tangent.y = ((float*)(tangents + (i * tangent_byte_stride)))[1];
-						tangent.z = ((float*)(tangents + (i * tangent_byte_stride)))[2];
-                        float tangent_w = ((float*)(tangents + (i * tangent_byte_stride)))[3];
+						tangent.x = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[0];
+						tangent.y = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[1];
+						tangent.z = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[2];
+                        float tangent_w = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[3];
 
 						XMVECTOR _bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&normal), XMLoadFloat3(&tangent)), tangent_w);
 
@@ -513,10 +513,10 @@ namespace adria
                     switch (index_accessor.componentType)
                     {
                     case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-                        index = (u32)((u16*)(indexes + (i * index_byte_stride)))[0];
+                        index = (u32)(reinterpret_cast<u16 const*>(indexes + (i * index_byte_stride)))[0];
                         break;
                     case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-                        index = ((u32*)(indexes + (i * index_byte_stride)))[0];
+                        index = (reinterpret_cast<u32 const*>(indexes + (i * index_byte_stride)))[0];
                         break;
                     default:
                         ADRIA_ASSERT(false);
