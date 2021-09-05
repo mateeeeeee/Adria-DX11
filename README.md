@@ -37,13 +37,13 @@ Graphics engine written in C++/DirectX11.
     - Adaptive Tesselation
     - Foam
 * ImGui Editor
-* Assimp Model Loading
+* Model Loading with tinygltf
 * Profiler
 * Camera and Light Frustum Culling
 
 
 ## Dependencies
-[assimp](https://github.com/assimp/assimp)
+[tinygltf](https://github.com/syoyo/tinygltf)
 
 [ImGui](https://github.com/ocornut/imgui)
 
