@@ -570,10 +570,6 @@ namespace adria
 			
 			ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
 			standard_programs[StandardShader::eGbufferPBR].Create(device, vs_blob, ps_blob); 
-
-			geometry_pass_input_ps.defines.push_back(ShaderDefine{ "METALLIC_ROUGHNESS_SEPARATED", "1" });
-			ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
-			standard_programs[StandardShader::eGBufferPBR_Separated].Create(device, vs_blob, ps_blob); 
 		}
 
 		//ambient & lighting (not compiled)
@@ -2229,13 +2225,7 @@ namespace adria
 				}
 				else
 				{
-					standard_programs[StandardShader::eGBufferPBR_Separated].Bind(context);
-
-					auto view = texture_manager.GetTextureView(material.metallic_texture);
-					context->PSSetShaderResources(TEXTURE_SLOT_METALLIC, 1, &view);
-
-					view = texture_manager.GetTextureView(material.roughness_texture);
-					context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS, 1, &view);
+					Log::Error("Metallic Roughness Texture handle is invalid!");
 				}
 
 				if (material.normal_texture != INVALID_TEXTURE_HANDLE)
@@ -2271,8 +2261,6 @@ namespace adria
 					states.Unbind(context);
 				}
 				else mesh.Draw(context);
-
-
 			}
 		}
 		gbuffer_pass.End(context);

@@ -19,4 +19,11 @@ namespace adria
 
 		return p.filename().string();
 	}
+
+	inline std::string GetExtension(std::string const& path)
+	{
+		fs::path p(path);
+
+		return p.extension().string();
+	}
 }

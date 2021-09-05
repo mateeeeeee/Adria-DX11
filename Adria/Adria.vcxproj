@@ -118,13 +118,13 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\assimp\include;$(SolutionDir)ThirdParty\assimp\Lib\include;C:\Users\mateb\OneDrive\Desktop\Projekti\Third Party\FastNoiseLite;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D11\ThirdParty\tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;C:\Users\mateb\OneDrive\Desktop\Projekti\Third Party\FastNoiseLite;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D11\ThirdParty\tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\dxc\lib;$(SolutionDir)ThirdParty\FMOD\lib\x64;$(SolutionDir)ThirdParty\assimp\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\dxc\lib;$(SolutionDir)ThirdParty\FMOD\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -137,7 +137,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\assimp\include;$(SolutionDir)ThirdParty\assimp\Lib\include;C:\Users\mateb\OneDrive\Desktop\Projekti\Third Party\FastNoiseLite;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D11\ThirdParty\tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;C:\Users\mateb\OneDrive\Desktop\Projekti\Third Party\FastNoiseLite;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D11\ThirdParty\tinygltf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
     </ClCompile>
     <Link>
@@ -145,7 +145,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\dxc\lib;$(SolutionDir)ThirdParty\FMOD\lib\x64;$(SolutionDir)ThirdParty\assimp\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\dxc\lib;$(SolutionDir)ThirdParty\FMOD\lib\x64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

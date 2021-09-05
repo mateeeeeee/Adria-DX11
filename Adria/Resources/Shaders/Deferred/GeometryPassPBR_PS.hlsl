@@ -1,15 +1,12 @@
 #include "../Globals/GlobalsPS.hlsli"
 
 
-Texture2D<float4> txAlbedo   : register(t0);         
+Texture2D<float4> txAlbedo   : register(t0);      
+Texture2D<float4> txMetallicRoughness : register(t1);
 Texture2D<float4> txNormal   : register(t2);
 Texture2D<float4> txEmissive : register(t3);
-#if !METALLIC_ROUGHNESS_SEPARATED
-Texture2D<float4> txMetallicRoughness : register(t1);
-#else
-Texture2D<float> txMetallic  : register(t7);
-Texture2D<float> txRoughness : register(t8);
-#endif
+
+
 
 struct VS_OUTPUT
 {
@@ -58,18 +55,9 @@ PS_GBUFFER_OUT ps_main(VS_OUTPUT In)
     float3 NewNormal = mul(BumpMapNormal, TBN);
     In.NormalVS = normalize(mul(NewNormal, (float3x3)view));
 
-#if !METALLIC_ROUGHNESS_SEPARATED
     float3 ao_roughness_metallic = txMetallicRoughness.Sample(linear_wrap_sampler, In.Uvs).rgb;
     
     float3 EmissiveColor = txEmissive.Sample(linear_wrap_sampler, In.Uvs).rgb;
     return PackGBuffer(DiffuseColor.xyz, normalize(In.NormalVS), float4(EmissiveColor, emissive_factor),
     ao_roughness_metallic.g * roughness_factor, ao_roughness_metallic.b * metallic_factor);
-#else
-    float metallic = txMetallic.Sample(linear_wrap_sampler, In.Uvs);
-    float roughness = txRoughness.Sample(linear_wrap_sampler, In.Uvs);
-    
-    float3 EmissiveColor = txEmissive.Sample(linear_wrap_sampler, In.Uvs).rgb;
-    return PackGBuffer(DiffuseColor.xyz, normalize(In.NormalVS),  float4(EmissiveColor, emissive_factor),
-    roughness * roughness_factor, metallic * metallic_factor);
-#endif
 }

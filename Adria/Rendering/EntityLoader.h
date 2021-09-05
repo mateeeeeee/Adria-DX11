@@ -71,8 +71,6 @@ namespace adria
         
         EntityLoader(tecs::registry& reg, ID3D11Device* device, TextureManager& texture_manager);
 
-        [[maybe_unused]] std::vector<tecs::entity> LoadModel(model_parameters_t const&);
-
         [[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(model_parameters_t const&);
 
         [[maybe_unused]] tecs::entity LoadSkybox(skybox_parameters_t const&);
@@ -80,8 +78,6 @@ namespace adria
         [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
 
         [[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
-
-        void LoadModelMesh(tecs::entity, model_parameters_t const&);
 
 	private:
         tecs::registry& reg;

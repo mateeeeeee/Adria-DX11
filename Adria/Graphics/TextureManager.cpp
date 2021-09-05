@@ -7,6 +7,7 @@
 #include "../Utilities/StringUtil.h"
 #include "../Core/Macros.h"
 #include "../Utilities/Image.h"
+#include "../Utilities/FilesUtil.h"
 
 namespace adria
 {
@@ -30,30 +31,29 @@ namespace adria
 
 		TextureFormat GetTextureFormat(std::string const& path)
 		{
-			std::string extension = path.substr(path.find_last_of(".") + 1);
-
+			std::string extension = GetExtension(path);
 			std::transform(extension.begin(), extension.end(), extension.begin(),
 				[](unsigned char c) { return std::tolower(c); });
 
-			if (extension == "dds")
+			if (extension == ".dds")
 				return TextureFormat::eDDS;
-			else if (extension == "bmp")
+			else if (extension == ".bmp")
 				return TextureFormat::eBMP;
-			else if (extension == "jpg" || extension == "jpeg")
+			else if (extension == ".jpg" || extension == ".jpeg")
 				return TextureFormat::eJPG;
-			else if (extension == "png")
+			else if (extension == ".png")
 				return TextureFormat::ePNG;
-			else if (extension == "tiff" || extension == "tif")
+			else if (extension == ".tiff" || extension == ".tif")
 				return TextureFormat::eTIFF;
-			else if (extension == "gif")
+			else if (extension == ".gif")
 				return TextureFormat::eGIF;
-			else if (extension == "ico")
+			else if (extension == ".ico")
 				return TextureFormat::eICO;
-			else if (extension == "tga")
+			else if (extension == ".tga")
 				return TextureFormat::eTGA;
-			else if (extension == "hdr")
+			else if (extension == ".hdr")
 				return TextureFormat::eHDR;
-			else if (extension == "pic")
+			else if (extension == ".pic")
 				return TextureFormat::ePIC;
 			else
 				return TextureFormat::eNotSupported;

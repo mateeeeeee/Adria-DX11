@@ -69,8 +69,6 @@ namespace adria
 		TEXTURE_HANDLE albedo_texture			  = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE normal_texture			  = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE metallic_texture			  = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE roughness_texture		  = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE emissive_texture			  = INVALID_TEXTURE_HANDLE;
 
 		f32 albedo_factor		= 1.0f;
