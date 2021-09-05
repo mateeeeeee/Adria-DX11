@@ -32,7 +32,7 @@ namespace adria
 	{
         std::string model_path = "";
         std::string textures_path = "";
-        bool merge_meshes = true;
+        DirectX::XMMATRIX model_matrix = DirectX::XMMatrixIdentity();
         f32 model_scale = 1.0f;
 	};
     struct skybox_parameters_t
