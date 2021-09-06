@@ -2225,7 +2225,7 @@ namespace adria
 				}
 				else
 				{
-					Log::Error("Metallic Roughness Texture handle is invalid!");
+					context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS_METALLIC, 1, &null_view);
 				}
 
 				if (material.normal_texture != INVALID_TEXTURE_HANDLE)
@@ -2371,6 +2371,7 @@ namespace adria
 	void Renderer::PassDeferredLighting()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, ProfilerBlock::eDeferredPass, profiler_settings.profile_deferred_pass);
 
 		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
 		auto lights = reg.view<Light>();
@@ -2643,6 +2644,8 @@ namespace adria
 	void Renderer::PassForward()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, ProfilerBlock::eForwardPass, profiler_settings.profile_forward_pass);
+
 		forward_pass.Begin(context); 
 		PassOcean();
 		PassForwardCommon(false);
@@ -2812,6 +2815,7 @@ namespace adria
 	void Renderer::PassPostprocessing()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, ProfilerBlock::ePostprocessing, profiler_settings.profile_postprocessing);
 
 		PassVelocityBuffer();
 
@@ -3155,11 +3159,11 @@ namespace adria
 				that does not cast shadows does not make sense!\n");
 			return;
 		}
-		if (!renderer_settings.fog)
-		{
-			Log::Warning("Volumetric Lighting requires Fog to be enabled!\n");
-			return;
-		}
+		//if (!renderer_settings.fog)
+		//{
+		//	Log::Warning("Volumetric Lighting requires Fog to be enabled!\n");
+		//	return;
+		//}
 
 		ID3D11DeviceContext* context = gfx->Context();
 

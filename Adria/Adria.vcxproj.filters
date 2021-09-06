@@ -714,5 +714,8 @@
     <FxCompile Include="Resources\Shaders\Postprocess\VelocityBufferPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Misc\Sky.hlsl">
+      <Filter>Shaders\Misc</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

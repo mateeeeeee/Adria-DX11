@@ -73,7 +73,6 @@ namespace adria
 
 	}
 
-
 TextureManager::TextureManager(ID3D11Device* _device, ID3D11DeviceContext* _context)
 {
 	ADRIA_ASSERT(_device != nullptr && _context != nullptr);
@@ -83,7 +82,6 @@ TextureManager::TextureManager(ID3D11Device* _device, ID3D11DeviceContext* _cont
 
 	mipmaps = true;
 }
-
 
 TEXTURE_HANDLE TextureManager::LoadTexture(std::wstring const& name)
 {
