@@ -1254,7 +1254,6 @@ namespace adria
 				std::string concatenated_results;
 				for (auto const& result : results) concatenated_results += result;
 				ImGui::TextWrapped(concatenated_results.c_str());
-
 			}
 			else
 			{
