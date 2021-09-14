@@ -55,8 +55,7 @@ namespace adria
 
             //keyboard
             {
-                //Use GetKeyboardState()?
-
+               
                 keys[KeyCode::F1] = IsPressed(VK_F1);
                 keys[KeyCode::F2] = IsPressed(VK_F2);
                 keys[KeyCode::F3] = IsPressed(VK_F3);
