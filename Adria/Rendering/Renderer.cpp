@@ -518,7 +518,7 @@ namespace adria
 		return texture_manager;
 	}
 	std::vector<std::string> Renderer::GetProfilerResults()
-{
+	{
 		return profiler.GetProfilingResults(gfx->Context(), false);
 	}
 
@@ -2267,6 +2267,7 @@ namespace adria
 	}
 	void Renderer::PassSSAO()
 	{
+		ADRIA_ASSERT(renderer_settings.ambient_occlusion == AmbientOcclusion::eSSAO);
 		ID3D11DeviceContext* context = gfx->Context();
 		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(7, 1, srv_null);
@@ -2301,6 +2302,7 @@ namespace adria
 	}
 	void Renderer::PassHBAO()
 	{
+		ADRIA_ASSERT(renderer_settings.ambient_occlusion == AmbientOcclusion::eHBAO);
 		ID3D11DeviceContext* context = gfx->Context();
 		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(7, 1, srv_null);
@@ -2655,6 +2657,7 @@ namespace adria
 	}
 	void Renderer::PassVoxelize()
 	{
+		ADRIA_ASSERT(renderer_settings.voxel_gi);
 		ID3D11DeviceContext* context = gfx->Context();
 
 		std::vector<LightSBuffer> _lights{};
@@ -2766,6 +2769,7 @@ namespace adria
 	}
 	void Renderer::PassVoxelizeDebug()
 	{
+		ADRIA_ASSERT(renderer_settings.voxel_gi && renderer_settings.voxel_debug);
 		auto context = gfx->Context();
 		voxel_debug_pass.Begin(context);
 		
@@ -2786,6 +2790,7 @@ namespace adria
 	}
 	void Renderer::PassVoxelGI()
 	{
+		ADRIA_ASSERT(renderer_settings.voxel_gi);
 		ID3D11DeviceContext* context = gfx->Context();
 
 		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
@@ -2935,7 +2940,6 @@ namespace adria
 	void Renderer::PassShadowMapDirectional(Light const& light)
 	{
 		ADRIA_ASSERT(light.type == LightType::eDirectional);
-
 		ID3D11DeviceContext* context = gfx->Context();
 		//update cbuffer
 		{
@@ -3329,9 +3333,9 @@ namespace adria
 
 	void Renderer::PassLensFlare(Light const& light)
 	{
-		ID3D11DeviceContext* context = gfx->Context();
 		ADRIA_ASSERT(light.lens_flare);
-
+		ID3D11DeviceContext* context = gfx->Context();
+		
 		if (light.type != LightType::eDirectional) Log::Warning("Using Lens Flare on a Non-Directional Light Source\n");
 
 		//update
@@ -3369,8 +3373,8 @@ namespace adria
 	void Renderer::PassVolumetricClouds()
 	{
 		ADRIA_ASSERT(renderer_settings.clouds);
-
 		ID3D11DeviceContext* context = gfx->Context();
+
 		ID3D11ShaderResourceView* const srv_array[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target.SRV()};
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
@@ -3397,8 +3401,8 @@ namespace adria
 	void Renderer::PassSSR()
 	{
 		ADRIA_ASSERT(renderer_settings.ssr);
-
 		ID3D11DeviceContext* context = gfx->Context();
+
 		postprocess_cbuf_data.ssr_ray_hit_threshold = renderer_settings.ssr_ray_hit_threshold;
 		postprocess_cbuf_data.ssr_ray_step = renderer_settings.ssr_ray_step;
 
@@ -3423,6 +3427,7 @@ namespace adria
 	{
 		ADRIA_ASSERT(light.god_rays);
 		ID3D11DeviceContext* context = gfx->Context();
+
 		if (light.type != LightType::eDirectional)
 		{
 			Log::Warning("Using God Rays on a Non-Directional Light Source\n");
@@ -3482,7 +3487,6 @@ namespace adria
 	void Renderer::PassDepthOfField()
 	{
 		ADRIA_ASSERT(renderer_settings.dof);
-
 		ID3D11DeviceContext* context = gfx->Context();
 		//GENERATE BOKEH
 		if (renderer_settings.bokeh)
@@ -3580,8 +3584,6 @@ namespace adria
 	void Renderer::PassBloom()
 	{
 		ADRIA_ASSERT(renderer_settings.bloom);
-
-
 		ID3D11DeviceContext* context = gfx->Context();
 
 		compute_cbuf_data.threshold = renderer_settings.bloom_threshold;
@@ -3652,7 +3654,6 @@ namespace adria
 	void Renderer::PassMotionBlur()
 	{
 		ADRIA_ASSERT(renderer_settings.motion_blur);
-
 		ID3D11DeviceContext* context = gfx->Context();
 
 		ID3D11ShaderResourceView* const srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), velocity_buffer.SRV() };
@@ -3672,8 +3673,8 @@ namespace adria
 	void Renderer::PassFog()
 	{
 		ADRIA_ASSERT(renderer_settings.fog);
-
 		ID3D11DeviceContext* context = gfx->Context();
+
 		postprocess_cbuf_data.fog_falloff = renderer_settings.fog_falloff;
 		postprocess_cbuf_data.fog_density = renderer_settings.fog_density;
 		postprocess_cbuf_data.fog_type = static_cast<i32>(renderer_settings.fog_type);
@@ -3733,7 +3734,6 @@ namespace adria
 	void Renderer::PassFXAA()
 	{
 		ADRIA_ASSERT(renderer_settings.anti_aliasing & AntiAliasing_FXAA);
-
 		ID3D11DeviceContext* context = gfx->Context();
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
@@ -3753,7 +3753,6 @@ namespace adria
 	void Renderer::PassTAA()
 	{
 		ADRIA_ASSERT(renderer_settings.anti_aliasing & AntiAliasing_TAA);
-
 		ID3D11DeviceContext* context = gfx->Context();
 		
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };
