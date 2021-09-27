@@ -389,8 +389,8 @@ namespace adria
 		
 		if(!renderer_settings.voxel_debug)
 		{
-			if (renderer_settings.ambient_oclussion == AmbientOclussion::eSSAO) PassSSAO();
-			else if (renderer_settings.ambient_oclussion == AmbientOclussion::eHBAO) PassHBAO();
+			if (renderer_settings.ambient_occlusion == AmbientOcclusion::eSSAO) PassSSAO();
+			else if (renderer_settings.ambient_occlusion == AmbientOcclusion::eHBAO) PassHBAO();
 		
 			PassAmbient();
 		
@@ -2352,7 +2352,7 @@ namespace adria
 
 		if (!ibl_textures_generated) renderer_settings.ibl = false;
 
-		bool has_ao = renderer_settings.ambient_oclussion != AmbientOclussion::eNone;
+		bool has_ao = renderer_settings.ambient_occlusion != AmbientOcclusion::eNone;
 
 		if (has_ao && renderer_settings.ibl) standard_programs[StandardShader::eAmbientPBR_AO_IBL].Bind(context);
 		else if (has_ao && !renderer_settings.ibl) standard_programs[StandardShader::eAmbientPBR_AO].Bind(context);
@@ -2872,7 +2872,7 @@ namespace adria
 
 			postprocess_index = !postprocess_index;
 
-			}
+		}
 
 		if (renderer_settings.bloom)
 		{

@@ -137,7 +137,7 @@ namespace adria
 		light_params.light_data.volumetric = false;
 		light_params.light_data.volumetric_strength = 1.0f;
 		light_params.mesh_type = LightMesh::eQuad;
-		light_params.mesh_size = 150;
+		light_params.mesh_size = 250;
 		
 		entity_loader->LoadLight(light_params);
 

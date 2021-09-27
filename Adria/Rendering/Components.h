@@ -98,10 +98,10 @@ namespace adria
 		bool screen_space_shadows = false;
 		bool lens_flare = false;
 		bool god_rays = false;
-		f32 godrays_decay = 0.95f;
+		f32 godrays_decay = 0.825f;
 		f32 godrays_weight = 0.25f;
-		f32 godrays_density = 0.95f;
-		f32 godrays_exposure = 1.0f;
+		f32 godrays_density = 0.975f;
+		f32 godrays_exposure = 2.0f;
 	};
 
 	struct COMPONENT Visibility
