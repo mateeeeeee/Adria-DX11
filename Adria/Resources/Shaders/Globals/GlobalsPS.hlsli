@@ -102,16 +102,31 @@ cbuffer WeatherCBuf : register(b7)
     float4 light_color;
     float4 ambient_color;
     float4 wind_dir;
+    
     float wind_speed;
     float time;
     float crispiness;
     float curliness;
+    
     float coverage;
     float absorption;
     float clouds_bottom_height;
     float clouds_top_height;
+    
     float density_factor;
     float cloud_type;
+    //padd float2
+    
+    float3 A;
+    float3 B;
+    float3 C;
+    float3 D;
+    float3 E;
+    float3 F;
+    float3 G;
+    float3 H;
+    float3 I;
+    float3 Z;
 }
 
 cbuffer VoxelCbuf : register(b8)
@@ -208,6 +223,22 @@ float ExponentialHeightFog(float4 pos_vs)
     float fog = exp(-fog_density * fogDistInt * fogHeightInt);
 
     return 1 - fog;
+}
+
+float3 HosekWilkie(float cos_theta, float gamma, float cos_gamma)
+{
+    float3 chi = (1 + cos_gamma * cos_gamma) / pow(1 + H * H - 2 * cos_gamma * H, float3(1.5));
+    return (1 + A * exp(B / (cos_theta + 0.01))) * (C + D * exp(E * gamma) + F * (cos_gamma * cos_gamma) + G * chi + I * sqrt(cos_theta));
+}
+
+float3 HosekWilkieSky(float3 v, float3 sun_dir)
+{
+    float cos_theta = clamp(v.y, 0, 1);
+    float cos_gamma = clamp(dot(v, sun_dir), 0, 1);
+    float gamma_ = acos(cos_gamma);
+
+    float3 R = Z * HosekWilkie(cos_theta, gamma_, cos_gamma);
+    return R;
 }
 
 
