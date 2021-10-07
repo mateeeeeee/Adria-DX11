@@ -176,6 +176,9 @@
     <ClCompile Include="Graphics\RenderPass.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\SkyModel.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -433,6 +436,9 @@
     <ClInclude Include="Math\ComputeTangentFrame.h">
       <Filter>Math</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\SkyModel.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -480,6 +486,9 @@
     </None>
     <None Include="Resources\Shaders\Util\VoxelUtil.hlsli">
       <Filter>Shaders\Util</Filter>
+    </None>
+    <None Include="Utilities\HosekDataRGB.h">
+      <Filter>Utilities</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

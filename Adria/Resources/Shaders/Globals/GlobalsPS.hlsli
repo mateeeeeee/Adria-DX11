@@ -71,7 +71,6 @@ cbuffer MaterialCBuf : register(b4)
     float emissive_factor;
 };
 
-
 #define EXPONENTIAL_FOG 0
 #define EXPONENTIAL_HEIGHT_FOG 1
 

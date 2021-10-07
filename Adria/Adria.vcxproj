@@ -181,6 +181,7 @@
     <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
+    <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Utilities\AppException.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
   </ItemGroup>
@@ -242,6 +243,7 @@
     <ClInclude Include="Rendering\EntityLoader.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
+    <ClInclude Include="Rendering\SkyModel.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="tecs\component_pool.h" />
     <ClInclude Include="tecs\entity.h" />
@@ -290,6 +292,7 @@
     <None Include="Resources\Shaders\Util\ShadowUtil.hlsli" />
     <None Include="Resources\Shaders\Util\ToneMapUtil.hlsli" />
     <None Include="Resources\Shaders\Util\VoxelUtil.hlsli" />
+    <None Include="Utilities\HosekDataRGB.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\Deferred\AmbientPBR_PS.hlsl">

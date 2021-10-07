@@ -146,12 +146,37 @@ namespace adria
 		f32 time;
 		f32 crispiness;
 		f32 curliness;
+
 		f32 coverage;
 		f32 absorption;
 		f32 clouds_bottom_height;
 		f32 clouds_top_height;
+
 		f32 density_factor;
 		f32 cloud_type;
+		f32 _padd[2];
+
+		//sky parameters
+		DirectX::XMFLOAT3 A; 
+		f32 _paddA;
+		DirectX::XMFLOAT3 B;
+		f32 _paddB;
+		DirectX::XMFLOAT3 C;
+		f32 _paddC;
+		DirectX::XMFLOAT3 D;
+		f32 _paddD;
+		DirectX::XMFLOAT3 E;
+		f32 _paddE;
+		DirectX::XMFLOAT3 F;
+		f32 _paddF;
+		DirectX::XMFLOAT3 G;
+		f32 _paddG;
+		DirectX::XMFLOAT3 H;
+		f32 _paddH;
+		DirectX::XMFLOAT3 I;
+		f32 _paddI;
+		DirectX::XMFLOAT3 Z;
+		f32 _paddZ;
 	};
 
 	DECLSPEC_ALIGN(16) struct VoxelCBuffer
@@ -168,7 +193,9 @@ namespace adria
 		u32   mips;
 	};
 
+
 	//Structured Buffers
+
 	struct VoxelType
 	{
 		u32 color_mask;

@@ -92,6 +92,7 @@ namespace adria
 		u32 voxel_mips = 7;
 		bool recreate_initial_spectrum = true;
 		bool ocean_color_changed = false;
+		//sky
 	};
 
 }
