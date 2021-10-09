@@ -448,9 +448,9 @@ namespace adria
                     if (ImGui::CollapsingHeader("Light"))
                     {
 
-                        if (light->type == LightType::eDirectional)			ImGui::Text("Directional Light");
-                        else if (light->type == LightType::eSpot)			ImGui::Text("Spot Light");
-                        else if (light->type == LightType::ePoint)			ImGui::Text("Point Light");
+                        if (light->type == ELightType::Directional)			ImGui::Text("Directional Light");
+                        else if (light->type == ELightType::Spot)			ImGui::Text("Spot Light");
+                        else if (light->type == ELightType::Point)			ImGui::Text("Point Light");
                     
                         XMFLOAT4 light_color, light_direction, light_position;
                         XMStoreFloat4(&light_color, light->color);
@@ -471,7 +471,7 @@ namespace adria
                             material.diffuse = XMFLOAT3(color[0], color[1], color[2]);
                         }
                     
-                        if (light->type == LightType::eDirectional || light->type == LightType::eSpot)
+                        if (light->type == ELightType::Directional || light->type == ELightType::Spot)
                         {
                             f32 direction[3] = { light_direction.x, light_direction.y, light_direction.z };
                     
@@ -479,13 +479,13 @@ namespace adria
                     
                             light->direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
                     
-                            if (light->type == LightType::eDirectional)
+                            if (light->type == ELightType::Directional)
                             {
                                 light->position = XMVectorScale(-light->direction, 1e3);
                             }
                         }
                     
-                        if (light->type == LightType::eSpot)
+                        if (light->type == ELightType::Spot)
                         {
                             f32 inner_angle = XMConvertToDegrees(acos(light->inner_cosine))
                                 , outer_angle = XMConvertToDegrees(acos(light->outer_cosine));
@@ -496,7 +496,7 @@ namespace adria
                             light->outer_cosine = cos(XMConvertToRadians(outer_angle));
                         }
                     
-                        if (light->type == LightType::ePoint || light->type == LightType::eSpot)
+                        if (light->type == ELightType::Point || light->type == ELightType::Spot)
                         {
                             f32 position[3] = { light_position.x, light_position.y, light_position.z };
                     
@@ -537,7 +537,7 @@ namespace adria
                     
                         ImGui::Checkbox("Lens Flare", &light->lens_flare);
                     
-                        if (light->type == LightType::eDirectional && light->casts_shadows)
+                        if (light->type == ELightType::Directional && light->casts_shadows)
                         {
                             bool use_cascades = static_cast<bool>(light->use_cascades);
                             ImGui::Checkbox("Use Cascades", &use_cascades);
@@ -593,12 +593,12 @@ namespace adria
                         if (engine->reg.has<Forward>(selected_entity))
                         {
                             if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
-                                material->shader = StandardShader::eTexture;
-                            else material->shader = StandardShader::eSolid;
+                                material->shader = EShader::Texture;
+                            else material->shader = EShader::Solid;
                         }
                         else
                         {
-                           material->shader = StandardShader::eGbufferPBR;
+                           material->shader = EShader::GbufferPBR;
                         }
                     }
 
@@ -716,14 +716,14 @@ namespace adria
                     }
                 }
 
-                static LightType light_type = LightType::ePoint;
+                static ELightType light_type = ELightType::Point;
                 if (current_component == LIGHT)
                 {
                     static char const* const light_types[] = { "Directional", "Point", "Spot"};
 
                     static int current_light_type = 0;
                     ImGui::ListBox("Light Types", &current_light_type, light_types, IM_ARRAYSIZE(light_types));
-                    light_type = static_cast<LightType>(current_light_type);
+                    light_type = static_cast<ELightType>(current_light_type);
                 }
 
                 if (ImGui::Button("Add Component"))
@@ -748,8 +748,8 @@ namespace adria
                         {
                             Material mat{};
                             if (engine->reg.has<Deferred>(selected_entity))
-                                mat.shader = StandardShader::eGbufferPBR;
-                            else mat.shader = StandardShader::eSolid;
+                                mat.shader = EShader::GbufferPBR;
+                            else mat.shader = EShader::Solid;
                             engine->reg.emplace<Material>(selected_entity, mat);
                         }
                         break;
@@ -1034,9 +1034,9 @@ namespace adria
                         ImGui::EndCombo();
                     }
 
-                    renderer_settings.ambient_occlusion = static_cast<AmbientOcclusion>(item_current_idx);
+                    renderer_settings.ambient_occlusion = static_cast<EAmbientOcclusion>(item_current_idx);
 
-                    if (renderer_settings.ambient_occlusion == AmbientOcclusion::eSSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    if (renderer_settings.ambient_occlusion == EAmbientOcclusion::SSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
                         //ImGui::Checkbox("SSAO", &settings.ssao);
                         ImGui::SliderFloat("Power", &renderer_settings.ssao_power, 1.0f, 16.0f);
@@ -1045,7 +1045,7 @@ namespace adria
                         ImGui::TreePop();
                         ImGui::Separator();
                     }
-                    if (renderer_settings.ambient_occlusion == AmbientOcclusion::eHBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+                    if (renderer_settings.ambient_occlusion == EAmbientOcclusion::HBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
                         //ImGui::Checkbox("SSAO", &settings.ssao);
                         ImGui::SliderFloat("Power", &renderer_settings.hbao_power, 1.0f, 16.0f);
@@ -1069,19 +1069,19 @@ namespace adria
                     ImGui::Checkbox("TAA", &taa);
                     if (fxaa)
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_FXAA);
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_FXAA);
                     }
                     else
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_FXAA));
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_FXAA));
                     }
                     if (taa)
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_TAA);
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_TAA);
                     }
                     else
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_TAA));
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_TAA));
                     }
                     
                     ImGui::TreePop();
@@ -1122,7 +1122,7 @@ namespace adria
                         static char const* const bokeh_types[] = { "HEXAGON", "OCTAGON", "CIRCLE", "CROSS" };
                         static int bokeh_type_i = static_cast<int>(renderer_settings.bokeh_type);
                         ImGui::ListBox("Bokeh Type", &bokeh_type_i, bokeh_types, IM_ARRAYSIZE(bokeh_types));
-                        renderer_settings.bokeh_type = static_cast<BokehType>(bokeh_type_i);
+                        renderer_settings.bokeh_type = static_cast<EBokehType>(bokeh_type_i);
 
                         ImGui::SliderFloat("Bokeh Blur Threshold", &renderer_settings.bokeh_blur_threshold, 0.0f, 1.0f);
                         ImGui::SliderFloat("Bokeh Lum Threshold", &renderer_settings.bokeh_lum_threshold, 0.0f, 10.0f);
@@ -1167,7 +1167,7 @@ namespace adria
                         ImGui::EndCombo();
                     }
                     
-                    renderer_settings.fog_type = static_cast<FogType>(item_current_idx);
+                    renderer_settings.fog_type = static_cast<EFogType>(item_current_idx);
 
                     ImGui::SliderFloat("Fog Falloff", &renderer_settings.fog_falloff, 0.0001f, 0.01f);
                     ImGui::SliderFloat("Fog Density", &renderer_settings.fog_density, 0.0001f, 0.01f);
@@ -1183,7 +1183,7 @@ namespace adria
                     static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR" };
                     static int tone_map_operator = static_cast<int>(renderer_settings.tone_map_op);
                     ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
-                    renderer_settings.tone_map_op = static_cast<ToneMap>(tone_map_operator);
+                    renderer_settings.tone_map_op = static_cast<EToneMap>(tone_map_operator);
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
@@ -1214,7 +1214,7 @@ namespace adria
                             light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
                             light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
                             light_params.light_data.position = DirectX::XMVectorSet(real() * 500 - 250, real() * 500.0f, real() * 500 - 250, 1.0f);
-                            light_params.light_data.type = LightType::ePoint;
+                            light_params.light_data.type = ELightType::Point;
                             light_params.mesh_type = LightMesh::eNoMesh;
                             light_params.light_data.range = real() * 100.0f + 40.0f;
                             light_params.light_data.active = true;

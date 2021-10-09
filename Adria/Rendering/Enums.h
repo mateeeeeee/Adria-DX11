@@ -35,116 +35,117 @@ namespace adria
 	DECLARE_TEXTURE_SLOT(ROCK, 2);
 	DECLARE_TEXTURE_SLOT(SAND, 3);
 	
-	enum class StandardShader : u8
+	enum class EShader : u8
 	{
-		eSkybox,
-		eTexture,
-		eSolid,
-		eSun,
-		eBillboard,
-		eGbufferPBR,
-		eAmbientPBR,
-		eAmbientPBR_AO,
-		eAmbientPBR_IBL,
-		eAmbientPBR_AO_IBL,
-		eLightingPBR,
-		eClusterLightingPBR,
-		eToneMap_Reinhard,
-		eToneMap_Hable,
-		eToneMap_Linear,
-		eFXAA,
-		eTAA,
-		eCopy,
-		eAdd,
-		eDepthMap,
-		eDepthMap_Transparent,
-		eVolumetric_Directional,
-		eVolumetric_DirectionalCascades,
-		eVolumetric_Spot,
-		eVolumetric_Point,
-		eVolumetric_Clouds,
-		eSSAO,
-		eSSR,
-		eHBAO,
-		eGodRays,
-		eMotionBlur,
-		eDof,
-		eFog,
-		eOcean,
-		eVoxelGI,
-		eVelocityBuffer,
-        eUnknown
+		Skybox,
+		Sky,
+		Texture,
+		Solid,
+		Sun,
+		Billboard,
+		GbufferPBR,
+		AmbientPBR,
+		AmbientPBR_AO,
+		AmbientPBR_IBL,
+		AmbientPBR_AO_IBL,
+		LightingPBR,
+		ClusterLightingPBR,
+		ToneMap_Reinhard,
+		ToneMap_Hable,
+		ToneMap_Linear,
+		FXAA,
+		TAA,
+		Copy,
+		Add,
+		DepthMap,
+		DepthMap_Transparent,
+		Volumetric_Directional,
+		Volumetric_DirectionalCascades,
+		Volumetric_Spot,
+		Volumetric_Point,
+		Volumetric_Clouds,
+		SSAO,
+		SSR,
+		HBAO,
+		GodRays,
+		MotionBlur,
+		DOF,
+		Fog,
+		Ocean,
+		VoxelGI,
+		VelocityBuffer,
+        Unknown
 	};
 
-	enum class ComputeShader : u8
+	enum class EComputeShader : u8
 	{
-		eBlur_Horizontal,
-		eBlur_Vertical,
-		eBloomExtract,
-		eBloomCombine,
-		eBokehGenerate,
-		eOceanInitialSpectrum,
-		eOceanSpectrum,
-		eOceanFFT_Horizontal,
-		eOceanFFT_Vertical,
-		eOceanNormalMap,
-		eOceanPhase,
-		eTiledLighting,
-		eClusterBuilding,
-		eClusterCulling,
-		eVoxelCopy,
-		eVoxelSecondBounce
+		Blur_Horizontal,
+		Blur_Vertical,
+		BloomExtract,
+		BloomCombine,
+		BokehGenerate,
+		OceanInitialSpectrum,
+		OceanSpectrum,
+		OceanFFT_Horizontal,
+		OceanFFT_Vertical,
+		OceanNormalMap,
+		OceanPhase,
+		TiledLighting,
+		ClusterBuilding,
+		ClusterCulling,
+		VoxelCopy,
+		VoxelSecondBounce
 	};
 
-	enum class GeometryShader : u8
+	enum class EGeometryShader : u8
 	{
-		eLensFlare,
-		eBokehDraw,
-		eVoxelize,
-		eVoxelizeDebug
+		LensFlare,
+		BokehDraw,
+		Voxelize,
+		VoxelizeDebug
 	};
 
-	enum class TesselationShader : u8
+	enum class ETesselationShader : u8
 	{
-		eOcean
+		Ocean
 	};
 
-	enum class ToneMap : u8
+	enum class EToneMap : u8
 	{
-		eReinhard,
-		eHable,
-		eLinear
+		Reinhard,
+		Hable,
+		Linear
 	};
 
-	enum class LightType : i32
+	enum class ELightType : i32
 	{
-		eDirectional,
-		ePoint,
-		eSpot
+		Directional,
+		Point,
+		Spot
 	};
 
-	enum class FogType : i32
+	enum class EFogType : i32
 	{
-		eExponential, 
-		eExponentialHeight
+		Exponential, 
+		ExponentialHeight
 	};
 
-	enum class AmbientOcclusion : u8
+	enum class EAmbientOcclusion : u8
 	{
-		eNone,
-		eSSAO,
-		eHBAO
+		None,
+		SSAO,
+		HBAO
 	};
 
-	enum class BokehType : u8
+	enum class EBokehType : u8
 	{
-		eHex,
-		eOct,
-		eCircle,
-		eCross
+		Hex,
+		Oct,
+		Circle,
+		Cross
 	};
 
-	enum AntiAliasing : u8
+	enum EAntiAliasing : u8
 	{
 		AntiAliasing_None = 0x0,
 		AntiAliasing_FXAA = 0x1,
@@ -158,5 +159,4 @@ namespace adria
 		GBUFFER_EMISSIVE,
 		GBUFFER_SIZE
 	};
-
 }

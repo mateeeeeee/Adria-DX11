@@ -66,25 +66,25 @@ namespace adria
 		}
 	}
 
-	SkyParameters CalculateSkyParameters(float turbidity, float albedo, XMFLOAT3 sun_direction)
+	SkyParameters CalculateSkyParameters(f32 turbidity, f32 albedo, XMFLOAT3 sun_direction)
 	{
-		float sun_theta = std::acos(std::clamp(sun_direction.y, 0.f, 1.f)); //assumes sun moves in 2d plane, not true in this engine
+		float sun_theta = std::acos(std::clamp(sun_direction.y, 0.f, 1.f)); //assumes normalized sun direction
 
 		SkyParameters params{};
 		for (size_t i = 0; i < (size_t)ESkyParams::Z; ++i)
 		{
 			auto& param = params[i];
-			param.x = Evaluate(datasetsRGB[0] + i, 9, turbidity, albedo, sun_theta);
-			param.y = Evaluate(datasetsRGB[1] + i, 9, turbidity, albedo, sun_theta);
-			param.z = Evaluate(datasetsRGB[2] + i, 9, turbidity, albedo, sun_theta);
+			param.x = (float)Evaluate(datasetsRGB[0] + i, 9, turbidity, albedo, sun_theta);
+			param.y = (float)Evaluate(datasetsRGB[1] + i, 9, turbidity, albedo, sun_theta);
+			param.z = (float)Evaluate(datasetsRGB[2] + i, 9, turbidity, albedo, sun_theta);
 		}
 
 		auto& paramZ = params[(size_t)ESkyParams::Z];
-		paramZ.x = Evaluate(datasetsRGBRad[0], 1, turbidity, albedo, sun_theta);
-		paramZ.y = Evaluate(datasetsRGBRad[1], 1, turbidity, albedo, sun_theta);
-		paramZ.z = Evaluate(datasetsRGBRad[2], 1, turbidity, albedo, sun_theta);
+		paramZ.x = (float)Evaluate(datasetsRGBRad[0], 1, turbidity, albedo, sun_theta);
+		paramZ.y = (float)Evaluate(datasetsRGBRad[1], 1, turbidity, albedo, sun_theta);
+		paramZ.z = (float)Evaluate(datasetsRGBRad[2], 1, turbidity, albedo, sun_theta);
 
-		XMFLOAT3 S = HosekWilkie(std::cos(sun_theta), 0, 1.0f,
+		XMFLOAT3 S = HosekWilkie(std::cos(sun_theta), 0.0f, 1.0f,
 			params[(size_t)ESkyParams::A],
 			params[(size_t)ESkyParams::B],
 			params[(size_t)ESkyParams::C],

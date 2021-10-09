@@ -12,6 +12,6 @@ float4 main(VertexOut pin) : SV_TARGET
 
     float3 col = HosekWilkieSky(dir, light_dir.xyz);
 
-    return float4(col, 1.0);
+    return float4(-col, 1.0);
     
 }

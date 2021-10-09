@@ -77,7 +77,7 @@ namespace adria
 		f32 emissive_factor		= 1.0f;
 
 		DirectX::XMFLOAT3 diffuse = DirectX::XMFLOAT3(1, 1, 1);
-		StandardShader shader = StandardShader::eUnknown;
+		EShader shader = EShader::Unknown;
 	};
 
 	struct COMPONENT Light
@@ -87,7 +87,7 @@ namespace adria
 		DirectX::XMVECTOR color		= DirectX::XMVectorSet(1, 1, 1, 1);
 		f32 energy = 1.0f;
 		f32 range = 100.0f;
-		LightType type = LightType::eDirectional;
+		ELightType type = ELightType::Directional;
 		f32 outer_cosine = cos(pi<f32> / 4);
 		f32 inner_cosine = cos(pi<f32> / 8);
 		bool casts_shadows = false;

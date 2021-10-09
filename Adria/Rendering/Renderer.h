@@ -104,10 +104,10 @@ namespace adria
 		Texture2D velocity_buffer;
 
 		//shaders
-		std::unordered_map<StandardShader, StandardProgram> standard_programs;
-		std::unordered_map<ComputeShader, ComputeProgram>  compute_programs;
-		std::unordered_map<GeometryShader, GeometryProgram> geometry_programs;
-		std::unordered_map<TesselationShader, TessellationProgram> tesselation_programs;
+		std::unordered_map<EShader, StandardProgram> standard_programs;
+		std::unordered_map<EComputeShader, ComputeProgram>  compute_programs;
+		std::unordered_map<EGeometryShader, GeometryProgram> geometry_programs;
+		std::unordered_map<ETesselationShader, TessellationProgram> tesselation_programs;
 		
 		//render passes
 		
@@ -223,7 +223,7 @@ namespace adria
 		void UpdateLights();
 		void UpdateVoxelData();
 		void CameraFrustumCulling();
-		void LightFrustumCulling(LightType type);
+		void LightFrustumCulling(ELightType type);
 		
 		//called in render
 		void PassGBuffer();
@@ -245,9 +245,9 @@ namespace adria
 		void PassShadowMapCascades(Light const& light);
 		void PassVolumetric(Light const& light);
 		
-
 		//called in forward pass
 		void PassSkybox();
+		void PassSky();
 		void PassOcean();
 		void PassForwardCommon(bool transparent);
 		

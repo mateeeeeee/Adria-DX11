@@ -388,7 +388,7 @@ namespace adria
                     material.emissive_texture = texture_manager.LoadTexture(texemissive);
                     material.emissive_factor = (f32)gltf_material.emissiveFactor[0];
                 }
-                material.shader = StandardShader::eGbufferPBR;
+                material.shader = EShader::GbufferPBR;
 
                 reg.emplace<Material>(e, material);
 
@@ -487,7 +487,7 @@ namespace adria
     {
         entity light = reg.create();
 
-        if (params.light_data.type == LightType::eDirectional)
+        if (params.light_data.type == ELightType::Directional)
             const_cast<light_parameters_t&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
   
         reg.emplace<Light>(light, params.light_data);
@@ -521,13 +521,13 @@ namespace adria
 
             if (params.light_texture.has_value())
                 material.albedo_texture = texture_manager.LoadTexture(params.light_texture.value()); //
-            else if(params.light_data.type == LightType::eDirectional)
+            else if(params.light_data.type == ELightType::Directional)
                 material.albedo_texture = texture_manager.LoadTexture(L"Resources/Textures/sun.png");
 
-            if (params.light_data.type == LightType::eDirectional)
-                material.shader = StandardShader::eSun;
+            if (params.light_data.type == ELightType::Directional)
+                material.shader = EShader::Sun;
             else if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
-                material.shader = StandardShader::eBillboard;
+                material.shader = EShader::Billboard;
             else GLOBAL_LOG_ERROR("Light with quad mesh needs diffuse texture!");
 
             reg.emplace<Material>(light, material); 
@@ -539,7 +539,7 @@ namespace adria
             reg.emplace<Visibility>(light, aabb, true, false);
             reg.emplace<Transform>(light, translation_matrix, translation_matrix);
             //sun rendered in separate pass
-            if (params.light_data.type != LightType::eDirectional) reg.emplace<Forward>(light, true);
+            if (params.light_data.type != ELightType::Directional) reg.emplace<Forward>(light, true);
         }
         else if (params.mesh_type == LightMesh::eSphere)
         {
@@ -566,13 +566,13 @@ namespace adria
 
         switch (params.light_data.type)
         {
-        case LightType::eDirectional:
+        case ELightType::Directional:
             reg.emplace<Tag>(light, "Directional Light");
             break;
-        case LightType::eSpot:
+        case ELightType::Spot:
             reg.emplace<Tag>(light, "Spot Light");
             break;
-        case LightType::ePoint:
+        case ELightType::Point:
             reg.emplace<Tag>(light, "Point Light");
             break;
         }
@@ -589,7 +589,7 @@ namespace adria
         Material ocean_material{};
         ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
 
-        ocean_material.shader = StandardShader::eUnknown; //not necessary
+        ocean_material.shader = EShader::Unknown; //not necessary
 
         Ocean ocean_component{};
 

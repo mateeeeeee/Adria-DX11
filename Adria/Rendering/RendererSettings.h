@@ -10,7 +10,7 @@ namespace adria
 		f32 wind_direction[2] = { 10.0f, 10.0f };
 
 		bool fog = false;
-		FogType fog_type = FogType::eExponential;
+		EFogType fog_type = EFogType::Exponential;
 		f32 fog_falloff = 0.005f;
 		f32 fog_density = 0.002f;
 		f32 fog_start = 100.0f;
@@ -21,15 +21,15 @@ namespace adria
 		bool shadow_transparent = false;
 		f32 split_lambda = 0.5f;
 		
-		AntiAliasing anti_aliasing = AntiAliasing_None;
+		EAntiAliasing anti_aliasing = AntiAliasing_None;
 		
 		f32 tone_map_exposure = 1.0f;
-		ToneMap tone_map_op = ToneMap::eHable;
+		EToneMap tone_map_op = EToneMap::Hable;
 		//motion blur
 		bool motion_blur = false;
 		f32 velocity_buffer_scale = 64.0f;
 		//ao
-		AmbientOcclusion ambient_occlusion = AmbientOcclusion::eNone;
+		EAmbientOcclusion ambient_occlusion = EAmbientOcclusion::None;
 		f32   ssao_power = 4.0f;
 		f32   ssao_radius = 1.0f;
 		f32   hbao_power = 1.5f;
@@ -55,7 +55,7 @@ namespace adria
 		bool bloom = false;
 		f32 bloom_threshold = 0.25f;
 		f32 bloom_scale = 2.0f;
-		BokehType bokeh_type = BokehType::eHex;
+		EBokehType bokeh_type = EBokehType::Hex;
 		//clouds
 		bool clouds = false;
 		f32 crispiness = 43.0f;
@@ -93,6 +93,8 @@ namespace adria
 		bool recreate_initial_spectrum = true;
 		bool ocean_color_changed = false;
 		//sky
+		f32 turbidity = 2.0f;
+		f32 ground_albedo = 0.1f;
 	};
 
 }

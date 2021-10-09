@@ -131,7 +131,7 @@ namespace adria
 		light_params.light_data.color = DirectX::XMVectorSet(1.0f, 0.9f, 0.99f, 1.0f);
 		light_params.light_data.energy = 8;
 		light_params.light_data.direction = DirectX::XMVectorSet(0.1f, -1.0f, 0.25f, 0.0f);
-		light_params.light_data.type = LightType::eDirectional;
+		light_params.light_data.type = ELightType::Directional;
 		light_params.light_data.active = true;
 		light_params.light_data.use_cascades = true;
 		light_params.light_data.volumetric = false;

@@ -226,7 +226,7 @@ float ExponentialHeightFog(float4 pos_vs)
 
 float3 HosekWilkie(float cos_theta, float gamma, float cos_gamma)
 {
-    float3 chi = (1 + cos_gamma * cos_gamma) / pow(1 + H * H - 2 * cos_gamma * H, float3(1.5));
+    float3 chi = (1 + cos_gamma * cos_gamma) / pow(1 + H * H - 2 * cos_gamma * H, float3(1.5f, 1.5f, 1.5f));
     return (1 + A * exp(B / (cos_theta + 0.01))) * (C + D * exp(E * gamma) + F * (cos_gamma * cos_gamma) + G * chi + I * sqrt(cos_theta));
 }
 
@@ -234,9 +234,9 @@ float3 HosekWilkieSky(float3 v, float3 sun_dir)
 {
     float cos_theta = clamp(v.y, 0, 1);
     float cos_gamma = clamp(dot(v, sun_dir), 0, 1);
-    float gamma_ = acos(cos_gamma);
+    float gamma = acos(cos_gamma);
 
-    float3 R = Z * HosekWilkie(cos_theta, gamma_, cos_gamma);
+    float3 R = Z * HosekWilkie(cos_theta, gamma, cos_gamma);
     return R;
 }
 
