@@ -36,6 +36,7 @@ Graphics engine written in C++/DirectX11.
 * Ocean FFT
     - Adaptive Tesselation
     - Foam
+* Hosek-Wilkie Sky Model
 * ImGui Editor
 * Model Loading with tinygltf
 * Profiler
@@ -93,8 +94,11 @@ Ocean and Lens Flare
 Bokeh
 ![alt text](Screenshots/bokeh.png "Bokeh")
 
-Volumetric Clouds and God Rays
-![alt text](Screenshots/clouds.gif "Clouds")
+Volumetric Clouds
+![alt text](Screenshots/clouds.png "Clouds")
+
+Hosek-Wilkie Sky Model
+![alt text](Screenshots/hosek_wilkie.png "Hosek-Wilkie")
 
 
 
