@@ -14,20 +14,22 @@ struct ID3D11Device;
 
 namespace adria
 {
-    enum class LightMesh
+    enum class ELightMesh
     {
-        eNoMesh,
-        eQuad,
-        eSphere
+        
+        NoMesh,
+        Quad,
+        Sphere
     };
 
     struct light_parameters_t
     {
         Light light_data;
-        LightMesh mesh_type = LightMesh::eNoMesh;
+        ELightMesh mesh_type = ELightMesh::NoMesh;
         u32 mesh_size = 0u;
         std::optional<std::string> light_texture = std::nullopt;
     };
+
 	struct model_parameters_t
 	{
         std::string model_path = "";
@@ -35,11 +37,13 @@ namespace adria
         DirectX::XMMATRIX model_matrix = DirectX::XMMatrixIdentity();
         f32 model_scale = 1.0f;
 	};
+
     struct skybox_parameters_t
     {
         std::optional<std::wstring> cubemap;
         std::array<std::string, 6> cubemap_textures;
     };
+
     struct grid_parameters_t
     {
         u64 tile_count_x;
@@ -51,9 +55,10 @@ namespace adria
         u64 chunk_count_x;
         u64 chunk_count_z;
         bool split_to_chunks = false;
-        NormalCalculation normal_type = NormalCalculation::eNone;
+        ENormalCalculation normal_type = ENormalCalculation::None;
         std::unique_ptr<Heightmap> heightmap = nullptr;
     };
+
     struct ocean_parameters_t
     {
         grid_parameters_t ocean_grid;

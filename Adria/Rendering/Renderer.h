@@ -14,6 +14,8 @@
 #include "../Graphics/RenderPass.h"
 #include "../Graphics/Profiler.h"
 #include "../Graphics/StructuredBuffer.h"
+#include "../Graphics/VertexBuffer.h"
+#include "../Graphics/IndexBuffer.h"
 #include "../Graphics/Texture3D.h"
 
 namespace adria
@@ -182,6 +184,9 @@ namespace adria
 		std::unique_ptr<StructuredBuffer<u32>>			light_counter = nullptr;
 		std::unique_ptr<StructuredBuffer<u32>>			light_list = nullptr;
 		std::unique_ptr<StructuredBuffer<LightGrid>>	light_grid = nullptr;
+
+		VertexBuffer cube_vb;
+		IndexBuffer cube_ib;
 
 		//samplers
 		Microsoft::WRL::ComPtr<ID3D11SamplerState>			linear_wrap_sampler;

@@ -14,26 +14,6 @@ namespace adria
 	public:
 		VertexBuffer() = default;
 
-		void Create(ID3D11Device* device, void const* p_data, u32 vertex_count, u32 stride, bool dynamic = false)
-		{
-
-			D3D11_BUFFER_DESC vbd = {};
-			vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-			vbd.Usage = dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
-			vbd.CPUAccessFlags = dynamic ? D3D11_CPU_ACCESS_WRITE : 0u;
-			vbd.MiscFlags = 0u;
-			vbd.ByteWidth = stride * vertex_count;
-			vbd.StructureByteStride = stride;
-
-			D3D11_SUBRESOURCE_DATA data{};
-			data.pSysMem = p_data;
-
-			device->CreateBuffer(&vbd, &data, buffer.GetAddressOf());
-			this->stride = stride;
-			this->vertex_count = vertex_count;
-
-		}
-
 		template<typename vertex_t>
 		void Create(ID3D11Device* device, vertex_t const* vertices, u32 vertices_count, bool dynamic = false)
 		{

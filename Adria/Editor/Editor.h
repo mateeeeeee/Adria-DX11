@@ -11,7 +11,7 @@
 namespace adria
 {
     struct Material;
-    enum class MaterialTextureType;
+    enum class EMaterialTextureType;
     struct EditorLogger;
 
 	struct editor_init_t
@@ -66,7 +66,7 @@ namespace adria
 
         void StatsAndProfiling();
 
-        void OpenMaterialFileDialog(Material* mat, MaterialTextureType type);
+        void OpenMaterialFileDialog(Material* mat, EMaterialTextureType type);
 	};
 }
 

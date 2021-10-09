@@ -492,7 +492,7 @@ namespace adria
   
         reg.emplace<Light>(light, params.light_data);
 
-        if (params.mesh_type == LightMesh::eQuad)
+        if (params.mesh_type == ELightMesh::Quad)
         {
             u32 const size = params.mesh_size;
             std::vector<TexturedVertex> const vertices =
@@ -541,7 +541,7 @@ namespace adria
             //sun rendered in separate pass
             if (params.light_data.type != ELightType::Directional) reg.emplace<Forward>(light, true);
         }
-        else if (params.mesh_type == LightMesh::eSphere)
+        else if (params.mesh_type == ELightMesh::Sphere)
         {
             //load sphere mesh and mesh component
            //Mesh sphere_mesh{};

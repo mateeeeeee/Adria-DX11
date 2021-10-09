@@ -537,7 +537,6 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SkyboxPS.cso", ps_blob);
 			standard_programs[EShader::Skybox].Create(device, vs_blob, ps_blob);
 
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SkyVS.cso", vs_blob);
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SkyPS.cso", ps_blob);
 			standard_programs[EShader::Sky].Create(device, vs_blob, ps_blob);
 
@@ -978,6 +977,44 @@ namespace adria
 		light_counter = std::make_unique<StructuredBuffer<u32>>(device, 1);
 		light_list = std::make_unique<StructuredBuffer<u32>>(device, CLUSTER_COUNT * CLUSTER_MAX_LIGHTS);
 		light_grid = std::make_unique<StructuredBuffer<LightGrid>>(device, CLUSTER_COUNT);
+
+		//for sky
+		const SimpleVertex cube_vertices[8] = 
+		{
+			XMFLOAT3{ -1.0, -1.0,  1.0 },
+			XMFLOAT3{ 1.0, -1.0,  1.0 },
+			XMFLOAT3{ 1.0,  1.0,  1.0 },
+			XMFLOAT3{ -1.0,  1.0,  1.0 },
+			XMFLOAT3{ -1.0, -1.0, -1.0 },
+			XMFLOAT3{ 1.0, -1.0, -1.0 },
+			XMFLOAT3{ 1.0,  1.0, -1.0 },
+			XMFLOAT3{ -1.0,  1.0, -1.0 }
+		};
+
+		const uint16_t cube_indices[36] = 
+		{
+			// front
+			0, 1, 2,
+			2, 3, 0,
+			// right
+			1, 5, 6,
+			6, 2, 1,
+			// back
+			7, 6, 5,
+			5, 4, 7,
+			// left
+			4, 0, 3,
+			3, 7, 4,
+			// bottom
+			4, 5, 1,
+			1, 0, 4,
+			// top
+			3, 2, 6,
+			6, 7, 3
+		};
+
+		cube_vb.Create(device, cube_vertices, _countof(cube_vertices));
+		cube_ib.Create(device, cube_indices, _countof(cube_indices));
 	}
 
 	void Renderer::CreateSamplers()
@@ -3254,10 +3291,22 @@ namespace adria
 	void Renderer::PassSky()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		context->IASetInputLayout(nullptr);
-		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+
+		object_cbuf_data.model = XMMatrixTranslationFromVector(camera->Position());
+		object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+		object_cbuffer->Update(context, object_cbuf_data);
+
+		context->RSSetState(cull_none.Get());
+		context->OMSetDepthStencilState(leq_depth.Get(), 0);
+
 		standard_programs[EShader::Sky].Bind(context);
-		context->Draw(4, 0);
+		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		cube_vb.Bind(context, 0, 0);
+		cube_ib.Bind(context, 0);
+		context->DrawIndexed(cube_ib.Count(), 0, 0);
+
+		context->OMSetDepthStencilState(nullptr, 0);
+		context->RSSetState(nullptr);
 	}
 
 	void Renderer::PassOcean()

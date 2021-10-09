@@ -12,30 +12,6 @@ namespace adria
 	public:
 		IndexBuffer() = default;
 
-		void Create(ID3D11Device* device, void const* p_data, u32 index_count, u32 stride)
-		{
-
-			D3D11_BUFFER_DESC ibd{};
-
-			ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-			ibd.ByteWidth = index_count * stride;
-			ibd.StructureByteStride = stride;
-			ibd.CPUAccessFlags = 0;
-			ibd.MiscFlags = 0;
-			ibd.Usage = D3D11_USAGE_DEFAULT;
-
-
-			D3D11_SUBRESOURCE_DATA data{};
-			data.pSysMem = p_data;
-
-			device->CreateBuffer(&ibd, &data, buffer.GetAddressOf());
-
-			this->index_count = index_count;
-
-			format = DXGI_FORMAT_R32_UINT;
-
-		}
-
 		template<typename index_t>
 		void Create(ID3D11Device* device, index_t const* indices, u32 index_count)
 		{
@@ -69,6 +45,11 @@ namespace adria
 		void Bind(ID3D11DeviceContext* context, u32 offset = 0u) const
 		{
 			context->IASetIndexBuffer(buffer.Get(), format, offset);
+		}
+
+		u32 Count() const
+		{
+			return index_count;
 		}
 
 	private:

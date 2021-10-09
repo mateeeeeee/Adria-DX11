@@ -723,9 +723,6 @@
     <FxCompile Include="Resources\Shaders\Postprocess\VelocityBufferPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\SkyVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\SkyPS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
