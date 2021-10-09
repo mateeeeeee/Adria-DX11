@@ -898,6 +898,23 @@ namespace adria
 
 		}
 
+		//instancing shaders
+		{
+			ShaderBlob vs_blob, ps_blob;
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FoliageVS.cso", vs_blob);
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FoliagePS.cso", ps_blob);
+			standard_programs[EShader::Foliage].Create(device, vs_blob, ps_blob, false);
+
+			std::vector<D3D11_INPUT_ELEMENT_DESC> input_desc = { 
+				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "INSTANCE_OFFSET", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
+			};
+
+			device->CreateInputLayout(input_desc.data(), (UINT)input_desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(),
+				standard_programs[EShader::Foliage].il.GetAddressOf());
+		}
+
 	}
 	void Renderer::LoadTextures()
 	{
@@ -1136,6 +1153,19 @@ namespace adria
 		bs_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 
 		device->CreateBlendState(&bs_desc, alpha_blend.GetAddressOf());
+
+		// Clear the blend state description.
+		bs_desc = {};
+		bs_desc.AlphaToCoverageEnable = FALSE;
+		bs_desc.RenderTarget[0].BlendEnable = TRUE;
+		bs_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+		bs_desc.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+		bs_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		bs_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		bs_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		bs_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		bs_desc.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+		device->CreateBlendState(&bs_desc, alpha_to_coverage.GetAddressOf());
 
 		D3D11_DEPTH_STENCIL_DESC ds_desc = CommonStates::DepthDefault();
 		device->CreateDepthStencilState(&ds_desc, leq_depth.GetAddressOf());
@@ -2204,6 +2234,8 @@ namespace adria
 		{
 			auto& visibility = visibility_view.get(e);
 
+			if (visibility.skip_culling) continue;
+
 			visibility.camera_visible = camera_frustum.Intersects(visibility.aabb) || reg.has<Light>(e); //dont cull lights for now
 		}
 	}
@@ -2219,6 +2251,8 @@ namespace adria
 			if (reg.has<Light>(e)) continue; 
 
 			auto& visibility = visibility_view.get(e);
+
+			if (visibility.skip_culling) continue;
 
 			switch (type)
 			{
@@ -2240,7 +2274,7 @@ namespace adria
 	void Renderer::PassGBuffer()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, ProfilerBlock::eGBufferPass, profiler_settings.profile_gbuffer_pass);
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
 		
 		std::vector<ID3D11ShaderResourceView*> nullSRVs(gbuffer.size() + 1, nullptr);
 		context->PSSetShaderResources(0, static_cast<u32>(nullSRVs.size()), nullSRVs.data());
@@ -2316,11 +2350,11 @@ namespace adria
 				{
 					auto const& states = reg.get<RenderState>(e);
 
-					states.Bind(context);
+					ResolveCustomRenderState(states, false);
 
 					mesh.Draw(context);
 
-					states.Unbind(context);
+					ResolveCustomRenderState(states, true);
 				}
 				else mesh.Draw(context);
 			}
@@ -2435,7 +2469,7 @@ namespace adria
 	void Renderer::PassDeferredLighting()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, ProfilerBlock::eDeferredPass, profiler_settings.profile_deferred_pass);
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::DeferredPass, profiler_settings.profile_deferred_pass);
 
 		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
 		auto lights = reg.view<Light>();
@@ -2708,12 +2742,11 @@ namespace adria
 	void Renderer::PassForward()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, ProfilerBlock::eForwardPass, profiler_settings.profile_forward_pass);
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::ForwardPass, profiler_settings.profile_forward_pass);
 
 		forward_pass.Begin(context); 
 		PassOcean();
 		PassForwardCommon(false);
-		//PassSkybox();
 		PassSky();
 		PassForwardCommon(true);
 		forward_pass.End(context);
@@ -2883,7 +2916,7 @@ namespace adria
 	void Renderer::PassPostprocessing()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, ProfilerBlock::ePostprocessing, profiler_settings.profile_postprocessing);
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::Postprocessing, profiler_settings.profile_postprocessing);
 
 		PassVelocityBuffer();
 
@@ -3302,15 +3335,12 @@ namespace adria
 
 		context->OMSetDepthStencilState(nullptr, 0);
 		context->RSSetState(nullptr);
-
 	}
-
 	void Renderer::PassOcean()
 	{
 		if (reg.size<Ocean>() == 0) return;
 
 		ID3D11DeviceContext* context = gfx->Context();
-
 		if (renderer_settings.ocean_wireframe) context->RSSetState(wireframe.Get());
 		
 		auto skyboxes = reg.view<Skybox>();
@@ -3397,11 +3427,20 @@ namespace adria
 
 			auto const* states = reg.get_if<RenderState>(e);
 				
-			if(states) states->Bind(context);
+			if (states) ResolveCustomRenderState(*states, false);
 
-			mesh.Draw(context);
-
-			if (states) states->Unbind(context);
+			if (auto const* instance = reg.get_if<InstanceComponent>(e)) //refactor this
+			{
+				mesh.vb->Bind(context, 0);
+				instance->instance_buffer.Bind(context, 1);
+				context->IASetPrimitiveTopology(mesh.topology);
+				context->DrawInstanced(mesh.vertex_count, instance->instance_count, mesh.vertex_offset, instance->start_instance_location);
+			}
+			else
+			{
+				mesh.Draw(context);
+			}
+			if (states) ResolveCustomRenderState(*states, true);
 		}
 
 		if (transparent) context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
@@ -3982,6 +4021,43 @@ namespace adria
 		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
 
 	}
+
+	void Renderer::ResolveCustomRenderState(RenderState const& state, bool reset)
+	{
+		ID3D11DeviceContext* context = gfx->Context();
+
+		if (reset)
+		{
+			if(state.blend_state != EBlendState::None) context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+			if(state.depth_state != EDepthState::None) context->OMSetDepthStencilState(nullptr, 0);
+			if(state.raster_state != ERasterizerState::None) context->RSSetState(nullptr);
+			return;
+		}
+
+		switch (state.blend_state)
+		{
+			case EBlendState::AlphaToCoverage:
+			{
+				FLOAT factors[4] = {};
+				context->OMSetBlendState(alpha_to_coverage.Get(), factors, 0xffffffff);
+				break;
+			}
+			case EBlendState::AlphaBlend:
+			{
+				context->OMSetBlendState(alpha_blend.Get(), nullptr, 0xffffffff);
+				break;
+			}
+			case EBlendState::AdditiveBlend:
+			{
+				context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
+				break;
+			}
+		}
+
+
+
+	}
+
 }
 
 

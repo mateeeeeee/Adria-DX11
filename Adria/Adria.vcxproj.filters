@@ -729,5 +729,11 @@
     <FxCompile Include="Resources\Shaders\Misc\UniformColorSkyPS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Misc\FoliageVS.hlsl">
+      <Filter>Shaders\Misc</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Misc\FoliagePS.hlsl">
+      <Filter>Shaders\Misc</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

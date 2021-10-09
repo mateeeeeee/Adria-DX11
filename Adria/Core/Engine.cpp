@@ -110,7 +110,7 @@ namespace adria
 	{
 
 		skybox_parameters_t skybox_params{};
-		skybox_params.cubemap = L"Resources/Textures/Skybox/monoLake.hdr"; 
+		skybox_params.cubemap = L"Resources/Textures/Skybox/sunsetcube1024.dds"; 
 
 		entity_loader->LoadSkybox(skybox_params);
 
@@ -140,6 +140,17 @@ namespace adria
 		light_params.mesh_size = 250;
 		
 		entity_loader->LoadLight(light_params);
+
+		foliage_parameters_t foliage_params{};
+		foliage_params.foliage_count = 1000;
+		foliage_params.foliage_center.x = 0.0f;
+		foliage_params.foliage_center.x = 0.0f;
+		foliage_params.foliage_extents.x = 100.0f;
+		foliage_params.foliage_extents.y = 50.0f;
+		foliage_params.foliage_scale = 10.0f;
+		foliage_params.texture_path = "Resources/Textures/foliage.png";
+
+		entity_loader->LoadFoliage(foliage_params);
 
 	}
 }

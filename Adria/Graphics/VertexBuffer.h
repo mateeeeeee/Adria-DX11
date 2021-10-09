@@ -31,9 +31,8 @@ namespace adria
 
 			HRESULT hr = device->CreateBuffer(&vbd, &data, buffer.GetAddressOf());
 			BREAK_IF_FAILED(hr);
-			this->stride = sizeof(vertex_t);
-			this->vertex_count = static_cast<u32>(vertices_count);
-
+			stride = sizeof(vertex_t);
+			vertex_count = static_cast<u32>(vertices_count);
 		}
 
 		template<typename vertex_t>
@@ -50,7 +49,6 @@ namespace adria
 		template<typename vertex_t>
 		void Update(ID3D11DeviceContext* context, std::vector<vertex_t> const& vertices)
 		{
-
 			ADRIA_ASSERT(sizeof(vertex_t) == stride);
 
 			Update(context, (void*)vertices.data(), vertices.size() * sizeof(vertex_t));
@@ -74,8 +72,7 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
 		u32 stride;
 		u32 vertex_count;
-
 	};
 
-
+	
 }

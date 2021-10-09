@@ -24,7 +24,7 @@ namespace adria
 		}
 	}
 
-	void Profiler::BeginBlockProfiling(ID3D11DeviceContext* context, ProfilerBlock block)
+	void Profiler::BeginBlockProfiling(ID3D11DeviceContext* context, EProfilerBlock block)
 	{
 		UINT64 i = current_frame % FRAME_COUNT;
 		QueryData& query_data = queries[i][static_cast<size_t>(block)];
@@ -35,7 +35,7 @@ namespace adria
 		query_data.begin_called = true;
 	}
 
-	void Profiler::EndBlockProfiling(ID3D11DeviceContext* context, ProfilerBlock block)
+	void Profiler::EndBlockProfiling(ID3D11DeviceContext* context, EProfilerBlock block)
 	{
 		UINT64 i = current_frame % FRAME_COUNT;
 		QueryData& query_data = queries[i][static_cast<size_t>(block)];
@@ -64,7 +64,7 @@ namespace adria
 		for (size_t i = 0; i < old_queries.size(); ++i)
 		{
 			QueryData& query = old_queries[i];
-			ProfilerBlock block = static_cast<ProfilerBlock>(i);
+			EProfilerBlock block = static_cast<EProfilerBlock>(i);
 			if (query.begin_called && query.end_called)
 			{
 				while (context->GetData(query.disjoint_query.Get(), NULL, 0, 0) == S_FALSE)

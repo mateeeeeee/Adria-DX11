@@ -24,7 +24,7 @@ namespace adria
 	class Camera;
 	class GraphicsCoreDX11;
 	struct Light;
-	
+	struct RenderState;
 
 	class Renderer
 	{
@@ -199,6 +199,7 @@ namespace adria
 		//render states
 		Microsoft::WRL::ComPtr<ID3D11BlendState>			additive_blend;
 		Microsoft::WRL::ComPtr<ID3D11BlendState>			alpha_blend;
+		Microsoft::WRL::ComPtr<ID3D11BlendState>			alpha_to_coverage;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState>		leq_depth;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState>		scissor_enabled;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState>		cull_none;
@@ -279,5 +280,7 @@ namespace adria
 		void CopyTexture(Texture2D const& src);
 		//result is in currently set render target
 		void AddTextures(Texture2D const& src1, Texture2D const& src2);
+
+		void ResolveCustomRenderState(RenderState const&, bool);
 	};
 }

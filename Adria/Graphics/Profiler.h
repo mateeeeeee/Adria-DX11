@@ -25,21 +25,21 @@ namespace adria
 
 		Profiler(ID3D11Device* device);
 
-		void BeginBlockProfiling(ID3D11DeviceContext* context, ProfilerBlock block);
+		void BeginBlockProfiling(ID3D11DeviceContext* context, EProfilerBlock block);
 		
-		void EndBlockProfiling(ID3D11DeviceContext* context, ProfilerBlock block);
+		void EndBlockProfiling(ID3D11DeviceContext* context, EProfilerBlock block);
 
 		std::vector<std::string> GetProfilingResults(ID3D11DeviceContext* context, bool log_results = false);
 
 	private:
 		ID3D11Device* device;
 		UINT64 current_frame = 0;
-		std::array<std::array<QueryData, (size_t)ProfilerBlock::eCount>, FRAME_COUNT> queries;
+		std::array<std::array<QueryData, (size_t)EProfilerBlock::Count>, FRAME_COUNT> queries;
 	};
 
 	struct ScopedProfileBlock
 	{
-		ScopedProfileBlock(Profiler& profiler, ID3D11DeviceContext* context, ProfilerBlock block)
+		ScopedProfileBlock(Profiler& profiler, ID3D11DeviceContext* context, EProfilerBlock block)
 			: profiler{ profiler }, block{ block }, context{ context }
 		{
 			profiler.BeginBlockProfiling(context, block);
@@ -52,7 +52,7 @@ namespace adria
 
 		Profiler& profiler;
 		ID3D11DeviceContext* context;
-		ProfilerBlock block;
+		EProfilerBlock block;
 	};
 
 	#define DECLARE_SCOPED_PROFILE_BLOCK(profiler, context, block_id) ScopedProfileBlock block(profiler, context, block_id)

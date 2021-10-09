@@ -5,38 +5,38 @@
 namespace adria
 {
 	
-	constexpr FastNoiseLite::NoiseType GetNoiseType(NoiseType type)
+	constexpr FastNoiseLite::NoiseType GetNoiseType(ENoiseType type)
 	{
 		switch (type)
 		{
-		case NoiseType::eOpenSimplex2:
+		case ENoiseType::OpenSimplex2:
 			return FastNoiseLite::NoiseType_OpenSimplex2;
-		case NoiseType::eOpenSimplex2S:
+		case ENoiseType::OpenSimplex2S:
 			return FastNoiseLite::NoiseType_OpenSimplex2S;
-		case NoiseType::eCellular:
+		case ENoiseType::Cellular:
 			return FastNoiseLite::NoiseType_OpenSimplex2;
-		case NoiseType::eValueCubic:
+		case ENoiseType::ValueCubic:
 			return FastNoiseLite::NoiseType_ValueCubic;
-		case NoiseType::eValue:
+		case ENoiseType::Value:
 			return FastNoiseLite::NoiseType_Value;
-		case NoiseType::ePerlin:
+		case ENoiseType::Perlin:
 		default:
 			return FastNoiseLite::NoiseType_Perlin;
 		}
 
 		return FastNoiseLite::NoiseType_Perlin;
 	}
-	constexpr FastNoiseLite::FractalType GetFractalType(FractalType type)
+	constexpr FastNoiseLite::FractalType GetFractalType(EFractalType type)
 	{
 		switch (type)
 		{
-		case FractalType::eFBM:
+		case EFractalType::FBM:
 			return FastNoiseLite::FractalType_FBm;
-		case FractalType::eRidged:
+		case EFractalType::Ridged:
 			return FastNoiseLite::FractalType_Ridged;
-		case FractalType::ePingPong:
+		case EFractalType::PingPong:
 			return FastNoiseLite::FractalType_PingPong;
-		case FractalType::eNone:
+		case EFractalType::None:
 		default:
 			return FastNoiseLite::FractalType_None;
 		}
@@ -59,7 +59,6 @@ namespace adria
 
 		for (u32 z = 0; z < desc.depth; z++)
 		{
-
 			hm[z].resize(desc.width);
 			for (u32 x = 0; x < desc.width; x++)
 			{

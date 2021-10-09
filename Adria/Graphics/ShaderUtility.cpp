@@ -167,10 +167,6 @@ namespace adria
 			// Try to create Input Layout
 			HRESULT hr = device->CreateInputLayout(inputLayoutDesc.data(), static_cast<UINT>(inputLayoutDesc.size()), blob.GetPointer(), blob.GetLength(), 
 				il);
-
-			//Free allocation shader reflection memory
-
-
 		}
 
 	}

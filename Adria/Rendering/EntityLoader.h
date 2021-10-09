@@ -29,7 +29,6 @@ namespace adria
         u32 mesh_size = 0u;
         std::optional<std::string> light_texture = std::nullopt;
     };
-
 	struct model_parameters_t
 	{
         std::string model_path = "";
@@ -37,13 +36,11 @@ namespace adria
         DirectX::XMMATRIX model_matrix = DirectX::XMMatrixIdentity();
         f32 model_scale = 1.0f;
 	};
-
     struct skybox_parameters_t
     {
         std::optional<std::wstring> cubemap;
         std::array<std::string, 6> cubemap_textures;
     };
-
     struct grid_parameters_t
     {
         u64 tile_count_x;
@@ -58,12 +55,18 @@ namespace adria
         ENormalCalculation normal_type = ENormalCalculation::None;
         std::unique_ptr<Heightmap> heightmap = nullptr;
     };
-
     struct ocean_parameters_t
     {
         grid_parameters_t ocean_grid;
     };
-    
+    struct foliage_parameters_t
+    {
+        std::string texture_path;
+        u32 foliage_count;
+        f32 foliage_scale;
+        DirectX::XMFLOAT2 foliage_center;
+        DirectX::XMFLOAT2 foliage_extents;
+    };
    
     class TextureManager;
 
@@ -81,6 +84,8 @@ namespace adria
         [[maybe_unused]] tecs::entity LoadSkybox(skybox_parameters_t const&);
 
         [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
+
+        [[maybe_unused]] tecs::entity LoadFoliage(foliage_parameters_t const& params);
 
         [[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
 

@@ -75,6 +75,7 @@ namespace adria
 		Ocean,
 		VoxelGI,
 		VelocityBuffer,
+		Foliage,
         Unknown
 	};
 
@@ -153,6 +154,25 @@ namespace adria
 		HosekWilkie
 	};
 
+
+	enum class EBlendState
+	{
+		None,
+		AlphaToCoverage,
+		AdditiveBlend,
+		AlphaBlend
+	};
+
+	enum class EDepthState
+	{
+		None
+	};
+
+	enum class ERasterizerState
+	{
+		None
+	};
+
 	enum EAntiAliasing : u8
 	{
 		AntiAliasing_None = 0x0,
@@ -160,7 +180,7 @@ namespace adria
 		AntiAliasing_TAA = 0x2
 	};
 
-	enum GBUFFER : u8
+	enum EGbufferSlot : u8
 	{
 		GBUFFER_NORMAL_METALLIC,
 		GBUFFER_DIFFUSE_ROUGHNESS,

@@ -11,6 +11,7 @@
 #include "../Math/BoundingVolumeHelpers.h"
 #include "../Math/ComputeTangentFrame.h"
 #include "../Utilities/FilesUtil.h"
+#include "../Utilities/Random.h"
 #include "../Utilities/Heightmap.h"
 
 using namespace DirectX;
@@ -533,7 +534,71 @@ namespace adria
         }
 
         return light;
-    }
+	}
+
+	entity EntityLoader::LoadFoliage(foliage_parameters_t const& params)
+	{
+		entity foliage = reg.create();
+
+        const f32 size = params.foliage_scale;
+		const TexturedVertex quad_vertices[6] =
+		{
+			{XMFLOAT3{ 0.0f, 0.0f, 0.0f }, XMFLOAT2{ 0.0f, 1.0f }},
+			{XMFLOAT3{ 0.0f, size, 0.0f }, XMFLOAT2{ 0.0f, 0.0f }},
+			{XMFLOAT3{ size, 0.0f, 0.0f }, XMFLOAT2{ 1.0f, 1.0f }},
+			{XMFLOAT3{ size, 0.0f, 0.0f }, XMFLOAT2{ 1.0f, 1.0f }},
+			{XMFLOAT3{ 0.0f, size, 0.0f }, XMFLOAT2{ 0.0f, 0.0f }},
+			{XMFLOAT3{ size, size, 0.0f }, XMFLOAT2{ 1.0f, 0.0f }},
+		};
+
+		Mesh mesh_component{};
+		mesh_component.vb = std::make_shared<VertexBuffer>();
+		mesh_component.vb->Create(device, quad_vertices, _countof(quad_vertices));
+        mesh_component.vertex_count = _countof(quad_vertices);
+		reg.emplace<Mesh>(foliage, mesh_component);
+
+        struct FoliageInstance
+        {
+            XMFLOAT3 position;
+        };
+        //add instancing component
+
+        RealRandomGenerator<float> random_x(params.foliage_center.x - params.foliage_extents.x, params.foliage_center.x + params.foliage_extents.x);
+        RealRandomGenerator<float> random_z(params.foliage_center.y - params.foliage_extents.y, params.foliage_center.y + params.foliage_extents.y);
+        std::vector<FoliageInstance> instance_data{};
+        for (u32 i = 0; i < params.foliage_count; ++i)
+        {
+            XMFLOAT3 position;
+            position.x = random_x();
+            position.y = -0.1f;
+            position.z = random_z();
+            instance_data.emplace_back(position);
+        }
+        
+        InstanceComponent instance_component{};
+        instance_component.start_instance_location = 0;
+        instance_component.instance_buffer.Create(device, instance_data);
+        instance_component.instance_count = instance_data.size();
+        reg.emplace<InstanceComponent>(foliage, instance_component);
+
+        Material material{};
+        material.albedo_texture = texture_manager.LoadTexture(params.texture_path);
+        material.albedo_factor = 1.0f;
+		material.shader = EShader::Foliage; //change this once you add shader
+		reg.emplace<Material>(foliage, material);
+        reg.emplace<Forward>(foliage);
+		reg.emplace<Transform>(foliage);
+
+        Visibility vis{};
+        vis.skip_culling = true;
+        reg.emplace<Visibility>(foliage, vis);
+
+       //RenderState custom_state{};
+       //custom_state.blend_state = EBlendState::AlphaToCoverage;
+       //reg.emplace<RenderState>(foliage, custom_state);
+		return foliage;
+	}
+
 
     [[maybe_unused]]
     std::vector<entity> EntityLoader::LoadOcean(ocean_parameters_t const& params)

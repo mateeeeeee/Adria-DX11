@@ -5,29 +5,29 @@
 
 namespace adria
 {
-	enum class NoiseType
+	enum class ENoiseType
 	{
-		eOpenSimplex2,
-		eOpenSimplex2S,
-		eCellular,
-		ePerlin,
-		eValueCubic,
-		eValue
+		OpenSimplex2,
+		OpenSimplex2S,
+		Cellular,
+		Perlin,
+		ValueCubic,
+		Value
 	};
-	enum class FractalType
+	enum class EFractalType
 	{
-		eNone,
-		eFBM,
-		eRidged,
-		ePingPong
+		None,
+		FBM,
+		Ridged,
+		PingPong
 	};
 	struct noise_desc_t
 	{
 		u32 width;
 		u32 depth;
 		u32 max_height;
-		FractalType fractal_type = FractalType::eNone;
-		NoiseType noise_type = NoiseType::ePerlin;
+		EFractalType fractal_type = EFractalType::None;
+		ENoiseType noise_type = ENoiseType::Perlin;
 		i32 seed = 1337;
 		f32 persistence = 0.5f;
 		f32 lacunarity = 2.0f;

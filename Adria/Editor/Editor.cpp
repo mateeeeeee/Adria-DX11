@@ -815,13 +815,14 @@ namespace adria
                         }
                         else
                         {
-                            auto& mesh = engine->reg.get<Mesh>(selected_entity);
-                            auto& transform = engine->reg.get<Transform>(selected_entity);
-
-                            BoundingBox aabb = AABBFromVertices(mesh.vertices);
-                            aabb.Transform(aabb, transform.current_transform);
-
-                            engine->reg.emplace<Visibility>(selected_entity, aabb, true, true);
+                            Log::Error("This will be removed soon");
+                            //auto& mesh = engine->reg.get<Mesh>(selected_entity);
+                            //auto& transform = engine->reg.get<Transform>(selected_entity);
+                            //
+                            //BoundingBox aabb = AABBFromVertices(mesh.vertices);
+                            //aabb.Transform(aabb, transform.current_transform);
+                            //
+                            //engine->reg.emplace<Visibility>(selected_entity, aabb, true, true);
                         }
                         break;
                     case LIGHT:
