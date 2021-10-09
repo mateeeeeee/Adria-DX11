@@ -24,7 +24,7 @@ namespace adria
 		EAntiAliasing anti_aliasing = AntiAliasing_None;
 		
 		f32 tone_map_exposure = 1.0f;
-		EToneMap tone_map_op = EToneMap::Hable;
+		EToneMap tone_map_op = EToneMap::Reinhard;
 		//motion blur
 		bool motion_blur = false;
 		f32 velocity_buffer_scale = 64.0f;
@@ -34,7 +34,6 @@ namespace adria
 		f32   ssao_radius = 1.0f;
 		f32   hbao_power = 1.5f;
 		f32   hbao_radius = 2.0f;
-		
 		//ssr
 		bool ssr = false;
 		f32 ssr_ray_step = 1.60f;
@@ -93,6 +92,8 @@ namespace adria
 		bool recreate_initial_spectrum = true;
 		bool ocean_color_changed = false;
 		//sky
+		ESkyType sky_type = ESkyType::Skybox;
+		f32 sky_color[3] = { 0.53f, 0.81f, 0.92f };
 		f32 turbidity = 2.0f;
 		f32 ground_albedo = 0.1f;
 	};

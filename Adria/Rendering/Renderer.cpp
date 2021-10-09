@@ -537,8 +537,11 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SkyboxPS.cso", ps_blob);
 			standard_programs[EShader::Skybox].Create(device, vs_blob, ps_blob);
 
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SkyPS.cso", ps_blob);
-			standard_programs[EShader::Sky].Create(device, vs_blob, ps_blob);
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/HosekWilkieSkyPS.cso", ps_blob);
+			standard_programs[EShader::HosekWilkieSky].Create(device, vs_blob, ps_blob);
+
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/UniformColorSkyPS.cso", ps_blob);
+			standard_programs[EShader::UniformColorSky].Create(device, vs_blob, ps_blob);
 
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/TextureVS.cso", vs_blob);
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/TexturePS.cso", ps_blob);
@@ -2093,6 +2096,7 @@ namespace adria
 			}
 		}
 
+		weather_cbuf_data.sky_color = XMVECTOR{ renderer_settings.sky_color[0], renderer_settings.sky_color[1],renderer_settings.sky_color[2], 1.0f };
 		weather_cbuf_data.ambient_color = XMVECTOR{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1],renderer_settings.ambient_color[2], 1.0f };
 		weather_cbuf_data.wind_dir = XMVECTOR{ renderer_settings.wind_direction[0], 0.0f, renderer_settings.wind_direction[1], 0.0f };
 		weather_cbuf_data.wind_speed = renderer_settings.wind_speed;
@@ -3257,41 +3261,9 @@ namespace adria
 		context->PSSetShaderResources(2, 1, &null_srv);
 	}
 	
-	void Renderer::PassSkybox()
-	{
-		ID3D11DeviceContext* context = gfx->Context();
-
-		standard_programs[EShader::Skybox].Bind(context);
-		context->RSSetState(cull_none.Get());
-		context->OMSetDepthStencilState(leq_depth.Get(), 0);
-
-		auto skybox_view = reg.view<Mesh, Transform, Skybox>();
-
-		for (auto e : skybox_view)
-		{
-			auto const& [transformation, mesh, skybox] = skybox_view.get<Transform, Mesh, Skybox>(e);
-
-			if (!skybox.active) continue;
-
-			object_cbuf_data.model = transformation.current_transform;
-			object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
-
-			object_cbuffer->Update(context, object_cbuf_data);
-
-			auto view = texture_manager.GetTextureView(skybox.cubemap_texture);
-
-			context->PSSetShaderResources(TEXTURE_SLOT_CUBEMAP, 1, &view);
-
-			mesh.Draw(context);
-
-		}
-		context->RSSetState(nullptr);
-		context->OMSetDepthStencilState(nullptr, 0);
-	}
 	void Renderer::PassSky()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-
 		object_cbuf_data.model = XMMatrixTranslationFromVector(camera->Position());
 		object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 		object_cbuffer->Update(context, object_cbuf_data);
@@ -3299,7 +3271,30 @@ namespace adria
 		context->RSSetState(cull_none.Get());
 		context->OMSetDepthStencilState(leq_depth.Get(), 0);
 
-		standard_programs[EShader::Sky].Bind(context);
+		auto skybox_view = reg.view<Skybox>();
+		switch (renderer_settings.sky_type)
+		{
+		case ESkyType::Skybox:
+			standard_programs[EShader::Skybox].Bind(context);
+			for (auto e : skybox_view)
+			{
+				auto const& skybox = skybox_view.get(e);
+				if (!skybox.active) continue;
+				auto view = texture_manager.GetTextureView(skybox.cubemap_texture);
+				context->PSSetShaderResources(TEXTURE_SLOT_CUBEMAP, 1, &view);
+				break;
+			}
+			break;
+		case ESkyType::UniformColor:
+			standard_programs[EShader::UniformColorSky].Bind(context);
+			break;
+		case ESkyType::HosekWilkie:
+			standard_programs[EShader::HosekWilkieSky].Bind(context);
+			break;
+		default:
+			ADRIA_ASSERT(false);
+		}
+
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		cube_vb.Bind(context, 0, 0);
 		cube_ib.Bind(context, 0);
@@ -3307,6 +3302,7 @@ namespace adria
 
 		context->OMSetDepthStencilState(nullptr, 0);
 		context->RSSetState(nullptr);
+
 	}
 
 	void Renderer::PassOcean()

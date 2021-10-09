@@ -140,8 +140,10 @@ namespace adria
 	{
 		DirectX::XMVECTOR light_dir;
 		DirectX::XMVECTOR light_color;
+		DirectX::XMVECTOR sky_color;
 		DirectX::XMVECTOR ambient_color;
 		DirectX::XMVECTOR wind_dir;
+
 		f32 wind_speed;
 		f32 time;
 		f32 crispiness;

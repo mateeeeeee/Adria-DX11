@@ -37,35 +37,26 @@ namespace adria
 		std::unique_ptr<GUI> gui;
         std::unique_ptr<EditorLogger> editor_log;
         tecs::entity selected_entity = tecs::null_entity;
-        bool gizmo_enabled = true;
+        bool gizmo_enabled = false;
         bool mouse_in_scene = false;
         ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
         RendererSettings renderer_settings{};
         ProfilerSettings profiler_settings{};
 
 	private:
+
         void SetStyle();
-
         void HandleInput();
-
         void MenuBar();
-
         void OceanSettings();
-
+        void SkySettings();
         void ListEntities();
-
         void Properties();
-
         void Camera();
-
         void Scene();
-
         void Log();
-
         void RendererSettings();
-
         void StatsAndProfiling();
-
         void OpenMaterialFileDialog(Material* mat, EMaterialTextureType type);
 	};
 }

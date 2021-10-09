@@ -163,23 +163,15 @@ namespace adria
             gui->Begin();
             {
                 MenuBar();
-
                 auto dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-                
                 ListEntities();
-                
                 OceanSettings();
-
+                SkySettings();
                 Camera();
-
                 Scene();
-
                 RendererSettings();
-
                 Properties();
-                
                 Log();
-
                 StatsAndProfiling();
             }
             gui->End();
@@ -346,7 +338,7 @@ namespace adria
 
                 if (ImGui::TreeNodeEx("Ocean Settings", 0))
                 {
-                    ImGui::Checkbox("Tesselation", &renderer_settings.ocean_tesselation);
+                    ImGui::Checkbox("Tessellation", &renderer_settings.ocean_tesselation);
                     ImGui::Checkbox("Wireframe", &renderer_settings.ocean_wireframe);
 
                     renderer_settings.recreate_initial_spectrum = ImGui::SliderFloat2("Wind Direction", renderer_settings.wind_direction, 0.0f, 50.0f);
@@ -363,7 +355,68 @@ namespace adria
         ImGui::End();
     }
 
-    void Editor::ListEntities()
+	void Editor::SkySettings()
+	{
+        ImGui::Begin("Sky");
+        {
+			const char* sky_types[] = { "Skybox", "Uniform Color", "Hosek-Wilkie" };
+			static int current_sky_type = 0;
+			const char* combo_label = sky_types[current_sky_type];
+			if (ImGui::BeginCombo("Sky Type", combo_label, 0))
+			{
+				for (int n = 0; n < IM_ARRAYSIZE(sky_types); n++)
+				{
+					const bool is_selected = (current_sky_type == n);
+					if (ImGui::Selectable(sky_types[n], is_selected)) current_sky_type = n;
+					if (is_selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+
+			if (current_sky_type == 0) renderer_settings.sky_type = ESkyType::Skybox;
+			else if (current_sky_type == 1)
+			{
+				renderer_settings.sky_type = ESkyType::UniformColor;
+				static char const* const sky_colors[] = { "Deep Sky Blue", "Sky Blue", "Light Sky Blue" };
+				static int current_sky_color = 0;
+				ImGui::ListBox("Tone Map Operator", &current_sky_color, sky_colors, IM_ARRAYSIZE(sky_colors));
+
+				switch (current_sky_color)
+				{
+				case 0:
+				{
+					static f32 deep_sky_blue[3] = { 0.0f, 0.75f, 1.0f };
+					memcpy(renderer_settings.sky_color, deep_sky_blue, sizeof(deep_sky_blue));
+					break;
+				}
+				case 1:
+				{
+					static f32 sky_blue[3] = { 0.53f, 0.81f, 0.92f };
+					memcpy(renderer_settings.sky_color, sky_blue, sizeof(sky_blue));
+					break;
+				}
+				case 2:
+				{
+					static f32 light_sky_blue[3] = { 0.53f, 0.81f, 0.98f };
+					memcpy(renderer_settings.sky_color, light_sky_blue, sizeof(light_sky_blue));
+					break;
+				}
+				default:
+					ADRIA_ASSERT(false);
+				}
+			}
+			else if (current_sky_type == 2)
+			{
+				renderer_settings.sky_type = ESkyType::HosekWilkie;
+				ImGui::SliderFloat("Turbidity", &renderer_settings.turbidity, 2.0f, 30.0f);
+				ImGui::SliderFloat("Ground Albedo", &renderer_settings.ground_albedo, 0.0f, 1.0f);
+			}
+
+        }
+        ImGui::End();
+	}
+
+	void Editor::ListEntities()
     {
         auto all_entities = engine->reg.view<Tag>();
 
@@ -863,11 +916,7 @@ namespace adria
         static bool is_open = true;
 		if (is_open)
 		{
-			if (!ImGui::Begin("Camera", &is_open))
-			{
-				ImGui::End();
-			}
-			else
+			if (ImGui::Begin("Camera", &is_open))
 			{
 				f32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
 				ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
@@ -879,8 +928,8 @@ namespace adria
 				ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
 				camera.SetNearAndFar(_near, _far);
 				camera.SetFov(_fov);
-				ImGui::End();
 			}
+            ImGui::End();
 		}
     }
 
@@ -957,30 +1006,24 @@ namespace adria
         
         ImGui::Begin("Renderer Settings");
         {
-            
             if (ImGui::TreeNode("Deferred Settings"))
             {
-
-                const char* items[] = { "Regular", "Tiled", "Clustered" };
-                static int item_current_idx = 0; // Here we store our selection data as an index.
-                const char* combo_label = items[item_current_idx];  // Label to preview before opening the combo (technically it could be anything)
+                const char* deferred_types[] = { "Regular", "Tiled", "Clustered" };
+                static int current_deferred_type = 0;
+                const char* combo_label = deferred_types[current_deferred_type];
                 if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
                 {
-                    for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+                    for (int n = 0; n < IM_ARRAYSIZE(deferred_types); n++)
                     {
-                        const bool is_selected = (item_current_idx == n);
-                        if (ImGui::Selectable(items[n], is_selected))
-                            item_current_idx = n;
-
-                        // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-                        if (is_selected)
-                            ImGui::SetItemDefaultFocus();
+                        const bool is_selected = (current_deferred_type == n);
+                        if (ImGui::Selectable(deferred_types[n], is_selected)) current_deferred_type = n;
+                        if (is_selected) ImGui::SetItemDefaultFocus();
                     }
                     ImGui::EndCombo();
                 }
 
-                renderer_settings.use_tiled_deferred = (item_current_idx == 1);
-                renderer_settings.use_clustered_deferred = (item_current_idx == 2);
+                renderer_settings.use_tiled_deferred = (current_deferred_type == 1);
+                renderer_settings.use_clustered_deferred = (current_deferred_type == 2);
 
                 if (renderer_settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                 {
@@ -1017,24 +1060,21 @@ namespace adria
             {
                 //ambient oclussion
                 {
-                    const char* items[] = { "None", "SSAO", "HBAO" };
-                    static int item_current_idx = 0;
-                    const char* combo_label = items[item_current_idx];
+                    const char* ao_types[] = { "None", "SSAO", "HBAO" };
+                    static int current_ao_type = 0;
+                    const char* combo_label = ao_types[current_ao_type];
                     if (ImGui::BeginCombo("Ambient Occlusion", combo_label, 0))
                     {
-                        for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+                        for (int n = 0; n < IM_ARRAYSIZE(ao_types); n++)
                         {
-                            const bool is_selected = (item_current_idx == n);
-                            if (ImGui::Selectable(items[n], is_selected))
-                                item_current_idx = n;
-
-                            if (is_selected)
-                                ImGui::SetItemDefaultFocus();
+                            const bool is_selected = (current_ao_type == n);
+                            if (ImGui::Selectable(ao_types[n], is_selected)) current_ao_type = n;
+                            if (is_selected) ImGui::SetItemDefaultFocus();
                         }
                         ImGui::EndCombo();
                     }
 
-                    renderer_settings.ambient_occlusion = static_cast<EAmbientOcclusion>(item_current_idx);
+                    renderer_settings.ambient_occlusion = static_cast<EAmbientOcclusion>(current_ao_type);
 
                     if (renderer_settings.ambient_occlusion == EAmbientOcclusion::SSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
@@ -1149,25 +1189,21 @@ namespace adria
                 }
                 if (renderer_settings.fog && ImGui::TreeNodeEx("Fog", 0))
                 {
-                    const char* items[] = { "Exponential", "Exponential Height"};
-                    static int item_current_idx = 0; // Here we store our selection data as an index.
-                    const char* combo_label = items[item_current_idx];  // Label to preview before opening the combo (technically it could be anything)
+                    const char* fog_types[] = { "Exponential", "Exponential Height"};
+                    static int current_fog_type = 0; // Here we store our selection data as an index.
+                    const char* combo_label = fog_types[current_fog_type];  // Label to preview before opening the combo (technically it could be anything)
                     if (ImGui::BeginCombo("Fog Type", combo_label, 0))
                     {
-                        for (int n = 0; n < IM_ARRAYSIZE(items); n++)
+                        for (int n = 0; n < IM_ARRAYSIZE(fog_types); n++)
                         {
-                            const bool is_selected = (item_current_idx == n);
-                            if (ImGui::Selectable(items[n], is_selected))
-                                item_current_idx = n;
-                    
-                            // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-                            if (is_selected)
-                                ImGui::SetItemDefaultFocus();
+                            const bool is_selected = (current_fog_type == n);
+                            if (ImGui::Selectable(fog_types[n], is_selected)) current_fog_type = n;
+                            if (is_selected) ImGui::SetItemDefaultFocus();
                         }
                         ImGui::EndCombo();
                     }
                     
-                    renderer_settings.fog_type = static_cast<EFogType>(item_current_idx);
+                    renderer_settings.fog_type = static_cast<EFogType>(current_fog_type);
 
                     ImGui::SliderFloat("Fog Falloff", &renderer_settings.fog_falloff, 0.0001f, 0.01f);
                     ImGui::SliderFloat("Fog Density", &renderer_settings.fog_density, 0.0001f, 0.01f);
@@ -1265,7 +1301,6 @@ namespace adria
 
     void Editor::OpenMaterialFileDialog(Material* material, EMaterialTextureType type)
     {
-        
         if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
         {
             if (ImGuiFileDialog::Instance()->IsOk())

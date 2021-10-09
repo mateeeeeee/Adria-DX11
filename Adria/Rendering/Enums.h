@@ -38,7 +38,8 @@ namespace adria
 	enum class EShader : u8
 	{
 		Skybox,
-		Sky,
+		UniformColorSky,
+		HosekWilkieSky,
 		Texture,
 		Solid,
 		Sun,
@@ -143,6 +144,13 @@ namespace adria
 		Oct,
 		Circle,
 		Cross
+	};
+
+	enum class ESkyType : u8
+	{
+		UniformColor,
+		Skybox,
+		HosekWilkie
 	};
 
 	enum EAntiAliasing : u8

@@ -251,7 +251,6 @@ namespace adria
 		void PassVolumetric(Light const& light);
 		
 		//called in forward pass
-		void PassSkybox();
 		void PassSky();
 		void PassOcean();
 		void PassForwardCommon(bool transparent);

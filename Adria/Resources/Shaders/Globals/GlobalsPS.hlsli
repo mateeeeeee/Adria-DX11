@@ -99,6 +99,7 @@ cbuffer WeatherCBuf : register(b7)
 {
     float4 light_dir;
     float4 light_color;
+    float4 sky_color;
     float4 ambient_color;
     float4 wind_dir;
     
@@ -114,6 +115,7 @@ cbuffer WeatherCBuf : register(b7)
     
     float density_factor;
     float cloud_type;
+    
     //padd float2
     
     float3 A;
