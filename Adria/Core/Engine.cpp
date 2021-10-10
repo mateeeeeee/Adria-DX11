@@ -144,8 +144,8 @@ namespace adria
 		foliage_parameters_t foliage_params{};
 		foliage_params.foliage_count = 2500;
 		foliage_params.foliage_center.x = 0.0f;
-		foliage_params.foliage_center.x = 0.0f;
-		foliage_params.foliage_extents.x = 200.0f;
+		foliage_params.foliage_center.y = -10.0f;
+		foliage_params.foliage_extents.x = 250.0f;
 		foliage_params.foliage_extents.y = 50.0f;
 		foliage_params.foliage_scale = 10.0f;
 

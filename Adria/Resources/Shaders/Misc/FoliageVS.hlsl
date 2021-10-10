@@ -19,6 +19,15 @@ VS_OUTPUT main(VS_INPUT vin)
 
     matrix model_matrix = model;
     model_matrix[3].xyz += vin.Offset;
+    
+    if(vin.Pos.y > 0.5 * 5) //5 is hardcoded size of foliage, change this later, add wind params in gui
+    {
+        float xWindOffset = sin(time) * 2.5 * wind_speed * wind_dir.x * 0.005f;
+        float zWindOffset = sin(time) * 2.5 * wind_speed * wind_dir.z * 0.005f;
+
+        model_matrix[3].xyz += float3(xWindOffset, 0, zWindOffset);
+    }
+    
     matrix model_view = mul(model_matrix, view);
 
     model_view[0][0] = 1;

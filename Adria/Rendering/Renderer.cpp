@@ -1885,6 +1885,7 @@ namespace adria
 			frame_cbuffer->Bind(context,  ShaderStage::VS, CBUFFER_SLOT_FRAME);
 			object_cbuffer->Bind(context, ShaderStage::VS, CBUFFER_SLOT_OBJECT);
 			shadow_cbuffer->Bind(context, ShaderStage::VS, CBUFFER_SLOT_SHADOW);
+			weather_cbuffer->Bind(context, ShaderStage::VS, CBUFFER_SLOT_WEATHER);
 			voxel_cbuffer->Bind(context,  ShaderStage::VS, CBUFFER_SLOT_VOXEL);
 			context->VSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 

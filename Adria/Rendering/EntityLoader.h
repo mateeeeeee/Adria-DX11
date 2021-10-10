@@ -85,7 +85,7 @@ namespace adria
 
         [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
 
-        [[maybe_unused]] std::vector<tecs::entity> LoadFoliage(foliage_parameters_t const& params);
+        [[maybe_unused]] std::vector<tecs::entity> LoadFoliage(foliage_parameters_t const&);
 
         [[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
 
