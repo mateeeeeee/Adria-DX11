@@ -61,7 +61,7 @@ namespace adria
     };
     struct foliage_parameters_t
     {
-        std::string texture_path;
+        std::vector<std::string> textures;
         u32 foliage_count;
         f32 foliage_scale;
         DirectX::XMFLOAT2 foliage_center;
@@ -85,7 +85,7 @@ namespace adria
 
         [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
 
-        [[maybe_unused]] tecs::entity LoadFoliage(foliage_parameters_t const& params);
+        [[maybe_unused]] std::vector<tecs::entity> LoadFoliage(foliage_parameters_t const& params);
 
         [[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
 

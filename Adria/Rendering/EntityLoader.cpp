@@ -84,10 +84,10 @@ namespace adria
 
             Mesh mesh{};
             mesh.indices_count = (u32)indices.size();
-            mesh.vb = std::make_shared<VertexBuffer>();
-            mesh.ib = std::make_shared<IndexBuffer>();
-            mesh.vb->Create(device, vertices);
-            mesh.ib->Create(device, indices);
+            mesh.vertex_buffer = std::make_shared<VertexBuffer>();
+            mesh.index_buffer = std::make_shared<IndexBuffer>();
+            mesh.vertex_buffer->Create(device, vertices);
+            mesh.index_buffer->Create(device, indices);
 
             reg.emplace<Mesh>(grid, mesh);
             reg.emplace<Transform>(grid);
@@ -165,8 +165,8 @@ namespace adria
             {
                 auto& mesh = reg.get<Mesh>(chunk);
 
-                mesh.vb = vb;
-                mesh.ib = ib;
+                mesh.vertex_buffer = vb;
+                mesh.index_buffer = ib;
             }
 
         }
@@ -215,7 +215,7 @@ namespace adria
                 Mesh mesh_component{};
                 mesh_component.indices_count = static_cast<u32>(index_accessor.count);
                 mesh_component.start_index_location = static_cast<u32>(indices.size());
-                mesh_component.vertex_offset = static_cast<u32>(vertices.size());
+                mesh_component.base_vertex_location = static_cast<u32>(vertices.size());
                 switch (primitive.mode)
                 {
                 case TINYGLTF_MODE_POINTS:
@@ -411,8 +411,8 @@ namespace adria
 		for (entity e : entities)
 		{
 			auto& mesh = reg.get<Mesh>(e);
-			mesh.vb = vb;
-			mesh.ib = ib;
+			mesh.vertex_buffer = vb;
+			mesh.index_buffer = ib;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
 		}
 
@@ -464,10 +464,10 @@ namespace adria
             };
 
             Mesh mesh{};
-            mesh.vb = std::make_shared<VertexBuffer>();
-            mesh.ib = std::make_shared<IndexBuffer>();
-            mesh.vb->Create(device, vertices);
-            mesh.ib->Create(device, indices);
+            mesh.vertex_buffer = std::make_shared<VertexBuffer>();
+            mesh.index_buffer = std::make_shared<IndexBuffer>();
+            mesh.vertex_buffer->Create(device, vertices);
+            mesh.index_buffer->Create(device, indices);
             mesh.indices_count = static_cast<u32>(indices.size());
 
             reg.emplace<Mesh>(light, mesh);
@@ -536,11 +536,9 @@ namespace adria
         return light;
 	}
 
-	entity EntityLoader::LoadFoliage(foliage_parameters_t const& params)
+    std::vector<entity> EntityLoader::LoadFoliage(foliage_parameters_t const& params)
 	{
-		entity foliage = reg.create();
-
-        const f32 size = params.foliage_scale;
+		const f32 size = params.foliage_scale;
 		const TexturedVertex quad_vertices[6] =
 		{
 			{XMFLOAT3{ 0.0f, 0.0f, 0.0f }, XMFLOAT2{ 0.0f, 1.0f }},
@@ -552,51 +550,60 @@ namespace adria
 		};
 
 		Mesh mesh_component{};
-		mesh_component.vb = std::make_shared<VertexBuffer>();
-		mesh_component.vb->Create(device, quad_vertices, _countof(quad_vertices));
-        mesh_component.vertex_count = _countof(quad_vertices);
-		reg.emplace<Mesh>(foliage, mesh_component);
+		mesh_component.vertex_buffer = std::make_shared<VertexBuffer>();
+		mesh_component.vertex_buffer->Create(device, quad_vertices, _countof(quad_vertices));
+		mesh_component.vertex_count = _countof(quad_vertices);
 
-        struct FoliageInstance
-        {
-            XMFLOAT3 position;
-        };
-        //add instancing component
+		struct FoliageInstance
+		{
+			XMFLOAT3 position;
+		};
 
-        RealRandomGenerator<float> random_x(params.foliage_center.x - params.foliage_extents.x, params.foliage_center.x + params.foliage_extents.x);
-        RealRandomGenerator<float> random_z(params.foliage_center.y - params.foliage_extents.y, params.foliage_center.y + params.foliage_extents.y);
-        std::vector<FoliageInstance> instance_data{};
-        for (u32 i = 0; i < params.foliage_count; ++i)
+		RealRandomGenerator<float> random_x(params.foliage_center.x - params.foliage_extents.x, params.foliage_center.x + params.foliage_extents.x);
+		RealRandomGenerator<float> random_z(params.foliage_center.y - params.foliage_extents.y, params.foliage_center.y + params.foliage_extents.y);
+
+        std::vector<entity> foliage_entities{};
+        for (size_t i = 0; i < params.textures.size(); ++i)
         {
-            XMFLOAT3 position;
-            position.x = random_x();
-            position.y = -0.1f;
-            position.z = random_z();
-            instance_data.emplace_back(position);
+            entity foliage = reg.create();
+
+			std::vector<FoliageInstance> instance_data{};
+			for (u32 i = 0; i < params.foliage_count; ++i)
+			{
+				XMFLOAT3 position;
+				position.x = random_x();
+				position.y = -0.1f;
+				position.z = random_z();
+				instance_data.emplace_back(position);
+			}
+
+			mesh_component.start_instance_location = 0;
+			mesh_component.instance_buffer = std::make_shared<VertexBuffer>();
+            mesh_component.instance_buffer->Create(device, instance_data);
+			mesh_component.instance_count = instance_data.size();
+			
+			reg.emplace<Mesh>(foliage, mesh_component);
+
+			Material material{};
+			material.albedo_texture = texture_manager.LoadTexture(params.textures[i]);
+			material.albedo_factor = 1.0f;
+			material.shader = EShader::Foliage; 
+			reg.emplace<Material>(foliage, material);
+			reg.emplace<Forward>(foliage);
+			reg.emplace<Transform>(foliage);
+
+			Visibility vis{};
+			vis.skip_culling = true;
+			reg.emplace<Visibility>(foliage, vis);
+
+			//RenderState custom_state{};
+			//custom_state.blend_state = EBlendState::AlphaToCoverage;
+			//reg.emplace<RenderState>(foliage, custom_state);
+
+            foliage_entities.push_back(foliage);
         }
-        
-        InstanceComponent instance_component{};
-        instance_component.start_instance_location = 0;
-        instance_component.instance_buffer.Create(device, instance_data);
-        instance_component.instance_count = instance_data.size();
-        reg.emplace<InstanceComponent>(foliage, instance_component);
 
-        Material material{};
-        material.albedo_texture = texture_manager.LoadTexture(params.texture_path);
-        material.albedo_factor = 1.0f;
-		material.shader = EShader::Foliage; //change this once you add shader
-		reg.emplace<Material>(foliage, material);
-        reg.emplace<Forward>(foliage);
-		reg.emplace<Transform>(foliage);
-
-        Visibility vis{};
-        vis.skip_culling = true;
-        reg.emplace<Visibility>(foliage, vis);
-
-       //RenderState custom_state{};
-       //custom_state.blend_state = EBlendState::AlphaToCoverage;
-       //reg.emplace<RenderState>(foliage, custom_state);
-		return foliage;
+		return foliage_entities;
 	}
 
 

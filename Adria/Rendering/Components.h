@@ -25,47 +25,81 @@ namespace adria
 
 	struct COMPONENT Mesh
 	{
-		std::shared_ptr<VertexBuffer>	vb = nullptr;
-		std::shared_ptr<IndexBuffer>	ib = nullptr;
-		u32 indices_count = 0;
-		u32 start_index_location = 0;
+		std::shared_ptr<VertexBuffer>	vertex_buffer = nullptr;
+		std::shared_ptr<IndexBuffer>	index_buffer = nullptr;
+		std::shared_ptr<VertexBuffer>   instance_buffer = nullptr;
+
+		//only vb
 		u32 vertex_count = 0;
-		u32 vertex_offset = 0;
+		u32 start_vertex_location = 0; //Index of the first vertex
+
+		//vb/ib
+		u32 indices_count = 0;
+		u32 start_index_location = 0; //The location of the first index read by the GPU from the index buffer
+		i32 base_vertex_location = 0;  //A value added to each index before reading a vertex from the vertex buffer
+
+		//instancing
+		u32 instance_count = 0;
+		u32 start_instance_location = 0; //A value added to each index before reading per-instance data from a vertex buffer
+
 		D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 
 		void Draw(ID3D11DeviceContext* context) const
 		{
 			context->IASetPrimitiveTopology(topology);
 
-			vb->Bind(context, 0, 0);
+			vertex_buffer->Bind(context, 0, 0);
 
-			if (ib)
+			if (index_buffer)
 			{
-				ib->Bind(context, 0);
-				context->DrawIndexed(indices_count, start_index_location, vertex_offset);
+				index_buffer->Bind(context, 0);
+				if (instance_buffer)
+				{
+					instance_buffer->Bind(context, 1);
+					context->DrawIndexedInstanced(indices_count, instance_count, 
+						start_index_location, base_vertex_location, start_instance_location);
+				}
+				else context->DrawIndexed(indices_count, start_index_location, base_vertex_location);
 			}
-			else context->Draw(vertex_count, vertex_offset);
+			else
+			{
+				if (instance_buffer)
+				{
+					instance_buffer->Bind(context, 1);
+					context->DrawInstanced(vertex_count, instance_count,
+						start_vertex_location, start_instance_location);
+				}
+				else context->Draw(vertex_count, start_vertex_location);
+			}
 		}
 		void Draw(ID3D11DeviceContext* context, D3D11_PRIMITIVE_TOPOLOGY override_topology) const
 		{
 			context->IASetPrimitiveTopology(override_topology);
 
-			vb->Bind(context, 0, 0);
+			vertex_buffer->Bind(context, 0, 0);
 
-			if (ib)
+			if (index_buffer)
 			{
-				ib->Bind(context, 0);
-				context->DrawIndexed(indices_count, start_index_location, vertex_offset);
+				index_buffer->Bind(context, 0);
+				if (instance_buffer)
+				{
+					instance_buffer->Bind(context, 1);
+					context->DrawIndexedInstanced(indices_count, instance_count,
+						start_index_location, base_vertex_location, start_instance_location);
+				}
+				else context->DrawIndexed(indices_count, start_index_location, base_vertex_location);
 			}
-			else context->Draw(vertex_count, vertex_offset);
+			else
+			{
+				if (instance_buffer)
+				{
+					instance_buffer->Bind(context, 1);
+					context->DrawInstanced(vertex_count, instance_count,
+						start_vertex_location, start_instance_location);
+				}
+				else context->Draw(vertex_count, start_vertex_location);
+			}
 		}
-	};
-
-	struct COMPONENT InstanceComponent
-	{
-		VertexBuffer instance_buffer;
-		u32 instance_count = 0;
-		u32 start_instance_location = 0;
 	};
 
 	struct COMPONENT Material

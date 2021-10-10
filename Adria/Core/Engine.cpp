@@ -142,15 +142,17 @@ namespace adria
 		entity_loader->LoadLight(light_params);
 
 		foliage_parameters_t foliage_params{};
-		foliage_params.foliage_count = 1000;
+		foliage_params.foliage_count = 2500;
 		foliage_params.foliage_center.x = 0.0f;
 		foliage_params.foliage_center.x = 0.0f;
-		foliage_params.foliage_extents.x = 100.0f;
+		foliage_params.foliage_extents.x = 200.0f;
 		foliage_params.foliage_extents.y = 50.0f;
 		foliage_params.foliage_scale = 10.0f;
-		foliage_params.texture_path = "Resources/Textures/foliage.png";
+
+		foliage_params.textures.push_back("Resources/Textures/Foliage/foliage.png");
+		foliage_params.textures.push_back("Resources/Textures/Foliage/foliage3.png");
+		foliage_params.textures.push_back("Resources/Textures/Foliage/foliage4.png");
 
 		entity_loader->LoadFoliage(foliage_params);
-
 	}
 }

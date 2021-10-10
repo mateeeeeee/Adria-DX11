@@ -3429,17 +3429,8 @@ namespace adria
 				
 			if (states) ResolveCustomRenderState(*states, false);
 
-			if (auto const* instance = reg.get_if<InstanceComponent>(e)) //refactor this
-			{
-				mesh.vb->Bind(context, 0);
-				instance->instance_buffer.Bind(context, 1);
-				context->IASetPrimitiveTopology(mesh.topology);
-				context->DrawInstanced(mesh.vertex_count, instance->instance_count, mesh.vertex_offset, instance->start_instance_location);
-			}
-			else
-			{
-				mesh.Draw(context);
-			}
+			mesh.Draw(context);
+
 			if (states) ResolveCustomRenderState(*states, true);
 		}
 
