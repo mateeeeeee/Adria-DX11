@@ -371,7 +371,6 @@ namespace adria
 	{
 		UpdateLights();
 		UpdateVoxelData();
-		UpdateSkybox();
 		CameraFrustumCulling();
 		UpdateWeather(dt);
 		UpdateOcean(dt);
@@ -484,6 +483,7 @@ namespace adria
 		frame_cbuf_data.camera_near = camera->Near();
 		frame_cbuf_data.camera_far = camera->Far();
 		frame_cbuf_data.camera_position = camera->Position();
+		frame_cbuf_data.camera_forward = camera->Forward();
 		frame_cbuf_data.view = camera->View();
 		frame_cbuf_data.projection = camera->Proj();
 		frame_cbuf_data.viewprojection = camera->ViewProj();
@@ -1929,16 +1929,6 @@ namespace adria
 			called = true;
 		}
 
-	}
-	void Renderer::UpdateSkybox()
-	{
-		XMMATRIX translation_matrix = XMMatrixTranslationFromVector(camera->Position());
-		auto skybox_view = reg.view<Mesh, Transform, Skybox>();
-		for (auto e : skybox_view)
-		{
-			auto& transform = skybox_view.get<Transform>(e);
-			transform.current_transform = translation_matrix;
-		}
 	}
 	void Renderer::UpdateOcean(f32 dt)
 	{

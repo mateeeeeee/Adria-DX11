@@ -341,8 +341,6 @@ namespace adria
                     ImGui::Checkbox("Tessellation", &renderer_settings.ocean_tesselation);
                     ImGui::Checkbox("Wireframe", &renderer_settings.ocean_wireframe);
 
-                    renderer_settings.recreate_initial_spectrum = ImGui::SliderFloat2("Wind Direction", renderer_settings.wind_direction, 0.0f, 50.0f);
-
                     ImGui::SliderFloat("Choppiness", &renderer_settings.ocean_choppiness, 0.0f, 10.0f);
                     renderer_settings.ocean_color_changed = ImGui::ColorEdit3("Ocean Color", renderer_settings.ocean_color);
                     ImGui::TreePop();
@@ -1136,7 +1134,6 @@ namespace adria
                     ImGui::SliderFloat("Crispiness", &renderer_settings.crispiness, 0.0f, 100.0f);
                     ImGui::SliderFloat("Curliness", &renderer_settings.curliness, 0.0f, 5.0f);
                     ImGui::SliderFloat("Coverage", &renderer_settings.coverage, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Wind speed factor", &renderer_settings.wind_speed, 0.0f, 100.0f);
                     ImGui::SliderFloat("Cloud Type", &renderer_settings.cloud_type, 0.0f, 1.0f);
                     ImGui::TreePop();
                     ImGui::Separator();
@@ -1230,6 +1227,9 @@ namespace adria
             
             if (ImGui::TreeNode("Misc"))
             {
+
+				renderer_settings.recreate_initial_spectrum = ImGui::SliderFloat2("Wind Direction", renderer_settings.wind_direction, 0.0f, 50.0f);
+				ImGui::SliderFloat("Wind speed factor", &renderer_settings.wind_speed, 0.0f, 100.0f);
                 ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
                 ImGui::SliderFloat("Shadow Softness", &renderer_settings.shadow_softness, 0.01f, 5.0f);
                 ImGui::Checkbox("IBL", &renderer_settings.ibl);

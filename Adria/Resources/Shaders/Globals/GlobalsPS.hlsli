@@ -33,6 +33,8 @@ cbuffer PerFrame : register(b0)
     
     float4 camera_position;
     
+    float4 camera_forward;
+    
     float camera_near;
     
     float camera_far;

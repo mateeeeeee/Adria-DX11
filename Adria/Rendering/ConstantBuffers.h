@@ -21,6 +21,7 @@ namespace adria
 		DirectX::XMMATRIX previous_projection;
 		DirectX::XMMATRIX previous_view_projection;
 		DirectX::XMVECTOR camera_position;
+		DirectX::XMVECTOR camera_forward;
 		f32 camera_near;
 		f32 camera_far;
 		f32 screen_resolution_x;
