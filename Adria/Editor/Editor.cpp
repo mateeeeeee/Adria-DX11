@@ -290,7 +290,7 @@ namespace adria
             {
                 ImGui::Text("Controls\n");
                 ImGui::Text(
-                    "Move Camera with W, A, S, D and Mouse. Use Mouse Scroll for Zoom In/Out.\n"
+                    "Move Camera with W, A, S, D, Q and E. Use Mouse for Rotating Camera. Use Mouse Scroll for Zoom In/Out.\n"
                     "Press I to toggle between Cinema Mode and Editor Mode. (Scene Window has to be active) \n"
                     "Press G to toggle Gizmo. (Scene Window has to be active) \n"
                     "When Gizmo is enabled, use T, R and E to switch between Translation, Rotation and Scaling Mode.\n"

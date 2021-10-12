@@ -606,7 +606,6 @@ namespace adria
 		return foliage_entities;
 	}
 
-
     [[maybe_unused]]
     std::vector<entity> EntityLoader::LoadOcean(ocean_parameters_t const& params)
     {

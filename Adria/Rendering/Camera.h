@@ -61,7 +61,6 @@ namespace adria
 			return DirectX::XMLoadFloat3(&look_vector);
 		}
 
-
 		f32 Near() const;
 
 		f32 Far() const;
@@ -99,9 +98,11 @@ namespace adria
 
 		void UpdateViewMatrix();
 
-		void Strafe(f32 dz);
+		void Strafe(f32 dt);
 
-		void Walk(f32 dx);
+		void Walk(f32 dt);
+
+		void Jump(f32 dt);
 
 		void Pitch(i64 dy);
 

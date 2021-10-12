@@ -122,7 +122,15 @@ namespace adria
 		DirectX::XMVECTOR l = DirectX::XMLoadFloat3(&look_vector);
 		DirectX::XMVECTOR p = DirectX::XMLoadFloat3(&position);
 		DirectX::XMStoreFloat3(&position, DirectX::XMVectorMultiplyAdd(s, l, p));
+	}
 
+	void Camera::Jump(f32 dt)
+	{
+		// mPosition += d*Up
+		DirectX::XMVECTOR s = DirectX::XMVectorReplicate(dt * SPEED);
+		DirectX::XMVECTOR l = DirectX::XMLoadFloat3(&up_vector);
+		DirectX::XMVECTOR p = DirectX::XMLoadFloat3(&position);
+		DirectX::XMStoreFloat3(&position, DirectX::XMVectorMultiplyAdd(s, l, p));
 	}
 
 	void Camera::Pitch(i64 dy)
