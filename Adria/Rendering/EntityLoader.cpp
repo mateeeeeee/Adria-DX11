@@ -4,6 +4,10 @@
 #define TINYGLTF_NOEXCEPTION
 #include "tiny_gltf.h"
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#define TINYOBJLOADER_USE_MAPBOX_EARCUT
+#include "tiny_obj_loader.h"
+
 #include "EntityLoader.h"
 #include "../Graphics/VertexTypes.h"
 #include "../Graphics/TextureManager.h"
@@ -175,7 +179,108 @@ namespace adria
 
     }
 
-    EntityLoader::EntityLoader(registry& reg,ID3D11Device* device, TextureManager& texture_manager) : reg(reg),
+	std::vector<entity> EntityLoader::LoadObjMesh(std::string const& model_path)
+	{
+        tinyobj::ObjReaderConfig reader_config{};
+		tinyobj::ObjReader reader;
+        std::string model_name = GetFilename(model_path);
+		if (!reader.ParseFromFile(model_path, reader_config)) 
+        {
+			if (!reader.Error().empty())  Log::Error(reader.Error());
+            return {};
+		}
+		if (!reader.Warning().empty())  Log::Warning(reader.Warning());
+		
+        tinyobj::attrib_t const& attrib = reader.GetAttrib();
+        std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
+        //std::vector<tinyobj::material_t> const& materials = reader.GetMaterials(); ignore materials for now
+
+		// Loop over shapes
+		std::vector<TexturedNormalVertex> vertices{};
+		std::vector<u32> indices{};
+		std::vector<entity> entities{};
+
+        for (size_t s = 0; s < shapes.size(); s++)
+        {
+			entity e = reg.create();
+			entities.push_back(e);
+
+			Mesh mesh_component{};
+			mesh_component.start_index_location = static_cast<u32>(indices.size());
+			mesh_component.base_vertex_location = static_cast<u32>(vertices.size());
+
+            // Loop over faces(polygon)
+            size_t index_offset = 0;
+            for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) 
+            {
+                size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
+
+                // Loop over vertices in the face.
+                for (size_t v = 0; v < fv; v++)
+                {
+                    // access to vertex
+                    tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
+                    indices.push_back(index_offset + v);
+
+                    TexturedNormalVertex vertex{};
+                    tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
+                    tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
+                    tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+
+                    vertex.position.x = vx;
+					vertex.position.y = vy;
+					vertex.position.z = vz;
+
+                    // Check if `normal_index` is zero or positive. negative = no normal data
+                    if (idx.normal_index >= 0) 
+                    {
+                        tinyobj::real_t nx = attrib.normals[3 * size_t(idx.normal_index) + 0];
+                        tinyobj::real_t ny = attrib.normals[3 * size_t(idx.normal_index) + 1];
+                        tinyobj::real_t nz = attrib.normals[3 * size_t(idx.normal_index) + 2];
+
+						vertex.normal.x = nx;
+						vertex.normal.y = ny;
+						vertex.normal.z = nz;
+                    }
+
+                    // Check if `texcoord_index` is zero or positive. negative = no texcoord data
+                    if (idx.texcoord_index >= 0) 
+                    {
+                        tinyobj::real_t tx = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
+                        tinyobj::real_t ty = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+
+						vertex.uv.x = tx;
+						vertex.uv.y = ty;
+                    }
+
+                    vertices.push_back(vertex);
+                }
+                index_offset += fv;
+
+                // per-face material
+                //shapes[s].mesh.material_ids[f];
+            }
+			mesh_component.indices_count = static_cast<u32>(index_offset);
+        }
+
+		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>();
+		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>();
+		vb->Create(device, vertices);
+		ib->Create(device, indices);
+
+		for (entity e : entities)
+		{
+			auto& mesh = reg.get<Mesh>(e);
+			mesh.vertex_buffer = vb;
+			mesh.index_buffer = ib;
+			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
+		}
+
+		Log::Info("OBJ Model" + model_path + " successfully loaded!");
+        return entities;
+	}
+
+	EntityLoader::EntityLoader(registry& reg, ID3D11Device* device, TextureManager& texture_manager) : reg(reg),
         texture_manager(texture_manager), device(device)
     {}
 
@@ -536,7 +641,33 @@ namespace adria
         return light;
 	}
 
-    std::vector<entity> EntityLoader::LoadFoliage(foliage_parameters_t const& params)
+    [[maybe_unused]]
+    std::vector<entity> EntityLoader::LoadOcean(ocean_parameters_t const& params)
+    {
+
+        std::vector<entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
+
+        Material ocean_material{};
+        ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
+
+        ocean_material.shader = EShader::Unknown; //not necessary
+
+        Ocean ocean_component{};
+
+        for (auto ocean_chunk : ocean_chunks)
+        {
+            reg.emplace<Material>(ocean_chunk, ocean_material);
+            reg.emplace<Ocean>(ocean_chunk, ocean_component);
+
+            reg.emplace<Tag>(ocean_chunk, "Ocean Chunk" + std::to_string(as_integer(ocean_chunk)));
+
+        }
+
+        return ocean_chunks;
+    }
+
+	[[maybe_unused]]
+	std::vector<entity> EntityLoader::LoadFoliage(foliage_parameters_t const& params)
 	{
 		const f32 size = params.foliage_scale;
 		const TexturedVertex quad_vertices[6] =
@@ -562,10 +693,10 @@ namespace adria
 		RealRandomGenerator<float> random_x(params.foliage_center.x - params.foliage_extents.x, params.foliage_center.x + params.foliage_extents.x);
 		RealRandomGenerator<float> random_z(params.foliage_center.y - params.foliage_extents.y, params.foliage_center.y + params.foliage_extents.y);
 
-        std::vector<entity> foliage_entities{};
-        for (size_t i = 0; i < params.textures.size(); ++i)
-        {
-            entity foliage = reg.create();
+		std::vector<entity> foliage_entities{};
+		for (size_t i = 0; i < params.textures.size(); ++i)
+		{
+			entity foliage = reg.create();
 
 			std::vector<FoliageInstance> instance_data{};
 			for (u32 i = 0; i < params.foliage_count; ++i)
@@ -579,15 +710,15 @@ namespace adria
 
 			mesh_component.start_instance_location = 0;
 			mesh_component.instance_buffer = std::make_shared<VertexBuffer>();
-            mesh_component.instance_buffer->Create(device, instance_data);
+			mesh_component.instance_buffer->Create(device, instance_data);
 			mesh_component.instance_count = instance_data.size();
-			
+
 			reg.emplace<Mesh>(foliage, mesh_component);
 
 			Material material{};
 			material.albedo_texture = texture_manager.LoadTexture(params.textures[i]);
 			material.albedo_factor = 1.0f;
-			material.shader = EShader::Foliage; 
+			material.shader = EShader::Foliage;
 			reg.emplace<Material>(foliage, material);
 			reg.emplace<Forward>(foliage);
 			reg.emplace<Transform>(foliage);
@@ -600,34 +731,10 @@ namespace adria
 			//custom_state.blend_state = EBlendState::AlphaToCoverage;
 			//reg.emplace<RenderState>(foliage, custom_state);
 
-            foliage_entities.push_back(foliage);
-        }
+			foliage_entities.push_back(foliage);
+		}
 
 		return foliage_entities;
 	}
 
-    [[maybe_unused]]
-    std::vector<entity> EntityLoader::LoadOcean(ocean_parameters_t const& params)
-    {
-
-        std::vector<entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
-
-        Material ocean_material{};
-        ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
-
-        ocean_material.shader = EShader::Unknown; //not necessary
-
-        Ocean ocean_component{};
-
-        for (auto ocean_chunk : ocean_chunks)
-        {
-            reg.emplace<Material>(ocean_chunk, ocean_material);
-            reg.emplace<Ocean>(ocean_chunk, ocean_component);
-
-            reg.emplace<Tag>(ocean_chunk, "Ocean Chunk" + std::to_string(as_integer(ocean_chunk)));
-
-        }
-
-        return ocean_chunks;
-    }
 }
