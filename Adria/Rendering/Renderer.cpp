@@ -1932,7 +1932,6 @@ namespace adria
 	}
 	void Renderer::UpdateOcean(f32 dt)
 	{
-
 		if (reg.size<Ocean>() == 0) return;
 
 		if (renderer_settings.ocean_color_changed)
@@ -1944,8 +1943,6 @@ namespace adria
 				material.diffuse = XMFLOAT3(renderer_settings.ocean_color);
 			}
 		}
-
-		
 
 		compute_cbuf_data.ocean_choppiness = renderer_settings.ocean_choppiness;
 		compute_cbuf_data.ocean_size = 512;
@@ -1997,7 +1994,7 @@ namespace adria
 		//spectrum
 		{
 			ID3D11ShaderResourceView* srvs[]	= { ping_pong_phase_textures[pong_phase_pass].SRV(), ocean_initial_spectrum.SRV() };
-			ID3D11UnorderedAccessView* uav[]	= { ping_pong_spectrum_textures[0].UAV() };
+			ID3D11UnorderedAccessView* uav[]	= { ping_pong_spectrum_textures[pong_spectrum].UAV() };
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
 
@@ -2011,6 +2008,8 @@ namespace adria
 			context->CSSetShaderResources(0, 1, &null_srv);
 			context->CSSetShaderResources(1, 1, &null_srv);
 			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
+
+			pong_spectrum = !pong_spectrum;
 		}
 
 		//fft

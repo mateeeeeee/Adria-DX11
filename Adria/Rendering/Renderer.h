@@ -95,11 +95,14 @@ namespace adria
 		Texture2D bloom_extract_texture;
 		std::array<Texture2D, 2> postprocess_textures;
 		bool postprocess_index = false;
-		Texture2D ocean_initial_spectrum;
+
 		std::array<Texture2D, 2> ping_pong_phase_textures;
 		bool pong_phase_pass = false;
 		std::array<Texture2D, 2> ping_pong_spectrum_textures;
-		bool pong_spectrum = true;
+		bool pong_spectrum = false;
+		Texture2D ocean_normal_map;
+		Texture2D ocean_initial_spectrum;
+
 		Texture3D voxel_texture;
 		Texture3D voxel_texture_second_bounce;
 		Texture2D sun_target;
@@ -153,8 +156,7 @@ namespace adria
 		TEXTURE_HANDLE cross_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE foam_handle = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE perlin_handle = INVALID_TEXTURE_HANDLE;
-		Texture2D ocean_normal_map;
-		
+
 		//////////////////////////////////////////////////////////////////
 
 		//constant buffers
