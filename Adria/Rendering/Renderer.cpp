@@ -1636,10 +1636,10 @@ namespace adria
 		
 		for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float() * 2.f * pi<f32>;
 
-		ping_pong_phase_textures[1] = Texture2D(gfx->Device(), desc);
+		ping_pong_phase_textures[!pong_phase] = Texture2D(gfx->Device(), desc);
 		desc.init_data.data = ping_array.data();
 		desc.init_data.pitch = RESOLUTION * sizeof(f32);
-		ping_pong_phase_textures[0] = Texture2D(gfx->Device(), desc);
+		ping_pong_phase_textures[pong_phase] = Texture2D(gfx->Device(), desc);
 
 		desc.init_data.data = nullptr;
 		desc.init_data.pitch = 0;
@@ -1647,8 +1647,8 @@ namespace adria
 		desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 		desc.srv_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
-		ping_pong_spectrum_textures[0] = Texture2D(gfx->Device(), desc);
-		ping_pong_spectrum_textures[1] = Texture2D(gfx->Device(), desc);
+		ping_pong_spectrum_textures[pong_spectrum] = Texture2D(gfx->Device(), desc);
+		ping_pong_spectrum_textures[!pong_spectrum] = Texture2D(gfx->Device(), desc);
 		ocean_normal_map = Texture2D(gfx->Device(), desc);
 
 		
@@ -1976,8 +1976,8 @@ namespace adria
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
 
-			ID3D11ShaderResourceView*  srv[] = { ping_pong_phase_textures[pong_phase_pass].SRV()};
-			ID3D11UnorderedAccessView* uav[] = { ping_pong_phase_textures[!pong_phase_pass].UAV() };
+			ID3D11ShaderResourceView*  srv[] = { ping_pong_phase_textures[pong_phase].SRV()};
+			ID3D11UnorderedAccessView* uav[] = { ping_pong_phase_textures[!pong_phase].UAV() };
 
 			compute_programs[EComputeShader::OceanPhase].Bind(context);
 
@@ -1988,12 +1988,12 @@ namespace adria
 
 			context->CSSetShaderResources(0, 1, &null_srv);
 			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
-			pong_phase_pass = !pong_phase_pass;
+			pong_phase = !pong_phase;
 		}
 
 		//spectrum
 		{
-			ID3D11ShaderResourceView* srvs[]	= { ping_pong_phase_textures[pong_phase_pass].SRV(), ocean_initial_spectrum.SRV() };
+			ID3D11ShaderResourceView* srvs[]	= { ping_pong_phase_textures[pong_phase].SRV(), ocean_initial_spectrum.SRV() };
 			ID3D11UnorderedAccessView* uav[]	= { ping_pong_spectrum_textures[pong_spectrum].UAV() };
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
