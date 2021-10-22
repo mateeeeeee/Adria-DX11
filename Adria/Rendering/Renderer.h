@@ -215,10 +215,13 @@ namespace adria
 		void CreateBuffers();
 		void CreateSamplers();
 		void CreateRenderStates();
+		void CreateResolutionDependentResources(u32 width, u32 height);
+		void CreateOtherResources();
+
 		void CreateBokehViews(u32 width, u32 height);
 		void CreateRenderTargets(u32 width, u32 height);
 		void CreateGBuffer(u32 width, u32 height);
-		void CreateSsaoTextures(u32 width, u32 height);
+		void CreateAOTexture(u32 width, u32 height);
 		void CreateRenderPasses(u32 width, u32 height);
 		void CreateComputeTextures(u32 width, u32 height);
 		void CreateIBLTextures();

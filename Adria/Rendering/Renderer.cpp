@@ -360,12 +360,8 @@ namespace adria
 		LoadShaders();
 		LoadTextures();
 
-		CreateRenderTargets(w, h);
-		CreateGBuffer(w, h);
-		CreateSsaoTextures(w, h);
-		CreateRenderPasses(w, h);
-		CreateComputeTextures(w, h);
-		CreateBokehViews(w, h);
+		CreateOtherResources();
+		CreateResolutionDependentResources(w, h);
 	}
 	void Renderer::Update(f32 dt)
 	{
@@ -459,12 +455,7 @@ namespace adria
 		width = w, height = h;
 		if (width != 0 || height != 0)
 		{
-			CreateRenderTargets(width, height);
-			CreateGBuffer(width, height);
-			CreateSsaoTextures(width, height);
-			CreateComputeTextures(width, height);
-			CreateBokehViews(width, height);
-			CreateRenderPasses(width, height);
+			CreateResolutionDependentResources(width, height);
 		}
 
 	}
@@ -1190,6 +1181,147 @@ namespace adria
 		D3D11_RASTERIZER_DESC wireframe_desc = CommonStates::Wireframe();
 		device->CreateRasterizerState(&wireframe_desc, wireframe.GetAddressOf());
 	}
+
+	void Renderer::CreateResolutionDependentResources(u32 width, u32 height)
+	{
+		CreateBokehViews(width, height);
+		CreateRenderTargets(width, height);
+		CreateGBuffer(width, height);
+		CreateAOTexture(width, height);
+		CreateComputeTextures(width, height);
+		CreateRenderPasses(width, height);
+	}
+	void Renderer::CreateOtherResources()
+	{
+		ID3D11Device* device = gfx->Device();
+
+		//create shadow textures
+		{
+			texture2d_desc_t depth_map_desc{};
+			depth_map_desc.width = SHADOW_MAP_SIZE;
+			depth_map_desc.height = SHADOW_MAP_SIZE;
+			depth_map_desc.format = DXGI_FORMAT_R32_TYPELESS;
+			depth_map_desc.bind_flags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+			depth_map_desc.dsv_desc.depth_format = DXGI_FORMAT_D32_FLOAT;
+			depth_map_desc.srv_desc.format = DXGI_FORMAT_R32_FLOAT;
+			shadow_depth_map = Texture2D(device, depth_map_desc);
+
+			texturecube_desc_t depth_cubemap_desc{};
+			depth_cubemap_desc.width = SHADOW_CUBE_SIZE;
+			depth_cubemap_desc.height = SHADOW_CUBE_SIZE;
+			depth_cubemap_desc.bind_flags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+			shadow_depth_cubemap = TextureCube(device, depth_cubemap_desc);
+
+			texture2darray_desc_t depth_cascade_maps_desc{};
+			depth_cascade_maps_desc.width = SHADOW_CASCADE_SIZE;
+			depth_cascade_maps_desc.height = SHADOW_CASCADE_SIZE;
+			depth_cascade_maps_desc.array_size = CASCADE_COUNT;
+			depth_cascade_maps_desc.bind_flags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+			shadow_cascade_maps = Texture2DArray(device, depth_cascade_maps_desc);
+		}
+
+		//ao random
+		{
+			std::vector<f32> random_texture_data;
+
+			RealRandomGenerator rand_float{ 0.0f, 1.0f };
+
+			//ssao kernel
+			for (u32 i = 0; i < ssao_kernel.size(); i++)
+			{
+				XMFLOAT4 offset = XMFLOAT4(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
+				XMVECTOR _offset = XMLoadFloat4(&offset);
+				_offset = XMVector4Normalize(_offset);
+				_offset *= rand_float();
+				f32 scale = static_cast<f32>(i) / ssao_kernel.size();
+				scale = std::lerp(0.1f, 1.0f, scale * scale);
+				_offset *= scale;
+				ssao_kernel[i] = _offset;
+			}
+
+
+			for (i32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
+			{
+				random_texture_data.push_back(rand_float());
+				random_texture_data.push_back(rand_float());
+				random_texture_data.push_back(0.0f);
+				random_texture_data.push_back(1.0f);
+			}
+
+			texture2d_desc_t random_tex_desc{};
+			random_tex_desc.width = AO_NOISE_DIM;
+			random_tex_desc.height = AO_NOISE_DIM;
+			random_tex_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			random_tex_desc.init_data.data = (void*)random_texture_data.data();
+			random_tex_desc.init_data.pitch = AO_NOISE_DIM * 4 * sizeof(f32);
+			random_tex_desc.srv_desc.format = random_tex_desc.format;
+
+			ssao_random_texture = Texture2D(gfx->Device(), random_tex_desc);
+
+			random_texture_data.clear();
+			for (i32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
+			{
+				f32 rand = rand_float() * pi<f32> *2.0f;
+				random_texture_data.push_back(sin(rand));
+				random_texture_data.push_back(cos(rand));
+				random_texture_data.push_back(rand_float());
+				random_texture_data.push_back(rand_float());
+			}
+
+			random_tex_desc.init_data.data = (void*)random_texture_data.data();
+			hbao_random_texture = Texture2D(gfx->Device(), random_tex_desc);
+
+
+		}
+
+		//ocean
+		{
+			texture2d_desc_t desc{};
+			desc.width = RESOLUTION;
+			desc.height = RESOLUTION;
+			desc.format = DXGI_FORMAT_R32_FLOAT;
+			desc.srv_desc.format = desc.format;
+			desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+			desc.generate_mipmaps = false;
+			ocean_initial_spectrum = Texture2D(gfx->Device(), desc);
+
+			std::vector<f32> ping_array(RESOLUTION * RESOLUTION);
+			RealRandomGenerator rand_float{ 0.0f, 1.0f };
+
+			for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float() * 2.f * pi<f32>;
+
+			ping_pong_phase_textures[!pong_phase] = Texture2D(gfx->Device(), desc);
+			desc.init_data.data = ping_array.data();
+			desc.init_data.pitch = RESOLUTION * sizeof(f32);
+			ping_pong_phase_textures[pong_phase] = Texture2D(gfx->Device(), desc);
+
+			desc.init_data.data = nullptr;
+			desc.init_data.pitch = 0;
+
+			desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			desc.srv_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+			ping_pong_spectrum_textures[pong_spectrum] = Texture2D(gfx->Device(), desc);
+			ping_pong_spectrum_textures[!pong_spectrum] = Texture2D(gfx->Device(), desc);
+			ocean_normal_map = Texture2D(gfx->Device(), desc);
+		}
+
+		//voxel 
+		{
+			texture3d_desc_t voxel_desc{};
+			voxel_desc.width = VOXEL_RESOLUTION;
+			voxel_desc.height = VOXEL_RESOLUTION;
+			voxel_desc.depth = VOXEL_RESOLUTION;
+			voxel_desc.generate_mipmaps = true;
+			voxel_desc.mipmap_count = 0;
+			voxel_desc.bind_flags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+			voxel_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+			voxel_texture = Texture3D(gfx->Device(), voxel_desc);
+			voxel_texture_second_bounce = Texture3D(gfx->Device(), voxel_desc);
+		}
+	}
+
 	void Renderer::CreateBokehViews(u32 width, u32 height)
 	{
 		ID3D11Device* device = gfx->Device();
@@ -1267,28 +1399,6 @@ namespace adria
 		texture2d_desc_t offscreeen_desc = fxaa_source_desc;
 		offscreen_ldr_render_target = Texture2D(device, offscreeen_desc);
 
-		texture2d_desc_t depth_map_desc{};
-		depth_map_desc.width = SHADOW_MAP_SIZE;
-		depth_map_desc.height = SHADOW_MAP_SIZE;
-		depth_map_desc.format = DXGI_FORMAT_R32_TYPELESS;
-		depth_map_desc.bind_flags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-		depth_map_desc.dsv_desc.depth_format = DXGI_FORMAT_D32_FLOAT;
-		depth_map_desc.srv_desc.format = DXGI_FORMAT_R32_FLOAT;
-		shadow_depth_map = Texture2D(device, depth_map_desc);
-
-		texturecube_desc_t depth_cubemap_desc{};
-		depth_cubemap_desc.width = SHADOW_CUBE_SIZE;
-		depth_cubemap_desc.height = SHADOW_CUBE_SIZE;
-		depth_cubemap_desc.bind_flags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-		shadow_depth_cubemap = TextureCube(device, depth_cubemap_desc);
-
-		texture2darray_desc_t depth_cascade_maps_desc{};
-		depth_cascade_maps_desc.width = SHADOW_CASCADE_SIZE;
-		depth_cascade_maps_desc.height = SHADOW_CASCADE_SIZE;
-		depth_cascade_maps_desc.array_size = CASCADE_COUNT;
-		depth_cascade_maps_desc.bind_flags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-		shadow_cascade_maps = Texture2DArray(device, depth_cascade_maps_desc);
-
 		texture2d_desc_t uav_target_desc{};
 		uav_target_desc.width = width;
 		uav_target_desc.height = height;
@@ -1327,58 +1437,8 @@ namespace adria
 			gbuffer.emplace_back(gfx->Device(), render_target_desc);
 		}
 	}
-	void Renderer::CreateSsaoTextures(u32 width, u32 height)
+	void Renderer::CreateAOTexture(u32 width, u32 height)
 	{
-		std::vector<f32> random_texture_data;
-
-		RealRandomGenerator rand_float{ 0.0f, 1.0f };
-
-		//ssao kernel
-		for (u32 i = 0; i < ssao_kernel.size(); i++)
-		{
-			XMFLOAT4 offset = XMFLOAT4(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
-			XMVECTOR _offset = XMLoadFloat4(&offset);
-			_offset = XMVector4Normalize(_offset);
-			_offset *= rand_float();
-			f32 scale = static_cast<f32>(i) / ssao_kernel.size();
-			scale = std::lerp(0.1f, 1.0f, scale * scale);
-			_offset *= scale;
-			ssao_kernel[i] = _offset;
-		}
-
-		
-		for (i32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
-		{
-			random_texture_data.push_back(rand_float()); 
-			random_texture_data.push_back(rand_float());
-			random_texture_data.push_back(0.0f);
-			random_texture_data.push_back(1.0f);
-		}
-
-		texture2d_desc_t random_tex_desc{};
-		random_tex_desc.width = AO_NOISE_DIM;
-		random_tex_desc.height = AO_NOISE_DIM;
-		random_tex_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		random_tex_desc.init_data.data = (void*)random_texture_data.data();
-		random_tex_desc.init_data.pitch = AO_NOISE_DIM * 4 * sizeof(f32);
-		random_tex_desc.srv_desc.format = random_tex_desc.format;
-		
-		ssao_random_texture = Texture2D(gfx->Device(), random_tex_desc);
-
-		random_texture_data.clear();
-		for (i32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
-		{
-			f32 rand = rand_float() * pi<f32> * 2.0f;
-			random_texture_data.push_back(sin(rand));
-			random_texture_data.push_back(cos(rand));
-			random_texture_data.push_back(rand_float());
-			random_texture_data.push_back(rand_float());
-		}
-
-		random_tex_desc.init_data.data = (void*)random_texture_data.data();
-		hbao_random_texture = Texture2D(gfx->Device(), random_tex_desc);
-
-
 		texture2d_desc_t ao_tex_desc{};
 		ao_tex_desc.width = width;
 		ao_tex_desc.height = height;
@@ -1624,45 +1684,6 @@ namespace adria
 		desc.generate_mipmaps = true;
 		bloom_extract_texture = Texture2D(gfx->Device(), desc);
 		desc.generate_mipmaps = false;
-
-		desc.width = RESOLUTION;
-		desc.height = RESOLUTION;
-		desc.format = DXGI_FORMAT_R32_FLOAT;
-		desc.srv_desc.format = desc.format;
-		ocean_initial_spectrum = Texture2D(gfx->Device(), desc);
-
-		std::vector<f32> ping_array(RESOLUTION * RESOLUTION);
-		RealRandomGenerator rand_float{ 0.0f, 1.0f };
-		
-		for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float() * 2.f * pi<f32>;
-
-		ping_pong_phase_textures[!pong_phase] = Texture2D(gfx->Device(), desc);
-		desc.init_data.data = ping_array.data();
-		desc.init_data.pitch = RESOLUTION * sizeof(f32);
-		ping_pong_phase_textures[pong_phase] = Texture2D(gfx->Device(), desc);
-
-		desc.init_data.data = nullptr;
-		desc.init_data.pitch = 0;
-
-		desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		desc.srv_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-
-		ping_pong_spectrum_textures[pong_spectrum] = Texture2D(gfx->Device(), desc);
-		ping_pong_spectrum_textures[!pong_spectrum] = Texture2D(gfx->Device(), desc);
-		ocean_normal_map = Texture2D(gfx->Device(), desc);
-
-		
-		texture3d_desc_t voxel_desc{};
-		voxel_desc.width = VOXEL_RESOLUTION;
-		voxel_desc.height = VOXEL_RESOLUTION;
-		voxel_desc.depth = VOXEL_RESOLUTION;
-		voxel_desc.generate_mipmaps = true;
-		voxel_desc.mipmap_count = 0;
-		voxel_desc.bind_flags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
-		voxel_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
-		voxel_texture = Texture3D(gfx->Device(), voxel_desc);
-		voxel_texture_second_bounce = Texture3D(gfx->Device(), voxel_desc);
 	}
 	void Renderer::CreateIBLTextures()
 	{
