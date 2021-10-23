@@ -1228,6 +1228,7 @@ namespace adria
 				ImGui::SliderFloat("Wind speed factor", &renderer_settings.wind_speed, 0.0f, 100.0f);
                 ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
                 ImGui::SliderFloat("Shadow Softness", &renderer_settings.shadow_softness, 0.01f, 5.0f);
+                ImGui::Checkbox("Transparent Shadows", &renderer_settings.shadow_transparent);
                 ImGui::Checkbox("IBL", &renderer_settings.ibl);
 
                 //random lights

@@ -47,7 +47,7 @@ namespace adria
 
 		void Update(f32 dt);
 
-		void SetProfilerSettings(ProfilerSettings);
+		void SetProfilerSettings(ProfilerSettings const&);
 
 		void Render(RendererSettings const&);
 
@@ -228,7 +228,6 @@ namespace adria
 
 		//called in update
 		void BindGlobals();
-		void UpdateSkybox();
 		void UpdateOcean(f32 dt);
 		void UpdateWeather(f32 dt);
 		void UpdateLights();

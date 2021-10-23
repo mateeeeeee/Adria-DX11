@@ -14,9 +14,6 @@ struct PS_INPUT
     float2 TexCoord     : TEX;
 };
 
-
-
-
 float4 main(PS_INPUT IN) : SV_TARGET
 {
    
@@ -48,9 +45,7 @@ float4 main(PS_INPUT IN) : SV_TARGET
 
     float spec = pow(clamp(dot(normalize(light_dir.xyz), l), 0.0, 1.0), 128.0);
 
-    
     return float4(color + spec * light_color.xyz, 1.0f);
-
 }
 
 

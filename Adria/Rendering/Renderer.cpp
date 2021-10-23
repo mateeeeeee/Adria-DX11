@@ -371,7 +371,7 @@ namespace adria
 		UpdateWeather(dt);
 		UpdateOcean(dt);
 	}
-	void Renderer::SetProfilerSettings(ProfilerSettings _profiler_settings)
+	void Renderer::SetProfilerSettings(ProfilerSettings const& _profiler_settings)
 	{
 		profiler_settings = _profiler_settings;
 	}
@@ -1027,7 +1027,6 @@ namespace adria
 		cube_vb.Create(device, cube_vertices, _countof(cube_vertices));
 		cube_ib.Create(device, cube_indices, _countof(cube_indices));
 	}
-
 	void Renderer::CreateSamplers()
 	{
 		//Samplers
@@ -2292,13 +2291,11 @@ namespace adria
 		
 		gbuffer_pass.Begin(context);
 		{
-			//sort entities by adding them in std::set with custom key
 			auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
+			standard_programs[EShader::GbufferPBR].Bind(context);
 			for (auto e : gbuffer_view)
 			{
 				auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
-
-				standard_programs[material.shader].Bind(context);
 
 				if (!visibility.camera_visible) continue;
 
@@ -2320,12 +2317,9 @@ namespace adria
 
 					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 				}
-				
 
 				if (material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE)
 				{
-					standard_programs[EShader::GbufferPBR].Bind(context);
-
 					auto view = texture_manager.GetTextureView(material.metallic_roughness_texture);
 
 					context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS_METALLIC, 1, &view);
@@ -3066,29 +3060,78 @@ namespace adria
 		shadow_map_pass.Begin(context);
 		{
 			context->RSSetState(shadow_depth_bias.Get());
-
-			standard_programs[EShader::DepthMap].Bind(context);
-
 			LightFrustumCulling(ELightType::Directional);
-
 			auto shadow_view = reg.view<Mesh, Transform, Visibility>();
-			for (auto e : shadow_view)
-			{
-				auto& visibility = shadow_view.get<Visibility>(e); //add const on visibility
 
-				if (visibility.light_visible)
+			if (!renderer_settings.shadow_transparent)
+			{
+				standard_programs[EShader::DepthMap].Bind(context);
+				for (auto e : shadow_view)
 				{
-					auto& transform = shadow_view.get<Transform>(e); //add const
+					auto const& visibility = shadow_view.get<Visibility>(e);
+					if (visibility.light_visible)
+					{
+						auto& transform = shadow_view.get<Transform>(e);
+						auto& mesh = shadow_view.get<Mesh>(e);
+
+						object_cbuf_data.model = transform.current_transform;
+						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+						object_cbuffer->Update(context, object_cbuf_data);
+
+						mesh.Draw(context);
+					}
+				}
+			}
+			else
+			{
+				std::vector<entity> potentially_transparent, not_transparent;
+				for (auto e : shadow_view)
+				{
+					auto const& visibility = shadow_view.get<Visibility>(e);
+					if (visibility.light_visible)
+					{
+						if (auto* p_material = reg.get_if<Material>(e))
+						{
+							if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
+								potentially_transparent.push_back(e);
+							else not_transparent.push_back(e);
+						}
+						else not_transparent.push_back(e);
+					}
+				}
+
+				standard_programs[EShader::DepthMap].Bind(context);
+				for (auto e : not_transparent)
+				{
+					auto& transform = shadow_view.get<Transform>(e);
 					auto& mesh = shadow_view.get<Mesh>(e);
 
 					object_cbuf_data.model = transform.current_transform;
 					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 					object_cbuffer->Update(context, object_cbuf_data);
+					mesh.Draw(context);
+				}
+
+				standard_programs[EShader::DepthMap_Transparent].Bind(context);
+				for (auto e : potentially_transparent)
+				{
+					auto& transform = shadow_view.get<Transform>(e);
+					auto& mesh = shadow_view.get<Mesh>(e);
+					auto* material = reg.get_if<Material>(e);
+					ADRIA_ASSERT(material != nullptr);
+					ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
+
+					object_cbuf_data.model = transform.current_transform;
+					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+					object_cbuffer->Update(context, object_cbuf_data);
+
+					auto view = texture_manager.GetTextureView(material->albedo_texture);
+					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 
 					mesh.Draw(context);
 				}
+
 			}
-			
 			context->RSSetState(nullptr);
 		}
 		shadow_map_pass.End(context);
@@ -3124,20 +3167,74 @@ namespace adria
 			LightFrustumCulling(ELightType::Spot);
 			auto shadow_view = reg.view<Mesh, Transform, Visibility>();
 
-			for (auto e : shadow_view)
+			if (!renderer_settings.shadow_transparent)
 			{
-				auto& visibility = shadow_view.get<Visibility>(e);
-				if (visibility.light_visible)
+				standard_programs[EShader::DepthMap].Bind(context);
+				for (auto e : shadow_view)
 				{
-					auto const& transform = shadow_view.get<Transform>(e);
-					auto const& mesh = shadow_view.get<Mesh>(e);
+					auto const& visibility = shadow_view.get<Visibility>(e);
+					if (visibility.light_visible)
+					{
+						auto& transform = shadow_view.get<Transform>(e);
+						auto& mesh = shadow_view.get<Mesh>(e);
+
+						object_cbuf_data.model = transform.current_transform;
+						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+						object_cbuffer->Update(context, object_cbuf_data);
+
+						mesh.Draw(context);
+					}
+				}
+			}
+			else
+			{
+				std::vector<entity> potentially_transparent, not_transparent;
+				for (auto e : shadow_view)
+				{
+					auto const& visibility = shadow_view.get<Visibility>(e);
+					if (visibility.light_visible)
+					{
+						if (auto* p_material = reg.get_if<Material>(e))
+						{
+							if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
+								potentially_transparent.push_back(e);
+							else not_transparent.push_back(e);
+						}
+						else not_transparent.push_back(e);
+					}
+				}
+
+				standard_programs[EShader::DepthMap].Bind(context);
+				for (auto e : not_transparent)
+				{
+					auto& transform = shadow_view.get<Transform>(e);
+					auto& mesh = shadow_view.get<Mesh>(e);
+
+					object_cbuf_data.model = transform.current_transform;
+					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+					object_cbuffer->Update(context, object_cbuf_data);
+					mesh.Draw(context);
+				}
+
+				standard_programs[EShader::DepthMap_Transparent].Bind(context);
+				for (auto e : potentially_transparent)
+				{
+					auto& transform = shadow_view.get<Transform>(e);
+					auto& mesh = shadow_view.get<Mesh>(e);
+					auto* material = reg.get_if<Material>(e);
+					ADRIA_ASSERT(material != nullptr);
+					ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
 
 					object_cbuf_data.model = transform.current_transform;
 					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 					object_cbuffer->Update(context, object_cbuf_data);
 
+					auto view = texture_manager.GetTextureView(material->albedo_texture);
+					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
+
 					mesh.Draw(context);
 				}
+
 			}
 			context->RSSetState(nullptr);
 		}
@@ -3167,17 +3264,49 @@ namespace adria
 			shadow_cubemap_pass[i].Begin(context);
 			{
 				context->RSSetState(shadow_depth_bias.Get());
-
-				standard_programs[EShader::DepthMap].Bind(context);
-
 				LightFrustumCulling(ELightType::Point);
 
 				auto shadow_view = reg.view<Mesh, Transform, Visibility>();
 
-				for (auto e : shadow_view)
+				if (!renderer_settings.shadow_transparent)
 				{
-					auto& visibility = shadow_view.get<Visibility>(e);
-					if (visibility.light_visible)
+					standard_programs[EShader::DepthMap].Bind(context);
+					for (auto e : shadow_view)
+					{
+						auto const& visibility = shadow_view.get<Visibility>(e);
+						if (visibility.light_visible)
+						{
+							auto& transform = shadow_view.get<Transform>(e);
+							auto& mesh = shadow_view.get<Mesh>(e);
+
+							object_cbuf_data.model = transform.current_transform;
+							object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+							object_cbuffer->Update(context, object_cbuf_data);
+
+							mesh.Draw(context);
+						}
+					}
+				}
+				else
+				{
+					std::vector<entity> potentially_transparent, not_transparent;
+					for (auto e : shadow_view)
+					{
+						auto const& visibility = shadow_view.get<Visibility>(e);
+						if (visibility.light_visible)
+						{
+							if (auto* p_material = reg.get_if<Material>(e))
+							{
+								if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
+									potentially_transparent.push_back(e);
+								else not_transparent.push_back(e);
+							}
+							else not_transparent.push_back(e);
+						}
+					}
+
+					standard_programs[EShader::DepthMap].Bind(context);
+					for (auto e : not_transparent)
 					{
 						auto& transform = shadow_view.get<Transform>(e);
 						auto& mesh = shadow_view.get<Mesh>(e);
@@ -3185,6 +3314,24 @@ namespace adria
 						object_cbuf_data.model = transform.current_transform;
 						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 						object_cbuffer->Update(context, object_cbuf_data);
+						mesh.Draw(context);
+					}
+
+					standard_programs[EShader::DepthMap_Transparent].Bind(context);
+					for (auto e : potentially_transparent)
+					{
+						auto& transform = shadow_view.get<Transform>(e);
+						auto& mesh = shadow_view.get<Mesh>(e);
+						auto* material = reg.get_if<Material>(e);
+						ADRIA_ASSERT(material != nullptr);
+						ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
+
+						object_cbuf_data.model = transform.current_transform;
+						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+						object_cbuffer->Update(context, object_cbuf_data);
+
+						auto view = texture_manager.GetTextureView(material->albedo_texture);
+						context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 
 						mesh.Draw(context);
 					}
@@ -3209,11 +3356,11 @@ namespace adria
 
 		ID3D11ShaderResourceView* null_srv[] = { nullptr };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWARRAY, 1, null_srv);
+
 		context->RSSetState(shadow_depth_bias.Get());
-		standard_programs[EShader::DepthMap].Bind(context);
+		
 		for (u32 i = 0; i < CASCADE_COUNT; ++i)
 		{
-			//Update
 			{
 				auto const& [V,P] = LightViewProjection_Cascades(light, *camera, proj_matrices[i], light_bounding_box);
 				light_view_projections[i] = V * P;
@@ -3227,17 +3374,71 @@ namespace adria
 			{
 				LightFrustumCulling(ELightType::Directional);
 				auto shadow_view = reg.view<Mesh, Transform, Visibility>();
-				for (auto e : shadow_view)
+
+				if (!renderer_settings.shadow_transparent)
 				{
-					auto& visibility = shadow_view.get<Visibility>(e); //add const on visibility
-					if (visibility.light_visible)
+					standard_programs[EShader::DepthMap].Bind(context);
+					for (auto e : shadow_view)
 					{
-						auto& transform = shadow_view.get<Transform>(e); //add const
+						auto& visibility = shadow_view.get<Visibility>(e);
+						if (visibility.light_visible)
+						{
+							auto const& transform = shadow_view.get<Transform>(e);
+							auto const& mesh = shadow_view.get<Mesh>(e);
+
+							object_cbuf_data.model = transform.current_transform;
+							object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+							object_cbuffer->Update(context, object_cbuf_data);
+							mesh.Draw(context);
+						}
+					}
+				}
+				else
+				{
+					std::vector<entity> potentially_transparent, not_transparent;
+					for (auto e : shadow_view)
+					{
+						auto const& visibility = shadow_view.get<Visibility>(e);
+						if (visibility.light_visible)
+						{
+							if (auto* p_material = reg.get_if<Material>(e))
+							{
+								if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
+									potentially_transparent.push_back(e);
+								else not_transparent.push_back(e);
+							}
+							else not_transparent.push_back(e);
+						}
+					}
+
+					standard_programs[EShader::DepthMap].Bind(context);
+					for (auto e : not_transparent)
+					{
+						auto& transform = shadow_view.get<Transform>(e);
 						auto& mesh = shadow_view.get<Mesh>(e);
 
 						object_cbuf_data.model = transform.current_transform;
 						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 						object_cbuffer->Update(context, object_cbuf_data);
+						mesh.Draw(context);
+					}
+
+					standard_programs[EShader::DepthMap_Transparent].Bind(context);
+					for (auto e : potentially_transparent)
+					{
+						auto& transform = shadow_view.get<Transform>(e);
+						auto& mesh = shadow_view.get<Mesh>(e);
+						auto* material = reg.get_if<Material>(e);
+						ADRIA_ASSERT(material != nullptr);
+						ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
+
+						object_cbuf_data.model = transform.current_transform;
+						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+						object_cbuffer->Update(context, object_cbuf_data);
+
+						auto view = texture_manager.GetTextureView(material->albedo_texture);
+						context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
+
 						mesh.Draw(context);
 					}
 				}
