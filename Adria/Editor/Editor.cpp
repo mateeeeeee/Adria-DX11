@@ -335,6 +335,11 @@ namespace adria
 				engine->entity_loader->LoadOcean(params);
 			}
 
+			if (ImGui::Button("Clear"))
+			{
+				engine->reg.clear<Ocean>();
+			}
+
 			if (ImGui::TreeNodeEx("Ocean Settings", 0))
 			{
 				ImGui::Checkbox("Tessellation", &renderer_settings.ocean_tesselation);
