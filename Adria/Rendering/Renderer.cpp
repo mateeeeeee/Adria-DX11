@@ -342,7 +342,6 @@ namespace adria
 
 			return gauss;
 		}
-
 	}
 	/////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// PUBLIC //////////////////////////////////
@@ -3042,200 +3041,49 @@ namespace adria
 	{
 		ADRIA_ASSERT(light.type == ELightType::Directional);
 		ID3D11DeviceContext* context = gfx->Context();
-		//update cbuffer
-		{
-			auto const& [V, P] = scene_bounding_sphere ? LightViewProjection_Directional(light, *scene_bounding_sphere, light_bounding_box) 
-													   : LightViewProjection_Directional(light, *camera, light_bounding_box);
-			shadow_cbuf_data.lightview = V;
-			shadow_cbuf_data.lightviewprojection = V * P;
-			shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
-			shadow_cbuf_data.softness = renderer_settings.shadow_softness;
-			shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
-			shadow_cbuffer->Update(context, shadow_cbuf_data);
-		}
 
-		//shadow pass
+		auto const& [V, P] = scene_bounding_sphere ? LightViewProjection_Directional(light, *scene_bounding_sphere, light_bounding_box)
+			: LightViewProjection_Directional(light, *camera, light_bounding_box);
+		shadow_cbuf_data.lightview = V;
+		shadow_cbuf_data.lightviewprojection = V * P;
+		shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
+		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
+		shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
+		shadow_cbuffer->Update(context, shadow_cbuf_data);
+
 		ID3D11ShaderResourceView* null_srv[1] = { nullptr };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, null_srv);
 		shadow_map_pass.Begin(context);
 		{
 			context->RSSetState(shadow_depth_bias.Get());
 			LightFrustumCulling(ELightType::Directional);
-			auto shadow_view = reg.view<Mesh, Transform, Visibility>();
-
-			if (!renderer_settings.shadow_transparent)
-			{
-				standard_programs[EShader::DepthMap].Bind(context);
-				for (auto e : shadow_view)
-				{
-					auto const& visibility = shadow_view.get<Visibility>(e);
-					if (visibility.light_visible)
-					{
-						auto& transform = shadow_view.get<Transform>(e);
-						auto& mesh = shadow_view.get<Mesh>(e);
-
-						object_cbuf_data.model = transform.current_transform;
-						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-						object_cbuffer->Update(context, object_cbuf_data);
-
-						mesh.Draw(context);
-					}
-				}
-			}
-			else
-			{
-				std::vector<entity> potentially_transparent, not_transparent;
-				for (auto e : shadow_view)
-				{
-					auto const& visibility = shadow_view.get<Visibility>(e);
-					if (visibility.light_visible)
-					{
-						if (auto* p_material = reg.get_if<Material>(e))
-						{
-							if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
-								potentially_transparent.push_back(e);
-							else not_transparent.push_back(e);
-						}
-						else not_transparent.push_back(e);
-					}
-				}
-
-				standard_programs[EShader::DepthMap].Bind(context);
-				for (auto e : not_transparent)
-				{
-					auto& transform = shadow_view.get<Transform>(e);
-					auto& mesh = shadow_view.get<Mesh>(e);
-
-					object_cbuf_data.model = transform.current_transform;
-					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-					object_cbuffer->Update(context, object_cbuf_data);
-					mesh.Draw(context);
-				}
-
-				standard_programs[EShader::DepthMap_Transparent].Bind(context);
-				for (auto e : potentially_transparent)
-				{
-					auto& transform = shadow_view.get<Transform>(e);
-					auto& mesh = shadow_view.get<Mesh>(e);
-					auto* material = reg.get_if<Material>(e);
-					ADRIA_ASSERT(material != nullptr);
-					ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
-
-					object_cbuf_data.model = transform.current_transform;
-					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-					object_cbuffer->Update(context, object_cbuf_data);
-
-					auto view = texture_manager.GetTextureView(material->albedo_texture);
-					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
-
-					mesh.Draw(context);
-				}
-
-			}
+			PassShadowMapCommon();
 			context->RSSetState(nullptr);
 		}
 		shadow_map_pass.End(context);
 		ID3D11ShaderResourceView* shadow_depth_srv[1] = { shadow_depth_map.SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, shadow_depth_srv);
-
 	}
 	void Renderer::PassShadowMapSpot(Light const& light)
 	{
 		ADRIA_ASSERT(light.type == ELightType::Spot);
 		ID3D11DeviceContext* context = gfx->Context();
 
-		//update cbuffer
-		{
-			auto const& [V, P] = LightViewProjection_Spot(light, light_bounding_frustum);
-			shadow_cbuf_data.lightview = V;
-			shadow_cbuf_data.lightviewprojection = V * P;
-			shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
-			shadow_cbuf_data.softness = renderer_settings.shadow_softness;
-			shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
-			shadow_cbuffer->Update(context, shadow_cbuf_data);
-		}
+		auto const& [V, P] = LightViewProjection_Spot(light, light_bounding_frustum);
+		shadow_cbuf_data.lightview = V;
+		shadow_cbuf_data.lightviewprojection = V * P;
+		shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
+		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
+		shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
+		shadow_cbuffer->Update(context, shadow_cbuf_data);
 
-		//shadow pass
 		ID3D11ShaderResourceView* null_srv[1] = { nullptr };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, null_srv);
 		shadow_map_pass.Begin(context);
 		{
 			context->RSSetState(shadow_depth_bias.Get());
-
-			standard_programs[EShader::DepthMap].Bind(context);
-
 			LightFrustumCulling(ELightType::Spot);
-			auto shadow_view = reg.view<Mesh, Transform, Visibility>();
-
-			if (!renderer_settings.shadow_transparent)
-			{
-				standard_programs[EShader::DepthMap].Bind(context);
-				for (auto e : shadow_view)
-				{
-					auto const& visibility = shadow_view.get<Visibility>(e);
-					if (visibility.light_visible)
-					{
-						auto& transform = shadow_view.get<Transform>(e);
-						auto& mesh = shadow_view.get<Mesh>(e);
-
-						object_cbuf_data.model = transform.current_transform;
-						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-						object_cbuffer->Update(context, object_cbuf_data);
-
-						mesh.Draw(context);
-					}
-				}
-			}
-			else
-			{
-				std::vector<entity> potentially_transparent, not_transparent;
-				for (auto e : shadow_view)
-				{
-					auto const& visibility = shadow_view.get<Visibility>(e);
-					if (visibility.light_visible)
-					{
-						if (auto* p_material = reg.get_if<Material>(e))
-						{
-							if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
-								potentially_transparent.push_back(e);
-							else not_transparent.push_back(e);
-						}
-						else not_transparent.push_back(e);
-					}
-				}
-
-				standard_programs[EShader::DepthMap].Bind(context);
-				for (auto e : not_transparent)
-				{
-					auto& transform = shadow_view.get<Transform>(e);
-					auto& mesh = shadow_view.get<Mesh>(e);
-
-					object_cbuf_data.model = transform.current_transform;
-					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-					object_cbuffer->Update(context, object_cbuf_data);
-					mesh.Draw(context);
-				}
-
-				standard_programs[EShader::DepthMap_Transparent].Bind(context);
-				for (auto e : potentially_transparent)
-				{
-					auto& transform = shadow_view.get<Transform>(e);
-					auto& mesh = shadow_view.get<Mesh>(e);
-					auto* material = reg.get_if<Material>(e);
-					ADRIA_ASSERT(material != nullptr);
-					ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
-
-					object_cbuf_data.model = transform.current_transform;
-					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-					object_cbuffer->Update(context, object_cbuf_data);
-
-					auto view = texture_manager.GetTextureView(material->albedo_texture);
-					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
-
-					mesh.Draw(context);
-				}
-
-			}
+			PassShadowMapCommon();
 			context->RSSetState(nullptr);
 		}
 		shadow_map_pass.End(context);
@@ -3247,16 +3095,12 @@ namespace adria
 		ADRIA_ASSERT(light.type == ELightType::Point);
 		ID3D11DeviceContext* context = gfx->Context();
 
-		//update cbuffer before every cubemap face
 		for (u32 i = 0; i < shadow_cubemap_pass.size(); ++i)
 		{
-			//Update CBuffers
-			{
-				auto const& [V, P] = LightViewProjection_Point(light, i, light_bounding_frustum);
-				shadow_cbuf_data.lightviewprojection = V * P;
-				shadow_cbuf_data.lightview = V;
-				shadow_cbuffer->Update(context, shadow_cbuf_data);
-			}
+			auto const& [V, P] = LightViewProjection_Point(light, i, light_bounding_frustum);
+			shadow_cbuf_data.lightviewprojection = V * P;
+			shadow_cbuf_data.lightview = V;
+			shadow_cbuffer->Update(context, shadow_cbuf_data);
 
 			ID3D11ShaderResourceView* null_srv[1] = { nullptr };
 			context->PSSetShaderResources(TEXTURE_SLOT_SHADOWCUBE, 1, null_srv);
@@ -3265,77 +3109,7 @@ namespace adria
 			{
 				context->RSSetState(shadow_depth_bias.Get());
 				LightFrustumCulling(ELightType::Point);
-
-				auto shadow_view = reg.view<Mesh, Transform, Visibility>();
-
-				if (!renderer_settings.shadow_transparent)
-				{
-					standard_programs[EShader::DepthMap].Bind(context);
-					for (auto e : shadow_view)
-					{
-						auto const& visibility = shadow_view.get<Visibility>(e);
-						if (visibility.light_visible)
-						{
-							auto& transform = shadow_view.get<Transform>(e);
-							auto& mesh = shadow_view.get<Mesh>(e);
-
-							object_cbuf_data.model = transform.current_transform;
-							object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-							object_cbuffer->Update(context, object_cbuf_data);
-
-							mesh.Draw(context);
-						}
-					}
-				}
-				else
-				{
-					std::vector<entity> potentially_transparent, not_transparent;
-					for (auto e : shadow_view)
-					{
-						auto const& visibility = shadow_view.get<Visibility>(e);
-						if (visibility.light_visible)
-						{
-							if (auto* p_material = reg.get_if<Material>(e))
-							{
-								if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
-									potentially_transparent.push_back(e);
-								else not_transparent.push_back(e);
-							}
-							else not_transparent.push_back(e);
-						}
-					}
-
-					standard_programs[EShader::DepthMap].Bind(context);
-					for (auto e : not_transparent)
-					{
-						auto& transform = shadow_view.get<Transform>(e);
-						auto& mesh = shadow_view.get<Mesh>(e);
-
-						object_cbuf_data.model = transform.current_transform;
-						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-						object_cbuffer->Update(context, object_cbuf_data);
-						mesh.Draw(context);
-					}
-
-					standard_programs[EShader::DepthMap_Transparent].Bind(context);
-					for (auto e : potentially_transparent)
-					{
-						auto& transform = shadow_view.get<Transform>(e);
-						auto& mesh = shadow_view.get<Mesh>(e);
-						auto* material = reg.get_if<Material>(e);
-						ADRIA_ASSERT(material != nullptr);
-						ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
-
-						object_cbuf_data.model = transform.current_transform;
-						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-						object_cbuffer->Update(context, object_cbuf_data);
-
-						auto view = texture_manager.GetTextureView(material->albedo_texture);
-						context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
-
-						mesh.Draw(context);
-					}
-				}
+				PassShadowMapCommon();
 				context->RSSetState(nullptr);
 			}
 			shadow_cubemap_pass[i].End(context);
@@ -3356,92 +3130,20 @@ namespace adria
 
 		ID3D11ShaderResourceView* null_srv[] = { nullptr };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWARRAY, 1, null_srv);
-
 		context->RSSetState(shadow_depth_bias.Get());
 		
 		for (u32 i = 0; i < CASCADE_COUNT; ++i)
 		{
-			{
-				auto const& [V,P] = LightViewProjection_Cascades(light, *camera, proj_matrices[i], light_bounding_box);
-				light_view_projections[i] = V * P;
-				shadow_cbuf_data.lightview = V;
-				shadow_cbuf_data.lightviewprojection = light_view_projections[i];
-				shadow_cbuffer->Update(context, shadow_cbuf_data);
-			}
+			auto const& [V, P] = LightViewProjection_Cascades(light, *camera, proj_matrices[i], light_bounding_box);
+			light_view_projections[i] = V * P;
+			shadow_cbuf_data.lightview = V;
+			shadow_cbuf_data.lightviewprojection = light_view_projections[i];
+			shadow_cbuffer->Update(context, shadow_cbuf_data);
 
-			//Render to cascade
 			cascade_shadow_pass[i].Begin(context);
 			{
 				LightFrustumCulling(ELightType::Directional);
-				auto shadow_view = reg.view<Mesh, Transform, Visibility>();
-
-				if (!renderer_settings.shadow_transparent)
-				{
-					standard_programs[EShader::DepthMap].Bind(context);
-					for (auto e : shadow_view)
-					{
-						auto& visibility = shadow_view.get<Visibility>(e);
-						if (visibility.light_visible)
-						{
-							auto const& transform = shadow_view.get<Transform>(e);
-							auto const& mesh = shadow_view.get<Mesh>(e);
-
-							object_cbuf_data.model = transform.current_transform;
-							object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-							object_cbuffer->Update(context, object_cbuf_data);
-							mesh.Draw(context);
-						}
-					}
-				}
-				else
-				{
-					std::vector<entity> potentially_transparent, not_transparent;
-					for (auto e : shadow_view)
-					{
-						auto const& visibility = shadow_view.get<Visibility>(e);
-						if (visibility.light_visible)
-						{
-							if (auto* p_material = reg.get_if<Material>(e))
-							{
-								if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
-									potentially_transparent.push_back(e);
-								else not_transparent.push_back(e);
-							}
-							else not_transparent.push_back(e);
-						}
-					}
-
-					standard_programs[EShader::DepthMap].Bind(context);
-					for (auto e : not_transparent)
-					{
-						auto& transform = shadow_view.get<Transform>(e);
-						auto& mesh = shadow_view.get<Mesh>(e);
-
-						object_cbuf_data.model = transform.current_transform;
-						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-						object_cbuffer->Update(context, object_cbuf_data);
-						mesh.Draw(context);
-					}
-
-					standard_programs[EShader::DepthMap_Transparent].Bind(context);
-					for (auto e : potentially_transparent)
-					{
-						auto& transform = shadow_view.get<Transform>(e);
-						auto& mesh = shadow_view.get<Mesh>(e);
-						auto* material = reg.get_if<Material>(e);
-						ADRIA_ASSERT(material != nullptr);
-						ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
-
-						object_cbuf_data.model = transform.current_transform;
-						object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
-						object_cbuffer->Update(context, object_cbuf_data);
-
-						auto view = texture_manager.GetTextureView(material->albedo_texture);
-						context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
-
-						mesh.Draw(context);
-					}
-				}
+				PassShadowMapCommon();
 			}
 			cascade_shadow_pass[i].End(context);
 		}
@@ -3462,6 +3164,80 @@ namespace adria
 		shadow_cbuffer->Update(context, shadow_cbuf_data);
 
 	}
+	void Renderer::PassShadowMapCommon()
+	{
+		ID3D11DeviceContext* context = gfx->Context();
+
+		auto shadow_view = reg.view<Mesh, Transform, Visibility>();
+		if (!renderer_settings.shadow_transparent)
+		{
+			standard_programs[EShader::DepthMap].Bind(context);
+			for (auto e : shadow_view)
+			{
+				auto& visibility = shadow_view.get<Visibility>(e);
+				if (visibility.light_visible)
+				{
+					auto const& transform = shadow_view.get<Transform>(e);
+					auto const& mesh = shadow_view.get<Mesh>(e);
+
+					object_cbuf_data.model = transform.current_transform;
+					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+					object_cbuffer->Update(context, object_cbuf_data);
+					mesh.Draw(context);
+				}
+			}
+		}
+		else
+		{
+			std::vector<entity> potentially_transparent, not_transparent;
+			for (auto e : shadow_view)
+			{
+				auto const& visibility = shadow_view.get<Visibility>(e);
+				if (visibility.light_visible)
+				{
+					if (auto* p_material = reg.get_if<Material>(e))
+					{
+						if (p_material->albedo_texture != INVALID_TEXTURE_HANDLE)
+							potentially_transparent.push_back(e);
+						else not_transparent.push_back(e);
+					}
+					else not_transparent.push_back(e);
+				}
+			}
+
+			standard_programs[EShader::DepthMap].Bind(context);
+			for (auto e : not_transparent)
+			{
+				auto& transform = shadow_view.get<Transform>(e);
+				auto& mesh = shadow_view.get<Mesh>(e);
+
+				object_cbuf_data.model = transform.current_transform;
+				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+				object_cbuffer->Update(context, object_cbuf_data);
+				mesh.Draw(context);
+			}
+
+			standard_programs[EShader::DepthMap_Transparent].Bind(context);
+			for (auto e : potentially_transparent)
+			{
+				auto& transform = shadow_view.get<Transform>(e);
+				auto& mesh = shadow_view.get<Mesh>(e);
+				auto* material = reg.get_if<Material>(e);
+				ADRIA_ASSERT(material != nullptr);
+				ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
+
+				object_cbuf_data.model = transform.current_transform;
+				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+				object_cbuffer->Update(context, object_cbuf_data);
+
+				auto view = texture_manager.GetTextureView(material->albedo_texture);
+				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
+
+				mesh.Draw(context);
+			}
+		}
+	}
+
 	void Renderer::PassVolumetric(Light const& light)
 	{
 		ADRIA_ASSERT(light.volumetric);
@@ -3505,7 +3281,6 @@ namespace adria
 		static ID3D11ShaderResourceView* null_srv = nullptr;
 		context->PSSetShaderResources(2, 1, &null_srv);
 	}
-	
 	void Renderer::PassSky()
 	{
 		ID3D11DeviceContext* context = gfx->Context();

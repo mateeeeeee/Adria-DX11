@@ -253,6 +253,7 @@ namespace adria
 		void PassShadowMapSpot(Light const& light);
 		void PassShadowMapPoint(Light const& light);
 		void PassShadowMapCascades(Light const& light);
+		void PassShadowMapCommon();
 		void PassVolumetric(Light const& light);
 		
 		//called in forward pass
