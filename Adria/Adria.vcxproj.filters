@@ -735,5 +735,8 @@
     <FxCompile Include="Resources\Shaders\Misc\FoliagePS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\GI\SSGI.hlsl">
+      <Filter>Shaders\GI</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>
