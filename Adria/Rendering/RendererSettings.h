@@ -21,7 +21,7 @@ namespace adria
 		bool shadow_transparent = false;
 		f32 split_lambda = 0.5f;
 		
-		EAntiAliasing anti_aliasing = AntiAliasing_None;
+		EAntiAliasing anti_aliasing = EAntiAliasing_None;
 		
 		f32 tone_map_exposure = 1.0f;
 		EToneMap tone_map_op = EToneMap::Reinhard;

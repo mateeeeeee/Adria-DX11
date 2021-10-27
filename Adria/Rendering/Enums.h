@@ -175,16 +175,16 @@ namespace adria
 
 	enum EAntiAliasing : u8
 	{
-		AntiAliasing_None = 0x0,
-		AntiAliasing_FXAA = 0x1,
-		AntiAliasing_TAA = 0x2
+		EAntiAliasing_None = 0x0,
+		EAntiAliasing_FXAA = 0x1,
+		EAntiAliasing_TAA = 0x2
 	};
 
-	enum EGbufferSlot : u8
+	enum EGBufferSlot : u8
 	{
-		GBUFFER_NORMAL_METALLIC,
-		GBUFFER_DIFFUSE_ROUGHNESS,
-		GBUFFER_EMISSIVE,
-		GBUFFER_SIZE
+		EGBufferSlot_NormalMetallic,
+		EGBufferSlot_DiffuseRoughness,
+		EGBufferSlot_Emissive,
+		EGBufferSlot_Count
 	};
 }

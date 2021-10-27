@@ -411,7 +411,7 @@ namespace adria
 	{
 		
 		ID3D11DeviceContext* context = gfx->Context();
-		if (renderer_settings.anti_aliasing & AntiAliasing_FXAA)
+		if (renderer_settings.anti_aliasing & EAntiAliasing_FXAA)
 		{
 			fxaa_pass.Begin(context);
 			PassToneMap();
@@ -430,7 +430,7 @@ namespace adria
 	void Renderer::ResolveToOffscreenFramebuffer()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		if (renderer_settings.anti_aliasing & AntiAliasing_FXAA)
+		if (renderer_settings.anti_aliasing & EAntiAliasing_FXAA)
 		{
 			fxaa_pass.Begin(context);
 			PassToneMap();
@@ -1428,7 +1428,7 @@ namespace adria
 		render_target_desc.height = height;
 		render_target_desc.bind_flags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 		
-		for (u32 i = 0; i < GBUFFER_SIZE; ++i)
+		for (u32 i = 0; i < EGBufferSlot_Count; ++i)
 		{
 			render_target_desc.format = GBUFFER_FORMAT[i];
 			render_target_desc.srv_desc.format = GBUFFER_FORMAT[i];
@@ -1452,17 +1452,17 @@ namespace adria
 		static constexpr std::array<f32, 4> clear_black = { 0.0f,0.0f,0.0f,0.0f };
 
 		rtv_attachment_desc_t gbuffer_normal_attachment{};
-		gbuffer_normal_attachment.view = gbuffer[GBUFFER_NORMAL_METALLIC].RTV();
+		gbuffer_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic].RTV();
 		gbuffer_normal_attachment.clear_color = clear_black;
 		gbuffer_normal_attachment.load_op = LoadOp::eClear;
 
 		rtv_attachment_desc_t gbuffer_albedo_attachment{};
-		gbuffer_albedo_attachment.view = gbuffer[GBUFFER_DIFFUSE_ROUGHNESS].RTV();
+		gbuffer_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness].RTV();
 		gbuffer_albedo_attachment.clear_color = clear_black;
 		gbuffer_albedo_attachment.load_op = LoadOp::eClear;
 
 		rtv_attachment_desc_t gbuffer_emissive_attachment{};
-		gbuffer_emissive_attachment.view = gbuffer[GBUFFER_EMISSIVE].RTV();
+		gbuffer_emissive_attachment.view = gbuffer[EGBufferSlot_Emissive].RTV();
 		gbuffer_emissive_attachment.clear_color = clear_black;
 		gbuffer_emissive_attachment.load_op = LoadOp::eClear;
 
@@ -2385,7 +2385,7 @@ namespace adria
 
 		ssao_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* srvs[] = { gbuffer[GBUFFER_NORMAL_METALLIC].SRV(), depth_target.SRV(), ssao_random_texture.SRV() };
+			ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic].SRV(), depth_target.SRV(), ssao_random_texture.SRV() };
 			context->PSSetShaderResources(1, _countof(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2418,7 +2418,7 @@ namespace adria
 
 		hbao_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* srvs[] = { gbuffer[GBUFFER_NORMAL_METALLIC].SRV(), depth_target.SRV(), hbao_random_texture.SRV() };
+			ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic].SRV(), depth_target.SRV(), hbao_random_texture.SRV() };
 			context->PSSetShaderResources(1, _countof(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2437,7 +2437,7 @@ namespace adria
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
-		ID3D11ShaderResourceView* srvs[] = { gbuffer[GBUFFER_NORMAL_METALLIC].SRV(),gbuffer[GBUFFER_DIFFUSE_ROUGHNESS].SRV(), depth_target.SRV(), gbuffer[GBUFFER_EMISSIVE].SRV() };
+		ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic].SRV(),gbuffer[EGBufferSlot_DiffuseRoughness].SRV(), depth_target.SRV(), gbuffer[EGBufferSlot_Emissive].SRV() };
 		context->PSSetShaderResources(0, _countof(srvs), srvs);
 
 		ambient_pass.Begin(context);
@@ -2532,8 +2532,8 @@ namespace adria
 			lighting_pass.Begin(context);
 			{
 				ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-				shader_views[0] = gbuffer[GBUFFER_NORMAL_METALLIC].SRV();
-				shader_views[1] = gbuffer[GBUFFER_DIFFUSE_ROUGHNESS].SRV();
+				shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic].SRV();
+				shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness].SRV();
 				shader_views[2] = depth_target.SRV();
 
 				context->PSSetShaderResources(0, _countof(shader_views), shader_views);
@@ -2566,8 +2566,8 @@ namespace adria
 		compute_cbuffer->Update(context, compute_cbuf_data);
 
 		ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-		shader_views[0] = gbuffer[GBUFFER_NORMAL_METALLIC].SRV();
-		shader_views[1] = gbuffer[GBUFFER_DIFFUSE_ROUGHNESS].SRV();
+		shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic].SRV();
+		shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness].SRV();
 		shader_views[2] = depth_target.SRV();
 		context->CSSetShaderResources(0, _countof(shader_views), shader_views);
 		ID3D11ShaderResourceView* lights_srv = lights->SRV();
@@ -2690,8 +2690,8 @@ namespace adria
 		lighting_pass.Begin(context);
 		{
 			ID3D11ShaderResourceView* shader_views[6] = { nullptr };
-			shader_views[0] = gbuffer[GBUFFER_NORMAL_METALLIC].SRV();
-			shader_views[1] = gbuffer[GBUFFER_DIFFUSE_ROUGHNESS].SRV();
+			shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic].SRV();
+			shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness].SRV();
 			shader_views[2] = depth_target.SRV();
 			shader_views[3] = lights->SRV();
 			shader_views[4] = light_list->SRV();
@@ -2898,7 +2898,7 @@ namespace adria
 		lighting_pass.Begin(context);
 		{
 			ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-			shader_views[0] = gbuffer[GBUFFER_NORMAL_METALLIC].SRV();
+			shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic].SRV();
 			shader_views[1] = depth_target.SRV();
 			shader_views[2] = renderer_settings.voxel_second_bounce ? voxel_texture_second_bounce.SRV() : voxel_texture.SRV();
 
@@ -3022,7 +3022,7 @@ namespace adria
 
 		}
 
-		if (renderer_settings.anti_aliasing & AntiAliasing_TAA)
+		if (renderer_settings.anti_aliasing & EAntiAliasing_TAA)
 		{
 			postprocess_passes[postprocess_index].Begin(context);
 			PassTAA();
@@ -3501,7 +3501,7 @@ namespace adria
 
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* srv_array[] = { gbuffer[GBUFFER_NORMAL_METALLIC].SRV(), postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
+		ID3D11ShaderResourceView* srv_array[] = { gbuffer[EGBufferSlot_NormalMetallic].SRV(), postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 
 		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
 
@@ -3718,7 +3718,7 @@ namespace adria
 	}
 	void Renderer::PassVelocityBuffer()
 	{
-		if (!renderer_settings.motion_blur && !(renderer_settings.anti_aliasing & AntiAliasing_TAA)) return;
+		if (!renderer_settings.motion_blur && !(renderer_settings.anti_aliasing & EAntiAliasing_TAA)) return;
 
 		ID3D11DeviceContext* context = gfx->Context();
 
@@ -3826,7 +3826,7 @@ namespace adria
 	}
 	void Renderer::PassFXAA()
 	{
-		ADRIA_ASSERT(renderer_settings.anti_aliasing & AntiAliasing_FXAA);
+		ADRIA_ASSERT(renderer_settings.anti_aliasing & EAntiAliasing_FXAA);
 		ID3D11DeviceContext* context = gfx->Context();
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
@@ -3845,7 +3845,7 @@ namespace adria
 	}
 	void Renderer::PassTAA()
 	{
-		ADRIA_ASSERT(renderer_settings.anti_aliasing & AntiAliasing_TAA);
+		ADRIA_ASSERT(renderer_settings.anti_aliasing & EAntiAliasing_TAA);
 		ID3D11DeviceContext* context = gfx->Context();
 		
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };

@@ -1109,19 +1109,19 @@ namespace adria
                     ImGui::Checkbox("TAA", &taa);
                     if (fxaa)
                     {
-                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_FXAA);
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing | EAntiAliasing_FXAA);
                     }
                     else
                     {
-                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_FXAA));
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing & (~EAntiAliasing_FXAA));
                     }
                     if (taa)
                     {
-                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_TAA);
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing | EAntiAliasing_TAA);
                     }
                     else
                     {
-                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_TAA));
+                        renderer_settings.anti_aliasing = static_cast<EAntiAliasing>(renderer_settings.anti_aliasing & (~EAntiAliasing_TAA));
                     }
                     
                     ImGui::TreePop();
@@ -1180,7 +1180,7 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-                if ((renderer_settings.motion_blur || (renderer_settings.anti_aliasing & AntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
+                if ((renderer_settings.motion_blur || (renderer_settings.anti_aliasing & EAntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
                 {
                     ImGui::SliderFloat("Motion Blur Scale", &renderer_settings.velocity_buffer_scale, 32.0f, 128.0f);
                     ImGui::TreePop();
