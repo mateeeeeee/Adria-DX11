@@ -8,7 +8,7 @@
 #include "../Graphics/VertexBuffer.h"
 #include "../Graphics/IndexBuffer.h"
 #include "../Graphics/TextureManager.h"
-
+#include "Terrain.h"
 
 #define COMPONENT 
 
@@ -164,6 +164,7 @@ namespace adria
 
 	struct COMPONENT TerrainComponent
 	{
+		inline static std::shared_ptr<Terrain> terrain;
 		TEXTURE_HANDLE sand_texture = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE grass_texture = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE rock_texture = INVALID_TEXTURE_HANDLE;

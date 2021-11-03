@@ -244,6 +244,7 @@
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
+    <ClInclude Include="Rendering\Terrain.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="tecs\component_pool.h" />
     <ClInclude Include="tecs\entity.h" />

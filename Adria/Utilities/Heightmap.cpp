@@ -86,7 +86,7 @@ namespace adria
 			}
 		}
 	}
-	f32 Heightmap::HeightAt(u64 x, u64 z)
+	f32 Heightmap::HeightAt(u64 x, u64 z) const
 	{
 		return hm[z][x];
 	}

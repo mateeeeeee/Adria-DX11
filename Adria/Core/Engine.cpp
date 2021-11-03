@@ -150,8 +150,8 @@ namespace adria
 			terrain_params.terrain_grid.tile_count_x = 1000;
 			terrain_params.terrain_grid.tile_count_z = 1000;
 			terrain_params.terrain_grid.normal_type = ENormalCalculation::AreaWeight;
-			terrain_params.terrain_grid.tile_size_x = 40.0f;
-			terrain_params.terrain_grid.tile_size_z = 40.0f;
+			terrain_params.terrain_grid.tile_size_x = 1.0f;
+			terrain_params.terrain_grid.tile_size_z = 1.0f;
 			terrain_params.terrain_grid.texture_scale_x = 100;
 			terrain_params.terrain_grid.texture_scale_z = 100;
 			terrain_params.terrain_grid.split_to_chunks = true; 
@@ -161,7 +161,7 @@ namespace adria
 			noise_desc_t noise_desc{};
 			noise_desc.width = 1001;
 			noise_desc.depth = 1001;
-			noise_desc.max_height = 400;
+			noise_desc.max_height = 20;
 			noise_desc.seed = 33;
 			noise_desc.persistence = 0.75f;
 			noise_desc.fractal_type = EFractalType::FBM;
@@ -172,21 +172,17 @@ namespace adria
 			terrain_params.rock_texture  = "Resources/Textures/Random/stone.dds";
 			terrain_params.snow_texture  = "Resources/Textures/Random/snow.dds";
 			terrain_params.sand_texture  = "Resources/Textures/Terrain/grass.dds"; //sand.dds
-			entity_loader->LoadTerrain(terrain_params);
 
-			//foliage
-			//foliage_parameters_t foliage_params{};
-			//foliage_params.foliage_count = 2000;
-			//foliage_params.foliage_center.x = 0.0f;
-			//foliage_params.foliage_center.y = -10.0f;
-			//foliage_params.foliage_extents.x = 250.0f;
-			//foliage_params.foliage_extents.y = 50.0f;
-			//foliage_params.foliage_scale = 10.0f;
-			//
-			//foliage_params.textures.push_back("Resources/Textures/Foliage/foliage.png");
-			//foliage_params.textures.push_back("Resources/Textures/Foliage/foliage3.png");
-			//foliage_params.textures.push_back("Resources/Textures/Foliage/foliage4.png");
-			//entity_loader->LoadFoliage(foliage_params);
+			terrain_params.generate_foliage = true;
+			terrain_params.foliage_over_whole_terrain = true;
+			terrain_params.terrain_foliage.foliage_count = 2000;
+			terrain_params.terrain_foliage.foliage_scale = 10.0f;
+			terrain_params.terrain_foliage.foliage_height_cutoff = 300.0f;
+			terrain_params.terrain_foliage.foliage_steepness_cutoff = 0.85f;
+			terrain_params.terrain_foliage.textures.push_back("Resources/Textures/Foliage/foliage.png");
+			terrain_params.terrain_foliage.textures.push_back("Resources/Textures/Foliage/foliage3.png");
+			terrain_params.terrain_foliage.textures.push_back("Resources/Textures/Foliage/foliage4.png");
+			entity_loader->LoadTerrain(terrain_params);
 		}
 	}
 }

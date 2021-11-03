@@ -713,6 +713,11 @@ namespace adria
 		std::vector<entity> terrain_chunks = LoadGrid(params.terrain_grid, &vertices);
 
         TerrainComponent terrain_component{};
+        TerrainComponent::terrain = std::make_shared<Terrain>(vertices,
+            params.terrain_grid.tile_size_x,
+            params.terrain_grid.tile_size_z, 
+            params.terrain_grid.tile_count_x,
+            params.terrain_grid.tile_count_z);
 		terrain_component.grass_texture = texture_manager.LoadTexture(params.grass_texture);
 		terrain_component.rock_texture = texture_manager.LoadTexture(params.rock_texture);
 		terrain_component.snow_texture = texture_manager.LoadTexture(params.snow_texture);
@@ -723,6 +728,19 @@ namespace adria
 			reg.emplace<TerrainComponent>(terrain_chunk, terrain_component);
 			reg.emplace<Tag>(terrain_chunk, "Terrain Chunk" + std::to_string(as_integer(terrain_chunk)));
 		}
+
+        if (params.generate_foliage)
+        {
+            if (params.foliage_over_whole_terrain)
+            {
+				const_cast<terrain_parameters_t&>(params).terrain_foliage.foliage_center.x = params.terrain_grid.tile_size_x * params.terrain_grid.tile_count_x / 2;
+				const_cast<terrain_parameters_t&>(params).terrain_foliage.foliage_center.y = params.terrain_grid.tile_size_z * params.terrain_grid.tile_count_z / 2;
+				const_cast<terrain_parameters_t&>(params).terrain_foliage.foliage_extents.x = params.terrain_grid.tile_size_x * params.terrain_grid.tile_count_x / 2;
+				const_cast<terrain_parameters_t&>(params).terrain_foliage.foliage_extents.y = params.terrain_grid.tile_size_z * params.terrain_grid.tile_count_z / 2;
+				const_cast<terrain_parameters_t&>(params).terrain_foliage.foliage_scale = 10.0f;
+            }
+            LoadFoliage(params.terrain_foliage);
+        }
 
 		return terrain_chunks;
 	}
@@ -762,12 +780,19 @@ namespace adria
 			std::vector<FoliageInstance> instance_data{};
 			for (u32 i = 0; i < params.foliage_count; ++i)
 			{
-                XMFLOAT3 position;
-                position.x = random_x();
-                position.z = random_z();
-                position.y = -0.1f;
+                XMFLOAT3 position{};
+                XMFLOAT3 normal{};
+                do 
+                {
+					position.x = random_x();
+					position.z = random_z();
+					position.y = TerrainComponent::terrain ? TerrainComponent::terrain->HeightAt(position.x, position.z) - 0.1f : -0.1f;
 
-				instance_data.emplace_back(position);
+                    normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : XMFLOAT3(0.0f,1.0f,0.0f);
+                    
+                } while (position.y > params.foliage_height_cutoff || normal.y < params.foliage_steepness_cutoff);
+
+                instance_data.emplace_back(position);
 			}
 
 			mesh_component.start_instance_location = 0;

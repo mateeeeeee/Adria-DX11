@@ -68,14 +68,6 @@ namespace adria
     {
         grid_parameters_t ocean_grid;
     };
-	struct terrain_parameters_t
-	{
-		grid_parameters_t terrain_grid;
-		std::string grass_texture;
-		std::string snow_texture;
-		std::string rock_texture;
-		std::string sand_texture;
-	};
     struct foliage_parameters_t
     {
         std::vector<std::string> textures;
@@ -84,8 +76,20 @@ namespace adria
         DirectX::XMFLOAT2 foliage_center;
         DirectX::XMFLOAT2 foliage_extents;
         EFoliageMesh mesh;
-        Heightmap* terrain;
+		f32 foliage_height_cutoff;
+		f32 foliage_steepness_cutoff;
     };
+	struct terrain_parameters_t
+	{
+		grid_parameters_t terrain_grid;
+        bool foliage_over_whole_terrain;
+		foliage_parameters_t terrain_foliage;
+		std::string grass_texture;
+		std::string snow_texture;
+		std::string rock_texture;
+		std::string sand_texture;
+		bool generate_foliage;
+	};
    
     class TextureManager;
 

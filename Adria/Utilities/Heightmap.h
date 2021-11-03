@@ -43,7 +43,7 @@ namespace adria
 
 		Heightmap(std::string_view heightmap_path, u32 max_height);
 
-		f32 HeightAt(u64 x, u64 z);
+		f32 HeightAt(u64 x, u64 z) const;
 
 		u64 Width() const;
 
