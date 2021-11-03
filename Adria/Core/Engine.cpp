@@ -27,7 +27,7 @@ namespace adria
 		camera_desc_t camera_desc{};
 		camera_desc.aspect_ratio = static_cast<f32>(Window::Width()) / Window::Height();
 		camera_desc.near_plane = 1.0f;
-		camera_desc.far_plane = 1000.0f;
+		camera_desc.far_plane = 3000.0f;
 		camera_desc.fov = pi_div_4<f32>;
 		camera_desc.position_x = 0.0f;
 		camera_desc.position_y = 25.0f;
@@ -120,6 +120,8 @@ namespace adria
 			model_params.model_path = "Resources/Models/Sponza/glTF/Sponza.gltf";
 			model_params.textures_path = "Resources/Models/Sponza/glTF/";
 			model_params.model_scale = 0.25f;
+
+			//sun temple
 			//model_params.model_path = "Resources/Models/SunTemple/suntemple.gltf";
 			//model_params.textures_path = "Resources/Models/SunTemple/";
 			//model_params.model_matrix = DirectX::XMMatrixRotationX(1.57079632679f);
@@ -141,17 +143,50 @@ namespace adria
 		
 		entity_loader->LoadLight(light_params);
 
-		//foliage_parameters_t foliage_params{};
-		//foliage_params.foliage_count = 2000;
-		//foliage_params.foliage_center.x = 0.0f;
-		//foliage_params.foliage_center.y = -10.0f;
-		//foliage_params.foliage_extents.x = 250.0f;
-		//foliage_params.foliage_extents.y = 50.0f;
-		//foliage_params.foliage_scale = 10.0f;
-		//
-		//foliage_params.textures.push_back("Resources/Textures/Foliage/foliage.png");
-		//foliage_params.textures.push_back("Resources/Textures/Foliage/foliage3.png");
-		//foliage_params.textures.push_back("Resources/Textures/Foliage/foliage4.png");
-		//entity_loader->LoadFoliage(foliage_params);
+		static bool test_terrain = true;
+		if (test_terrain)
+		{
+			terrain_parameters_t terrain_params{};
+			terrain_params.terrain_grid.tile_count_x = 1000;
+			terrain_params.terrain_grid.tile_count_z = 1000;
+			terrain_params.terrain_grid.normal_type = ENormalCalculation::AreaWeight;
+			terrain_params.terrain_grid.tile_size_x = 40.0f;
+			terrain_params.terrain_grid.tile_size_z = 40.0f;
+			terrain_params.terrain_grid.texture_scale_x = 100;
+			terrain_params.terrain_grid.texture_scale_z = 100;
+			terrain_params.terrain_grid.split_to_chunks = true; 
+			terrain_params.terrain_grid.chunk_count_x = 40;
+			terrain_params.terrain_grid.chunk_count_z = 40;
+
+			noise_desc_t noise_desc{};
+			noise_desc.width = 1001;
+			noise_desc.depth = 1001;
+			noise_desc.max_height = 400;
+			noise_desc.seed = 33;
+			noise_desc.persistence = 0.75f;
+			noise_desc.fractal_type = EFractalType::FBM;
+			noise_desc.noise_scale = 50;
+
+			terrain_params.terrain_grid.heightmap = std::make_unique<Heightmap>(noise_desc);
+			terrain_params.grass_texture = "Resources/Textures/Random/grass.dds";
+			terrain_params.rock_texture  = "Resources/Textures/Random/stone.dds";
+			terrain_params.snow_texture  = "Resources/Textures/Random/snow.dds";
+			terrain_params.sand_texture  = "Resources/Textures/Terrain/grass.dds"; //sand.dds
+			entity_loader->LoadTerrain(terrain_params);
+
+			//foliage
+			//foliage_parameters_t foliage_params{};
+			//foliage_params.foliage_count = 2000;
+			//foliage_params.foliage_center.x = 0.0f;
+			//foliage_params.foliage_center.y = -10.0f;
+			//foliage_params.foliage_extents.x = 250.0f;
+			//foliage_params.foliage_extents.y = 50.0f;
+			//foliage_params.foliage_scale = 10.0f;
+			//
+			//foliage_params.textures.push_back("Resources/Textures/Foliage/foliage.png");
+			//foliage_params.textures.push_back("Resources/Textures/Foliage/foliage3.png");
+			//foliage_params.textures.push_back("Resources/Textures/Foliage/foliage4.png");
+			//entity_loader->LoadFoliage(foliage_params);
+		}
 	}
 }

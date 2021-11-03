@@ -178,6 +178,8 @@ namespace adria
 		std::unique_ptr<ConstantBuffer<WeatherCBuffer>> weather_cbuffer = nullptr;
 		VoxelCBuffer voxel_cbuf_data{};
 		std::unique_ptr<ConstantBuffer<VoxelCBuffer>> voxel_cbuffer = nullptr;
+		TerrainCBuffer terrain_cbuf_data{};
+		std::unique_ptr<ConstantBuffer<TerrainCBuffer>> terrain_cbuffer = nullptr;
 
 		//Structured Buffers
 		std::unique_ptr<StructuredBuffer<LightSBuffer>> lights = nullptr;

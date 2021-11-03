@@ -196,9 +196,15 @@ namespace adria
 		u32   mips;
 	};
 
+	DECLSPEC_ALIGN(16) struct TerrainCBuffer
+	{
+		f32 snow_height;
+		f32 grass_height;
+		f32 mix_zone;
+	};
+
 
 	//Structured Buffers
-
 	struct VoxelType
 	{
 		u32 color_mask;

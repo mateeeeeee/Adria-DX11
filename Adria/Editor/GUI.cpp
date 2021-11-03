@@ -5,7 +5,6 @@
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-
 namespace adria
 {
 	GUI::GUI(GraphicsCoreDX11* gfx)
@@ -21,10 +20,8 @@ namespace adria
 		io.ConfigWindowsResizeFromEdges = true;
 		io.ConfigViewportsNoTaskBarIcon = true;
 
-
 		ImGui_ImplWin32_Init(Window::Handle());
 		ImGui_ImplDX11_Init(gfx->Device(), gfx->Context());
-
 
 		ImGuiStyle& style = ImGui::GetStyle();
 		style.WindowBorderSize = 1.0f;
@@ -53,7 +50,6 @@ namespace adria
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
-
 	}
 	void GUI::End() const
 	{

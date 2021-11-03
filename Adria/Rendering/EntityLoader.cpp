@@ -24,7 +24,7 @@ namespace adria
     using namespace tecs;
 
     [[nodiscard]]
-    std::vector<entity> EntityLoader::LoadGrid(grid_parameters_t const& params)
+    std::vector<entity> EntityLoader::LoadGrid(grid_parameters_t const& params, std::vector<TexturedNormalVertex>* vertices_out)
     {
         if (params.heightmap)
         {
@@ -42,7 +42,8 @@ namespace adria
 
                 f32 height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
 
-                vertex.position = XMFLOAT3(i * params.tile_size_x, height, j * params.tile_size_z);
+                vertex.position = XMFLOAT3(i * params.tile_size_x + params.grid_offset.x, 
+                    height + params.grid_offset.y, j * params.tile_size_z + params.grid_offset.z);
                 vertex.uv = XMFLOAT2(i * 1.0f * params.texture_scale_x / (params.tile_count_x - 1), j * 1.0f * params.texture_scale_z / (params.tile_count_z - 1));
                 vertex.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
                 vertices.push_back(vertex);
@@ -66,7 +67,6 @@ namespace adria
                 indices.push_back(i2);
                 indices.push_back(i3);
                 indices.push_back(i4);
-
 
                 ++i1;
                 ++i2;
@@ -133,7 +133,6 @@ namespace adria
                             indices.push_back(i3);
                             indices.push_back(i4);
 
-
                             chunk_vertices_aabb.push_back(vertices[i1]);
                             chunk_vertices_aabb.push_back(vertices[i2]);
                             chunk_vertices_aabb.push_back(vertices[i3]);
@@ -172,11 +171,14 @@ namespace adria
                 mesh.vertex_buffer = vb;
                 mesh.index_buffer = ib;
             }
+        }
 
+        if (vertices_out)
+        {
+            *vertices_out = vertices;
         }
 
         return chunks;
-
     }
 
 	std::vector<entity> EntityLoader::LoadObjMesh(std::string const& model_path)
@@ -494,7 +496,7 @@ namespace adria
                     material.emissive_texture = texture_manager.LoadTexture(texemissive);
                     material.emissive_factor = (f32)gltf_material.emissiveFactor[0];
                 }
-                material.shader = EShader::GbufferPBR;
+                material.shader = EShader::GBufferPBR;
 
                 reg.emplace<Material>(e, material);
 
@@ -602,8 +604,50 @@ namespace adria
             //sun rendered in separate pass
             if (params.light_data.type != ELightType::Directional) reg.emplace<Forward>(light, true);
         }
-        else if (params.mesh_type == ELightMesh::Sphere)
+        else if (params.mesh_type == ELightMesh::Cube)
         {
+		    
+           const SimpleVertex cube_vertices[8] = {
+			   XMFLOAT3{ -1.0, -1.0,  1.0 },
+			   XMFLOAT3{ 1.0, -1.0,  1.0 },
+			   XMFLOAT3{ 1.0,  1.0,  1.0 },
+			   XMFLOAT3{ -1.0,  1.0,  1.0 },
+			   XMFLOAT3{ -1.0, -1.0, -1.0 },
+			   XMFLOAT3{ 1.0, -1.0, -1.0 },
+			   XMFLOAT3{ 1.0,  1.0, -1.0 },
+			   XMFLOAT3{ -1.0,  1.0, -1.0 }
+			};
+
+			const uint16_t cube_indices[36] = {
+				// front
+				0, 1, 2,
+				2, 3, 0,
+				// right
+				1, 5, 6,
+				6, 2, 1,
+				// back
+				7, 6, 5,
+				5, 4, 7,
+				// left
+				4, 0, 3,
+				3, 7, 4,
+				// bottom
+				4, 5, 1,
+				1, 0, 4,
+				// top
+				3, 2, 6,
+				6, 7, 3
+			};
+
+			//Mesh skybox_mesh{};
+			//skybox_mesh.vb = std::make_shared<VertexBuffer>();
+			//skybox_mesh.ib = std::make_shared<IndexBuffer>();
+			//skybox_mesh.vb->Create(device, cube_vertices, _countof(cube_vertices));
+			//skybox_mesh.ib->Create(device, cube_indices, _countof(cube_indices));
+			//skybox_mesh.indices_count = _countof(cube_indices);
+
+			//reg.emplace<Mesh>(skybox, skybox_mesh);
+
             //load sphere mesh and mesh component
            //Mesh sphere_mesh{};
            //
@@ -649,22 +693,39 @@ namespace adria
 
         Material ocean_material{};
         ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
-
-        ocean_material.shader = EShader::Unknown; //not necessary
+        ocean_material.shader = EShader::Unknown; 
 
         Ocean ocean_component{};
-
         for (auto ocean_chunk : ocean_chunks)
         {
             reg.emplace<Material>(ocean_chunk, ocean_material);
             reg.emplace<Ocean>(ocean_chunk, ocean_component);
-
             reg.emplace<Tag>(ocean_chunk, "Ocean Chunk" + std::to_string(as_integer(ocean_chunk)));
-
         }
 
         return ocean_chunks;
-    }
+	}
+
+    [[maybe_unused]]
+	std::vector<entity> EntityLoader::LoadTerrain(terrain_parameters_t const& params)
+	{
+        std::vector<TexturedNormalVertex> vertices;
+		std::vector<entity> terrain_chunks = LoadGrid(params.terrain_grid, &vertices);
+
+        TerrainComponent terrain_component{};
+		terrain_component.grass_texture = texture_manager.LoadTexture(params.grass_texture);
+		terrain_component.rock_texture = texture_manager.LoadTexture(params.rock_texture);
+		terrain_component.snow_texture = texture_manager.LoadTexture(params.snow_texture);
+		terrain_component.sand_texture = texture_manager.LoadTexture(params.sand_texture);
+
+		for (auto terrain_chunk : terrain_chunks)
+		{
+			reg.emplace<TerrainComponent>(terrain_chunk, terrain_component);
+			reg.emplace<Tag>(terrain_chunk, "Terrain Chunk" + std::to_string(as_integer(terrain_chunk)));
+		}
+
+		return terrain_chunks;
+	}
 
 	[[maybe_unused]]
 	std::vector<entity> EntityLoader::LoadFoliage(foliage_parameters_t const& params)
@@ -701,10 +762,11 @@ namespace adria
 			std::vector<FoliageInstance> instance_data{};
 			for (u32 i = 0; i < params.foliage_count; ++i)
 			{
-				XMFLOAT3 position;
-				position.x = random_x();
-				position.y = -0.1f;
-				position.z = random_z();
+                XMFLOAT3 position;
+                position.x = random_x();
+                position.z = random_z();
+                position.y = -0.1f;
+
 				instance_data.emplace_back(position);
 			}
 
@@ -726,10 +788,6 @@ namespace adria
 			Visibility vis{};
 			vis.skip_culling = true;
 			reg.emplace<Visibility>(foliage, vis);
-
-			//RenderState custom_state{};
-			//custom_state.blend_state = EBlendState::AlphaToCoverage;
-			//reg.emplace<RenderState>(foliage, custom_state);
 
 			foliage_entities.push_back(foliage);
 		}

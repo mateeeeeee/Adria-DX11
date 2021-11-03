@@ -650,7 +650,7 @@ namespace adria
                         }
                         else
                         {
-                           material->shader = EShader::GbufferPBR;
+                           material->shader = EShader::GBufferPBR;
                         }
                     }
 
@@ -800,7 +800,7 @@ namespace adria
                         {
                             Material mat{};
                             if (engine->reg.has<Deferred>(selected_entity))
-                                mat.shader = EShader::GbufferPBR;
+                                mat.shader = EShader::GBufferPBR;
                             else mat.shader = EShader::Solid;
                             engine->reg.emplace<Material>(selected_entity, mat);
                         }
@@ -924,7 +924,7 @@ namespace adria
 				f32 _near = camera.Near(), _far = camera.Far();
 				f32 _fov = camera.Fov(), _ar = camera.AspectRatio();
 				ImGui::SliderFloat("Near Plane", &_near, 0.0f, 2.0f);
-				ImGui::SliderFloat("Far Plane", &_far, 10.0f, 3000.0f);
+				ImGui::SliderFloat("Far Plane", &_far, 10.0f, 5000.0f);
 				ImGui::SliderFloat("FOV", &_fov, 0.01f, 1.5707f);
 				camera.SetNearAndFar(_near, _far);
 				camera.SetFov(_fov);

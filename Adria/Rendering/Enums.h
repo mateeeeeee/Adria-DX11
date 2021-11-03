@@ -18,6 +18,7 @@ namespace adria
 	DECLARE_CBUFFER_SLOT(COMPUTE, 6);
 	DECLARE_CBUFFER_SLOT(WEATHER, 7);
 	DECLARE_CBUFFER_SLOT(VOXEL, 8);
+	DECLARE_CBUFFER_SLOT(TERRAIN, 9);
 
 	DECLARE_TEXTURE_SLOT(DIFFUSE, 0);
 	DECLARE_TEXTURE_SLOT(SPECULAR, 1);
@@ -44,7 +45,8 @@ namespace adria
 		Solid,
 		Sun,
 		Billboard,
-		GbufferPBR,
+		GBufferPBR,
+		GBuffer_Terrain,
 		AmbientPBR,
 		AmbientPBR_AO,
 		AmbientPBR_IBL,

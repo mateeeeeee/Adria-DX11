@@ -4,13 +4,10 @@
 #include "../Core/Definitions.h"
 #include "../Math/Constants.h"
 #include <DirectXCollision.h>
-#include "../Utilities/Heightmap.h"
-
 #include "../Graphics/VertexTypes.h"
 #include "../Graphics/VertexBuffer.h"
 #include "../Graphics/IndexBuffer.h"
 #include "../Graphics/TextureManager.h"
-#include <unordered_map>
 
 
 #define COMPONENT 
@@ -164,6 +161,14 @@ namespace adria
 	};
 
 	struct COMPONENT Ocean {};
+
+	struct COMPONENT TerrainComponent
+	{
+		TEXTURE_HANDLE sand_texture = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE grass_texture = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE rock_texture = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE snow_texture = INVALID_TEXTURE_HANDLE;
+	};
 
 	struct COMPONENT Deferred {};
 

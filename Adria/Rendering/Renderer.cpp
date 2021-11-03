@@ -566,7 +566,11 @@ namespace adria
 			geometry_pass_input_ps.flags = ShaderInfo::FLAG_DISABLE_OPTIMIZATION | ShaderInfo::FLAG_DEBUG;
 			
 			ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
-			standard_programs[EShader::GbufferPBR].Create(device, vs_blob, ps_blob); 
+			standard_programs[EShader::GBufferPBR].Create(device, vs_blob, ps_blob); 
+
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/GeometryPassTerrain_VS.cso", vs_blob);
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/GeometryPassTerrain_PS.cso", ps_blob);
+			standard_programs[EShader::GBuffer_Terrain].Create(device, vs_blob, ps_blob);
 		}
 
 		//ambient & lighting (not compiled)
@@ -743,7 +747,6 @@ namespace adria
 
 		//shadows
 		{
-
 			ShaderBlob vs_blob, ps_blob;
 			ShaderInfo vs_input{}, ps_input{};
 			vs_input.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
@@ -767,7 +770,6 @@ namespace adria
 			ShaderUtility::CompileShader(ps_input, ps_blob);
 
 			standard_programs[EShader::DepthMap_Transparent].Create(device, vs_blob, ps_blob);
-
 		}
 
 		//volumetric lighting
@@ -965,6 +967,7 @@ namespace adria
 		compute_cbuffer = std::make_unique<ConstantBuffer<ComputeCBuffer>>(device);
 		weather_cbuffer = std::make_unique<ConstantBuffer<WeatherCBuffer>>(device);
 		voxel_cbuffer = std::make_unique<ConstantBuffer<VoxelCBuffer>>(device);
+		terrain_cbuffer = std::make_unique<ConstantBuffer<TerrainCBuffer>>(device);
 
 		//for bokeh
 		D3D11_BUFFER_DESC buffer_desc{};
@@ -1938,6 +1941,7 @@ namespace adria
 			postprocess_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_POSTPROCESS);
 			weather_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_WEATHER);
 			voxel_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_VOXEL);
+			terrain_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_TERRAIN);
 			context->PSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 			context->PSSetSamplers(1, 1, point_wrap_sampler.GetAddressOf());
 			context->PSSetSamplers(2, 1, linear_border_sampler.GetAddressOf());
@@ -2166,6 +2170,11 @@ namespace adria
 		
 		ID3D11DeviceContext* context = gfx->Context();
 		weather_cbuffer->Update(context, weather_cbuf_data);
+
+		terrain_cbuf_data.snow_height = 850;
+		terrain_cbuf_data.grass_height = 50;
+		terrain_cbuf_data.mix_zone = 100;
+		terrain_cbuffer->Update(context, terrain_cbuf_data);
 	}
 	void Renderer::UpdateLights()
 	{
@@ -2291,7 +2300,7 @@ namespace adria
 		gbuffer_pass.Begin(context);
 		{
 			auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
-			standard_programs[EShader::GbufferPBR].Bind(context);
+			standard_programs[EShader::GBufferPBR].Bind(context);
 			for (auto e : gbuffer_view)
 			{
 				auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
@@ -2361,6 +2370,46 @@ namespace adria
 					ResolveCustomRenderState(states, true);
 				}
 				else mesh.Draw(context);
+			}
+
+			auto terrain_view = reg.view<Mesh, Transform, Visibility, TerrainComponent>();
+			standard_programs[EShader::GBuffer_Terrain].Bind(context);
+			for (auto e : terrain_view)
+			{
+				auto [mesh, transform, visibility, terrain] = terrain_view.get<Mesh, Transform, Visibility, TerrainComponent>(e);
+
+				if (!visibility.camera_visible) continue;
+
+				object_cbuf_data.model = transform.current_transform;
+				object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuffer->Update(context, object_cbuf_data);
+
+				if (terrain.grass_texture != INVALID_TEXTURE_HANDLE)
+				{
+					auto view = texture_manager.GetTextureView(terrain.grass_texture);
+
+					context->PSSetShaderResources(TEXTURE_SLOT_GRASS, 1, &view);
+				}
+				if (terrain.snow_texture != INVALID_TEXTURE_HANDLE)
+				{
+					auto view = texture_manager.GetTextureView(terrain.snow_texture);
+
+					context->PSSetShaderResources(TEXTURE_SLOT_SNOW, 1, &view);
+				}
+				if (terrain.rock_texture != INVALID_TEXTURE_HANDLE)
+				{
+					auto view = texture_manager.GetTextureView(terrain.rock_texture);
+
+					context->PSSetShaderResources(TEXTURE_SLOT_ROCK, 1, &view);
+				}
+				if (terrain.sand_texture != INVALID_TEXTURE_HANDLE)
+				{
+					auto view = texture_manager.GetTextureView(terrain.sand_texture);
+
+					context->PSSetShaderResources(TEXTURE_SLOT_SAND, 1, &view);
+				}
+
+				mesh.Draw(context);
 			}
 		}
 		gbuffer_pass.End(context);
@@ -3329,7 +3378,8 @@ namespace adria
 
 		ID3D11DeviceContext* context = gfx->Context();
 		if (renderer_settings.ocean_wireframe) context->RSSetState(wireframe.Get());
-		
+		context->OMSetBlendState(alpha_blend.Get(), nullptr, 0xffffffff);
+
 		auto skyboxes = reg.view<Skybox>();
 		ID3D11ShaderResourceView* skybox_srv = nullptr;
 		for (auto skybox : skyboxes)
@@ -3377,6 +3427,7 @@ namespace adria
 		context->PSSetShaderResources(1, 1, &null_srv);
 		context->PSSetShaderResources(2, 1, &null_srv);
 
+		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 		if (renderer_settings.ocean_wireframe) context->RSSetState(nullptr);
 	}
 	void Renderer::PassForwardCommon(bool transparent)
@@ -4031,8 +4082,6 @@ namespace adria
 				break;
 			}
 		}
-
-
 
 	}
 

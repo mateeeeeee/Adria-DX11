@@ -35,15 +35,13 @@ namespace adria
 		f32 noise_scale = 10;
 	};
 
-	
 	class Heightmap
 	{
-
 	public:
 		
 		Heightmap(noise_desc_t const& desc);
 
-		Heightmap(std::string_view heightmap_path);
+		Heightmap(std::string_view heightmap_path, u32 max_height);
 
 		f32 HeightAt(u64 x, u64 z);
 
@@ -56,28 +54,6 @@ namespace adria
 	};
 }
 
-
-/*
-	enum CellularDistanceFunction
-	{
-		CellularDistanceFunction_Euclidean,
-		CellularDistanceFunction_EuclideanSq,
-		CellularDistanceFunction_Manhattan,
-		CellularDistanceFunction_Hybrid
-	};
-
-	enum CellularReturnType
-	{
-		CellularReturnType_CellValue,
-		CellularReturnType_Distance,
-		CellularReturnType_Distance2,
-		CellularReturnType_Distance2Add,
-		CellularReturnType_Distance2Sub,
-		CellularReturnType_Distance2Mul,
-		CellularReturnType_Distance2Div
-	};
-
-	*/
 
 /*struct THERMAL_EROSION_DESC
 	{

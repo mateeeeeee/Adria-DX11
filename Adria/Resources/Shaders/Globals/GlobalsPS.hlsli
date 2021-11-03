@@ -137,6 +137,13 @@ cbuffer VoxelCbuf : register(b8)
     VoxelRadiance voxel_radiance;
 }
 
+cbuffer TerrainCBuf : register(b9)
+{
+    float snow_height;
+    float grass_height;
+    float mix_zone;
+};
+
 
 
 SamplerState linear_wrap_sampler    : register(s0);

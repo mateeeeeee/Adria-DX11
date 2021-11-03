@@ -9,6 +9,7 @@
 #include "../Core/Definitions.h"
 #include "../tecs/registry.h"
 #include "../Math/ComputeNormals.h"
+#include "../Utilities/Heightmap.h"
 
 struct ID3D11Device;
 
@@ -20,7 +21,7 @@ namespace adria
         
         NoMesh,
         Quad,
-        Sphere
+        Cube
     };
 	enum class EFoliageMesh
 	{
@@ -61,11 +62,20 @@ namespace adria
         bool split_to_chunks = false;
         ENormalCalculation normal_type = ENormalCalculation::None;
         std::unique_ptr<Heightmap> heightmap = nullptr;
+        DirectX::XMFLOAT3 grid_offset = DirectX::XMFLOAT3(0,0,0);
     };
     struct ocean_parameters_t
     {
         grid_parameters_t ocean_grid;
     };
+	struct terrain_parameters_t
+	{
+		grid_parameters_t terrain_grid;
+		std::string grass_texture;
+		std::string snow_texture;
+		std::string rock_texture;
+		std::string sand_texture;
+	};
     struct foliage_parameters_t
     {
         std::vector<std::string> textures;
@@ -74,6 +84,7 @@ namespace adria
         DirectX::XMFLOAT2 foliage_center;
         DirectX::XMFLOAT2 foliage_extents;
         EFoliageMesh mesh;
+        Heightmap* terrain;
     };
    
     class TextureManager;
@@ -81,7 +92,7 @@ namespace adria
 	class EntityLoader
 	{
         [[nodiscard]]
-        std::vector<tecs::entity> LoadGrid(grid_parameters_t const& args);
+        std::vector<tecs::entity> LoadGrid(grid_parameters_t const& args, std::vector<TexturedNormalVertex>* vertices = nullptr);
 
 		[[nodiscard]]
 		std::vector<tecs::entity> LoadObjMesh(std::string const& model_path);
@@ -97,6 +108,8 @@ namespace adria
         [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
 
         [[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
+
+		[[maybe_unused]] std::vector<tecs::entity> LoadTerrain(terrain_parameters_t const&);
 
 		[[maybe_unused]] std::vector<tecs::entity> LoadFoliage(foliage_parameters_t const&);
 

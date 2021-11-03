@@ -1,11 +1,11 @@
 #include "Heightmap.h"
-//move to cpp
 #include "Cpp/FastNoiseLite.h"
+#include "../Utilities/Image.h"
 
 namespace adria
 {
 	
-	constexpr FastNoiseLite::NoiseType GetNoiseType(ENoiseType type)
+	static constexpr FastNoiseLite::NoiseType GetNoiseType(ENoiseType type)
 	{
 		switch (type)
 		{
@@ -26,7 +26,7 @@ namespace adria
 
 		return FastNoiseLite::NoiseType_Perlin;
 	}
-	constexpr FastNoiseLite::FractalType GetFractalType(EFractalType type)
+	static constexpr FastNoiseLite::FractalType GetFractalType(EFractalType type)
 	{
 		switch (type)
 		{
@@ -43,7 +43,6 @@ namespace adria
 
 		return FastNoiseLite::FractalType_None;
 	}
-
 
 	Heightmap::Heightmap(noise_desc_t const& desc)
 	{
@@ -62,7 +61,6 @@ namespace adria
 			hm[z].resize(desc.width);
 			for (u32 x = 0; x < desc.width; x++)
 			{
-
 				f32 xf = x * desc.noise_scale / desc.width; // - desc.width / 2;
 				f32 zf = z * desc.noise_scale / desc.depth; // - desc.depth / 2;
 
@@ -72,9 +70,21 @@ namespace adria
 			}
 		}
 	}
-	Heightmap::Heightmap(std::string_view heightmap_path)
+	Heightmap::Heightmap(std::string_view heightmap_path, u32 max_height)
 	{
-		//todo
+		Image img(heightmap_path, 1);
+
+		u8 const* image_data = img.Data<u8>();
+
+		hm.resize(img.Height());
+		for (u64 z = 0; z < img.Height(); ++z)
+		{
+			hm[z].resize(img.Width());
+			for (u64 x = 0; x < img.Width(); ++x)
+			{
+				hm[z][x] = image_data[z * img.Width() + x] / 255.0f * max_height;
+			}
+		}
 	}
 	f32 Heightmap::HeightAt(u64 x, u64 z)
 	{

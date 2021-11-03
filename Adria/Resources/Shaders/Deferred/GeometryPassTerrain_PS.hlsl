@@ -1,7 +1,6 @@
 #include "../Globals/GlobalsPS.hlsli"
 
 
-
 Texture2D txGrass   : register(t0);
 Texture2D txSnow    : register(t1);
 Texture2D txRock    : register(t2);
@@ -36,12 +35,6 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float3 emissive, f
 }
 
 
-//TO CBUFFER LATER!
-
-static const float snow_height = 100;
-static const float grass_height = 50;
-static const float mix_zone = 10;
-
 
 PS_GBUFFER_OUT main(VS_OUTPUT In)
 {
@@ -55,16 +48,15 @@ PS_GBUFFER_OUT main(VS_OUTPUT In)
 
     float4 color = 0.0f;
     float3 normal = normalize(In.NormalWS);
-    
-    
+    //FIX THIS LIGHTING AND TEXTURING
     float angleDiff = abs(dot(normal.xyz, float3(0, 1, 0)));
     float pureRock = 0.6;
     float lerpRock = 0.7;
     float coef = 1.0 - smoothstep(pureRock, lerpRock, angleDiff);
     grass = lerp(grass, rock, coef);
     snow = lerp(snow, rock, coef);
-    coef = smoothstep(0.90, 0.98, angleDiff);
-    grass = lerp(grass, snow, coef);
+    //coef = smoothstep(0.90, 0.98, angleDiff);
+    //grass = lerp(grass, snow, coef);
 
     float height = In.PosWS.y;
     
