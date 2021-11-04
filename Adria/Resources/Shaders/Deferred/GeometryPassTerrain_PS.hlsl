@@ -55,8 +55,6 @@ PS_GBUFFER_OUT main(VS_OUTPUT In)
     float coef = 1.0 - smoothstep(pureRock, lerpRock, angleDiff);
     grass = lerp(grass, rock, coef);
     snow = lerp(snow, rock, coef);
-    //coef = smoothstep(0.90, 0.98, angleDiff);
-    //grass = lerp(grass, snow, coef);
 
     float height = In.PosWS.y;
     

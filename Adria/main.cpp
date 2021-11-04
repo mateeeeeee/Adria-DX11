@@ -38,7 +38,7 @@ int APIENTRY wWinMain(
 
         engine_init_t engine_init{};
         engine_init.vsync = cmd_line_info.vsync;
-        engine_init.load_default_scene = true;
+        engine_init.load_default_scene = false;
 
         editor_init_t editor_init{};
         editor_init.engine_init = std::move(engine_init);

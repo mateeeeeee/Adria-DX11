@@ -900,7 +900,8 @@ namespace adria
 			std::vector<D3D11_INPUT_ELEMENT_DESC> input_desc = { 
 				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 				{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "INSTANCE_OFFSET", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
+				{ "INSTANCE_OFFSET", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+				{ "INSTANCE_ROTATION", 0, DXGI_FORMAT_R32_FLOAT, 1, 12, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
 			};
 
 			device->CreateInputLayout(input_desc.data(), (UINT)input_desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(),
@@ -2172,8 +2173,8 @@ namespace adria
 		weather_cbuffer->Update(context, weather_cbuf_data);
 
 		terrain_cbuf_data.snow_height = 850;
-		terrain_cbuf_data.grass_height = 50;
-		terrain_cbuf_data.mix_zone = 100;
+		terrain_cbuf_data.grass_height = 20;
+		terrain_cbuf_data.mix_zone = 50;
 		terrain_cbuffer->Update(context, terrain_cbuf_data);
 	}
 	void Renderer::UpdateLights()
@@ -2991,6 +2992,16 @@ namespace adria
 		postprocess_passes[postprocess_index].End(context); 
 		postprocess_index = !postprocess_index;
 
+
+		if (renderer_settings.dof)
+		{
+			postprocess_passes[postprocess_index].Begin(context);
+			PassDepthOfField();
+			postprocess_passes[postprocess_index].End(context);
+
+			postprocess_index = !postprocess_index;
+		}
+
 		if (renderer_settings.clouds)
 		{
 			postprocess_passes[postprocess_index].Begin(context);
@@ -3016,16 +3027,6 @@ namespace adria
 			postprocess_passes[postprocess_index].End(context);
 
 			postprocess_index = !postprocess_index;
-		}
-		
-		if (renderer_settings.dof)
-		{
-			postprocess_passes[postprocess_index].Begin(context);
-			PassDepthOfField();
-			postprocess_passes[postprocess_index].End(context);
-
-			postprocess_index = !postprocess_index;
-
 		}
 
 		if (renderer_settings.bloom)

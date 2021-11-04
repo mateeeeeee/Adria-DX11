@@ -222,7 +222,7 @@ namespace adria
                 {
                     // access to vertex
                     tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                    indices.push_back(index_offset + v);
+                    indices.push_back(static_cast<u32>(index_offset + v));
 
                     TexturedNormalVertex vertex{};
                     tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
@@ -767,10 +767,12 @@ namespace adria
 		struct FoliageInstance
 		{
 			XMFLOAT3 position;
+            float rotation_y;
 		};
 
 		RealRandomGenerator<float> random_x(params.foliage_center.x - params.foliage_extents.x, params.foliage_center.x + params.foliage_extents.x);
 		RealRandomGenerator<float> random_z(params.foliage_center.y - params.foliage_extents.y, params.foliage_center.y + params.foliage_extents.y);
+        RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<f32>);
 
 		std::vector<entity> foliage_entities{};
 		for (size_t i = 0; i < params.textures.size(); ++i)
@@ -786,19 +788,19 @@ namespace adria
                 {
 					position.x = random_x();
 					position.z = random_z();
-					position.y = TerrainComponent::terrain ? TerrainComponent::terrain->HeightAt(position.x, position.z) - 0.1f : -0.1f;
+					position.y = TerrainComponent::terrain ? TerrainComponent::terrain->HeightAt(position.x, position.z) - 0.5f : -0.5f;
 
                     normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : XMFLOAT3(0.0f,1.0f,0.0f);
-                    
-                } while (position.y > params.foliage_height_cutoff || normal.y < params.foliage_steepness_cutoff);
+                } 
+                while (position.y > params.foliage_height_cutoff || normal.y < params.foliage_steepness_cutoff);
 
-                instance_data.emplace_back(position);
+                instance_data.emplace_back(position, random_angle());
 			}
 
 			mesh_component.start_instance_location = 0;
 			mesh_component.instance_buffer = std::make_shared<VertexBuffer>();
 			mesh_component.instance_buffer->Create(device, instance_data);
-			mesh_component.instance_count = instance_data.size();
+			mesh_component.instance_count = (u32)instance_data.size();
 
 			reg.emplace<Mesh>(foliage, mesh_component);
 
