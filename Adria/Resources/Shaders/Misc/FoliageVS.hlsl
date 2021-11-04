@@ -4,6 +4,7 @@ struct VS_INPUT
 {
     float3 Pos : POSITION;
     float2 Uvs : TEX;
+    float3 Normal : NORMAL;
     float3 Offset : INSTANCE_OFFSET;
     float  RotationY : INSTANCE_ROTATION;
 };
@@ -12,6 +13,7 @@ struct VS_OUTPUT
 {
     float4 Position : SV_POSITION;
     float2 TexCoord : TEX;
+    float3 Normal   : NORMAL;
 };
 
 float4x4 RotationAroundYAxis(float angle)
@@ -46,5 +48,9 @@ VS_OUTPUT main(VS_INPUT vin)
 
     vout.Position = mul(ViewPosition, projection);
     vout.TexCoord = vin.Uvs;
+    
+    // Transform the normal to world space
+    float3 normal_ws = float3(-0.1, 1, 0.5);         //mul(vin.Normal, (float3x3) transposed_inverse_model);
+    vout.Normal = mul(normal_ws, (float3x3) transpose(inverse_view));
     return vout;
 }

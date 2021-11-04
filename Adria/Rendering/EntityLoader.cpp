@@ -804,9 +804,9 @@ namespace adria
 			Material material{};
 			material.albedo_texture = texture_manager.LoadTexture(params.mesh_texture_pairs[i].second);
 			material.albedo_factor = 1.0f;
-			material.shader = EShader::Foliage;
+			material.shader = EShader::GBuffer_Foliage;
 			reg.emplace<Material>(foliage, material);
-			reg.emplace<Forward>(foliage);
+			reg.emplace<Foliage>(foliage);
 
             Transform transform{};
             transform.starting_transform = XMMatrixScaling(size, size, size);

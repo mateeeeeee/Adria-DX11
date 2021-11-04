@@ -895,17 +895,18 @@ namespace adria
 			ShaderBlob vs_blob, ps_blob;
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FoliageVS.cso", vs_blob);
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FoliagePS.cso", ps_blob);
-			standard_programs[EShader::Foliage].Create(device, vs_blob, ps_blob, false);
+			standard_programs[EShader::GBuffer_Foliage].Create(device, vs_blob, ps_blob, false);
 
 			std::vector<D3D11_INPUT_ELEMENT_DESC> input_desc = { 
 				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 				{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+				{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 				{ "INSTANCE_OFFSET", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 				{ "INSTANCE_ROTATION", 0, DXGI_FORMAT_R32_FLOAT, 1, 12, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
 			};
 
 			device->CreateInputLayout(input_desc.data(), (UINT)input_desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(),
-				standard_programs[EShader::Foliage].il.GetAddressOf());
+				standard_programs[EShader::GBuffer_Foliage].il.GetAddressOf());
 		}
 
 	}
@@ -2408,6 +2409,28 @@ namespace adria
 					auto view = texture_manager.GetTextureView(terrain.sand_texture);
 
 					context->PSSetShaderResources(TEXTURE_SLOT_SAND, 1, &view);
+				}
+
+				mesh.Draw(context);
+			}
+
+			auto foliage_view = reg.view<Mesh, Transform, Material, Visibility, Foliage>();
+			standard_programs[EShader::GBuffer_Foliage].Bind(context);
+			for (auto e : foliage_view)
+			{
+				auto [mesh, transform, visibility, material] = foliage_view.get<Mesh, Transform, Visibility, Material>(e);
+
+				if (!visibility.camera_visible) continue;
+
+				object_cbuf_data.model = transform.current_transform;
+				object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuffer->Update(context, object_cbuf_data);
+
+				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
+				{
+					auto view = texture_manager.GetTextureView(material.albedo_texture);
+
+					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 				}
 
 				mesh.Draw(context);

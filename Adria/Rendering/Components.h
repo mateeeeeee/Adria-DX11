@@ -171,6 +171,11 @@ namespace adria
 		TEXTURE_HANDLE snow_texture = INVALID_TEXTURE_HANDLE;
 	};
 
+	struct COMPONENT Foliage
+	{
+
+	};
+
 	struct COMPONENT Deferred {};
 
 	struct COMPONENT Forward 

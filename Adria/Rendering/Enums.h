@@ -77,7 +77,7 @@ namespace adria
 		Ocean,
 		VoxelGI,
 		VelocityBuffer,
-		Foliage,
+		GBuffer_Foliage,
         Unknown
 	};
 
