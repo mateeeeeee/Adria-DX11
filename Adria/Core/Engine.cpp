@@ -179,9 +179,9 @@ namespace adria
 			terrain_params.terrain_foliage.foliage_scale = 10.0f;
 			terrain_params.terrain_foliage.foliage_height_cutoff = 300.0f;
 			terrain_params.terrain_foliage.foliage_steepness_cutoff = 0.95f;
-			terrain_params.terrain_foliage.textures.push_back("Resources/Textures/Foliage/foliage.png");
-			terrain_params.terrain_foliage.textures.push_back("Resources/Textures/Foliage/foliage3.png");
-			terrain_params.terrain_foliage.textures.push_back("Resources/Textures/Foliage/foliage4.png");
+			terrain_params.terrain_foliage.mesh_texture_pairs.emplace_back(EFoliageMesh::TripleQuad, "Resources/Textures/Foliage/foliage.png");
+			terrain_params.terrain_foliage.mesh_texture_pairs.emplace_back(EFoliageMesh::DoubleQuad, "Resources/Textures/Foliage/foliage3.png");
+			terrain_params.terrain_foliage.mesh_texture_pairs.emplace_back(EFoliageMesh::SingleQuad, "Resources/Textures/Foliage/foliage4.png");
 			entity_loader->LoadTerrain(terrain_params);
 		}
 	}

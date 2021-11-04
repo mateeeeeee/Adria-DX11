@@ -2799,9 +2799,9 @@ namespace adria
 		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::ForwardPass, profiler_settings.profile_forward_pass);
 
 		forward_pass.Begin(context); 
-		PassOcean();
 		PassForwardCommon(false);
 		PassSky();
+		PassOcean();
 		PassForwardCommon(true);
 		forward_pass.End(context);
 	}

@@ -70,12 +70,11 @@ namespace adria
     };
     struct foliage_parameters_t
     {
-        std::vector<std::string> textures;
+        std::vector<std::pair<EFoliageMesh, std::string>> mesh_texture_pairs;
         u32 foliage_count;
         f32 foliage_scale;
         DirectX::XMFLOAT2 foliage_center;
         DirectX::XMFLOAT2 foliage_extents;
-        EFoliageMesh mesh;
 		f32 foliage_height_cutoff;
 		f32 foliage_steepness_cutoff;
     };
@@ -95,11 +94,6 @@ namespace adria
 
 	class EntityLoader
 	{
-        [[nodiscard]]
-        std::vector<tecs::entity> LoadGrid(grid_parameters_t const& args, std::vector<TexturedNormalVertex>* vertices = nullptr);
-
-		[[nodiscard]]
-		std::vector<tecs::entity> LoadObjMesh(std::string const& model_path);
 
 	public:
         
@@ -121,6 +115,14 @@ namespace adria
         tecs::registry& reg;
 		TextureManager& texture_manager;
         ID3D11Device* device;
+
+    private:
+
+		[[nodiscard]]
+		std::vector<tecs::entity> LoadGrid(grid_parameters_t const& args, std::vector<TexturedNormalVertex>* vertices = nullptr);
+
+		[[nodiscard]]
+		std::vector<tecs::entity> LoadObjMesh(std::string const& model_path);
 	};
 }
 

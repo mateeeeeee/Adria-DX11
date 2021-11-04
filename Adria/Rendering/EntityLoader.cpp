@@ -197,9 +197,7 @@ namespace adria
         std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
         //std::vector<tinyobj::material_t> const& materials = reader.GetMaterials(); ignore materials for now
 
-		// Loop over shapes
 		std::vector<TexturedNormalVertex> vertices{};
-		std::vector<u32> indices{};
 		std::vector<entity> entities{};
 
         for (size_t s = 0; s < shapes.size(); s++)
@@ -208,22 +206,18 @@ namespace adria
 			entities.push_back(e);
 
 			Mesh mesh_component{};
-			mesh_component.start_index_location = static_cast<u32>(indices.size());
 			mesh_component.base_vertex_location = static_cast<u32>(vertices.size());
 
-            // Loop over faces(polygon)
             size_t index_offset = 0;
             for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) 
             {
                 size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
 
-                // Loop over vertices in the face.
                 for (size_t v = 0; v < fv; v++)
                 {
                     // access to vertex
                     tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                    indices.push_back(static_cast<u32>(index_offset + v));
-
+                    
                     TexturedNormalVertex vertex{};
                     tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
                     tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
@@ -262,19 +256,18 @@ namespace adria
                 // per-face material
                 //shapes[s].mesh.material_ids[f];
             }
-			mesh_component.indices_count = static_cast<u32>(index_offset);
+
+			mesh_component.vertex_count = static_cast<u32>(vertices.size()) - mesh_component.base_vertex_location;
+            reg.emplace<Mesh>(e, mesh_component);
         }
 
 		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>();
-		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>();
 		vb->Create(device, vertices);
-		ib->Create(device, indices);
 
 		for (entity e : entities)
 		{
 			auto& mesh = reg.get<Mesh>(e);
 			mesh.vertex_buffer = vb;
-			mesh.index_buffer = ib;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
 		}
 
@@ -749,21 +742,7 @@ namespace adria
 	std::vector<entity> EntityLoader::LoadFoliage(foliage_parameters_t const& params)
 	{
 		const f32 size = params.foliage_scale;
-		const TexturedVertex quad_vertices[6] =
-		{
-			{XMFLOAT3{ 0.0f, 0.0f, 0.0f }, XMFLOAT2{ 0.0f, 1.0f }},
-			{XMFLOAT3{ 0.0f, size, 0.0f }, XMFLOAT2{ 0.0f, 0.0f }},
-			{XMFLOAT3{ size, 0.0f, 0.0f }, XMFLOAT2{ 1.0f, 1.0f }},
-			{XMFLOAT3{ size, 0.0f, 0.0f }, XMFLOAT2{ 1.0f, 1.0f }},
-			{XMFLOAT3{ 0.0f, size, 0.0f }, XMFLOAT2{ 0.0f, 0.0f }},
-			{XMFLOAT3{ size, size, 0.0f }, XMFLOAT2{ 1.0f, 0.0f }},
-		};
-
-		Mesh mesh_component{};
-		mesh_component.vertex_buffer = std::make_shared<VertexBuffer>();
-		mesh_component.vertex_buffer->Create(device, quad_vertices, _countof(quad_vertices));
-		mesh_component.vertex_count = _countof(quad_vertices);
-
+		
 		struct FoliageInstance
 		{
 			XMFLOAT3 position;
@@ -775,9 +754,27 @@ namespace adria
         RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<f32>);
 
 		std::vector<entity> foliage_entities{};
-		for (size_t i = 0; i < params.textures.size(); ++i)
+		for (size_t i = 0; i < params.mesh_texture_pairs.size(); ++i)
 		{
-			entity foliage = reg.create();
+            std::vector<entity> foliages;
+            
+            switch (params.mesh_texture_pairs[i].first)
+            {
+            case EFoliageMesh::SingleQuad:
+                foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_single.obj");
+                break;
+            case EFoliageMesh::DoubleQuad:
+                foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_double.obj");
+                break;
+            case EFoliageMesh::TripleQuad:
+                foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_triple.obj");
+                break;
+            default:
+                foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_single.obj");
+                break;
+            }
+            ADRIA_ASSERT(foliages.size() == 1);
+			entity foliage = foliages[0];
 
 			std::vector<FoliageInstance> instance_data{};
 			for (u32 i = 0; i < params.foliage_count; ++i)
@@ -797,20 +794,24 @@ namespace adria
                 instance_data.emplace_back(position, random_angle());
 			}
 
+            auto& mesh_component = reg.get<Mesh>(foliage);
+
 			mesh_component.start_instance_location = 0;
 			mesh_component.instance_buffer = std::make_shared<VertexBuffer>();
 			mesh_component.instance_buffer->Create(device, instance_data);
 			mesh_component.instance_count = (u32)instance_data.size();
 
-			reg.emplace<Mesh>(foliage, mesh_component);
-
 			Material material{};
-			material.albedo_texture = texture_manager.LoadTexture(params.textures[i]);
+			material.albedo_texture = texture_manager.LoadTexture(params.mesh_texture_pairs[i].second);
 			material.albedo_factor = 1.0f;
 			material.shader = EShader::Foliage;
 			reg.emplace<Material>(foliage, material);
 			reg.emplace<Forward>(foliage);
-			reg.emplace<Transform>(foliage);
+
+            Transform transform{};
+            transform.starting_transform = XMMatrixScaling(size, size, size);
+            transform.current_transform = transform.starting_transform;
+			reg.emplace<Transform>(foliage, transform);
 
 			Visibility vis{};
 			vis.skip_culling = true;

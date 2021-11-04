@@ -48,7 +48,7 @@ PS_GBUFFER_OUT main(VS_OUTPUT In)
 
     float4 color = 0.0f;
     float3 normal = normalize(In.NormalWS);
-    //FIX THIS LIGHTING AND TEXTURING
+
     float angleDiff = abs(dot(normal.xyz, float3(0, 1, 0)));
     float pureRock = 0.6;
     float lerpRock = 0.7;

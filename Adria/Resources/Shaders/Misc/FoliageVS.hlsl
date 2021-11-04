@@ -34,7 +34,7 @@ VS_OUTPUT main(VS_INPUT vin)
     position += vin.Offset;
     model_matrix[3].xyz += vin.Offset;
     
-    if(vin.Pos.y > 7.5f)
+    if(vin.Pos.y > 0.75f)
     {
         float xWindOffset = (2 * sin(time + vin.Pos.x + vin.Pos.y + vin.Pos.z) + 1) * wind_speed * wind_dir.x * 0.005f;
         float zWindOffset = (1 * sin(2 * (time + vin.Pos.x + vin.Pos.y + vin.Pos.z)) + 0.5) * wind_speed * wind_dir.z * 0.005f;
