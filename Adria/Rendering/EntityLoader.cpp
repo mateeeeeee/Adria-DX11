@@ -722,24 +722,11 @@ namespace adria
 			reg.emplace<Tag>(terrain_chunk, "Terrain Chunk" + std::to_string(as_integer(terrain_chunk)));
 		}
 
-        if (params.generate_foliage)
-        {
-            if (params.foliage_over_whole_terrain)
-            {
-				const_cast<terrain_parameters_t&>(params).terrain_foliage.foliage_center.x = params.terrain_grid.tile_size_x * params.terrain_grid.tile_count_x / 2;
-				const_cast<terrain_parameters_t&>(params).terrain_foliage.foliage_center.y = params.terrain_grid.tile_size_z * params.terrain_grid.tile_count_z / 2;
-				const_cast<terrain_parameters_t&>(params).terrain_foliage.foliage_extents.x = params.terrain_grid.tile_size_x * params.terrain_grid.tile_count_x / 2;
-				const_cast<terrain_parameters_t&>(params).terrain_foliage.foliage_extents.y = params.terrain_grid.tile_size_z * params.terrain_grid.tile_count_z / 2;
-				const_cast<terrain_parameters_t&>(params).terrain_foliage.foliage_scale = 10.0f;
-            }
-            LoadFoliage(params.terrain_foliage);
-        }
-
 		return terrain_chunks;
 	}
 
 	[[maybe_unused]]
-	std::vector<entity> EntityLoader::LoadFoliage(foliage_parameters_t const& params)
+	entity EntityLoader::LoadFoliage(foliage_parameters_t const& params)
 	{
 		const f32 size = params.foliage_scale;
 		
@@ -754,76 +741,71 @@ namespace adria
         RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<f32>);
 
 		std::vector<entity> foliage_entities{};
-		for (size_t i = 0; i < params.mesh_texture_pairs.size(); ++i)
+
+		std::vector<entity> foliages;
+
+		switch (params.mesh_texture_pair.first)
 		{
-            std::vector<entity> foliages;
-            
-            switch (params.mesh_texture_pairs[i].first)
-            {
-            case EFoliageMesh::SingleQuad:
-                foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_single.obj");
-                break;
-            case EFoliageMesh::DoubleQuad:
-                foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_double.obj");
-                break;
-            case EFoliageMesh::TripleQuad:
-                foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_triple.obj");
-                break;
-            default:
-                foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_single.obj");
-                break;
-            }
-            ADRIA_ASSERT(foliages.size() == 1);
-			entity foliage = foliages[0];
+		case EFoliageMesh::SingleQuad:
+			foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_single.obj");
+			break;
+		case EFoliageMesh::DoubleQuad:
+			foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_double.obj");
+			break;
+		case EFoliageMesh::TripleQuad:
+			foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_triple.obj");
+			break;
+		default:
+			foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_single.obj");
+			break;
+		}
+		ADRIA_ASSERT(foliages.size() == 1);
+		entity foliage = foliages[0];
 
-			std::vector<FoliageInstance> instance_data{};
-			for (u32 i = 0; i < params.foliage_count; ++i)
+		std::vector<FoliageInstance> instance_data{};
+		for (u32 i = 0; i < params.foliage_count; ++i)
+		{
+			XMFLOAT3 position{};
+			XMFLOAT3 normal{};
+			u32 count = 0;
+			do
 			{
-                XMFLOAT3 position{};
-                XMFLOAT3 normal{};
-                u32 count = 0;
-                do 
-                {
-					position.x = random_x();
-					position.z = random_z();
-					position.y = TerrainComponent::terrain ? TerrainComponent::terrain->HeightAt(position.x, position.z) - 0.5f : -0.5f;
+				position.x = random_x();
+				position.z = random_z();
+				position.y = TerrainComponent::terrain ? TerrainComponent::terrain->HeightAt(position.x, position.z) - 0.5f : -0.5f;
 
-                    normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : XMFLOAT3(0.0f,1.0f,0.0f);
+				normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : XMFLOAT3(0.0f, 1.0f, 0.0f);
 
-                    ++count;
-                } 
-                while (position.y > params.foliage_height_cutoff || normal.y < params.foliage_steepness_cutoff || count < 5);
+				++count;
+			} while (position.y > params.foliage_height_cutoff || normal.y < params.foliage_steepness_cutoff || count < 5);
 
-                instance_data.emplace_back(position, random_angle());
-			}
-
-            auto& mesh_component = reg.get<Mesh>(foliage);
-
-			mesh_component.start_instance_location = 0;
-			mesh_component.instance_buffer = std::make_shared<VertexBuffer>();
-			mesh_component.instance_buffer->Create(device, instance_data);
-			mesh_component.instance_count = (u32)instance_data.size();
-
-			Material material{};
-			material.albedo_texture = texture_manager.LoadTexture(params.mesh_texture_pairs[i].second);
-			material.albedo_factor = 1.0f;
-			material.shader = EShader::GBuffer_Foliage;
-			reg.emplace<Material>(foliage, material);
-			reg.emplace<Foliage>(foliage);
-
-            Transform transform{};
-            transform.starting_transform = XMMatrixScaling(size, size, size);
-            transform.current_transform = transform.starting_transform;
-			reg.emplace<Transform>(foliage, transform);
-
-			Visibility vis{};
-			vis.skip_culling = true;
-			reg.emplace<Visibility>(foliage, vis);
-
-			foliage_entities.push_back(foliage);
+			instance_data.emplace_back(position, random_angle());
 		}
 
-		return foliage_entities;
+		auto& mesh_component = reg.get<Mesh>(foliage);
+
+		mesh_component.start_instance_location = 0;
+		mesh_component.instance_buffer = std::make_shared<VertexBuffer>();
+		mesh_component.instance_buffer->Create(device, instance_data);
+		mesh_component.instance_count = (u32)instance_data.size();
+
+		Material material{};
+		material.albedo_texture = texture_manager.LoadTexture(params.mesh_texture_pair.second);
+		material.albedo_factor = 1.0f;
+		material.shader = EShader::GBuffer_Foliage;
+		reg.emplace<Material>(foliage, material);
+		reg.emplace<Foliage>(foliage);
+
+		Transform transform{};
+		transform.starting_transform = XMMatrixScaling(size, size, size);
+		transform.current_transform = transform.starting_transform;
+		reg.emplace<Transform>(foliage, transform);
+
+		Visibility vis{};
+		vis.skip_culling = true;
+		reg.emplace<Visibility>(foliage, vis);
+
+		return foliage;
 	}
 
 }

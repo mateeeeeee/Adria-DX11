@@ -85,6 +85,16 @@ namespace adria
 			return normal;
 		}
 
+		std::pair<f32, f32> TileSizes() const 
+		{
+			return { tile_size_x, tile_size_z };
+		}
+
+		std::pair<u64, u64> TileCounts() const
+		{
+			return { tile_count_x, tile_count_z };
+		}
+
 	private:
 		std::vector<TexturedNormalVertex> terrain_vertices;
 		f32 tile_size_x;

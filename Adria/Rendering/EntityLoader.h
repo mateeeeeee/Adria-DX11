@@ -70,8 +70,8 @@ namespace adria
     };
     struct foliage_parameters_t
     {
-        std::vector<std::pair<EFoliageMesh, std::string>> mesh_texture_pairs;
-        u32 foliage_count;
+        std::pair<EFoliageMesh, std::string> mesh_texture_pair;
+        i32 foliage_count;
         f32 foliage_scale;
         DirectX::XMFLOAT2 foliage_center;
         DirectX::XMFLOAT2 foliage_extents;
@@ -85,9 +85,6 @@ namespace adria
 		std::string snow_texture;
 		std::string rock_texture;
 		std::string sand_texture;
-		bool generate_foliage;
-		bool foliage_over_whole_terrain;
-		foliage_parameters_t terrain_foliage;
 	};
    
     class TextureManager;
@@ -109,7 +106,7 @@ namespace adria
 
 		[[maybe_unused]] std::vector<tecs::entity> LoadTerrain(terrain_parameters_t const&);
 
-		[[maybe_unused]] std::vector<tecs::entity> LoadFoliage(foliage_parameters_t const&);
+		[[maybe_unused]] tecs::entity LoadFoliage(foliage_parameters_t const&);
 
 	private:
         tecs::registry& reg;

@@ -314,147 +314,204 @@ namespace adria
 	{
 		ImGui::Begin("Terrain");
 		{
-			static grid_parameters_t terrain_params{};
-			static i32 tile_count[2] = { 1200, 1200 };
-			static f32 tile_size[2] = { 2.0f, 2.0f };
-			static f32 texture_scale[2] = { 40.0f, 40.0f };
-            static i32 chunk_count[2] = { 40, 40 };
-            static bool split_to_chunks = false;
-            
-			ImGui::SliderInt2("Tile Count", tile_count, 32, 2048);
-			ImGui::SliderFloat2("Tile Size", tile_size, 1.0, 100.0f);
-			ImGui::SliderFloat2("Texture Scale", texture_scale, 0.1f, 200.0f);
-
-            ImGui::Checkbox("Split Mesh to Chunks", &split_to_chunks);
-            if (split_to_chunks)
+            if (ImGui::TreeNodeEx("Terrain Generation", 0))
             {
-                ImGui::SliderInt2("Chunk Count", chunk_count, 8, 64);
-            }
+				static grid_parameters_t terrain_params{};
+				static i32 tile_count[2] = { 1200, 1200 };
+				static f32 tile_size[2] = { 5.0f, 5.0f };
+				static f32 texture_scale[2] = { 200.0f, 200.0f };
+				static i32 chunk_count[2] = { 40, 40 };
+				static bool split_to_chunks = false;
 
-            static f32 max_height = 1000;
-            static bool procedural_generation = false;
-			ImGui::SliderFloat("Max Height", &max_height, 50.0f, 10000.0f);
-			ImGui::Checkbox("Procedural Generation", &procedural_generation);
+				ImGui::SliderInt2("Tile Count", tile_count, 32, 2048);
+				ImGui::SliderFloat2("Tile Size", tile_size, 1.0, 100.0f);
+				ImGui::SliderFloat2("Texture Scale", texture_scale, 1.0f, 400.0f);
 
-			static noise_desc_t noise_desc{};
-            if (procedural_generation)
-            {
-				noise_desc.width = (u32)tile_count[0] + 1;
-				noise_desc.depth = (u32)tile_count[1] + 1;
-                noise_desc.max_height = (u32)max_height;
-
-                ImGui::SliderInt("Seed", &noise_desc.seed, 1, 1000000);
-                ImGui::SliderInt("Octaves", &noise_desc.octaves, 1, 16);
-                ImGui::SliderFloat("Persistence", &noise_desc.persistence, 0.0f, 1.0f);
-                ImGui::SliderFloat("Lacunarity", &noise_desc.lacunarity, 0.1f, 8.0f);
-                ImGui::SliderFloat("Frequency", &noise_desc.frequency, 0.01f, 8.0f);
-                ImGui::SliderFloat("Noise Scale", &noise_desc.noise_scale, 1, 128);
-
-				const char* noise_types[] = { "OpenSimplex2", "OpenSimplex2S", "Cellular", "Perlin", "ValueCubic", "Value"};
-				static int current_noise_type = 0;
-				const char* noise_combo_label = noise_types[current_noise_type];
-				if (ImGui::BeginCombo("Noise Type", noise_combo_label, 0))
+				ImGui::Checkbox("Split Mesh to Chunks", &split_to_chunks);
+				if (split_to_chunks)
 				{
-					for (int n = 0; n < IM_ARRAYSIZE(noise_types); n++)
-					{
-						const bool is_selected = (current_noise_type == n);
-						if (ImGui::Selectable(noise_types[n], is_selected)) current_noise_type = n;
-						if (is_selected) ImGui::SetItemDefaultFocus();
-					}
-					ImGui::EndCombo();
+					ImGui::SliderInt2("Chunk Count", chunk_count, 8, 64);
 				}
-                noise_desc.noise_type = static_cast<ENoiseType>(current_noise_type);
 
-				const char* fractal_types[] = { "None", "FBM", "Ridged", "PingPong"};
-				static int current_fractal_type = 0;
-				const char* fractal_combo_label = fractal_types[current_fractal_type];
-				if (ImGui::BeginCombo("Fractal Type", fractal_combo_label, 0))
+				static f32 max_height = 1000;
+				static bool procedural_generation = true;
+				ImGui::SliderFloat("Max Height", &max_height, 50.0f, 10000.0f);
+				ImGui::Checkbox("Procedural Generation", &procedural_generation);
+
+				static noise_desc_t noise_desc
 				{
-					for (int n = 0; n < IM_ARRAYSIZE(fractal_types); n++)
+				 .fractal_type = EFractalType::FBM,
+				 .noise_type = ENoiseType::Perlin,
+				 .seed = 33,
+				 .persistence = 0.65f,
+				 .lacunarity = 2.0f,
+				 .octaves = 6,
+				 .noise_scale = 16
+				};
+				if (procedural_generation)
+				{
+					noise_desc.width = (u32)tile_count[0] + 1;
+					noise_desc.depth = (u32)tile_count[1] + 1;
+					noise_desc.max_height = (u32)max_height;
+
+					ImGui::SliderInt("Seed", &noise_desc.seed, 1, 1000000);
+					ImGui::SliderInt("Octaves", &noise_desc.octaves, 1, 16);
+					ImGui::SliderFloat("Persistence", &noise_desc.persistence, 0.0f, 1.0f);
+					ImGui::SliderFloat("Lacunarity", &noise_desc.lacunarity, 0.1f, 8.0f);
+					ImGui::SliderFloat("Frequency", &noise_desc.frequency, 0.01f, 8.0f);
+					ImGui::SliderFloat("Noise Scale", &noise_desc.noise_scale, 1, 128);
+
+					const char* noise_types[] = { "OpenSimplex2", "OpenSimplex2S", "Cellular", "Perlin", "ValueCubic", "Value" };
+					static int current_noise_type = 3;
+					const char* noise_combo_label = noise_types[current_noise_type];
+					if (ImGui::BeginCombo("Noise Type", noise_combo_label, 0))
 					{
-						const bool is_selected = (current_fractal_type == n);
-						if (ImGui::Selectable(fractal_types[n], is_selected)) current_fractal_type = n;
-						if (is_selected) ImGui::SetItemDefaultFocus();
+						for (int n = 0; n < IM_ARRAYSIZE(noise_types); n++)
+						{
+							const bool is_selected = (current_noise_type == n);
+							if (ImGui::Selectable(noise_types[n], is_selected)) current_noise_type = n;
+							if (is_selected) ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
 					}
-					ImGui::EndCombo();
+					noise_desc.noise_type = static_cast<ENoiseType>(current_noise_type);
+
+					const char* fractal_types[] = { "None", "FBM", "Ridged", "PingPong" };
+					static int current_fractal_type = 1;
+					const char* fractal_combo_label = fractal_types[current_fractal_type];
+					if (ImGui::BeginCombo("Fractal Type", fractal_combo_label, 0))
+					{
+						for (int n = 0; n < IM_ARRAYSIZE(fractal_types); n++)
+						{
+							const bool is_selected = (current_fractal_type == n);
+							if (ImGui::Selectable(fractal_types[n], is_selected)) current_fractal_type = n;
+							if (is_selected) ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
+					}
+					noise_desc.fractal_type = static_cast<EFractalType>(current_fractal_type);
 				}
-				noise_desc.fractal_type = static_cast<EFractalType>(current_fractal_type);
+				else
+				{
+					//todo
+					//add heightmap and splat map texture choice
+				}
+
+				if (ImGui::Button("Generate Terrain"))
+				{
+					engine->reg.destroy<TerrainComponent>();
+
+					terrain_parameters_t params{};
+					terrain_params.tile_size_x = tile_size[0];
+					terrain_params.tile_size_z = tile_size[1];
+					terrain_params.tile_count_x = tile_count[0];
+					terrain_params.tile_count_z = tile_count[1];
+					terrain_params.texture_scale_x = texture_scale[0];
+					terrain_params.texture_scale_z = texture_scale[1];
+					terrain_params.split_to_chunks = split_to_chunks;
+					terrain_params.chunk_count_x = chunk_count[0];
+					terrain_params.chunk_count_z = chunk_count[1];
+					terrain_params.normal_type = ENormalCalculation::AreaWeight;
+					terrain_params.heightmap = std::make_unique<Heightmap>(noise_desc);
+					params.terrain_grid = std::move(terrain_params);
+
+					params.grass_texture = "Resources/Textures/Random/grass4.dds";
+					params.rock_texture = "Resources/Textures/Terrain/mud.jpg";
+					params.snow_texture = "Resources/Textures/Random/snow.dds";
+					params.sand_texture = "Resources/Textures/Random/sand2.jpg";
+
+					engine->entity_loader->LoadTerrain(params);
+				}
+
+				ImGui::TreePop();
+				ImGui::Separator();
             }
-            else
+
+            if (ImGui::TreeNodeEx("Foliage Generation", 0))
             {
-                //todo
-                //add heightmap and splat map texture choice
+				static std::vector<foliage_parameters_t> foliages{};
+				static foliage_parameters_t foliage_params{
+					.foliage_count = 3000,
+					.foliage_scale = 10,
+					.foliage_height_cutoff = 1000,
+					.foliage_steepness_cutoff = 0.95f };
+				if (ImGui::TreeNode("Foliage Settings"))
+				{
+					ImGui::SliderInt("Foliage Count", &foliage_params.foliage_count, 100, 25000);
+					ImGui::SliderFloat("Foliage Scale", &foliage_params.foliage_scale, 1.0f, 100.0f);
+					ImGui::SliderFloat("Foliage Steepness Cutoff", &foliage_params.foliage_steepness_cutoff, 0.0f, 1.0f);
+					ImGui::SliderFloat("Foliage Height Cutoff", &foliage_params.foliage_height_cutoff, -100.0f, 10000.0f);
+
+					const char* foliage_types[] = { "Single Quad", "Double Quad", "Triple Quad" };
+					static int current_foliage_type = 0;
+					const char* foliage_combo_label = foliage_types[current_foliage_type];
+					if (ImGui::BeginCombo("Foliage Type", foliage_combo_label, 0))
+					{
+						for (int n = 0; n < IM_ARRAYSIZE(foliage_types); n++)
+						{
+							const bool is_selected = (current_foliage_type == n);
+							if (ImGui::Selectable(foliage_types[n], is_selected)) current_foliage_type = n;
+							if (is_selected) ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
+					}
+					foliage_params.mesh_texture_pair.first = static_cast<EFoliageMesh>(current_foliage_type);
+
+					if (ImGui::Button("Add Foliage"))
+					{
+						static std::string foliage_textures[] = {
+							"Resources/Textures/Foliage/foliage.png",
+							"Resources/Textures/Foliage/foliage3.png",
+							"Resources/Textures/Foliage/foliage4.png"
+						};
+						static IntRandomGenerator<size_t> index(0ll, _countof(foliage_textures) - 1);
+
+						foliage_params.mesh_texture_pair.second = foliage_textures[index()];
+						foliages.push_back(foliage_params);
+					}
+
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+				ImGui::Text("Number of foliages to add: %d", foliages.size());
+				if (ImGui::Button("Generate Foliage"))
+				{
+					if (TerrainComponent::terrain != nullptr)
+					{
+						auto [tile_size_x, tile_size_z] = TerrainComponent::terrain->TileSizes();
+						auto [tile_count_x, tile_count_z] = TerrainComponent::terrain->TileCounts();
+						for (auto& foliage_params : foliages)
+						{
+							foliage_params.foliage_center.x = tile_size_x * tile_count_x / 2;
+							foliage_params.foliage_center.y = tile_size_z * tile_count_z / 2;
+							foliage_params.foliage_extents.x = tile_size_x * tile_count_x / 2;
+							foliage_params.foliage_extents.y = tile_size_z * tile_count_z / 2;
+
+							engine->entity_loader->LoadFoliage(foliage_params);
+						}
+
+						foliages.clear();
+					}
+				}
+
+				ImGui::TreePop();
+				ImGui::Separator();
             }
-
-            static i32 foliage_count = 2000, foliage_scale = 10;
-            static f32 foliage_steepness_cutoff = 0.95f, foliage_height_cutoff = 200.0f;
-			static bool generate_foliage = false;
-			ImGui::Checkbox("Generate Foliage", &generate_foliage);
-            if (generate_foliage)
-            {
-				ImGui::SliderInt("Foliage Count", &foliage_count, 100, 10000);
-                ImGui::SliderInt("Foliage Scale", &foliage_scale, 1, 100);
-                ImGui::SliderFloat("Foliage Steepness Cutoff", &foliage_steepness_cutoff, 0.0f, 1.0f);
-                ImGui::SliderFloat("Foliage Height Cutoff", &foliage_height_cutoff, -100.0f, 10000.0f);
-            }
-
-			if (ImGui::Button("Generate Terrain"))
-			{
-                engine->reg.destroy<TerrainComponent>();
-
-				terrain_parameters_t params{};
-                terrain_params.tile_size_x = tile_size[0];
-                terrain_params.tile_size_z = tile_size[1];
-                terrain_params.tile_count_x = tile_count[0];
-                terrain_params.tile_count_z = tile_count[1];
-                terrain_params.texture_scale_x = texture_scale[0];
-                terrain_params.texture_scale_z = texture_scale[1];
-                terrain_params.split_to_chunks = split_to_chunks;
-                terrain_params.chunk_count_x = chunk_count[0];
-                terrain_params.chunk_count_z = chunk_count[1];
-                terrain_params.normal_type = ENormalCalculation::AreaWeight;
-                terrain_params.heightmap = std::make_unique<Heightmap>(noise_desc);
-				params.terrain_grid = std::move(terrain_params);
-
-				params.generate_foliage = generate_foliage;
-				params.foliage_over_whole_terrain = true;
-				params.terrain_foliage.foliage_count = foliage_count;
-				params.terrain_foliage.foliage_scale = foliage_scale * 1.0f;
-				params.terrain_foliage.foliage_height_cutoff = foliage_height_cutoff;
-				params.terrain_foliage.foliage_steepness_cutoff = foliage_steepness_cutoff;
-				params.terrain_foliage.mesh_texture_pairs.emplace_back(EFoliageMesh::TripleQuad, "Resources/Textures/Foliage/foliage.png");
-				params.terrain_foliage.mesh_texture_pairs.emplace_back(EFoliageMesh::DoubleQuad, "Resources/Textures/Foliage/foliage3.png");
-				params.terrain_foliage.mesh_texture_pairs.emplace_back(EFoliageMesh::SingleQuad, "Resources/Textures/Foliage/foliage4.png");
-
-				params.grass_texture = "Resources/Textures/Random/grass4.dds";
-				params.rock_texture = "Resources/Textures/Terrain/mud.jpg";
-				params.snow_texture = "Resources/Textures/Random/snow.dds";
-				params.sand_texture = "Resources/Textures/Random/sand2.jpg";
-
-				engine->entity_loader->LoadTerrain(params);
-			}
-
-			//if (ImGui::Button("Generate Foliage"))
-			//{
-            //    foliage_parameters_t params{};
-                  
-            //    engine->entity_loader->LoadFoliage(params);
-			//}
 
 			if (ImGui::Button("Clear"))
 			{
-                engine->reg.destroy<TerrainComponent>();
+				engine->reg.destroy<TerrainComponent>();
 			}
-
 			if (ImGui::TreeNodeEx("Terrain Settings", 0))
 			{
-                ImGui::SliderFloat("Grass Height", &renderer_settings.grass_height, -250.0f, 250.0f);
-                ImGui::SliderFloat("Snow Height", &renderer_settings.snow_height, 250.0f, 1500.0f);
-                ImGui::SliderFloat("Mix Zone", &renderer_settings.mix_zone, 0.0f, 200.0f);
+				ImGui::SliderFloat("Grass Height", &renderer_settings.grass_height, -250.0f, 250.0f);
+				ImGui::SliderFloat("Snow Height", &renderer_settings.snow_height, 250.0f, 1500.0f);
+				ImGui::SliderFloat("Mix Zone", &renderer_settings.mix_zone, 0.0f, 200.0f);
 
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
+
 		}
 		ImGui::End();
 	}
