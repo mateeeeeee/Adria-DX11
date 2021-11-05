@@ -165,6 +165,7 @@ namespace adria
                 MenuBar();
                 auto dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
                 ListEntities();
+                TerrainSettings();
                 OceanSettings();
                 SkySettings();
                 Camera();
@@ -307,7 +308,50 @@ namespace adria
         }
     }
 
-    void Editor::OceanSettings()
+	void Editor::TerrainSettings()
+	{
+		ImGui::Begin("Terrain");
+		{
+
+			//static grid_parameters_t ocean_params{};
+			//static i32 tile_count[2] = { 512, 512 };
+			//static f32 tile_size[2] = { 40.0f, 40.0f };
+			//static f32 texture_scale[2] = { 20.0f, 20.0f };
+            //
+			//ImGui::SliderInt2("Tile Count", tile_count, 32, 1024);
+			//ImGui::SliderFloat2("Tile Size", tile_size, 1.0, 100.0f);
+			//ImGui::SliderFloat2("Texture Scale", texture_scale, 0.1f, 10.0f);
+            //
+			//ocean_params.tile_count_x = tile_count[0];
+			//ocean_params.tile_count_z = tile_count[1];
+			//ocean_params.tile_size_x = tile_size[0];
+			//ocean_params.tile_size_z = tile_size[1];
+			//ocean_params.texture_scale_x = texture_scale[0];
+			//ocean_params.texture_scale_z = texture_scale[1];
+
+			//if (ImGui::Button("Load Ocean"))
+			//{
+			//	ocean_parameters_t params{};
+			//	params.ocean_grid = std::move(ocean_params);
+			//	engine->entity_loader->LoadOcean(params);
+			//}
+
+			if (ImGui::Button("Clear"))
+			{
+				engine->reg.clear<TerrainComponent>();
+			}
+
+			if (ImGui::TreeNodeEx("Terrain Settings", 0))
+			{
+                ImGui::SliderFloat("Grass Height", &renderer_settings.grass_height, -50.0f, 50.0f);
+                ImGui::SliderFloat("Snow Height", &renderer_settings.snow_height, 250.0f, 1500.0f);
+                ImGui::SliderFloat("Mix Zone", &renderer_settings.mix_zone, 0.0f, 200.0f);
+			}
+		}
+		ImGui::End();
+	}
+
+	void Editor::OceanSettings()
     {
         ImGui::Begin("Ocean");
         {
@@ -919,7 +963,7 @@ namespace adria
 			if (ImGui::Begin("Camera", &is_open))
 			{
 				f32 pos[3] = { camera.Position().m128_f32[0],camera.Position().m128_f32[1], camera.Position().m128_f32[2] };
-				ImGui::SliderFloat3("Position", pos, 0.0f, 2000.0f);
+				ImGui::SliderFloat3("Position", pos, 0.0f, 10000.0f);
 				camera.SetPosition(DirectX::XMFLOAT3(pos));
 				f32 _near = camera.Near(), _far = camera.Far();
 				f32 _fov = camera.Fov(), _ar = camera.AspectRatio();

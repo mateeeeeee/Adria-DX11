@@ -48,6 +48,7 @@ namespace adria
         void SetStyle();
         void HandleInput();
         void MenuBar();
+        void TerrainSettings();
         void OceanSettings();
         void SkySettings();
         void ListEntities();

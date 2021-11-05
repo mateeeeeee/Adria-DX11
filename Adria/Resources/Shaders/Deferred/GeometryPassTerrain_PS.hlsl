@@ -42,9 +42,9 @@ PS_GBUFFER_OUT main(VS_OUTPUT In)
     In.Uvs.y = 1 - In.Uvs.y;
  
     float4 grass = txGrass.Sample(linear_wrap_sampler, In.Uvs);
-    float4 snow = txSnow.Sample(linear_wrap_sampler, In.Uvs);
-    float4 rock = txRock.Sample(linear_wrap_sampler, In.Uvs);
-    float4 sand = txSand.Sample(linear_wrap_sampler, In.Uvs);
+    float4 snow  = txSnow.Sample(linear_wrap_sampler,  In.Uvs);
+    float4 rock  = txRock.Sample(linear_wrap_sampler,  In.Uvs);
+    float4 sand  = txSand.Sample(linear_wrap_sampler,  In.Uvs);
 
     float4 color = 0.0f;
     float3 normal = normalize(In.NormalWS);

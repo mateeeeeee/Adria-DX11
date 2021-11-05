@@ -147,37 +147,37 @@ namespace adria
 		if (test_terrain)
 		{
 			terrain_parameters_t terrain_params{};
-			terrain_params.terrain_grid.tile_count_x = 1000;
-			terrain_params.terrain_grid.tile_count_z = 1000;
+			terrain_params.terrain_grid.tile_count_x = 1200;
+			terrain_params.terrain_grid.tile_count_z = 1200;
 			terrain_params.terrain_grid.normal_type = ENormalCalculation::AreaWeight;
-			terrain_params.terrain_grid.tile_size_x = 1.0f;
-			terrain_params.terrain_grid.tile_size_z = 1.0f;
-			terrain_params.terrain_grid.texture_scale_x = 100;
-			terrain_params.terrain_grid.texture_scale_z = 100;
+			terrain_params.terrain_grid.tile_size_x = 5.0f;
+			terrain_params.terrain_grid.tile_size_z = 5.0f;
+			terrain_params.terrain_grid.texture_scale_x = 200;
+			terrain_params.terrain_grid.texture_scale_z = 200;
 			terrain_params.terrain_grid.split_to_chunks = false; 
 			terrain_params.terrain_grid.chunk_count_x = 40;
 			terrain_params.terrain_grid.chunk_count_z = 40;
 
 			noise_desc_t noise_desc{};
-			noise_desc.width = 1001;
-			noise_desc.depth = 1001;
-			noise_desc.max_height = 100;
+			noise_desc.width = 1201;
+			noise_desc.depth = 1201;
+			noise_desc.max_height = 500;
 			noise_desc.seed = 33;
-			noise_desc.persistence = 0.55f;
-			noise_desc.fractal_type = EFractalType::FBM;
-			noise_desc.noise_scale = 33;
+			noise_desc.persistence = 0.65f;
+			noise_desc.fractal_type = EFractalType::Ridged;
+			noise_desc.noise_scale = 16;
 
 			terrain_params.terrain_grid.heightmap = std::make_unique<Heightmap>(noise_desc);
-			terrain_params.grass_texture = "Resources/Textures/Random/grass2.dds";
+			terrain_params.grass_texture = "Resources/Textures/Random/grass4.dds";
 			terrain_params.rock_texture  = "Resources/Textures/Random/stone.dds";
 			terrain_params.snow_texture  = "Resources/Textures/Random/snow.dds";
-			terrain_params.sand_texture  = "Resources/Textures/Random/grass.dds"; //sand.dds
+			terrain_params.sand_texture  = "Resources/Textures/Random/sand.dds"; 
 
 			terrain_params.generate_foliage = true;
 			terrain_params.foliage_over_whole_terrain = true;
-			terrain_params.terrain_foliage.foliage_count = 5000;
+			terrain_params.terrain_foliage.foliage_count = 20000;
 			terrain_params.terrain_foliage.foliage_scale = 10.0f;
-			terrain_params.terrain_foliage.foliage_height_cutoff = 300.0f;
+			terrain_params.terrain_foliage.foliage_height_cutoff = 100.0f;
 			terrain_params.terrain_foliage.foliage_steepness_cutoff = 0.95f;
 			terrain_params.terrain_foliage.mesh_texture_pairs.emplace_back(EFoliageMesh::TripleQuad, "Resources/Textures/Foliage/foliage.png");
 			terrain_params.terrain_foliage.mesh_texture_pairs.emplace_back(EFoliageMesh::DoubleQuad, "Resources/Textures/Foliage/foliage3.png");

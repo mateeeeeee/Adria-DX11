@@ -365,6 +365,7 @@ namespace adria
 	void Renderer::Update(f32 dt)
 	{
 		UpdateLights();
+		UpdateTerrainData();
 		UpdateVoxelData();
 		CameraFrustumCulling();
 		UpdateWeather(dt);
@@ -2172,11 +2173,6 @@ namespace adria
 		
 		ID3D11DeviceContext* context = gfx->Context();
 		weather_cbuffer->Update(context, weather_cbuf_data);
-
-		terrain_cbuf_data.snow_height = 850;
-		terrain_cbuf_data.grass_height = 20;
-		terrain_cbuf_data.mix_zone = 50;
-		terrain_cbuffer->Update(context, terrain_cbuf_data);
 	}
 	void Renderer::UpdateLights()
 	{
@@ -2214,6 +2210,15 @@ namespace adria
 
 		lights->Update(gfx->Context(), lights_data);
 
+	}
+	void Renderer::UpdateTerrainData()
+	{
+		ID3D11DeviceContext* context = gfx->Context();
+
+		terrain_cbuf_data.snow_height = renderer_settings.snow_height;
+		terrain_cbuf_data.grass_height = renderer_settings.grass_height;
+		terrain_cbuf_data.mix_zone = renderer_settings.mix_zone;
+		terrain_cbuffer->Update(context, terrain_cbuf_data);
 	}
 	void Renderer::UpdateVoxelData()
 	{
@@ -4111,59 +4116,3 @@ namespace adria
 
 }
 
-
-
-//transparent shadows, add later
-/*
-for (auto e : entities)
-		{
-
-			if (reg->HasComponent<ShadowVisibleTag>(e) || !frustum_culler)
-			{
-
-				auto const& transformation = reg->GetComponent<TransformComponent>(e);
-				auto const& mesh = reg->GetComponent<MeshComponent>(e);
-
-				object_cbuffer_data.model = transformation.transform;
-				object_cbuffer_data.inverse_transpose_model = XMMatrixInverse(nullptr, object_cbuffer_data.model);
-				Globals::UpdateCBuffer(context, object_cbuffer_data);
-
-
-				bool has_diffuse = false;
-				TEXTURE_HANDLE tex_handle = INVALID_TEXTURE_HANDLE;
-
-				bool maybe_transparent = true;
-				if (reg->HasComponent<ForwardTag>(e)) maybe_transparent = reg->GetComponent<ForwardTag>(e).transparent;
-
-				if (maybe_transparent && reg->HasComponent<MaterialComponent>(e))
-				{
-					const auto& material = reg->GetComponent<MaterialComponent>(e);
-
-					has_diffuse = material.diffuse_texture != INVALID_TEXTURE_HANDLE;
-					if (has_diffuse)
-						tex_handle = material.diffuse_texture;
-
-				}
-				else if (maybe_transparent && reg->HasComponent<PBRMaterialComponent>(e))
-				{
-					const auto& material = reg->GetComponent<PBRMaterialComponent>(e);
-
-					has_diffuse = material.albedo_texture != INVALID_TEXTURE_HANDLE;
-					if (has_diffuse)
-						tex_handle = material.albedo_texture;
-				}
-
-				if (has_diffuse)
-				{
-					auto view = texture_manager.GetTextureView(tex_handle);
-
-					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
-
-					transparent_shadow_program.Bind(context);
-				}
-				else shadow_program.Bind(context);
-
-				mesh.Draw(context);
-			}
-		}
-*/

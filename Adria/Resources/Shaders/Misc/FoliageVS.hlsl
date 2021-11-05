@@ -50,7 +50,7 @@ VS_OUTPUT main(VS_INPUT vin)
     vout.TexCoord = vin.Uvs;
     
     // Transform the normal to world space
-    float3 normal_ws = float3(-0.1, 1, 0.5);         //mul(vin.Normal, (float3x3) transposed_inverse_model);
+    float3 normal_ws = float3(0.0, 1, 0.0);         //mul(vin.Normal, (float3x3) transposed_inverse_model);
     vout.Normal = mul(normal_ws, (float3x3) transpose(inverse_view));
     return vout;
 }

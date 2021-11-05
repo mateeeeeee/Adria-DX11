@@ -233,6 +233,7 @@ namespace adria
 		void UpdateOcean(f32 dt);
 		void UpdateWeather(f32 dt);
 		void UpdateLights();
+		void UpdateTerrainData();
 		void UpdateVoxelData();
 		void CameraFrustumCulling();
 		void LightFrustumCulling(ELightType type);

@@ -96,6 +96,11 @@ namespace adria
 		f32 sky_color[3] = { 0.53f, 0.81f, 0.92f };
 		f32 turbidity = 2.0f;
 		f32 ground_albedo = 0.1f;
+
+		//terrain
+		f32 snow_height = 800;
+		f32 grass_height = 0;
+		f32 mix_zone = 50;
 	};
 
 }
