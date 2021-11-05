@@ -143,7 +143,7 @@ namespace adria
 		
 		entity_loader->LoadLight(light_params);
 
-		static bool test_terrain = true;
+		static bool test_terrain = false;
 		if (test_terrain)
 		{
 			terrain_parameters_t terrain_params{};
@@ -161,17 +161,17 @@ namespace adria
 			noise_desc_t noise_desc{};
 			noise_desc.width = 1201;
 			noise_desc.depth = 1201;
-			noise_desc.max_height = 500;
+			noise_desc.max_height = 1200;
 			noise_desc.seed = 33;
-			noise_desc.persistence = 0.65f;
-			noise_desc.fractal_type = EFractalType::Ridged;
-			noise_desc.noise_scale = 16;
+			noise_desc.persistence = 0.75f;
+			noise_desc.fractal_type = EFractalType::FBM;
+			noise_desc.noise_scale = 12;
 
 			terrain_params.terrain_grid.heightmap = std::make_unique<Heightmap>(noise_desc);
 			terrain_params.grass_texture = "Resources/Textures/Random/grass4.dds";
-			terrain_params.rock_texture  = "Resources/Textures/Random/stone.dds";
+			terrain_params.rock_texture  = "Resources/Textures/Terrain/mud.jpg";
 			terrain_params.snow_texture  = "Resources/Textures/Random/snow.dds";
-			terrain_params.sand_texture  = "Resources/Textures/Random/sand.dds"; 
+			terrain_params.sand_texture  = "Resources/Textures/Random/sand2.jpg"; 
 
 			terrain_params.generate_foliage = true;
 			terrain_params.foliage_over_whole_terrain = true;

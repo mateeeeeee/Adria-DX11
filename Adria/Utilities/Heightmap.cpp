@@ -53,7 +53,7 @@ namespace adria
 		noise.SetFractalOctaves(desc.octaves);
 		noise.SetFractalLacunarity(desc.lacunarity);
 		noise.SetFractalGain(desc.persistence);
-		noise.SetFrequency(0.1f);
+		noise.SetFrequency(desc.frequency);
 		hm.resize(desc.depth);
 
 		for (u32 z = 0; z < desc.depth; z++)

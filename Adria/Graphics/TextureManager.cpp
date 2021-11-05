@@ -14,52 +14,52 @@ namespace adria
 	namespace
 	{
 		
-		enum class TextureFormat
+		enum class ETextureFormat
 		{
-			eDDS,
-			eBMP,
-			eJPG,
-			ePNG,
-			eTIFF,
-			eGIF,
-			eICO,
-			eTGA,
-			eHDR,
-			ePIC,
-			eNotSupported
+			DDS,
+			BMP,
+			JPG,
+			PNG,
+			TIFF,
+			GIF,
+			ICO,
+			TGA,
+			HDR,
+			PIC,
+			NotSupported
 		};
 
-		TextureFormat GetTextureFormat(std::string const& path)
+		ETextureFormat GetTextureFormat(std::string const& path)
 		{
 			std::string extension = GetExtension(path);
 			std::transform(extension.begin(), extension.end(), extension.begin(),
 				[](unsigned char c) { return std::tolower(c); });
 
 			if (extension == ".dds")
-				return TextureFormat::eDDS;
+				return ETextureFormat::DDS;
 			else if (extension == ".bmp")
-				return TextureFormat::eBMP;
+				return ETextureFormat::BMP;
 			else if (extension == ".jpg" || extension == ".jpeg")
-				return TextureFormat::eJPG;
+				return ETextureFormat::JPG;
 			else if (extension == ".png")
-				return TextureFormat::ePNG;
+				return ETextureFormat::PNG;
 			else if (extension == ".tiff" || extension == ".tif")
-				return TextureFormat::eTIFF;
+				return ETextureFormat::TIFF;
 			else if (extension == ".gif")
-				return TextureFormat::eGIF;
+				return ETextureFormat::GIF;
 			else if (extension == ".ico")
-				return TextureFormat::eICO;
+				return ETextureFormat::ICO;
 			else if (extension == ".tga")
-				return TextureFormat::eTGA;
+				return ETextureFormat::TGA;
 			else if (extension == ".hdr")
-				return TextureFormat::eHDR;
+				return ETextureFormat::HDR;
 			else if (extension == ".pic")
-				return TextureFormat::ePIC;
+				return ETextureFormat::PIC;
 			else
-				return TextureFormat::eNotSupported;
+				return ETextureFormat::NotSupported;
 		}
 
-		TextureFormat GetTextureFormat(std::wstring const& path)
+		ETextureFormat GetTextureFormat(std::wstring const& path)
 		{
 			return GetTextureFormat(ConvertToNarrow(path));
 		}
@@ -85,24 +85,24 @@ TextureManager::TextureManager(ID3D11Device* _device, ID3D11DeviceContext* _cont
 
 TEXTURE_HANDLE TextureManager::LoadTexture(std::wstring const& name)
 {
-	TextureFormat format = GetTextureFormat(name);
+	ETextureFormat format = GetTextureFormat(name);
 
 	switch (format)
 	{
-	case TextureFormat::eDDS:
+	case ETextureFormat::DDS:
 		return LoadDDSTexture(name);
-	case TextureFormat::eBMP:
-	case TextureFormat::ePNG:
-	case TextureFormat::eJPG:
-	case TextureFormat::eTIFF:
-	case TextureFormat::eGIF:
-	case TextureFormat::eICO:
+	case ETextureFormat::BMP:
+	case ETextureFormat::PNG:
+	case ETextureFormat::JPG:
+	case ETextureFormat::TIFF:
+	case ETextureFormat::GIF:
+	case ETextureFormat::ICO:
 		return LoadWICTexture(name);
-	case TextureFormat::eTGA:
-	case TextureFormat::eHDR:
-	case TextureFormat::ePIC:
+	case ETextureFormat::TGA:
+	case ETextureFormat::HDR:
+	case ETextureFormat::PIC:
 		return LoadTexture_HDR_TGA_PIC(ConvertToNarrow(name));
-	case TextureFormat::eNotSupported:
+	case ETextureFormat::NotSupported:
 	default:
 		ADRIA_ASSERT(false && "Unsupported Texture Format!");
 	}
@@ -117,14 +117,14 @@ TEXTURE_HANDLE TextureManager::LoadTexture(std::string const& name)
 
 TEXTURE_HANDLE TextureManager::LoadCubeMap(std::wstring const& name)
 {
-	TextureFormat format = GetTextureFormat(name);
+	ETextureFormat format = GetTextureFormat(name);
 
-	ADRIA_ASSERT(format == TextureFormat::eDDS || format == TextureFormat::eHDR && "Cubemap in one file has to be .dds or .hdr format");
+	ADRIA_ASSERT(format == ETextureFormat::DDS || format == ETextureFormat::HDR && "Cubemap in one file has to be .dds or .hdr format");
 
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
 		++handle;
-		if (format == TextureFormat::eDDS)
+		if (format == ETextureFormat::DDS)
 		{
 
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cubemap_srv;
@@ -241,9 +241,9 @@ TEXTURE_HANDLE TextureManager::LoadCubeMap(std::wstring const& name)
 
 TEXTURE_HANDLE TextureManager::LoadCubeMap(std::array<std::string, 6> const& cubemap_textures)
 {
-	TextureFormat format = GetTextureFormat(cubemap_textures[0]);
-	ADRIA_ASSERT(format == TextureFormat::eJPG || format == TextureFormat::ePNG || format == TextureFormat::eTGA ||
-		format == TextureFormat::eBMP || format == TextureFormat::eHDR || format == TextureFormat::ePIC);
+	ETextureFormat format = GetTextureFormat(cubemap_textures[0]);
+	ADRIA_ASSERT(format == ETextureFormat::JPG || format == ETextureFormat::PNG || format == ETextureFormat::TGA ||
+		format == ETextureFormat::BMP || format == ETextureFormat::HDR || format == ETextureFormat::PIC);
 
 	++handle;
 

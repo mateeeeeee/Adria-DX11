@@ -102,7 +102,7 @@ namespace adria
 
 		bool CheckIndex(u64 i) const
 		{
-			return i >= 0 || i < terrain_vertices.size();
+			return i >= 0 && i < terrain_vertices.size();
 		}
 	};
 }

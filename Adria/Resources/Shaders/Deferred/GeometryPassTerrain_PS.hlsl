@@ -50,8 +50,8 @@ PS_GBUFFER_OUT main(VS_OUTPUT In)
     float3 normal = normalize(In.NormalWS);
 
     float angleDiff = abs(dot(normal.xyz, float3(0, 1, 0)));
-    float pureRock = 0.6;
-    float lerpRock = 0.7;
+    float pureRock = 0.1;
+    float lerpRock = 0.9;
     float coef = 1.0 - smoothstep(pureRock, lerpRock, angleDiff);
     grass = lerp(grass, rock, coef);
     snow = lerp(snow, rock, coef);

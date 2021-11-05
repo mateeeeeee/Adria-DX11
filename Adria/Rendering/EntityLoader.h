@@ -81,13 +81,13 @@ namespace adria
 	struct terrain_parameters_t
 	{
 		grid_parameters_t terrain_grid;
-        bool foliage_over_whole_terrain;
-		foliage_parameters_t terrain_foliage;
 		std::string grass_texture;
 		std::string snow_texture;
 		std::string rock_texture;
 		std::string sand_texture;
 		bool generate_foliage;
+		bool foliage_over_whole_terrain;
+		foliage_parameters_t terrain_foliage;
 	};
    
     class TextureManager;

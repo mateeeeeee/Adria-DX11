@@ -29,6 +29,7 @@ namespace adria
 		EFractalType fractal_type = EFractalType::None;
 		ENoiseType noise_type = ENoiseType::Perlin;
 		i32 seed = 1337;
+		f32 frequency = 0.01f;
 		f32 persistence = 0.5f;
 		f32 lacunarity = 2.0f;
 		i32 octaves = 3;
