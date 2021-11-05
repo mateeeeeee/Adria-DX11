@@ -142,7 +142,10 @@ namespace adria
         SetStyle();
     }
 
-    Editor::~Editor() = default;
+    Editor::~Editor()
+    {
+        Log::Destroy();
+    }
 
 	void Editor::HandleWindowMessage(window_message_t const& msg_data)
     {
@@ -157,7 +160,6 @@ namespace adria
         if (gui->IsVisible())
         {
             engine->Run(renderer_settings, true);
-
             engine->gfx->ClearBackbuffer();
             engine->gfx->SetBackbuffer();
             gui->Begin();
@@ -339,7 +341,7 @@ namespace adria
             {
 				noise_desc.width = (u32)tile_count[0] + 1;
 				noise_desc.depth = (u32)tile_count[1] + 1;
-                noise_desc.max_height = max_height;
+                noise_desc.max_height = (u32)max_height;
 
                 ImGui::SliderInt("Seed", &noise_desc.seed, 1, 1000000);
                 ImGui::SliderInt("Octaves", &noise_desc.octaves, 1, 16);
@@ -390,16 +392,15 @@ namespace adria
 			ImGui::Checkbox("Generate Foliage", &generate_foliage);
             if (generate_foliage)
             {
-				ImGui::SliderInt("Foliage Count", &foliage_count, 100.0f, 10000.0f);
-                ImGui::SliderInt("Foliage Scale", &foliage_scale, 1.0f, 100.0f);
+				ImGui::SliderInt("Foliage Count", &foliage_count, 100, 10000);
+                ImGui::SliderInt("Foliage Scale", &foliage_scale, 1, 100);
                 ImGui::SliderFloat("Foliage Steepness Cutoff", &foliage_steepness_cutoff, 0.0f, 1.0f);
                 ImGui::SliderFloat("Foliage Height Cutoff", &foliage_height_cutoff, -100.0f, 10000.0f);
             }
 
-
-			if (ImGui::Button("Load Terrain"))
+			if (ImGui::Button("Generate Terrain"))
 			{
-                engine->reg.clear<TerrainComponent>();
+                engine->reg.destroy<TerrainComponent>();
 
 				terrain_parameters_t params{};
                 terrain_params.tile_size_x = tile_size[0];
@@ -413,29 +414,36 @@ namespace adria
                 terrain_params.chunk_count_z = chunk_count[1];
                 terrain_params.normal_type = ENormalCalculation::AreaWeight;
                 terrain_params.heightmap = std::make_unique<Heightmap>(noise_desc);
-
 				params.terrain_grid = std::move(terrain_params);
 
-				params.grass_texture = "Resources/Textures/Random/grass4.dds";
-				params.rock_texture = "Resources/Textures/Terrain/mud.jpg";
-				params.snow_texture = "Resources/Textures/Random/snow.dds";
-				params.sand_texture = "Resources/Textures/Random/sand2.jpg";
 				params.generate_foliage = generate_foliage;
 				params.foliage_over_whole_terrain = true;
 				params.terrain_foliage.foliage_count = foliage_count;
-				params.terrain_foliage.foliage_scale = foliage_scale;
+				params.terrain_foliage.foliage_scale = foliage_scale * 1.0f;
 				params.terrain_foliage.foliage_height_cutoff = foliage_height_cutoff;
 				params.terrain_foliage.foliage_steepness_cutoff = foliage_steepness_cutoff;
 				params.terrain_foliage.mesh_texture_pairs.emplace_back(EFoliageMesh::TripleQuad, "Resources/Textures/Foliage/foliage.png");
 				params.terrain_foliage.mesh_texture_pairs.emplace_back(EFoliageMesh::DoubleQuad, "Resources/Textures/Foliage/foliage3.png");
 				params.terrain_foliage.mesh_texture_pairs.emplace_back(EFoliageMesh::SingleQuad, "Resources/Textures/Foliage/foliage4.png");
 
+				params.grass_texture = "Resources/Textures/Random/grass4.dds";
+				params.rock_texture = "Resources/Textures/Terrain/mud.jpg";
+				params.snow_texture = "Resources/Textures/Random/snow.dds";
+				params.sand_texture = "Resources/Textures/Random/sand2.jpg";
+
 				engine->entity_loader->LoadTerrain(params);
 			}
 
+			//if (ImGui::Button("Generate Foliage"))
+			//{
+            //    foliage_parameters_t params{};
+                  
+            //    engine->entity_loader->LoadFoliage(params);
+			//}
+
 			if (ImGui::Button("Clear"))
 			{
-				engine->reg.clear<TerrainComponent>();
+                engine->reg.destroy<TerrainComponent>();
 			}
 
 			if (ImGui::TreeNodeEx("Terrain Settings", 0))
@@ -455,7 +463,6 @@ namespace adria
     {
         ImGui::Begin("Ocean");
         {
-
 			static grid_parameters_t ocean_params{};
 			static i32 tile_count[2] = { 512, 512 };
 			static f32 tile_size[2] = { 40.0f, 40.0f };
@@ -481,7 +488,7 @@ namespace adria
 
 			if (ImGui::Button("Clear"))
 			{
-				engine->reg.clear<Ocean>();
+				engine->reg.destroy<Ocean>();
 			}
 
 			if (ImGui::TreeNodeEx("Ocean Settings", 0))
@@ -610,14 +617,10 @@ namespace adria
                     deleted_entities.push_back(e);
                     if (selected_entity == e) selected_entity = null_entity;
                 }
-
-               
             }
 
             for (auto e : deleted_entities)
                 engine->reg.destroy(e);
-
-
         }
         ImGui::End();
     }

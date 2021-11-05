@@ -50,7 +50,6 @@ namespace adria
 	Engine::~Engine()
 	{
 		TaskSystem::Destroy();
-		Log::Destroy();
 	}
 
 	void Engine::HandleWindowMessage(window_message_t const& msg_data)

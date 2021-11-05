@@ -781,6 +781,7 @@ namespace adria
 			{
                 XMFLOAT3 position{};
                 XMFLOAT3 normal{};
+                u32 count = 0;
                 do 
                 {
 					position.x = random_x();
@@ -788,8 +789,10 @@ namespace adria
 					position.y = TerrainComponent::terrain ? TerrainComponent::terrain->HeightAt(position.x, position.z) - 0.5f : -0.5f;
 
                     normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : XMFLOAT3(0.0f,1.0f,0.0f);
+
+                    ++count;
                 } 
-                while (position.y > params.foliage_height_cutoff || normal.y < params.foliage_steepness_cutoff);
+                while (position.y > params.foliage_height_cutoff || normal.y < params.foliage_steepness_cutoff || count < 5);
 
                 instance_data.emplace_back(position, random_angle());
 			}

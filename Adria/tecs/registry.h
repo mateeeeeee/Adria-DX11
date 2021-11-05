@@ -94,6 +94,15 @@ namespace adria::tecs
 			release_entity(e);
 		}
 
+		template<typename... Cs>
+		void destroy()
+		{
+			auto terrain_entities = view<Cs...>();
+			std::vector<entity> to_be_destroyed;
+			for (auto e : terrain_entities) to_be_destroyed.push_back(e);
+			for (auto e : to_be_destroyed) destroy(e);
+		}
+
 		bool valid(entity e) const
 		{
 			auto pos = get_index(e);
@@ -238,7 +247,7 @@ namespace adria::tecs
 		template<typename... Cs>
 		bool all_of(entity e) const
 		{
-			static_assert(sizeof...(Cs) > 0, "Provide atleast one component type!");
+			static_assert(sizeof...(Cs) > 0, "Provide at least one component type!");
 			assert(valid(e));
 			return [e](auto const*... pool) { return ((pool && pool->contains(e)) && ...); }(get_component_pool_if_exists<Cs>()...);
 		}
@@ -246,7 +255,7 @@ namespace adria::tecs
 		template<typename... Cs>
 		bool any_of(entity e) const
 		{
-			static_assert(sizeof...(Cs) > 0, "Provide atleast one component type!");
+			static_assert(sizeof...(Cs) > 0, "Provide at least one component type!");
 			assert(valid(e));
 			return [e](auto const*... pool) { return !((!pool || !pool->contains(e)) && ...); }(get_component_pool_if_exists<Cs>()...);
 		}
