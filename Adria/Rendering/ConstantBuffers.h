@@ -198,9 +198,8 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct TerrainCBuffer
 	{
-		f32 snow_height;
-		f32 grass_height;
-		f32 mix_zone;
+		DirectX::XMFLOAT2 texture_scale;
+		int ocean_active;
 	};
 
 

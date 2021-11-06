@@ -164,11 +164,13 @@ namespace adria
 
 	struct COMPONENT TerrainComponent
 	{
-		inline static std::shared_ptr<Terrain> terrain;
+		inline static std::unique_ptr<Terrain> terrain;
+		inline static DirectX::XMFLOAT2 texture_scale;
 		TEXTURE_HANDLE sand_texture = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE grass_texture = INVALID_TEXTURE_HANDLE;
 		TEXTURE_HANDLE rock_texture = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE snow_texture = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE slope_texture = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE layer_texture = INVALID_TEXTURE_HANDLE;
 	};
 
 	struct COMPONENT Foliage

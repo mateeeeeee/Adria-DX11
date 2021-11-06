@@ -139,9 +139,8 @@ cbuffer VoxelCbuf : register(b8)
 
 cbuffer TerrainCBuf : register(b9)
 {
-    float snow_height;
-    float grass_height;
-    float mix_zone;
+    float2 texture_scale;
+    int ocean_active;
 };
 
 

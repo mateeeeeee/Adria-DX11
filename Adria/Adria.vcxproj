@@ -184,6 +184,7 @@
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Utilities\AppException.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
+    <ClCompile Include="Utilities\Image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ThirdParty\ImGui\imconfig.h" />

@@ -1274,8 +1274,6 @@ namespace adria
 
 			random_tex_desc.init_data.data = (void*)random_texture_data.data();
 			hbao_random_texture = Texture2D(gfx->Device(), random_tex_desc);
-
-
 		}
 
 		//ocean
@@ -2214,10 +2212,8 @@ namespace adria
 	void Renderer::UpdateTerrainData()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-
-		terrain_cbuf_data.snow_height = renderer_settings.snow_height;
-		terrain_cbuf_data.grass_height = renderer_settings.grass_height;
-		terrain_cbuf_data.mix_zone = renderer_settings.mix_zone;
+		terrain_cbuf_data.texture_scale = TerrainComponent::texture_scale;
+		terrain_cbuf_data.ocean_active = reg.size<Ocean>() != 0;
 		terrain_cbuffer->Update(context, terrain_cbuf_data);
 	}
 	void Renderer::UpdateVoxelData()
@@ -2397,11 +2393,11 @@ namespace adria
 
 					context->PSSetShaderResources(TEXTURE_SLOT_GRASS, 1, &view);
 				}
-				if (terrain.snow_texture != INVALID_TEXTURE_HANDLE)
+				if (terrain.slope_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = texture_manager.GetTextureView(terrain.snow_texture);
+					auto view = texture_manager.GetTextureView(terrain.slope_texture);
 
-					context->PSSetShaderResources(TEXTURE_SLOT_SNOW, 1, &view);
+					context->PSSetShaderResources(TEXTURE_SLOT_SLOPE, 1, &view);
 				}
 				if (terrain.rock_texture != INVALID_TEXTURE_HANDLE)
 				{
@@ -2414,6 +2410,13 @@ namespace adria
 					auto view = texture_manager.GetTextureView(terrain.sand_texture);
 
 					context->PSSetShaderResources(TEXTURE_SLOT_SAND, 1, &view);
+				}
+
+				if (terrain.layer_texture != INVALID_TEXTURE_HANDLE)
+				{
+					auto view = texture_manager.GetTextureView(terrain.layer_texture);
+
+					context->PSSetShaderResources(TEXTURE_SLOT_LAYER, 1, &view);
 				}
 
 				mesh.Draw(context);

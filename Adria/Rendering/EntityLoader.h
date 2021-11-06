@@ -75,16 +75,30 @@ namespace adria
         f32 foliage_scale;
         DirectX::XMFLOAT2 foliage_center;
         DirectX::XMFLOAT2 foliage_extents;
-		f32 foliage_height_cutoff;
-		f32 foliage_steepness_cutoff;
+		f32 foliage_height_end;
+		f32 foliage_slope_start;
     };
+	struct terrain_texture_layer_parameters_t
+	{
+		f32 terrain_underwater_start = -100.0f;
+		f32 terrain_underwater_end = 0.0f;
+		f32 terrain_sand_start = -30.0f;
+		f32 terrain_sand_end = 2.0f;
+		f32 terrain_grass_start = 2.0f;
+		f32 terrain_grass_end = 30.0f;
+		f32 terrain_slope_grass_start = 0.96f;
+		f32 terrain_slope_rocks_start = 0.85f;
+		f32 terrain_rocks_start = -2.0f;
+	};
 	struct terrain_parameters_t
 	{
 		grid_parameters_t terrain_grid;
+        terrain_texture_layer_parameters_t layer_params;
 		std::string grass_texture;
-		std::string snow_texture;
+		std::string slope_texture;
 		std::string rock_texture;
 		std::string sand_texture;
+        std::string layer_texture;
 	};
    
     class TextureManager;
@@ -104,7 +118,7 @@ namespace adria
 
         [[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
 
-		[[maybe_unused]] std::vector<tecs::entity> LoadTerrain(terrain_parameters_t const&);
+		[[maybe_unused]] std::vector<tecs::entity> LoadTerrain(terrain_parameters_t&);
 
 		[[maybe_unused]] tecs::entity LoadFoliage(foliage_parameters_t const&);
 

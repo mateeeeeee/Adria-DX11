@@ -36,6 +36,7 @@ namespace adria
 		f32 noise_scale = 10;
 	};
 
+
 	struct thermal_erosion_desc_t
 	{
 		i32 iterations;
@@ -43,6 +44,7 @@ namespace adria
 		f32 talus;
 	};
 
+	
 	struct hydraulic_erosion_desc_t
 	{
 		i32 iterations;

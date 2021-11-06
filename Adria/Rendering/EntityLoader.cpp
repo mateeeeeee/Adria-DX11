@@ -1,6 +1,5 @@
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_NO_EXTERNAL_IMAGE
-#define STB_IMAGE_WRITE_IMPLEMENTATION
 #define TINYGLTF_NOEXCEPTION
 #include "tiny_gltf.h"
 
@@ -17,10 +16,102 @@
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/Heightmap.h"
+#include "../Utilities/Image.h"
 
 using namespace DirectX;
 namespace adria 
 {
+    namespace
+    {
+		void GenerateTerrainLayerTexture(char const* texture_name, Terrain* terrain, terrain_texture_layer_parameters_t const& params)
+		{
+			auto [width, depth] = terrain->TileCounts();
+			auto [tile_size_x, tile_size_z] = terrain->TileSizes();
+
+			std::vector<BYTE> temp_layer_data(width * depth * 4);
+			std::vector<BYTE> layer_data(width * depth * 4);
+			for (u64 j = 0; j < depth; ++j)
+			{
+				for (u64 i = 0; i < width; ++i)
+				{
+					f32 x = i * tile_size_x;
+					f32 z = j * tile_size_z;
+
+					f32 height = terrain->HeightAt(x, z);
+					f32 normal_y = terrain->NormalAt(x, z).y;
+
+					if (height > params.terrain_underwater_start && height <= params.terrain_underwater_end)
+					{
+						temp_layer_data[(j * width + i) * 4 + 0] = BYTE_MAX;
+						temp_layer_data[(j * width + i) * 4 + 1] = 0;
+						temp_layer_data[(j * width + i) * 4 + 2] = 0;
+						temp_layer_data[(j * width + i) * 4 + 3] = 0;
+					}
+
+					if (height > params.terrain_sand_start && height <= params.terrain_sand_end)
+					{
+						temp_layer_data[(j * width + i) * 4 + 0] = 0;
+						temp_layer_data[(j * width + i) * 4 + 1] = BYTE_MAX;
+						temp_layer_data[(j * width + i) * 4 + 2] = 0;
+						temp_layer_data[(j * width + i) * 4 + 3] = 0;
+					}
+
+					if (height > params.terrain_grass_start && height <= params.terrain_grass_end)
+					{
+						temp_layer_data[(j * width + i) * 4 + 0] = 0;
+						temp_layer_data[(j * width + i) * 4 + 1] = 0;
+						temp_layer_data[(j * width + i) * 4 + 2] = BYTE_MAX;
+						temp_layer_data[(j * width + i) * 4 + 3] = 0;
+					}
+
+					if (normal_y < params.terrain_slope_grass_start && height > params.terrain_sand_end)
+					{
+						temp_layer_data[(j * width + i) * 4 + 0] = 0;
+						temp_layer_data[(j * width + i) * 4 + 1] = 0;
+						temp_layer_data[(j * width + i) * 4 + 2] = 0;
+						temp_layer_data[(j * width + i) * 4 + 3] = 0;
+					}
+
+					if (normal_y < params.terrain_slope_rocks_start && height > params.terrain_rocks_start)
+					{
+						temp_layer_data[(j * width + i) * 4 + 0] = 0;
+						temp_layer_data[(j * width + i) * 4 + 1] = 0;
+						temp_layer_data[(j * width + i) * 4 + 2] = 0;
+						temp_layer_data[(j * width + i) * 4 + 3] = BYTE_MAX;
+					}
+				}
+			}
+
+			layer_data = temp_layer_data;
+
+			for (size_t j = 2; j < depth - 2; ++j)
+			{
+				for (size_t i = 2; i < width - 2; ++i)
+				{
+					i32 n1 = 0, n2 = 0, n3 = 0, n4 = 0;
+					for (i32 k = -2; k <= 2; ++k)
+					{
+						for (i32 l = -2; l <= 2; ++l)
+						{
+							n1 += (i32)temp_layer_data[((j + k) * width + i + l) * 4 + 0];
+							n2 += (i32)temp_layer_data[((j + k) * width + i + l) * 4 + 1];
+							n3 += (i32)temp_layer_data[((j + k) * width + i + l) * 4 + 2];
+							n4 += (i32)temp_layer_data[((j + k) * width + i + l) * 4 + 3];
+						}
+					}
+            
+					layer_data[(j * width + i) * 4 + 0] = (BYTE)(n1 / 25);
+					layer_data[(j * width + i) * 4 + 1] = (BYTE)(n2 / 25);
+					layer_data[(j * width + i) * 4 + 2] = (BYTE)(n3 / 25);
+					layer_data[(j * width + i) * 4 + 3] = (BYTE)(n4 / 25);
+				}
+			}
+
+			WriteImagePNG(texture_name, layer_data, width, depth);
+		}
+    }
+
+
     using namespace tecs;
 
     [[nodiscard]]
@@ -681,7 +772,6 @@ namespace adria
     [[maybe_unused]]
     std::vector<entity> EntityLoader::LoadOcean(ocean_parameters_t const& params)
     {
-
         std::vector<entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
 
         Material ocean_material{};
@@ -700,21 +790,28 @@ namespace adria
 	}
 
     [[maybe_unused]]
-	std::vector<entity> EntityLoader::LoadTerrain(terrain_parameters_t const& params)
+	std::vector<entity> EntityLoader::LoadTerrain(terrain_parameters_t& params)
 	{
         std::vector<TexturedNormalVertex> vertices;
 		std::vector<entity> terrain_chunks = LoadGrid(params.terrain_grid, &vertices);
 
-        TerrainComponent terrain_component{};
-        TerrainComponent::terrain = std::make_shared<Terrain>(vertices,
+        TerrainComponent::terrain = std::make_unique<Terrain>(vertices,
             params.terrain_grid.tile_size_x,
             params.terrain_grid.tile_size_z, 
             params.terrain_grid.tile_count_x,
             params.terrain_grid.tile_count_z);
+
+        TerrainComponent::texture_scale = XMFLOAT2(params.terrain_grid.texture_scale_x,
+            params.terrain_grid.texture_scale_z);
+
+        GenerateTerrainLayerTexture(params.layer_texture.c_str(), TerrainComponent::terrain.get(), params.layer_params);
+
+        TerrainComponent terrain_component{};
 		terrain_component.grass_texture = texture_manager.LoadTexture(params.grass_texture);
 		terrain_component.rock_texture = texture_manager.LoadTexture(params.rock_texture);
-		terrain_component.snow_texture = texture_manager.LoadTexture(params.snow_texture);
+		terrain_component.slope_texture = texture_manager.LoadTexture(params.slope_texture);
 		terrain_component.sand_texture = texture_manager.LoadTexture(params.sand_texture);
+        terrain_component.layer_texture = texture_manager.LoadTexture(params.layer_texture);
 
 		for (auto terrain_chunk : terrain_chunks)
 		{
@@ -763,23 +860,24 @@ namespace adria
 		entity foliage = foliages[0];
 
 		std::vector<FoliageInstance> instance_data{};
-		for (u32 i = 0; i < params.foliage_count; ++i)
+		for (i32 i = 0; i < params.foliage_count; ++i)
 		{
+            static const u32 MAX_ITERATIONS = 5;
 			XMFLOAT3 position{};
 			XMFLOAT3 normal{};
-			u32 count = 0;
+			u32 iteration = 0;
 			do
 			{
+                if (iteration > MAX_ITERATIONS) break;
 				position.x = random_x();
 				position.z = random_z();
 				position.y = TerrainComponent::terrain ? TerrainComponent::terrain->HeightAt(position.x, position.z) - 0.5f : -0.5f;
-
 				normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : XMFLOAT3(0.0f, 1.0f, 0.0f);
 
-				++count;
-			} while (position.y > params.foliage_height_cutoff || normal.y < params.foliage_steepness_cutoff || count < 5);
+				++iteration;
+			} while (position.y > params.foliage_height_end || normal.y < params.foliage_slope_start);
 
-			instance_data.emplace_back(position, random_angle());
+			if(iteration < MAX_ITERATIONS) instance_data.emplace_back(position, random_angle());
 		}
 
 		auto& mesh_component = reg.get<Mesh>(foliage);

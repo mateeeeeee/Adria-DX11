@@ -6,6 +6,7 @@
 #include "../Logging/Logger.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/StringUtil.h"
+#include "../Utilities/Image.h"
 #include "../ImGui/ImGuiFileDialog.h"
 #include "../Utilities/Random.h"
 #include "../Math/BoundingVolumeHelpers.h"
@@ -15,6 +16,7 @@ using namespace DirectX;
 
 namespace adria
 {
+
 	using namespace tecs;
 
 	enum class EMaterialTextureType
@@ -342,7 +344,7 @@ namespace adria
 				{
 				 .fractal_type = EFractalType::FBM,
 				 .noise_type = ENoiseType::Perlin,
-				 .seed = 33,
+				 .seed = 1337,
 				 .persistence = 0.65f,
 				 .lacunarity = 2.0f,
 				 .octaves = 6,
@@ -358,7 +360,7 @@ namespace adria
 					ImGui::SliderInt("Octaves", &noise_desc.octaves, 1, 16);
 					ImGui::SliderFloat("Persistence", &noise_desc.persistence, 0.0f, 1.0f);
 					ImGui::SliderFloat("Lacunarity", &noise_desc.lacunarity, 0.1f, 8.0f);
-					ImGui::SliderFloat("Frequency", &noise_desc.frequency, 0.01f, 8.0f);
+					ImGui::SliderFloat("Frequency", &noise_desc.frequency, 0.01f, 2.0f);
 					ImGui::SliderFloat("Noise Scale", &noise_desc.noise_scale, 1, 128);
 
 					const char* noise_types[] = { "OpenSimplex2", "OpenSimplex2S", "Cellular", "Perlin", "ValueCubic", "Value" };
@@ -397,6 +399,45 @@ namespace adria
 					//add heightmap and splat map texture choice
 				}
 
+                static bool thermal_erosion = false;
+                static thermal_erosion_desc_t thermal_erosion_desc{.iterations = 3, .c = 0.5f, .talus = 0.025f};
+				ImGui::Checkbox("Thermal Erosion", &thermal_erosion);
+                if (thermal_erosion)
+                {
+					ImGui::SliderInt("Iterations", &thermal_erosion_desc.iterations, 1, 10);
+                    ImGui::SliderFloat("C", &thermal_erosion_desc.c, 0.01f, 1.0f);
+                    ImGui::SliderFloat("Talus", &thermal_erosion_desc.talus, 4.0f / std::max(tile_count[0], tile_count[1]), 16.0f / std::max(tile_count[0], tile_count[1]));
+                }
+
+				static bool hydraulic_erosion = false;
+				static hydraulic_erosion_desc_t hydraulic_erosion_desc{ .iterations = 3, .drops = 1000000, .carrying_capacity = 1.5f, .deposition_speed = 0.03f };
+				ImGui::Checkbox("Hydraulic Erosion", &hydraulic_erosion);
+				if (hydraulic_erosion)
+				{
+					ImGui::SliderInt("Iterations", &hydraulic_erosion_desc.iterations, 1, 10);
+					ImGui::SliderInt("Raindrops", &hydraulic_erosion_desc.drops, 10000, 5000000);
+					ImGui::SliderFloat("Carrying capacity", &hydraulic_erosion_desc.carrying_capacity, 0.5f, 2.0f);
+					ImGui::SliderFloat("Deposition Speed", &hydraulic_erosion_desc.deposition_speed, 0.01f, 0.1f);
+				}
+
+                static terrain_texture_layer_parameters_t layer_params{};
+				if (ImGui::TreeNodeEx("Layer Texture Settings", 0))
+				{
+                    ImGui::SliderFloat("Underwater Start", &layer_params.terrain_underwater_start, -200.0f, -50.0f);
+                    ImGui::SliderFloat("Underwater End", &layer_params.terrain_underwater_end, layer_params.terrain_underwater_start, 0.0f);
+					ImGui::SliderFloat("Sand Start", &layer_params.terrain_sand_start, layer_params.terrain_underwater_start, 10.0f);
+					ImGui::SliderFloat("Sand End", &layer_params.terrain_sand_end, layer_params.terrain_sand_start, 25.0f);
+                    ImGui::SliderFloat("Grass Start", &layer_params.terrain_grass_start, 0.0f, 100.0f);
+                    ImGui::SliderFloat("Grass End", &layer_params.terrain_grass_end, layer_params.terrain_grass_start, 1000.0f);
+
+                    ImGui::SliderFloat("Rock Start", &layer_params.terrain_rocks_start, -10.0f, 100.0f);
+                    ImGui::SliderFloat("Terrain Slope Grass Start", &layer_params.terrain_slope_grass_start, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Terrain Slope Rocks Start", &layer_params.terrain_slope_rocks_start, 0.0f, 1.0f);
+
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+
 				if (ImGui::Button("Generate Terrain"))
 				{
 					engine->reg.destroy<TerrainComponent>();
@@ -413,12 +454,17 @@ namespace adria
 					terrain_params.chunk_count_z = chunk_count[1];
 					terrain_params.normal_type = ENormalCalculation::AreaWeight;
 					terrain_params.heightmap = std::make_unique<Heightmap>(noise_desc);
-					params.terrain_grid = std::move(terrain_params);
+                    if (thermal_erosion) terrain_params.heightmap->ApplyThermalErosion(thermal_erosion_desc);
+                    if (hydraulic_erosion) terrain_params.heightmap->ApplyHydraulicErosion(hydraulic_erosion_desc);
 
-					params.grass_texture = "Resources/Textures/Random/grass4.dds";
-					params.rock_texture = "Resources/Textures/Terrain/mud.jpg";
-					params.snow_texture = "Resources/Textures/Random/snow.dds";
-					params.sand_texture = "Resources/Textures/Random/sand2.jpg";
+					params.terrain_grid = std::move(terrain_params);
+                    params.layer_params = layer_params;
+					params.grass_texture = "Resources/Textures/Terrain/terrain_grass.dds";
+					params.rock_texture = "Resources/Textures/Terrain/terrain_rock4.dds";
+					params.slope_texture = "Resources/Textures/Terrain/terrain_slope.dds";
+					params.sand_texture = "Resources/Textures/Terrain/sand_diffuse.dds";
+					static const char* layer_texture_name = "layer.png";
+					params.layer_texture = layer_texture_name;
 
 					engine->entity_loader->LoadTerrain(params);
 				}
@@ -433,14 +479,14 @@ namespace adria
 				static foliage_parameters_t foliage_params{
 					.foliage_count = 3000,
 					.foliage_scale = 10,
-					.foliage_height_cutoff = 1000,
-					.foliage_steepness_cutoff = 0.95f };
+					.foliage_height_end = 1000,
+					.foliage_slope_start = 0.95f };
 				if (ImGui::TreeNode("Foliage Settings"))
 				{
 					ImGui::SliderInt("Foliage Count", &foliage_params.foliage_count, 100, 25000);
 					ImGui::SliderFloat("Foliage Scale", &foliage_params.foliage_scale, 1.0f, 100.0f);
-					ImGui::SliderFloat("Foliage Steepness Cutoff", &foliage_params.foliage_steepness_cutoff, 0.0f, 1.0f);
-					ImGui::SliderFloat("Foliage Height Cutoff", &foliage_params.foliage_height_cutoff, -100.0f, 10000.0f);
+					ImGui::SliderFloat("Foliage Slope Start", &foliage_params.foliage_slope_start, 0.0f, 1.0f);
+					ImGui::SliderFloat("Foliage Height End", &foliage_params.foliage_height_end, -100.0f, 10000.0f);
 
 					const char* foliage_types[] = { "Single Quad", "Double Quad", "Triple Quad" };
 					static int current_foliage_type = 0;
@@ -461,8 +507,17 @@ namespace adria
 					{
 						static std::string foliage_textures[] = {
 							"Resources/Textures/Foliage/foliage.png",
+                            "Resources/Textures/Foliage/foliage2.png",
 							"Resources/Textures/Foliage/foliage3.png",
-							"Resources/Textures/Foliage/foliage4.png"
+							"Resources/Textures/Foliage/foliage4.png",
+							"Resources/Textures/Foliage/grass_flower_type1.png",
+							"Resources/Textures/Foliage/grass_flower_type3.png",
+							"Resources/Textures/Foliage/grass_flower_type10.png",
+							"Resources/Textures/Foliage/grass_type1.png",
+							"Resources/Textures/Foliage/grass_type2.png",
+							"Resources/Textures/Foliage/grass_type3.png",
+							"Resources/Textures/Foliage/grass_type4.png",
+							"Resources/Textures/Foliage/grass_type6.png",
 						};
 						static IntRandomGenerator<size_t> index(0ll, _countof(foliage_textures) - 1);
 
@@ -501,13 +556,10 @@ namespace adria
 			if (ImGui::Button("Clear"))
 			{
 				engine->reg.destroy<TerrainComponent>();
+                TerrainComponent::terrain = nullptr;
 			}
 			if (ImGui::TreeNodeEx("Terrain Settings", 0))
 			{
-				ImGui::SliderFloat("Grass Height", &renderer_settings.grass_height, -250.0f, 250.0f);
-				ImGui::SliderFloat("Snow Height", &renderer_settings.snow_height, 250.0f, 1500.0f);
-				ImGui::SliderFloat("Mix Zone", &renderer_settings.mix_zone, 0.0f, 200.0f);
-
 				ImGui::TreePop();
 				ImGui::Separator();
 			}
