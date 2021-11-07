@@ -102,6 +102,6 @@ Hosek-Wilkie Sky Model
 ![alt text](Screenshots/hosek_wilkie.png "Hosek-Wilkie")
 
 God Rays and Instanced Foliage
-![alt text](Screenshots/foliage2.gif "Instanced Foliage")
+![alt text](Screenshots/foliage.gif "God Rays and Instanced Foliage")
 
 

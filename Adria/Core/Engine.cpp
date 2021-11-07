@@ -141,16 +141,5 @@ namespace adria
 		light_params.mesh_size = 250;
 		
 		entity_loader->LoadLight(light_params);
-
-		//tree_parameters_t tree_params{};
-		//tree_params.tree_type = ETreeType::Tree02;
-		//tree_params.tree_center = DirectX::XMFLOAT2(0, 0);
-		//tree_params.tree_count = 6;
-		//tree_params.tree_extents = DirectX::XMFLOAT2(600, 600);
-		//tree_params.tree_height_start = -10;
-		//tree_params.tree_height_end = +10;
-		//tree_params.tree_slope_start = 0.0f;
-		//tree_params.tree_scale = 50.0f;
-		//auto e = entity_loader->LoadTrees(tree_params);
 	}
 }
