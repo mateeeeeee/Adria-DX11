@@ -29,8 +29,6 @@ namespace adria
 
 		[[nodiscard]] TEXTURE_HANDLE LoadCubeMap(std::array<std::string, 6> const& cubemap_textures);
 
-		[[nodiscard]] TEXTURE_HANDLE AddTextureView(ID3D11ShaderResourceView* srv);
-
 		ID3D11ShaderResourceView* GetTextureView(TEXTURE_HANDLE tex_handle) const;
 
 		void SetMipMaps(bool mipmaps);

@@ -1,3 +1,4 @@
+#include <unordered_map>
 #define TINYGLTF_IMPLEMENTATION
 #define TINYGLTF_NO_EXTERNAL_IMAGE
 #define TINYGLTF_NOEXCEPTION
@@ -267,99 +268,106 @@ namespace adria
         return chunks;
     }
 
-	std::vector<entity> EntityLoader::LoadObjMesh(std::string const& model_path)
+	std::vector<entity> EntityLoader::LoadObjMesh(std::string const& model_path, std::vector<std::string>* diffuse_textures_out)
 	{
-        tinyobj::ObjReaderConfig reader_config{};
+		tinyobj::ObjReaderConfig reader_config{};
 		tinyobj::ObjReader reader;
-        std::string model_name = GetFilename(model_path);
-		if (!reader.ParseFromFile(model_path, reader_config)) 
-        {
+		std::string model_name = GetFilename(model_path);
+		if (!reader.ParseFromFile(model_path, reader_config))
+		{
 			if (!reader.Error().empty())  Log::Error(reader.Error());
-            return {};
+			return {};
 		}
 		if (!reader.Warning().empty())  Log::Warning(reader.Warning());
-		
-        tinyobj::attrib_t const& attrib = reader.GetAttrib();
-        std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
-        //std::vector<tinyobj::material_t> const& materials = reader.GetMaterials(); ignore materials for now
 
-		std::vector<TexturedNormalVertex> vertices{};
+		tinyobj::attrib_t const& attrib = reader.GetAttrib();
+		std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
+        std::vector<tinyobj::material_t> const& materials = reader.GetMaterials();
+		
+		
 		std::vector<entity> entities{};
 
-        for (size_t s = 0; s < shapes.size(); s++)
-        {
+        std::vector<std::string> diffuse_textures;
+		for (size_t s = 0; s < shapes.size(); s++)
+		{
+            std::vector<TexturedNormalVertex> vertices{};
+
 			entity e = reg.create();
 			entities.push_back(e);
 
-			Mesh mesh_component{};
-			mesh_component.base_vertex_location = static_cast<u32>(vertices.size());
+			size_t index_offset = 0;
+			for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++)
+			{
+				size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
 
-            size_t index_offset = 0;
-            for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) 
-            {
-                size_t fv = size_t(shapes[s].mesh.num_face_vertices[f]);
+				for (size_t v = 0; v < fv; v++)
+				{
+					// access to vertex
+					tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
 
-                for (size_t v = 0; v < fv; v++)
-                {
-                    // access to vertex
-                    tinyobj::index_t idx = shapes[s].mesh.indices[index_offset + v];
-                    
-                    TexturedNormalVertex vertex{};
-                    tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
-                    tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
-                    tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
+					TexturedNormalVertex vertex{};
+					tinyobj::real_t vx = attrib.vertices[3 * size_t(idx.vertex_index) + 0];
+					tinyobj::real_t vy = attrib.vertices[3 * size_t(idx.vertex_index) + 1];
+					tinyobj::real_t vz = attrib.vertices[3 * size_t(idx.vertex_index) + 2];
 
-                    vertex.position.x = vx;
+					vertex.position.x = vx;
 					vertex.position.y = vy;
 					vertex.position.z = vz;
 
-                    // Check if `normal_index` is zero or positive. negative = no normal data
-                    if (idx.normal_index >= 0) 
-                    {
-                        tinyobj::real_t nx = attrib.normals[3 * size_t(idx.normal_index) + 0];
-                        tinyobj::real_t ny = attrib.normals[3 * size_t(idx.normal_index) + 1];
-                        tinyobj::real_t nz = attrib.normals[3 * size_t(idx.normal_index) + 2];
+					// Check if `normal_index` is zero or positive. negative = no normal data
+					if (idx.normal_index >= 0)
+					{
+						tinyobj::real_t nx = attrib.normals[3 * size_t(idx.normal_index) + 0];
+						tinyobj::real_t ny = attrib.normals[3 * size_t(idx.normal_index) + 1];
+						tinyobj::real_t nz = attrib.normals[3 * size_t(idx.normal_index) + 2];
 
 						vertex.normal.x = nx;
 						vertex.normal.y = ny;
 						vertex.normal.z = nz;
-                    }
+					}
 
-                    // Check if `texcoord_index` is zero or positive. negative = no texcoord data
-                    if (idx.texcoord_index >= 0) 
-                    {
-                        tinyobj::real_t tx = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
-                        tinyobj::real_t ty = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
+					// Check if `texcoord_index` is zero or positive. negative = no texcoord data
+					if (idx.texcoord_index >= 0)
+					{
+						tinyobj::real_t tx = attrib.texcoords[2 * size_t(idx.texcoord_index) + 0];
+						tinyobj::real_t ty = attrib.texcoords[2 * size_t(idx.texcoord_index) + 1];
 
 						vertex.uv.x = tx;
 						vertex.uv.y = ty;
-                    }
+					}
 
-                    vertices.push_back(vertex);
-                }
+					vertices.push_back(vertex);
+				}
+
                 index_offset += fv;
+			}
 
-                // per-face material
-                //shapes[s].mesh.material_ids[f];
-            }
+			std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>();
+			vb->Create(device, vertices);
 
-			mesh_component.vertex_count = static_cast<u32>(vertices.size()) - mesh_component.base_vertex_location;
-            reg.emplace<Mesh>(e, mesh_component);
-        }
+			Mesh mesh_component{};
+			mesh_component.base_vertex_location = 0;
+			mesh_component.vertex_count = static_cast<u32>(vertices.size());
+            mesh_component.vertex_buffer = vb;
+			reg.emplace<Mesh>(e, mesh_component);
 
-		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>();
-		vb->Create(device, vertices);
-
-		for (entity e : entities)
-		{
-			auto& mesh = reg.get<Mesh>(e);
-			mesh.vertex_buffer = vb;
 			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
+
+			if (diffuse_textures_out)
+			{
+				ADRIA_ASSERT(shapes[s].mesh.material_ids.size() > 0);
+				int material_id = shapes[s].mesh.material_ids[0];
+				ADRIA_ASSERT(material_id >= 0);
+				tinyobj::material_t material = materials[material_id];
+				diffuse_textures_out->push_back(material.diffuse_texname);
+			}
+
 		}
 
-		Log::Info("OBJ Model" + model_path + " successfully loaded!");
-        return entities;
+		Log::Info("OBJ Mesh" + model_path + " successfully loaded!");
+		return entities;
 	}
+
 
 	EntityLoader::EntityLoader(registry& reg, ID3D11Device* device, TextureManager& texture_manager) : reg(reg),
         texture_manager(texture_manager), device(device)
@@ -605,7 +613,7 @@ namespace adria
 		Log::Info("Model" + params.model_path + " successfully loaded!");
 
         return entities;
-    }
+	}
 
     [[maybe_unused]]
     entity EntityLoader::LoadSkybox(skybox_parameters_t const& params)
@@ -832,8 +840,6 @@ namespace adria
 		RealRandomGenerator<float> random_z(params.foliage_center.y - params.foliage_extents.y, params.foliage_center.y + params.foliage_extents.y);
         RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<f32>);
 
-		std::vector<entity> foliage_entities{};
-
 		std::vector<entity> foliages;
 
 		switch (params.mesh_texture_pair.first)
@@ -870,7 +876,7 @@ namespace adria
 				normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : XMFLOAT3(0.0f, 1.0f, 0.0f);
 
 				++iteration;
-			} while (position.y > params.foliage_height_end || normal.y < params.foliage_slope_start);
+			} while (position.y > params.foliage_height_end || position.y < params.foliage_height_start || normal.y < params.foliage_slope_start);
 
 			if(iteration < MAX_ITERATIONS) instance_data.emplace_back(position, random_angle());
 		}
@@ -899,6 +905,89 @@ namespace adria
 		reg.emplace<Visibility>(foliage, vis);
 
 		return foliage;
+	}
+
+	std::vector<entity> EntityLoader::LoadTrees(tree_parameters_t const& params)
+	{
+		const f32 size = params.tree_scale;
+
+		struct TreeInstance
+		{
+			XMFLOAT3 position;
+			float rotation_y;
+		};
+
+		RealRandomGenerator<float> random_x(params.tree_center.x - params.tree_extents.x, params.tree_center.x + params.tree_extents.x);
+		RealRandomGenerator<float> random_z(params.tree_center.y - params.tree_extents.y, params.tree_center.y + params.tree_extents.y);
+		RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<f32>);
+
+        std::vector<std::string> diffuse_textures{};
+        std::vector<entity> trees;
+
+        std::string texture_path;
+        switch (params.tree_type)
+        {
+        case ETreeType::Tree01:
+            trees = LoadObjMesh("Resources/Models/Trees/Tree01/tree02.obj", &diffuse_textures);
+            texture_path = "Resources/Models/Trees/Tree01/";
+            break;
+        case ETreeType::Tree02:
+        default:
+            trees = LoadObjMesh("Resources/Models/Trees/Tree02/tree02.obj", &diffuse_textures);
+            texture_path = "Resources/Models/Trees/Tree02/";
+        }
+
+        ADRIA_ASSERT(diffuse_textures.size() == trees.size());
+
+		std::vector<TreeInstance> instance_data{};
+		for (i32 i = 0; i < params.tree_count; ++i)
+		{
+			static const u32 MAX_ITERATIONS = 5;
+			XMFLOAT3 position{};
+			XMFLOAT3 normal{};
+			u32 iteration = 0;
+			do
+			{
+				if (iteration > MAX_ITERATIONS) break;
+				position.x = random_x();
+				position.z = random_z();
+				position.y = TerrainComponent::terrain ? TerrainComponent::terrain->HeightAt(position.x, position.z) - 0.5f : -0.5f;
+				normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : XMFLOAT3(0.0f, 1.0f, 0.0f);
+
+				++iteration;
+			} while (position.y > params.tree_height_end || position.y < params.tree_height_start || normal.y < params.tree_slope_start);
+
+			if (iteration < MAX_ITERATIONS) instance_data.emplace_back(position, random_angle());
+		}
+
+        for (size_t i = 0; i < trees.size(); ++i)
+        {
+            auto tree = trees[i];
+			auto& mesh_component = reg.get<Mesh>(tree);
+
+			mesh_component.start_instance_location = 0;
+			mesh_component.instance_buffer = std::make_shared<VertexBuffer>();
+			mesh_component.instance_buffer->Create(device, instance_data);
+			mesh_component.instance_count = (u32)instance_data.size();
+
+			Material material{};
+			material.albedo_texture = texture_manager.LoadTexture(texture_path + diffuse_textures[i]);
+			material.albedo_factor = 1.0f;
+			material.shader = EShader::GBuffer_Foliage;
+			reg.emplace<Material>(tree, material);
+			reg.emplace<Foliage>(tree);
+
+			Transform transform{};
+			transform.starting_transform = XMMatrixScaling(size, size, size);
+			transform.current_transform = transform.starting_transform;
+			reg.emplace<Transform>(tree, transform);
+
+			Visibility vis{};
+			vis.skip_culling = true;
+			reg.emplace<Visibility>(tree, vis);
+        }
+
+		return trees;
 	}
 
 }

@@ -407,6 +407,9 @@ namespace adria
 					ImGui::SliderInt("Iterations", &thermal_erosion_desc.iterations, 1, 10);
                     ImGui::SliderFloat("C", &thermal_erosion_desc.c, 0.01f, 1.0f);
                     ImGui::SliderFloat("Talus", &thermal_erosion_desc.talus, 4.0f / std::max(tile_count[0], tile_count[1]), 16.0f / std::max(tile_count[0], tile_count[1]));
+
+					ImGui::TreePop();
+					ImGui::Separator();
                 }
 
 				static bool hydraulic_erosion = false;
@@ -418,6 +421,9 @@ namespace adria
 					ImGui::SliderInt("Raindrops", &hydraulic_erosion_desc.drops, 10000, 5000000);
 					ImGui::SliderFloat("Carrying capacity", &hydraulic_erosion_desc.carrying_capacity, 0.5f, 2.0f);
 					ImGui::SliderFloat("Deposition Speed", &hydraulic_erosion_desc.deposition_speed, 0.01f, 0.1f);
+
+					ImGui::TreePop();
+					ImGui::Separator();
 				}
 
                 static terrain_texture_layer_parameters_t layer_params{};
@@ -461,9 +467,9 @@ namespace adria
 					params.terrain_grid = std::move(terrain_params);
                     params.layer_params = layer_params;
 					params.grass_texture = "Resources/Textures/Terrain/terrain_grass.dds";
-					params.rock_texture = "Resources/Textures/Terrain/terrain_rock4.dds";
-					params.base_texture = "Resources/Textures/Terrain/grass.jpg";
-					params.sand_texture = "Resources/Textures/Terrain/sand2.jpg";
+					params.rock_texture = "Resources/Textures/Terrain/grass2.dds";
+					params.base_texture = "Resources/Textures/Terrain/terrain_grass.dds";
+					params.sand_texture = "Resources/Textures/Terrain/mud.jpg";
 					static const char* layer_texture_name = "layer.tga";
 					params.layer_texture = layer_texture_name;
 
@@ -480,14 +486,16 @@ namespace adria
 				static foliage_parameters_t foliage_params{
 					.foliage_count = 3000,
 					.foliage_scale = 10,
-					.foliage_height_end = 1000,
+                    .foliage_height_start = 0.0f,
+					.foliage_height_end = 1000.0f,
 					.foliage_slope_start = 0.95f };
 				if (ImGui::TreeNode("Foliage Settings"))
 				{
 					ImGui::SliderInt("Foliage Count", &foliage_params.foliage_count, 100, 25000);
 					ImGui::SliderFloat("Foliage Scale", &foliage_params.foliage_scale, 1.0f, 100.0f);
 					ImGui::SliderFloat("Foliage Slope Start", &foliage_params.foliage_slope_start, 0.0f, 1.0f);
-					ImGui::SliderFloat("Foliage Height End", &foliage_params.foliage_height_end, -100.0f, 10000.0f);
+					ImGui::SliderFloat("Foliage Height Start", &foliage_params.foliage_height_start, -50.0f, 50.0f);
+					ImGui::SliderFloat("Foliage Height End", &foliage_params.foliage_height_end, -100.0f, 1000.0f);
 
 					const char* foliage_types[] = { "Single Quad", "Double Quad", "Triple Quad" };
 					static int current_foliage_type = 0;
@@ -553,6 +561,72 @@ namespace adria
 				ImGui::TreePop();
 				ImGui::Separator();
             }
+
+			if (ImGui::TreeNodeEx("Tree Generation", 0))
+			{
+				static std::vector<tree_parameters_t> trees{};
+				static tree_parameters_t tree_params{
+					.tree_count = 5,
+					.tree_scale = 50,
+					.tree_height_start = 0.0f,
+					.tree_height_end = 1000.0f,
+					.tree_slope_start = 0.95f };
+				if (ImGui::TreeNode("Tree Settings"))
+				{
+					ImGui::SliderInt("Tree Count", &tree_params.tree_count, 1, 50);
+					ImGui::SliderFloat("Tree Scale", &tree_params.tree_scale, 10.0f, 100.0f);
+					ImGui::SliderFloat("Tree Slope Start", &tree_params.tree_slope_start, 0.0f, 1.0f);
+					ImGui::SliderFloat("Tree Height Start", &tree_params.tree_height_start, 10.0f, 200.0f);
+					ImGui::SliderFloat("Tree Height End", &tree_params.tree_height_end, 200.0f, 1000.0f);
+
+					const char* tree_types[] = { "Tree01", "Tree02"};
+					static int current_tree_type = 0;
+					const char* tree_combo_label = tree_types[current_tree_type];
+					if (ImGui::BeginCombo("Tree Type", tree_combo_label, 0))
+					{
+						for (int n = 0; n < IM_ARRAYSIZE(tree_types); n++)
+						{
+							const bool is_selected = (current_tree_type == n);
+							if (ImGui::Selectable(tree_types[n], is_selected)) current_tree_type = n;
+							if (is_selected) ImGui::SetItemDefaultFocus();
+						}
+						ImGui::EndCombo();
+					}
+					tree_params.tree_type = static_cast<ETreeType>(current_tree_type);
+
+					if (ImGui::Button("Add Trees"))
+					{
+                        trees.push_back(tree_params);
+					}
+
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
+				ImGui::Text("Number of trees to add: %d", trees.size());
+				if (ImGui::Button("Generate Trees"))
+				{
+					if (TerrainComponent::terrain != nullptr)
+					{
+						auto [tile_size_x, tile_size_z] = TerrainComponent::terrain->TileSizes();
+						auto [tile_count_x, tile_count_z] = TerrainComponent::terrain->TileCounts();
+						for (auto& tree_params : trees)
+						{
+							tree_params.tree_center.x = tile_size_x * tile_count_x / 2;
+							tree_params.tree_center.y = tile_size_z * tile_count_z / 2;
+							tree_params.tree_extents.x = tile_size_x * tile_count_x / 2;
+							tree_params.tree_extents.y = tile_size_z * tile_count_z / 2;
+
+							engine->entity_loader->LoadTrees(tree_params);
+						}
+
+                        trees.clear();
+					}
+				}
+
+				ImGui::TreePop();
+				ImGui::Separator();
+			}
+
 
 			if (ImGui::Button("Clear"))
 			{

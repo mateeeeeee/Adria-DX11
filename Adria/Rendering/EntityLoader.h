@@ -30,6 +30,12 @@ namespace adria
 		TripleQuad
 	};
 
+    enum class ETreeType
+    {
+        Tree01,
+        Tree02
+    };
+
     struct light_parameters_t
     {
         Light light_data;
@@ -75,8 +81,20 @@ namespace adria
         f32 foliage_scale;
         DirectX::XMFLOAT2 foliage_center;
         DirectX::XMFLOAT2 foliage_extents;
+        f32 foliage_height_start;
 		f32 foliage_height_end;
 		f32 foliage_slope_start;
+    };
+    struct tree_parameters_t
+    {
+        ETreeType tree_type;
+		i32 tree_count;
+		f32 tree_scale;
+		DirectX::XMFLOAT2 tree_center;
+		DirectX::XMFLOAT2 tree_extents;
+        f32 tree_height_start;
+		f32 tree_height_end;
+		f32 tree_slope_start;
     };
 	struct terrain_texture_layer_parameters_t
 	{
@@ -122,6 +140,8 @@ namespace adria
 
 		[[maybe_unused]] tecs::entity LoadFoliage(foliage_parameters_t const&);
 
+        [[maybe_unused]] std::vector<tecs::entity> LoadTrees(tree_parameters_t const&);
+
 	private:
         tecs::registry& reg;
 		TextureManager& texture_manager;
@@ -130,10 +150,11 @@ namespace adria
     private:
 
 		[[nodiscard]]
-		std::vector<tecs::entity> LoadGrid(grid_parameters_t const& args, std::vector<TexturedNormalVertex>* vertices = nullptr);
+		std::vector<tecs::entity> LoadObjMesh(std::string const& model_path, std::vector<std::string>* diffuse_textures_out = nullptr);
 
 		[[nodiscard]]
-		std::vector<tecs::entity> LoadObjMesh(std::string const& model_path);
+		std::vector<tecs::entity> LoadGrid(grid_parameters_t const& args, std::vector<TexturedNormalVertex>* vertices = nullptr);
+
 	};
 }
 

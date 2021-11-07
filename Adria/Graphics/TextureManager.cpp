@@ -308,13 +308,6 @@ TEXTURE_HANDLE TextureManager::LoadCubeMap(std::array<std::string, 6> const& cub
 	return handle;
 }
 
-TEXTURE_HANDLE TextureManager::AddTextureView(ID3D11ShaderResourceView* srv)
-{
-	++handle;
-	texture_map.insert({ handle, srv });
-	return handle;
-}
-
 ID3D11ShaderResourceView* TextureManager::GetTextureView(TEXTURE_HANDLE tex_handle) const
 {
 	if (auto it = texture_map.find(tex_handle); it != texture_map.end())
