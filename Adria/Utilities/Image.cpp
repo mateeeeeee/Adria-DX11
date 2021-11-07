@@ -59,14 +59,19 @@ namespace adria
 		return is_hdr;
 	}
 
-	void WriteImageTGA(char const* name, std::vector<stbi_uc> const& data, int width, int height)
+	void WriteImageTGA(char const* name, std::vector<u8> const& data, int width, int height)
 	{
 		stbi_write_tga(name, width, height, STBI_rgb_alpha, (void*)data.data());
 	}
 
-	void WriteImagePNG(char const* name, std::vector<stbi_uc> const& data, int width, int height)
+	void WriteImagePNG(char const* name, std::vector<u8> const& data, int width, int height)
 	{
 		stbi_write_png(name, width, height, STBI_rgb_alpha, (void*)data.data(), width * 4 * sizeof(stbi_uc));
+	}
+
+	void WriteImageJPG(char const* name, std::vector<u8> const& data, int width, int height)
+	{
+		stbi_write_jpg(name, width, height, STBI_rgb_alpha, (void*)data.data(), 100);
 	}
 
 }

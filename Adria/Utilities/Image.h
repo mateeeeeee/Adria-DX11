@@ -49,4 +49,6 @@ namespace adria
 	void WriteImageTGA(char const* name, std::vector<u8> const& data, int width, int height);
 
 	void WriteImagePNG(char const* name, std::vector<u8> const& data, int width, int height);
+
+	void WriteImageJPG(char const* name, std::vector<u8> const& data, int width, int height);
 }

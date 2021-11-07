@@ -40,45 +40,42 @@ namespace adria
 					f32 height = terrain->HeightAt(x, z);
 					f32 normal_y = terrain->NormalAt(x, z).y;
 
-					if (height > params.terrain_underwater_start && height <= params.terrain_underwater_end)
+					if (height > params.terrain_rocks_start)
 					{
-						temp_layer_data[(j * width + i) * 4 + 0] = BYTE_MAX;
-						temp_layer_data[(j * width + i) * 4 + 1] = 0;
-						temp_layer_data[(j * width + i) * 4 + 2] = 0;
-						temp_layer_data[(j * width + i) * 4 + 3] = 0;
+						f32 mix_multiplier = std::max(
+							(height - params.terrain_rocks_start) / params.height_mix_zone,
+							1.0f
+						);
+						f32 rock_slope_multiplier = std::clamp((normal_y - params.terrain_slope_rocks_start) / params.slope_mix_zone, 0.0f, 1.0f);
+						temp_layer_data[(j * width + i) * 4 + 0] = BYTE_MAX * mix_multiplier * rock_slope_multiplier;
 					}
 
 					if (height > params.terrain_sand_start && height <= params.terrain_sand_end)
 					{
-						temp_layer_data[(j * width + i) * 4 + 0] = 0;
-						temp_layer_data[(j * width + i) * 4 + 1] = BYTE_MAX;
-						temp_layer_data[(j * width + i) * 4 + 2] = 0;
-						temp_layer_data[(j * width + i) * 4 + 3] = 0;
+                        f32 mix_multiplier = std::min(
+                            (height-params.terrain_sand_start) / params.height_mix_zone,
+                            (params.terrain_sand_end - height) / params.height_mix_zone
+						);
+						temp_layer_data[(j * width + i) * 4 + 1] = BYTE_MAX * mix_multiplier;
 					}
 
 					if (height > params.terrain_grass_start && height <= params.terrain_grass_end)
 					{
-						temp_layer_data[(j * width + i) * 4 + 0] = 0;
-						temp_layer_data[(j * width + i) * 4 + 1] = 0;
-						temp_layer_data[(j * width + i) * 4 + 2] = BYTE_MAX;
-						temp_layer_data[(j * width + i) * 4 + 3] = 0;
+						f32 mix_multiplier = std::min(
+							(height - params.terrain_grass_start) / params.height_mix_zone,
+							(params.terrain_grass_end - height) / params.height_mix_zone
+						);
+
+						f32 grass_slope_multiplier = std::clamp((normal_y - params.terrain_slope_grass_start) / params.slope_mix_zone, 0.0f, 1.0f);
+						temp_layer_data[(j * width + i) * 4 + 2] = BYTE_MAX * mix_multiplier * grass_slope_multiplier;
 					}
 
-					if (normal_y < params.terrain_slope_grass_start && height > params.terrain_sand_end)
-					{
-						temp_layer_data[(j * width + i) * 4 + 0] = 0;
-						temp_layer_data[(j * width + i) * 4 + 1] = 0;
-						temp_layer_data[(j * width + i) * 4 + 2] = 0;
-						temp_layer_data[(j * width + i) * 4 + 3] = 0;
-					}
+					u32 sum = temp_layer_data[(j * width + i) * 4 + 0]
+						+ temp_layer_data[(j * width + i) * 4 + 1] + temp_layer_data[(j * width + i) * 4 + 2] + 1;
 
-					if (normal_y < params.terrain_slope_rocks_start && height > params.terrain_rocks_start)
-					{
-						temp_layer_data[(j * width + i) * 4 + 0] = 0;
-						temp_layer_data[(j * width + i) * 4 + 1] = 0;
-						temp_layer_data[(j * width + i) * 4 + 2] = 0;
-						temp_layer_data[(j * width + i) * 4 + 3] = BYTE_MAX;
-					}
+					temp_layer_data[(j * width + i) * 4 + 0] = (BYTE)((temp_layer_data[(j * width + i) * 4 + 0] * 1.0f / sum) * BYTE_MAX);
+					temp_layer_data[(j * width + i) * 4 + 1] = (BYTE)((temp_layer_data[(j * width + i) * 4 + 1] * 1.0f / sum) * BYTE_MAX);
+					temp_layer_data[(j * width + i) * 4 + 2] = (BYTE)((temp_layer_data[(j * width + i) * 4 + 2] * 1.0f / sum) * BYTE_MAX);
 				}
 			}
 
@@ -96,18 +93,16 @@ namespace adria
 							n1 += (i32)temp_layer_data[((j + k) * width + i + l) * 4 + 0];
 							n2 += (i32)temp_layer_data[((j + k) * width + i + l) * 4 + 1];
 							n3 += (i32)temp_layer_data[((j + k) * width + i + l) * 4 + 2];
-							n4 += (i32)temp_layer_data[((j + k) * width + i + l) * 4 + 3];
 						}
 					}
             
 					layer_data[(j * width + i) * 4 + 0] = (BYTE)(n1 / 25);
 					layer_data[(j * width + i) * 4 + 1] = (BYTE)(n2 / 25);
 					layer_data[(j * width + i) * 4 + 2] = (BYTE)(n3 / 25);
-					layer_data[(j * width + i) * 4 + 3] = (BYTE)(n4 / 25);
 				}
 			}
 
-			WriteImagePNG(texture_name, layer_data, width, depth);
+			WriteImageTGA(texture_name, layer_data, width, depth);
 		}
     }
 
@@ -809,7 +804,7 @@ namespace adria
         TerrainComponent terrain_component{};
 		terrain_component.grass_texture = texture_manager.LoadTexture(params.grass_texture);
 		terrain_component.rock_texture = texture_manager.LoadTexture(params.rock_texture);
-		terrain_component.slope_texture = texture_manager.LoadTexture(params.slope_texture);
+		terrain_component.base_texture = texture_manager.LoadTexture(params.base_texture);
 		terrain_component.sand_texture = texture_manager.LoadTexture(params.sand_texture);
         terrain_component.layer_texture = texture_manager.LoadTexture(params.layer_texture);
 

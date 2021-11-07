@@ -85,7 +85,7 @@ namespace adria::tecs
 		[[maybe_unused]]
 		entity create()
 		{
-			return next == null_entity ? generate_entity() : recycle_entity();
+			return generate_entity(); // next == null_entity ? generate_entity() : recycle_entity(); bug with recycle_entity
 		}
 
 		void destroy(entity e)

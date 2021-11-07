@@ -63,17 +63,35 @@ namespace adria
 		noise.SetFrequency(desc.frequency);
 		hm.resize(desc.depth);
 
+		f32 max_height_achieved = std::numeric_limits<f32>::min();
+		f32 min_height_achieved = std::numeric_limits<f32>::max();
+
 		for (u32 z = 0; z < desc.depth; z++)
 		{
 			hm[z].resize(desc.width);
 			for (u32 x = 0; x < desc.width; x++)
 			{
-				f32 xf = x * desc.noise_scale / desc.width; // - desc.width / 2;
-				f32 zf = z * desc.noise_scale / desc.depth; // - desc.depth / 2;
+				f32 xf = x * desc.noise_scale / desc.width;
+				f32 zf = z * desc.noise_scale / desc.depth;
 
-				f32 total = noise.GetNoise(xf, zf);
+				f32 height = noise.GetNoise(xf, zf) * desc.max_height;
+				if (height > max_height_achieved) max_height_achieved = height;
+				if (height < min_height_achieved) min_height_achieved = height;
+				hm[z][x] = height;
+			}
+		}
 
-				hm[z][x] = total * desc.max_height;
+		auto scale = [=](f32 h) -> f32
+		{
+			return (h - min_height_achieved) / (max_height_achieved - min_height_achieved)
+				* 2 * desc.max_height - desc.max_height;
+		};
+
+		for (u32 z = 0; z < desc.depth; z++)
+		{
+			for (u32 x = 0; x < desc.width; x++)
+			{
+				hm[z][x] = scale(hm[z][x]);
 			}
 		}
 	}

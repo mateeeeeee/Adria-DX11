@@ -80,22 +80,22 @@ namespace adria
     };
 	struct terrain_texture_layer_parameters_t
 	{
-		f32 terrain_underwater_start = -100.0f;
-		f32 terrain_underwater_end = 0.0f;
-		f32 terrain_sand_start = -30.0f;
-		f32 terrain_sand_end = 2.0f;
-		f32 terrain_grass_start = 2.0f;
-		f32 terrain_grass_end = 30.0f;
-		f32 terrain_slope_grass_start = 0.96f;
+		f32 terrain_sand_start = -100.0f;
+		f32 terrain_sand_end = 0.0f;
+		f32 terrain_grass_start = 0.0f;
+		f32 terrain_grass_end = 300.0f;
+		f32 terrain_slope_grass_start = 0.92f;
 		f32 terrain_slope_rocks_start = 0.85f;
-		f32 terrain_rocks_start = -2.0f;
+		f32 terrain_rocks_start = 50.0f;
+        f32 height_mix_zone = 50.0f;
+        f32 slope_mix_zone = 0.025f;
 	};
 	struct terrain_parameters_t
 	{
 		grid_parameters_t terrain_grid;
         terrain_texture_layer_parameters_t layer_params;
 		std::string grass_texture;
-		std::string slope_texture;
+		std::string base_texture;
 		std::string rock_texture;
 		std::string sand_texture;
         std::string layer_texture;

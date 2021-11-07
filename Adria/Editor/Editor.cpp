@@ -319,14 +319,14 @@ namespace adria
             if (ImGui::TreeNodeEx("Terrain Generation", 0))
             {
 				static grid_parameters_t terrain_params{};
-				static i32 tile_count[2] = { 1200, 1200 };
-				static f32 tile_size[2] = { 5.0f, 5.0f };
+				static i32 tile_count[2] = { 600, 600 };
+				static f32 tile_size[2] = { 2.0f, 2.0f };
 				static f32 texture_scale[2] = { 200.0f, 200.0f };
 				static i32 chunk_count[2] = { 40, 40 };
 				static bool split_to_chunks = false;
 
 				ImGui::SliderInt2("Tile Count", tile_count, 32, 2048);
-				ImGui::SliderFloat2("Tile Size", tile_size, 1.0, 100.0f);
+				ImGui::SliderFloat2("Tile Size", tile_size, 0.1, 20.0f);
 				ImGui::SliderFloat2("Texture Scale", texture_scale, 1.0f, 400.0f);
 
 				ImGui::Checkbox("Split Mesh to Chunks", &split_to_chunks);
@@ -335,20 +335,20 @@ namespace adria
 					ImGui::SliderInt2("Chunk Count", chunk_count, 8, 64);
 				}
 
-				static f32 max_height = 1000;
+				static f32 max_height = 300;
 				static bool procedural_generation = true;
-				ImGui::SliderFloat("Max Height", &max_height, 50.0f, 10000.0f);
+				ImGui::SliderFloat("Max Height", &max_height, 10.0f, 2000.0f);
 				ImGui::Checkbox("Procedural Generation", &procedural_generation);
 
 				static noise_desc_t noise_desc
 				{
 				 .fractal_type = EFractalType::FBM,
 				 .noise_type = ENoiseType::Perlin,
-				 .seed = 1337,
-				 .persistence = 0.65f,
+				 .seed = 33,
+				 .persistence = 0.666f,
 				 .lacunarity = 2.0f,
-				 .octaves = 6,
-				 .noise_scale = 16
+				 .octaves = 4,
+				 .noise_scale = 24
 				};
 				if (procedural_generation)
 				{
@@ -360,7 +360,7 @@ namespace adria
 					ImGui::SliderInt("Octaves", &noise_desc.octaves, 1, 16);
 					ImGui::SliderFloat("Persistence", &noise_desc.persistence, 0.0f, 1.0f);
 					ImGui::SliderFloat("Lacunarity", &noise_desc.lacunarity, 0.1f, 8.0f);
-					ImGui::SliderFloat("Frequency", &noise_desc.frequency, 0.01f, 2.0f);
+					ImGui::SliderFloat("Frequency", &noise_desc.frequency, 0.01f, 0.2f);
 					ImGui::SliderFloat("Noise Scale", &noise_desc.noise_scale, 1, 128);
 
 					const char* noise_types[] = { "OpenSimplex2", "OpenSimplex2S", "Cellular", "Perlin", "ValueCubic", "Value" };
@@ -402,7 +402,7 @@ namespace adria
                 static bool thermal_erosion = false;
                 static thermal_erosion_desc_t thermal_erosion_desc{.iterations = 3, .c = 0.5f, .talus = 0.025f};
 				ImGui::Checkbox("Thermal Erosion", &thermal_erosion);
-                if (thermal_erosion)
+                if (thermal_erosion && ImGui::TreeNodeEx("Thermal Erosion Settings", 0))
                 {
 					ImGui::SliderInt("Iterations", &thermal_erosion_desc.iterations, 1, 10);
                     ImGui::SliderFloat("C", &thermal_erosion_desc.c, 0.01f, 1.0f);
@@ -412,7 +412,7 @@ namespace adria
 				static bool hydraulic_erosion = false;
 				static hydraulic_erosion_desc_t hydraulic_erosion_desc{ .iterations = 3, .drops = 1000000, .carrying_capacity = 1.5f, .deposition_speed = 0.03f };
 				ImGui::Checkbox("Hydraulic Erosion", &hydraulic_erosion);
-				if (hydraulic_erosion)
+				if (hydraulic_erosion && ImGui::TreeNodeEx("Hydraulic Erosion Settings", 0))
 				{
 					ImGui::SliderInt("Iterations", &hydraulic_erosion_desc.iterations, 1, 10);
 					ImGui::SliderInt("Raindrops", &hydraulic_erosion_desc.drops, 10000, 5000000);
@@ -423,16 +423,17 @@ namespace adria
                 static terrain_texture_layer_parameters_t layer_params{};
 				if (ImGui::TreeNodeEx("Layer Texture Settings", 0))
 				{
-                    ImGui::SliderFloat("Underwater Start", &layer_params.terrain_underwater_start, -200.0f, -50.0f);
-                    ImGui::SliderFloat("Underwater End", &layer_params.terrain_underwater_end, layer_params.terrain_underwater_start, 0.0f);
-					ImGui::SliderFloat("Sand Start", &layer_params.terrain_sand_start, layer_params.terrain_underwater_start, 10.0f);
+					ImGui::SliderFloat("Sand Start", &layer_params.terrain_sand_start, -1000.0f, 10.0f);
 					ImGui::SliderFloat("Sand End", &layer_params.terrain_sand_end, layer_params.terrain_sand_start, 25.0f);
                     ImGui::SliderFloat("Grass Start", &layer_params.terrain_grass_start, 0.0f, 100.0f);
                     ImGui::SliderFloat("Grass End", &layer_params.terrain_grass_end, layer_params.terrain_grass_start, 1000.0f);
 
-                    ImGui::SliderFloat("Rock Start", &layer_params.terrain_rocks_start, -10.0f, 100.0f);
-                    ImGui::SliderFloat("Terrain Slope Grass Start", &layer_params.terrain_slope_grass_start, 0.0f, 1.0f);
-                    ImGui::SliderFloat("Terrain Slope Rocks Start", &layer_params.terrain_slope_rocks_start, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Rock Start", &layer_params.terrain_rocks_start, 0.0f, 100.0f);
+                    ImGui::SliderFloat("Slope Grass Start", &layer_params.terrain_slope_grass_start, 0.0f, 1.0f);
+                    ImGui::SliderFloat("Slope Rocks Start", &layer_params.terrain_slope_rocks_start, 0.0f, 1.0f);
+
+                    ImGui::SliderFloat("Terrain Height Mix Zone", &layer_params.height_mix_zone, 0.0f, 100.0f);
+                    ImGui::SliderFloat("Terrain Slope Mix Zone", &layer_params.slope_mix_zone, 0.0f, 0.1f);
 
 					ImGui::TreePop();
 					ImGui::Separator();
@@ -461,9 +462,9 @@ namespace adria
                     params.layer_params = layer_params;
 					params.grass_texture = "Resources/Textures/Terrain/terrain_grass.dds";
 					params.rock_texture = "Resources/Textures/Terrain/terrain_rock4.dds";
-					params.slope_texture = "Resources/Textures/Terrain/terrain_slope.dds";
-					params.sand_texture = "Resources/Textures/Terrain/sand_diffuse.dds";
-					static const char* layer_texture_name = "layer.png";
+					params.base_texture = "Resources/Textures/Terrain/grass.jpg";
+					params.sand_texture = "Resources/Textures/Terrain/sand2.jpg";
+					static const char* layer_texture_name = "layer.tga";
 					params.layer_texture = layer_texture_name;
 
 					engine->entity_loader->LoadTerrain(params);

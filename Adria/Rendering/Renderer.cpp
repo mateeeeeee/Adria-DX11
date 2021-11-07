@@ -2393,11 +2393,11 @@ namespace adria
 
 					context->PSSetShaderResources(TEXTURE_SLOT_GRASS, 1, &view);
 				}
-				if (terrain.slope_texture != INVALID_TEXTURE_HANDLE)
+				if (terrain.base_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = texture_manager.GetTextureView(terrain.slope_texture);
+					auto view = texture_manager.GetTextureView(terrain.base_texture);
 
-					context->PSSetShaderResources(TEXTURE_SLOT_SLOPE, 1, &view);
+					context->PSSetShaderResources(TEXTURE_SLOT_BASE, 1, &view);
 				}
 				if (terrain.rock_texture != INVALID_TEXTURE_HANDLE)
 				{
