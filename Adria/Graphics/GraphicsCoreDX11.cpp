@@ -49,9 +49,8 @@ namespace adria
 			nullptr,
 			&immediate_context
 		);
-
 		BREAK_IF_FAILED(hr);
-
+		immediate_context->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&annot);
 
 #if defined(_DEBUG) || defined(FORCE_DEBUG_LAYER)
 		Microsoft::WRL::ComPtr<ID3D11Debug> d3dDebug;
@@ -121,6 +120,12 @@ namespace adria
 	{
 		return immediate_context.Get();
 	}
+
+	ID3DUserDefinedAnnotation* GraphicsCoreDX11::Annotation() const
+	{
+		return annot;
+	}
+
 	void GraphicsCoreDX11::WaitForGPU()
 	{
 		immediate_context->Flush();

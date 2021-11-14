@@ -5,7 +5,7 @@
 #pragma comment(lib, "D3DCompiler.lib")
 #pragma comment(lib, "dxguid.lib")
 
-#include <d3d11.h>
+#include <d3d11_1.h>
 #include <wrl.h>
 #include <dxgi1_3.h>
 #include "../Core/Definitions.h"
@@ -29,6 +29,7 @@ namespace adria
 
 		ID3D11Device* Device() const;
 		ID3D11DeviceContext* Context() const;
+		ID3DUserDefinedAnnotation* Annotation() const;
 
 	private:
 		u32 width, height;
@@ -37,7 +38,8 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> backbuffer_rtv = nullptr;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> backbuffer = nullptr;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> immediate_context = nullptr;
-
+		ID3DUserDefinedAnnotation* annot = nullptr;
+		
 	private:
 
 		void WaitForGPU();
