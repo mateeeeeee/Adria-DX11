@@ -31,7 +31,6 @@ namespace adria
 
             if (bind_flags & D3D11_BIND_SHADER_RESOURCE) 
                 device->CreateShaderResourceView(buffer.Get(), nullptr, &srv);
-
         }
 
         StructuredBuffer(StructuredBuffer const&) = delete;

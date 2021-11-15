@@ -99,7 +99,9 @@ namespace adria
 		ClusterBuilding,
 		ClusterCulling,
 		VoxelCopy,
-		VoxelSecondBounce
+		VoxelSecondBounce,
+		ParticleInitDeadList,
+		ParticleReset
 	};
 
 	enum class EGeometryShader : u8

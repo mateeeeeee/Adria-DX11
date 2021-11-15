@@ -182,6 +182,7 @@
     <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
+    <ClCompile Include="Rendering\Terrain.cpp" />
     <ClCompile Include="Utilities\AppException.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
     <ClCompile Include="Utilities\Image.cpp" />
@@ -210,6 +211,7 @@
     <ClInclude Include="Editor\GUI.h" />
     <ClInclude Include="Events\EventQueue.h" />
     <ClInclude Include="Events\IEvent.h" />
+    <ClInclude Include="Graphics\AppendBuffer.h" />
     <ClInclude Include="Graphics\CommonStates.h" />
     <ClInclude Include="Graphics\ConstantBuffer.h" />
     <ClInclude Include="Graphics\DDSTextureLoader.h" />
@@ -242,6 +244,7 @@
     <ClInclude Include="Rendering\ConstantBuffers.h" />
     <ClInclude Include="Rendering\Enums.h" />
     <ClInclude Include="Rendering\EntityLoader.h" />
+    <ClInclude Include="Rendering\ParticleSystem.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
@@ -743,6 +746,30 @@
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Resources\Compiled Shaders\%(Filename).cso</ObjectFileOutput>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\InitDeadParticlesCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Resources\Compiled Shaders\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Resources\Compiled Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\ParticleResetCS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">4.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)Resources\Compiled Shaders\%(Filename).cso</ObjectFileOutput>
+      <ObjectFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)Resources\Compiled Shaders\%(Filename).cso</ObjectFileOutput>
+    </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\AddPS.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
@@ -1007,6 +1034,13 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Resources\Models\Foliage\foliagequad_double.obj" />
+    <Object Include="Resources\Models\Foliage\foliagequad_single.obj" />
+    <Object Include="Resources\Models\Foliage\foliagequad_triple.obj" />
+    <Object Include="Resources\Models\Trees\Tree01\tree01.obj" />
+    <Object Include="Resources\Models\Trees\Tree02\tree02.obj" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

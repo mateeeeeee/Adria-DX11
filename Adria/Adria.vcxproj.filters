@@ -71,6 +71,9 @@
     <Filter Include="Editor">
       <UniqueIdentifier>{82f8fa3a-c2b4-4cd1-9a90-c46b3a0b1dfb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Shaders\Particles">
+      <UniqueIdentifier>{ce1dc203-44c4-4ed9-b8e3-61f7f2e0de0e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -179,6 +182,7 @@
     <ClCompile Include="Utilities\Image.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -441,6 +445,12 @@
     </ClInclude>
     <ClInclude Include="Rendering\Terrain.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ParticleSystem.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\AppendBuffer.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -738,5 +748,28 @@
     <FxCompile Include="Resources\Shaders\Misc\FoliagePS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\InitDeadParticlesCS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\ParticleResetCS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Object Include="Resources\Models\Foliage\foliagequad_double.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="Resources\Models\Foliage\foliagequad_single.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="Resources\Models\Foliage\foliagequad_triple.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="Resources\Models\Trees\Tree01\tree01.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
+    <Object Include="Resources\Models\Trees\Tree02\tree02.obj">
+      <Filter>Resource Files</Filter>
+    </Object>
   </ItemGroup>
 </Project>
