@@ -928,7 +928,7 @@ namespace adria
         switch (params.tree_type)
         {
         case ETreeType::Tree01:
-            trees = LoadObjMesh("Resources/Models/Trees/Tree01/tree02.obj", &diffuse_textures);
+            trees = LoadObjMesh("Resources/Models/Trees/Tree01/tree01.obj", &diffuse_textures);
             texture_path = "Resources/Models/Trees/Tree01/";
             break;
         case ETreeType::Tree02:
