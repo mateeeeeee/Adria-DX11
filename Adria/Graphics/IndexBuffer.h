@@ -24,7 +24,7 @@ namespace adria
 
 			ibd.CPUAccessFlags = 0;
 			ibd.MiscFlags = 0;
-			ibd.Usage = D3D11_USAGE_DEFAULT;
+			ibd.Usage = D3D11_USAGE_IMMUTABLE;
 
 			D3D11_SUBRESOURCE_DATA data{};
 			data.pSysMem = indices;

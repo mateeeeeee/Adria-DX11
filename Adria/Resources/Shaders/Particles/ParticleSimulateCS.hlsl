@@ -14,14 +14,11 @@ RWStructuredBuffer<float2> IndexBuffer : register(u3);
 // Viewspace particle positions are calculated here and stored
 RWStructuredBuffer<float4> ViewSpacePositions : register(u4);
 
-// The maximum radius in XY is calculated here and stored
-RWStructuredBuffer<float> MaxRadiusBuffer : register(u5);
-
 // The draw args for the DrawInstancedIndirect call needs to be filled in before the rasterization path is called, so do it here
-RWBuffer<uint> DrawArgs : register(u6);
+RWBuffer<uint> DrawArgs : register(u5);
 
 // The opaque scene's depth buffer read as a texture
-//Texture2D DepthBuffer : register(t0); for collisions later
+//Texture2D DepthBuffer : register(t0); for collisions maybe later
 
 [numthreads(256, 1, 1)]
 void main( uint3 id : SV_DispatchThreadID )
@@ -112,8 +109,6 @@ void main( uint3 id : SV_DispatchThreadID )
         viewSpacePositionAndRadius.w = radius;
 
         ViewSpacePositions[id.x] = viewSpacePositionAndRadius;
-        MaxRadiusBuffer[id.x] = 1.41 * radius;
-
         // Dead particles are added to the dead list for recycling
         if (pb.Age <= 0.0f || killParticle)
         {

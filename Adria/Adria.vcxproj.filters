@@ -765,5 +765,11 @@
     <FxCompile Include="Resources\Shaders\Particles\ParticleSimulateCS.hlsl">
       <Filter>Shaders\Particles</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\ParticleVS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\ParticlePS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

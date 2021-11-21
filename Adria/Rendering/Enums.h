@@ -79,6 +79,7 @@ namespace adria
 		VoxelGI,
 		VelocityBuffer,
 		GBuffer_Foliage,
+		Particles,
         Unknown
 	};
 

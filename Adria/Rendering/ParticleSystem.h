@@ -16,6 +16,8 @@
 
 namespace adria
 {
+	//based on AMD GPU Particles Sample: https://github.com/GPUOpen-LibrariesAndSDKs/GPUParticles11
+
 	class ParticleSystem
 	{
 		static constexpr size_t MAX_PARTICLES = 400 * 1024;
@@ -26,7 +28,6 @@ namespace adria
 			f32		Rotation;				// The rotation angle
 			u32		IsSleeping;				// Whether or not the particle is sleeping (ie, don't update position)
 		};
-
 		struct GPUParticleB
 		{
 			DirectX::XMFLOAT3	Position;	// World space position
@@ -40,7 +41,6 @@ namespace adria
 			f32		StartSize;				// The size at spawn time
 			f32		EndSize;				// The time at maximum age
 		};
-
 		struct EmitterCBuffer
 		{
 			DirectX::XMFLOAT4	EmitterPosition;
@@ -56,25 +56,31 @@ namespace adria
 			f32	Mass;
 			f32	ElapsedTime;
 		};
-
 		struct IndexBufferElement
 		{
 			f32	distance;	// distance squared from the particle to the camera
 			f32	index;		// global index of the particle
 		};
-
+		struct ViewSpacePositionRadius
+		{
+			DirectX::XMFLOAT3 viewspace_position;
+			f32 radius;
+		};
 	public:
 		ParticleSystem(tecs::registry& reg, GraphicsCoreDX11* gfx) : reg{ reg }, gfx{ gfx },
 			dead_list_buffer(gfx->Device(), MAX_PARTICLES),
 			particle_bufferA(gfx->Device(), MAX_PARTICLES),
 			particle_bufferB(gfx->Device(), MAX_PARTICLES),
+			view_space_positions_buffer(gfx->Device(), MAX_PARTICLES),
 			dead_list_count_cbuffer(gfx->Device(), false),
 			active_list_count_cbuffer(gfx->Device(), false),
 			emitter_cbuffer(gfx->Device(), true),
-			alive_index_buffer(gfx->Device(), MAX_PARTICLES)
+			alive_index_buffer(gfx->Device(), MAX_PARTICLES, false, true)
 		{
 			LoadShaders();
 			CreateRandomTexture();
+			CreateIndexBuffer();
+			CreateIndirectArgsBuffer();
 		}
 
 		void Update(f32 dt)
@@ -105,7 +111,6 @@ namespace adria
 
 		void Render()
 		{
-			ID3D11DeviceContext* context = gfx->Context();
 			if (reset)
 			{
 				InitializeDeadList();
@@ -117,9 +122,7 @@ namespace adria
 
 			Simulate();
 
-			context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.UAV());
-
-			//rasterize
+			Rasterize();
 		}
 
 		void Reset()
@@ -130,20 +133,29 @@ namespace adria
 	private:
 		tecs::registry& reg;
 		GraphicsCoreDX11* gfx;
+
+		bool reset = true;
+		f32 elapsed_time = 0.0f;
+
+		Texture2D random_texture;
 		AppendBuffer<u32> dead_list_buffer;
 		StructuredBuffer<GPUParticleA> particle_bufferA;
 		StructuredBuffer<GPUParticleB> particle_bufferB;
+		StructuredBuffer<ViewSpacePositionRadius> view_space_positions_buffer;
 		StructuredBuffer<IndexBufferElement> alive_index_buffer;
 
 		ConstantBuffer<u32> dead_list_count_cbuffer;
 		ConstantBuffer<u32> active_list_count_cbuffer;
 		ConstantBuffer<EmitterCBuffer> emitter_cbuffer;
 
-		Texture2D random_texture;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> indirect_args_buffer;
+		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> indirect_args_uav;
+		IndexBuffer index_buffer;
 
 		std::unordered_map<EComputeShader, ComputeProgram>  particle_compute_programs;
-		bool reset = true;
-		f32 elapsed_time = 0.0f;
+		std::unordered_map<EShader, StandardProgram>  particle_render_programs;
+
+		
 	private:
 		void LoadShaders()
 		{
@@ -161,6 +173,56 @@ namespace adria
 
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleSimulateCS.cso", cs_blob);
 			particle_compute_programs[EComputeShader::ParticleSimulate].Create(device, cs_blob);
+
+			ShaderBlob vs_blob, ps_blob;
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleVS.cso", vs_blob);
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticlePS.cso", ps_blob);
+			particle_render_programs[EShader::Particles].Create(device, vs_blob, ps_blob);
+		}
+
+		void CreateIndirectArgsBuffer()
+		{
+			ID3D11Device* device = gfx->Device();
+
+			// Create the buffer to store the indirect args for the DrawInstancedIndirect call
+			D3D11_BUFFER_DESC desc{};
+			desc.Usage = D3D11_USAGE_DEFAULT;
+			desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+			desc.ByteWidth = 5 * sizeof(UINT);
+			desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
+			device->CreateBuffer(&desc, nullptr, &indirect_args_buffer);
+
+			D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+			uav_desc.Format = DXGI_FORMAT_R32_UINT;
+			uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+			uav_desc.Buffer.FirstElement = 0;
+			uav_desc.Buffer.NumElements = 5;
+			uav_desc.Buffer.Flags = 0;
+			device->CreateUnorderedAccessView(indirect_args_buffer.Get(), &uav_desc, &indirect_args_uav);
+		}
+
+		void CreateIndexBuffer()
+		{
+			ID3D11Device* device = gfx->Device();
+
+			std::vector<UINT> indices(MAX_PARTICLES * 6);
+			UINT base = 0;
+			size_t offset = 0;
+			for (size_t i = 0; i < MAX_PARTICLES; i++)
+			{
+				indices[offset + 0] = base + 0;
+				indices[offset + 1] = base + 1;
+				indices[offset + 2] = base + 2;
+
+				indices[offset + 3] = base + 2;
+				indices[offset + 4] = base + 1;
+				indices[offset + 5] = base + 3;
+
+				base += 4;
+				offset += 6;
+			}
+
+			index_buffer.Create(device, indices);
 		}
 
 		void CreateRandomTexture()
@@ -265,19 +327,41 @@ namespace adria
 		{
 			ID3D11DeviceContext* context = gfx->Context();
 
-			// Set the UAVs and reset the alive index buffer's counter
-			ID3D11UnorderedAccessView* uavs[] = {nullptr};// { m_pParticleBufferA_UAV, m_pParticleBufferB_UAV, m_pDeadListUAV, m_pAliveIndexBufferUAV, m_pViewSpaceParticlePositionsUAV, m_pMaxRadiusBufferUAV, m_pIndirectDrawArgsBufferUAV };
-			u32 initial_counts[] = { (u32)-1, (u32)-1, (u32)-1, 0, (u32)-1, (u32)-1, (u32)-1 };
-
+			ID3D11UnorderedAccessView* uavs[] = {
+				particle_bufferA.UAV(), particle_bufferB.UAV(),
+				dead_list_buffer.UAV(), alive_index_buffer.UAV(),
+				view_space_positions_buffer.UAV(), indirect_args_uav.Get()};
+			u32 initial_counts[] = { (u32)-1, (u32)-1, (u32)-1, 0, (u32)-1, (u32)-1 };
 			context->CSSetUnorderedAccessViews(0, _countof(uavs), uavs, initial_counts);
-
-			// Bind the depth buffer as a texture for doing collision detection and response
-			//ID3D11ShaderResourceView* srvs[] = { nullptr }; //depth_srv
-			//context->CSSetShaderResources(0, _countof(srvs), srvs);
-
 			particle_compute_programs[EComputeShader::ParticleSimulate].Bind(context);
 			context->Dispatch(std::ceil(MAX_PARTICLES / 256 ), 1, 1);
+		}
 
+		void Rasterize()
+		{
+			ID3D11DeviceContext* context = gfx->Context();
+
+			context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.UAV());
+
+			particle_render_programs[EShader::Particles].Bind(context);
+
+			ID3D11ShaderResourceView* vs_srv[] = { particle_bufferA.SRV(), view_space_positions_buffer.SRV(), alive_index_buffer.SRV()};
+			ID3D11ShaderResourceView* ps_srv[] = { nullptr }; //depth srv
+
+			ID3D11Buffer* vb = nullptr;
+			UINT stride = 0;
+			UINT offset = 0;
+			context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+
+			active_list_count_cbuffer.Bind(context, ShaderStage::VS, 12);
+
+			index_buffer.Bind(context);
+			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+			context->VSSetShaderResources(0, _countof(vs_srv), vs_srv);
+			context->PSSetShaderResources(1, _countof(ps_srv), ps_srv);
+
+			context->DrawIndexedInstancedIndirect(indirect_args_buffer.Get(), 0);
 		}
 	};
 }
