@@ -12,14 +12,15 @@ namespace adria
     //refactor this
 
 	template<typename T>
-	class StructuredBuffer
-	{
-	public:
-        
+    class StructuredBuffer
+    {
+    public:
         StructuredBuffer(ID3D11Device* device, u32 element_count,
-            u32 bind_flags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE,
-            bool dynamic = false) : element_count{ element_count }
+            bool dynamic = false, bool counter = false) : element_count{ element_count }
         {
+            UINT bind_flags = D3D11_BIND_SHADER_RESOURCE;
+            if (!dynamic) bind_flags |= D3D11_BIND_UNORDERED_ACCESS;
+
             CD3D11_BUFFER_DESC desc(sizeof(T) * element_count, bind_flags,
                 dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT,
                 dynamic ? D3D11_CPU_ACCESS_WRITE : 0,
@@ -28,11 +29,29 @@ namespace adria
 
             device->CreateBuffer(&desc, nullptr, &buffer);
 
-            if (bind_flags & D3D11_BIND_UNORDERED_ACCESS) 
-                device->CreateUnorderedAccessView(buffer.Get(), nullptr, &uav);
-
-            if (bind_flags & D3D11_BIND_SHADER_RESOURCE) 
+            if (bind_flags & D3D11_BIND_SHADER_RESOURCE)
+            {
                 device->CreateShaderResourceView(buffer.Get(), nullptr, &srv);
+            }
+
+            if (bind_flags & D3D11_BIND_UNORDERED_ACCESS)
+            {
+                if (!counter)
+                {
+                    device->CreateUnorderedAccessView(buffer.Get(), nullptr, &uav);
+                }
+                else
+                {
+                    D3D11_UNORDERED_ACCESS_VIEW_DESC desc{};
+                    desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+                    desc.Buffer.FirstElement = 0;
+                    desc.Buffer.NumElements = element_count;
+                    desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_COUNTER;
+                    desc.Format = DXGI_FORMAT_UNKNOWN;
+                    device->CreateUnorderedAccessView(buffer.Get(), &desc, &uav);
+                    has_counter = true;
+                }
+            }
         }
 
         StructuredBuffer(StructuredBuffer const&) = delete;
@@ -43,6 +62,7 @@ namespace adria
         ID3D11Buffer* Buffer() { return buffer.Get(); }
         auto UAV() const { return uav.Get(); }
         auto SRV() const { return srv.Get(); }
+        bool HasCounter() const { return has_counter; }
 
         void Update(ID3D11DeviceContext* context, void const* data, u64 data_size)
         {
@@ -82,6 +102,7 @@ namespace adria
     private:
 
         u32 const element_count;
+        bool has_counter = false;
         Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
         Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> uav;

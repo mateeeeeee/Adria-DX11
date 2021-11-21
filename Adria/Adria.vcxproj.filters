@@ -182,7 +182,9 @@
     <ClCompile Include="Utilities\Image.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Terrain.cpp" />
+    <ClCompile Include="Rendering\Terrain.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">

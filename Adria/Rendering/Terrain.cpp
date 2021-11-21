@@ -8,9 +8,7 @@ namespace adria
 
 	Terrain::Terrain(std::vector<TexturedNormalVertex> const& terrain_vertices, f32 tx, f32 tz, u64 xcount, u64 zcount) : terrain_vertices(terrain_vertices), tile_size_x(tx), tile_size_z(tz),
 		tile_count_x(xcount), tile_count_z(zcount), offset()
-	{
-
-	}
+	{}
 
 	f32 Terrain::HeightAt(f32 x, f32 z) const
 	{

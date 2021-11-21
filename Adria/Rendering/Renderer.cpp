@@ -2184,7 +2184,7 @@ namespace adria
 		{
 			light_count = current_light_count;
 			if (light_count == 0) return;
-			lights = std::make_unique<StructuredBuffer<LightSBuffer>>(gfx->Device(), light_count, D3D11_BIND_SHADER_RESOURCE, true);
+			lights = std::make_unique<StructuredBuffer<LightSBuffer>>(gfx->Device(), light_count, true);
 		}
 
 		std::vector<LightSBuffer> lights_data{};
