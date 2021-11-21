@@ -48,7 +48,7 @@ namespace adria
 							1.0f
 						);
 						f32 rock_slope_multiplier = std::clamp((normal_y - params.terrain_slope_rocks_start) / params.slope_mix_zone, 0.0f, 1.0f);
-						temp_layer_data[(j * width + i) * 4 + 0] = BYTE_MAX * mix_multiplier * rock_slope_multiplier;
+						temp_layer_data[(j * width + i) * 4 + 0] = (BYTE) (BYTE_MAX * mix_multiplier * rock_slope_multiplier);
 					}
 
 					if (height > params.terrain_sand_start && height <= params.terrain_sand_end)
@@ -57,7 +57,7 @@ namespace adria
                             (height-params.terrain_sand_start) / params.height_mix_zone,
                             (params.terrain_sand_end - height) / params.height_mix_zone
 						);
-						temp_layer_data[(j * width + i) * 4 + 1] = BYTE_MAX * mix_multiplier;
+						temp_layer_data[(j * width + i) * 4 + 1] = (BYTE) (BYTE_MAX * mix_multiplier);
 					}
 
 					if (height > params.terrain_grass_start && height <= params.terrain_grass_end)
@@ -68,7 +68,7 @@ namespace adria
 						);
 
 						f32 grass_slope_multiplier = std::clamp((normal_y - params.terrain_slope_grass_start) / params.slope_mix_zone, 0.0f, 1.0f);
-						temp_layer_data[(j * width + i) * 4 + 2] = BYTE_MAX * mix_multiplier * grass_slope_multiplier;
+                        temp_layer_data[(j * width + i) * 4 + 2] = (BYTE)(BYTE_MAX * mix_multiplier * grass_slope_multiplier);
 					}
 
 					u32 sum = temp_layer_data[(j * width + i) * 4 + 0]
@@ -103,7 +103,7 @@ namespace adria
 				}
 			}
 
-			WriteImageTGA(texture_name, layer_data, width, depth);
+			WriteImageTGA(texture_name, layer_data, (i32)width, (i32)depth);
 		}
     }
 
@@ -367,7 +367,6 @@ namespace adria
 		Log::Info("OBJ Mesh" + model_path + " successfully loaded!");
 		return entities;
 	}
-
 
 	EntityLoader::EntityLoader(registry& reg, ID3D11Device* device, TextureManager& texture_manager) : reg(reg),
         texture_manager(texture_manager), device(device)

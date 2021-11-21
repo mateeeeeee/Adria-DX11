@@ -16,7 +16,7 @@ namespace adria
 
 		AppendBuffer(ID3D11Device* device, u32 element_count) : element_count{ element_count }
 		{
-			CD3D11_BUFFER_DESC desc(sizeof(T) * element_count, bind_flags,
+			CD3D11_BUFFER_DESC desc(sizeof(T) * element_count, D3D11_BIND_UNORDERED_ACCESS,
 				D3D11_USAGE_DEFAULT,
 				0,
 				D3D11_RESOURCE_MISC_BUFFER_STRUCTURED,

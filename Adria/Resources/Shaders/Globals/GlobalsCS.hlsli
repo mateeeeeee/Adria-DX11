@@ -59,9 +59,9 @@ cbuffer ComputeCBuffer : register(b6)
     int ocean_size;             //ocean
     int resolution;             //ocean
     float ocean_choppiness;     //ocean								
-    float wind_direction_x;     //ocean
-    float wind_direction_y;     //ocean
-    float delta_time;           //ocean
+    float wind_direction_x;     //ocean and particles
+    float wind_direction_y;     //ocean and particles
+    float delta_time;           //ocean and particles
     int visualize_tiled;        //tiled rendering
     int lights_count_white;
 }

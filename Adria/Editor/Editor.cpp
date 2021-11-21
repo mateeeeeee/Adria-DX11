@@ -326,7 +326,7 @@ namespace adria
 				static bool split_to_chunks = false;
 
 				ImGui::SliderInt2("Tile Count", tile_count, 32, 2048);
-				ImGui::SliderFloat2("Tile Size", tile_size, 0.1, 20.0f);
+				ImGui::SliderFloat2("Tile Size", tile_size, 0.1f, 20.0f);
 				ImGui::SliderFloat2("Texture Scale", texture_scale, 1.0f, 400.0f);
 
 				ImGui::Checkbox("Split Mesh to Chunks", &split_to_chunks);

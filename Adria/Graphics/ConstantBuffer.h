@@ -29,6 +29,11 @@ namespace adria
 
 		void Bind(ID3D11DeviceContext* context, ShaderStage stage, u32 slot) const;
 
+		ID3D11Buffer* const Buffer() const 
+		{
+			return buffer.Get();
+		}
+
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> buffer = nullptr;
 		bool dynamic;

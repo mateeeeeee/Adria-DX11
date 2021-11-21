@@ -503,6 +503,9 @@
     <None Include="Utilities\HosekDataRGB.h">
       <Filter>Utilities</Filter>
     </None>
+    <None Include="Resources\Shaders\Particles\ParticleGlobals.hlsli">
+      <Filter>Shaders\Particles</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\Misc\SkyboxPS.hlsl">
@@ -748,28 +751,17 @@
     <FxCompile Include="Resources\Shaders\Misc\FoliagePS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Particles\InitDeadParticlesCS.hlsl">
+    <FxCompile Include="Resources\Shaders\Particles\InitDeadListCS.hlsl">
       <Filter>Shaders\Particles</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Particles\ParticleResetCS.hlsl">
       <Filter>Shaders\Particles</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Object Include="Resources\Models\Foliage\foliagequad_double.obj">
-      <Filter>Resource Files</Filter>
-    </Object>
-    <Object Include="Resources\Models\Foliage\foliagequad_single.obj">
-      <Filter>Resource Files</Filter>
-    </Object>
-    <Object Include="Resources\Models\Foliage\foliagequad_triple.obj">
-      <Filter>Resource Files</Filter>
-    </Object>
-    <Object Include="Resources\Models\Trees\Tree01\tree01.obj">
-      <Filter>Resource Files</Filter>
-    </Object>
-    <Object Include="Resources\Models\Trees\Tree02\tree02.obj">
-      <Filter>Resource Files</Filter>
-    </Object>
+    <FxCompile Include="Resources\Shaders\Particles\ParticleEmitCS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Particles\ParticleSimulateCS.hlsl">
+      <Filter>Shaders\Particles</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

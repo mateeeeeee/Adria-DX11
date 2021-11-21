@@ -162,6 +162,10 @@ namespace adria
 
 	struct COMPONENT Ocean {};
 
+	struct COMPONENT Foliage {};
+
+	struct COMPONENT Deferred {};
+
 	struct COMPONENT TerrainComponent
 	{
 		inline static std::unique_ptr<Terrain> terrain;
@@ -173,12 +177,20 @@ namespace adria
 		TEXTURE_HANDLE layer_texture = INVALID_TEXTURE_HANDLE;
 	};
 
-	struct COMPONENT Foliage
+	struct COMPONENT EmitterComponent
 	{
-
+		DirectX::XMFLOAT4	position;
+		DirectX::XMFLOAT4	velocity;
+		DirectX::XMFLOAT4	position_variance;
+		i32					number_to_emit;
+		f32					particle_life_span;
+		f32					start_size;
+		f32					end_size;
+		f32					mass;
+		f32					velocity_variance;
+		f32					particles_per_second;
+		f32					accumulation;
 	};
-
-	struct COMPONENT Deferred {};
 
 	struct COMPONENT Forward 
 	{

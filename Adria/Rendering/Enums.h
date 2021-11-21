@@ -101,7 +101,9 @@ namespace adria
 		VoxelCopy,
 		VoxelSecondBounce,
 		ParticleInitDeadList,
-		ParticleReset
+		ParticleReset,
+		ParticleEmit,
+		ParticleSimulate
 	};
 
 	enum class EGeometryShader : u8

@@ -9,6 +9,8 @@
 namespace adria
 {
 
+    //refactor this
+
 	template<typename T>
 	class StructuredBuffer
 	{
@@ -55,7 +57,6 @@ namespace adria
             BREAK_IF_FAILED(hr);
             memcpy(mapped_buffer.pData, data, data_size);
             context->Unmap(buffer.Get(), 0u);
-
         }
 
         void Update(ID3D11DeviceContext* context, std::vector<T> const& structure_data)
