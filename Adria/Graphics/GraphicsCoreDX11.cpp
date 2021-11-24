@@ -67,7 +67,7 @@ namespace adria
 					// TODO: Add more message IDs here as needed 
 				};
 				D3D11_INFO_QUEUE_FILTER filter{};
-				filter.DenyList.NumIDs = _countof(hide);
+				filter.DenyList.NumIDs = ARRAYSIZE(hide);
 				filter.DenyList.pIDList = hide;
 				d3dInfoQueue->AddStorageFilterEntries(&filter);
 			}

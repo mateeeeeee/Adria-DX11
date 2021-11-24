@@ -1029,8 +1029,8 @@ namespace adria
 			6, 7, 3
 		};
 
-		cube_vb.Create(device, cube_vertices, _countof(cube_vertices));
-		cube_ib.Create(device, cube_indices, _countof(cube_indices));
+		cube_vb.Create(device, cube_vertices, ARRAYSIZE(cube_vertices));
+		cube_ib.Create(device, cube_indices, ARRAYSIZE(cube_indices));
 	}
 	void Renderer::CreateSamplers()
 	{
@@ -2026,8 +2026,8 @@ namespace adria
 
 			compute_programs[EComputeShader::OceanSpectrum].Bind(context);
 
-			context->CSSetShaderResources(0, _countof(srvs), srvs);
-			context->CSSetUnorderedAccessViews(0, _countof(uav), uav, nullptr);
+			context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
+			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav), uav, nullptr);
 
 			context->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
 
@@ -2469,12 +2469,12 @@ namespace adria
 		ssao_pass.Begin(context);
 		{
 			ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic].SRV(), depth_target.SRV(), ssao_random_texture.SRV() };
-			context->PSSetShaderResources(1, _countof(srvs), srvs);
+			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 			standard_programs[EShader::SSAO].Bind(context);
 			context->Draw(4, 0);
-			context->PSSetShaderResources(1, _countof(srv_null), srv_null);
+			context->PSSetShaderResources(1, ARRAYSIZE(srv_null), srv_null);
 		}
 		ssao_pass.End(context);
 
@@ -2506,12 +2506,12 @@ namespace adria
 		hbao_pass.Begin(context);
 		{
 			ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic].SRV(), depth_target.SRV(), hbao_random_texture.SRV() };
-			context->PSSetShaderResources(1, _countof(srvs), srvs);
+			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 			standard_programs[EShader::HBAO].Bind(context);
 			context->Draw(4, 0);
-			context->PSSetShaderResources(1, _countof(srv_null), srv_null);
+			context->PSSetShaderResources(1, ARRAYSIZE(srv_null), srv_null);
 		}
 		hbao_pass.End(context);
 
@@ -2530,7 +2530,7 @@ namespace adria
 		annotation->BeginEvent(L"Ambient Pass");
 
 		ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic].SRV(),gbuffer[EGBufferSlot_DiffuseRoughness].SRV(), depth_target.SRV(), gbuffer[EGBufferSlot_Emissive].SRV() };
-		context->PSSetShaderResources(0, _countof(srvs), srvs);
+		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
 		ambient_pass.Begin(context);
 		if (renderer_settings.ibl)
@@ -2556,8 +2556,8 @@ namespace adria
 		ambient_pass.End(context);
 
 		static ID3D11ShaderResourceView* null_srv[] = { nullptr, nullptr, nullptr, nullptr };
-		context->PSSetShaderResources(0, _countof(null_srv), null_srv);
-		context->PSSetShaderResources(7, _countof(null_srv), null_srv);
+		context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
+		context->PSSetShaderResources(7, ARRAYSIZE(null_srv), null_srv);
 		
 		annotation->EndEvent();
 	}
@@ -2630,7 +2630,7 @@ namespace adria
 				shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness].SRV();
 				shader_views[2] = depth_target.SRV();
 
-				context->PSSetShaderResources(0, _countof(shader_views), shader_views);
+				context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 
 				context->IASetInputLayout(nullptr);
 				context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2639,7 +2639,7 @@ namespace adria
 				context->Draw(4, 0);
 				
 				static ID3D11ShaderResourceView* null_srv[] = { nullptr, nullptr, nullptr };
-				context->PSSetShaderResources(0, _countof(null_srv), null_srv);
+				context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
 
 				if (light_data.volumetric) PassVolumetric(light_data);
 			}
@@ -2668,7 +2668,7 @@ namespace adria
 		shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic].SRV();
 		shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness].SRV();
 		shader_views[2] = depth_target.SRV();
-		context->CSSetShaderResources(0, _countof(shader_views), shader_views);
+		context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 		ID3D11ShaderResourceView* lights_srv = lights->SRV();
 		context->CSSetShaderResources(3, 1, &lights_srv);
 		ID3D11UnorderedAccessView* texture_uav = uav_target.UAV();
@@ -2684,7 +2684,7 @@ namespace adria
 		context->Dispatch((u32)std::ceil(width * 1.0f / 16), (u32)std::ceil(height * 1.0f / 16), 1);
 
 		ID3D11ShaderResourceView* null_srv[4] = { nullptr };
-		context->CSSetShaderResources(0, _countof(null_srv), null_srv);
+		context->CSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
 		ID3D11UnorderedAccessView* null_uav = nullptr;
 		context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 
@@ -2775,18 +2775,18 @@ namespace adria
 		}
 
 		ID3D11ShaderResourceView* srvs[] = { clusters->SRV(), lights->SRV() };
-		context->CSSetShaderResources(0, _countof(srvs), srvs);
+		context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 		ID3D11UnorderedAccessView* uavs[] = { light_counter->UAV(), light_list->UAV(), light_grid->UAV() };
-		context->CSSetUnorderedAccessViews(0, _countof(uavs), uavs, nullptr);
+		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
 
 		compute_programs[EComputeShader::ClusterCulling].Bind(context);
 		context->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 4);
 		compute_programs[EComputeShader::ClusterCulling].Unbind(context);
 
 		ID3D11ShaderResourceView* null_srvs[2] = { nullptr };
-		context->CSSetShaderResources(0, _countof(null_srvs), null_srvs);
+		context->CSSetShaderResources(0, ARRAYSIZE(null_srvs), null_srvs);
 		ID3D11UnorderedAccessView* null_uavs[3] = { nullptr };
-		context->CSSetUnorderedAccessViews(0, _countof(null_uavs), null_uavs, nullptr);
+		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(null_uavs), null_uavs, nullptr);
 
 		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
 
@@ -2800,7 +2800,7 @@ namespace adria
 			shader_views[4] = light_list->SRV();
 			shader_views[5] = light_grid->SRV();
 
-			context->PSSetShaderResources(0, _countof(shader_views), shader_views);
+			context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2809,7 +2809,7 @@ namespace adria
 			context->Draw(4, 0);
 
 			static ID3D11ShaderResourceView* null_srv[6] = { nullptr};
-			context->PSSetShaderResources(0, _countof(null_srv), null_srv);
+			context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
 
 			//Volumetric lighting for non-shadow casting lights
 			std::vector<Light> volumetric_lights{};
@@ -3020,7 +3020,7 @@ namespace adria
 			shader_views[1] = depth_target.SRV();
 			shader_views[2] = renderer_settings.voxel_second_bounce ? voxel_texture_second_bounce.SRV() : voxel_texture.SRV();
 
-			context->PSSetShaderResources(0, _countof(shader_views), shader_views);
+			context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -3029,7 +3029,7 @@ namespace adria
 			context->Draw(4, 0);
 
 			static ID3D11ShaderResourceView* null_srv[] = { nullptr, nullptr, nullptr };
-			context->PSSetShaderResources(0, _countof(null_srv), null_srv);
+			context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
 		}
 		lighting_pass.End(context);
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
@@ -3497,7 +3497,7 @@ namespace adria
 
 		ID3D11ShaderResourceView* srvs[] = { ocean_normal_map.SRV(), skybox_srv ,
 		 texture_manager.GetTextureView(foam_handle) };
-		context->PSSetShaderResources(0, _countof(srvs), srvs);
+		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
 		renderer_settings.ocean_tesselation ? tesselation_programs[ETesselationShader::Ocean].Bind(context)
 						  : standard_programs[EShader::Ocean].Bind(context);
@@ -3600,7 +3600,7 @@ namespace adria
 
 		{
 			ID3D11ShaderResourceView* depth_srv_array[1] = { depth_target.SRV() };
-			context->GSSetShaderResources(7, _countof(depth_srv_array), depth_srv_array);
+			context->GSSetShaderResources(7, ARRAYSIZE(depth_srv_array), depth_srv_array);
 			context->GSSetShaderResources(0, static_cast<u32>(lens_flare_textures.size()), lens_flare_textures.data());
 			context->PSSetShaderResources(0, static_cast<u32>(lens_flare_textures.size()), lens_flare_textures.data());
 
@@ -3613,7 +3613,7 @@ namespace adria
 
 			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 			static std::vector<ID3D11ShaderResourceView*> const lens_null_array(lens_flare_textures.size(), nullptr);
-			context->GSSetShaderResources(7, _countof(srv_null), srv_null);
+			context->GSSetShaderResources(7, ARRAYSIZE(srv_null), srv_null);
 			context->GSSetShaderResources(0, static_cast<u32>(lens_null_array.size()), lens_null_array.data());
 			context->PSSetShaderResources(0, static_cast<u32>(lens_null_array.size()), lens_null_array.data());
 		}
@@ -3629,7 +3629,7 @@ namespace adria
 		annotation->BeginEvent(L"Volumetric Clouds Pass");
 
 		ID3D11ShaderResourceView* const srv_array[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target.SRV()};
-		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -3637,7 +3637,7 @@ namespace adria
 		context->Draw(4, 0);
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr, nullptr };
-		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 
 		postprocess_passes[postprocess_index].End(context);
 		postprocess_index = !postprocess_index;
@@ -3668,7 +3668,7 @@ namespace adria
 
 		ID3D11ShaderResourceView* srv_array[] = { gbuffer[EGBufferSlot_NormalMetallic].SRV(), postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 
-		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 
 		context->IASetInputLayout(nullptr);
 
@@ -3678,7 +3678,7 @@ namespace adria
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };
 
-		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 
 		annotation->EndEvent();
 	}
@@ -3728,7 +3728,7 @@ namespace adria
 			ID3D11ShaderResourceView* srv_array[1] = { sun_target.SRV() };
 			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 
-			context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+			context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -3737,7 +3737,7 @@ namespace adria
 
 			context->Draw(4, 0);
 
-			context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 		}
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 
@@ -3787,12 +3787,12 @@ namespace adria
 		postprocess_cbuf_data.dof_params = XMVectorSet(renderer_settings.dof_near_blur, renderer_settings.dof_near, renderer_settings.dof_far, renderer_settings.dof_far_blur);
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		standard_programs[EShader::DOF].Bind(context);
 		context->Draw(4, 0);
-		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 
 		if (renderer_settings.bokeh)
 		{
@@ -3861,7 +3861,7 @@ namespace adria
 		ID3D11ShaderResourceView* const srv[1] = { postprocess_textures[!postprocess_index].SRV() };
 		context->CSSetShaderResources(0, 1, srv); 
 
-		context->CSSetUnorderedAccessViews(0, _countof(uav), uav, nullptr);
+		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav), uav, nullptr);
 
 		compute_programs[EComputeShader::BloomExtract].Bind(context);
 		context->Dispatch((u32)std::ceil(width / 32.0f), (u32)std::ceil(height / 32.0f), 1);
@@ -3875,7 +3875,7 @@ namespace adria
 		ID3D11ShaderResourceView* const srv2[2] = { postprocess_textures[!postprocess_index].SRV(), bloom_extract_texture.SRV() };
 		context->CSSetShaderResources(0, 2, srv2);
 
-		context->CSSetUnorderedAccessViews(0, _countof(uav2), uav2, nullptr);
+		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav2), uav2, nullptr);
 
 		compute_programs[EComputeShader::BloomCombine].Bind(context);
 		context->Dispatch((u32)std::ceil(width / 32.0f), (u32)std::ceil(height / 32.0f), 1);
@@ -3901,7 +3901,7 @@ namespace adria
 			ID3D11ShaderResourceView* const srv_array[1] = { depth_target.SRV() };
 			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 
-			context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+			context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -3910,7 +3910,7 @@ namespace adria
 
 			context->Draw(4, 0);
 
-			context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 		}
 		velocity_buffer_pass.End(context);
 
@@ -3927,14 +3927,14 @@ namespace adria
 		ID3D11ShaderResourceView* const srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), velocity_buffer.SRV() };
 		static ID3D11ShaderResourceView* const srv_null[2] = { nullptr, nullptr };
 
-		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 		standard_programs[EShader::MotionBlur].Bind(context);
 		context->Draw(4, 0);
-		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 
 		annotation->EndEvent();
 	}
@@ -3954,14 +3954,14 @@ namespace adria
 
 		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 
-		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		standard_programs[EShader::Fog].Bind(context);
 		context->Draw(4, 0);
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
-		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 
 		annotation->EndEvent();
 	}
@@ -3978,7 +3978,7 @@ namespace adria
 		ID3D11ShaderResourceView* const srv_array[1] = { postprocess_textures[!postprocess_index].SRV() };
 		static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 
-		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
@@ -3998,7 +3998,7 @@ namespace adria
 		}
 
 		context->Draw(4, 0);
-		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 
 		annotation->EndEvent();
 	}
@@ -4011,7 +4011,7 @@ namespace adria
 
 		ID3D11ShaderResourceView* srv_array[1] = { fxaa_texture.SRV() };
 
-		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -4019,7 +4019,7 @@ namespace adria
 
 		context->Draw(4, 0);
 
-		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
 	void Renderer::PassTAA()
 	{
@@ -4029,7 +4029,7 @@ namespace adria
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };
 		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index].SRV(), prev_hdr_render_target.SRV(), velocity_buffer.SRV() };
 		
-		context->PSSetShaderResources(0, _countof(srv_array), srv_array);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -4037,7 +4037,7 @@ namespace adria
 		
 		context->Draw(4, 0);
 		
-		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
 
 	void Renderer::DrawSun(entity sun)
@@ -4168,7 +4168,7 @@ namespace adria
 
 		ID3D11ShaderResourceView* srv[] = { src1.SRV(), src2.SRV() };
 
-		context->PSSetShaderResources(0, _countof(srv), srv);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv), srv);
 
 		context->IASetInputLayout(nullptr);
 
@@ -4178,7 +4178,7 @@ namespace adria
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
 
-		context->PSSetShaderResources(0, _countof(srv_null), srv_null);
+		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 
 	}
 

@@ -528,7 +528,7 @@ namespace adria
 							"Resources/Textures/Foliage/grass_type4.png",
 							"Resources/Textures/Foliage/grass_type6.png",
 						};
-						static IntRandomGenerator<size_t> index(0ll, _countof(foliage_textures) - 1);
+						static IntRandomGenerator<size_t> index(0ll, ARRAYSIZE(foliage_textures) - 1);
 
 						foliage_params.mesh_texture_pair.second = foliage_textures[index()];
 						foliages.push_back(foliage_params);

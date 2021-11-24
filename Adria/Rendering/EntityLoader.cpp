@@ -728,9 +728,9 @@ namespace adria
 			//Mesh skybox_mesh{};
 			//skybox_mesh.vb = std::make_shared<VertexBuffer>();
 			//skybox_mesh.ib = std::make_shared<IndexBuffer>();
-			//skybox_mesh.vb->Create(device, cube_vertices, _countof(cube_vertices));
-			//skybox_mesh.ib->Create(device, cube_indices, _countof(cube_indices));
-			//skybox_mesh.indices_count = _countof(cube_indices);
+			//skybox_mesh.vb->Create(device, cube_vertices, ARRAYSIZE(cube_vertices));
+			//skybox_mesh.ib->Create(device, cube_indices, ARRAYSIZE(cube_indices));
+			//skybox_mesh.indices_count = ARRAYSIZE(cube_indices);
 
 			//reg.emplace<Mesh>(skybox, skybox_mesh);
 

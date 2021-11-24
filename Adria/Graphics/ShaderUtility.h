@@ -6,8 +6,6 @@
 
 namespace adria
 {
-	
-
 	struct ShaderBlob
 	{
 		std::vector<u8> bytecode;

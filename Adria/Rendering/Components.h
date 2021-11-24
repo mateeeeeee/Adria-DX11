@@ -179,6 +179,7 @@ namespace adria
 
 	struct COMPONENT EmitterComponent
 	{
+		TEXTURE_HANDLE		particle_texture = INVALID_TEXTURE_HANDLE;
 		DirectX::XMFLOAT4	position;
 		DirectX::XMFLOAT4	velocity;
 		DirectX::XMFLOAT4	position_variance;
@@ -190,6 +191,8 @@ namespace adria
 		f32					velocity_variance;
 		f32					particles_per_second;
 		f32					accumulation;
+		f32					elapsed_time;
+		mutable bool		reset = true;
 	};
 
 	struct COMPONENT Forward 
