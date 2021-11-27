@@ -2,6 +2,7 @@
 #include <DirectXCollision.h>
 #include <memory>
 #include <optional>
+#include "ParticleSystem.h"
 #include "RendererSettings.h"
 #include "ConstantBuffers.h"
 #include "../tecs/Registry.h"
@@ -73,6 +74,7 @@ namespace adria
 		Profiler profiler;
 		ProfilerSettings profiler_settings;
 
+		ParticleSystem particle_system;
 		//textures
 		std::vector<Texture2D> gbuffer; 
 		Texture2D depth_target;
@@ -129,6 +131,7 @@ namespace adria
 		RenderPass hbao_pass;
 		RenderPass voxel_debug_pass;
 		RenderPass offscreen_resolve_pass;
+		RenderPass particle_pass;
 		std::array<RenderPass, 6> shadow_cubemap_pass;
 		std::vector<RenderPass> cascade_shadow_pass;
 		std::array<RenderPass, 2> postprocess_passes; 
@@ -232,6 +235,7 @@ namespace adria
 		void BindGlobals();
 		void UpdateOcean(f32 dt);
 		void UpdateWeather(f32 dt);
+		void UpdateParticles(f32 dt);
 		void UpdateLights();
 		void UpdateTerrainData();
 		void UpdateVoxelData();
@@ -262,6 +266,7 @@ namespace adria
 		//called in forward pass
 		void PassSky();
 		void PassOcean();
+		void PassParticles();
 		void PassForwardCommon(bool transparent);
 		
 		//POSTPROCESS

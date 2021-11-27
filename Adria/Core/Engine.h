@@ -51,7 +51,7 @@ namespace adria
 		std::unique_ptr<EntityLoader> entity_loader;
 	private:
 
-		virtual void InitializeScene(bool load_sponza);
+		virtual void InitializeScene(bool load_default_scene);
 
 		virtual void Update(f32 dt);
 

@@ -349,7 +349,7 @@ namespace adria
 
 	Renderer::Renderer(registry& reg, GraphicsCoreDX11* gfx, u32 width, u32 height)
 		: width(width), height(height), reg(reg), gfx(gfx), texture_manager(gfx->Device(), gfx->Context()),
-		profiler(gfx->Device())
+		profiler(gfx->Device()), particle_system(gfx)
 	{
 		u32 w = width, h = height;
 
@@ -370,6 +370,7 @@ namespace adria
 		CameraFrustumCulling();
 		UpdateWeather(dt);
 		UpdateOcean(dt);
+		UpdateParticles(dt);
 	}
 	void Renderer::SetProfilerSettings(ProfilerSettings const& _profiler_settings)
 	{
@@ -396,6 +397,7 @@ namespace adria
 			else if (renderer_settings.use_clustered_deferred) PassDeferredClusteredLighting();
 		
 			PassForward();
+			PassParticles();
 		}
 
 		if (renderer_settings.voxel_gi)
@@ -1562,6 +1564,15 @@ namespace adria
 			forward_pass = RenderPass(render_pass_desc);
 		}
 
+		//particle pass
+		{
+			render_pass_desc_t render_pass_desc{};
+			render_pass_desc.width = width;
+			render_pass_desc.height = height;
+			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
+			particle_pass = RenderPass(render_pass_desc);
+		}
+
 		//fxaa pass
 		{
 			render_pass_desc_t render_pass_desc{};
@@ -2174,6 +2185,17 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		weather_cbuffer->Update(context, weather_cbuf_data);
 	}
+
+	void Renderer::UpdateParticles(f32 dt)
+	{
+		auto emitters = reg.view<Emitter>();
+		for (auto emitter : emitters)
+		{
+			Emitter& emitter_params = emitters.get(emitter);
+			particle_system.Update(dt, emitter_params);
+		}
+	}
+
 	void Renderer::UpdateLights()
 	{
 
@@ -3534,6 +3556,31 @@ namespace adria
 
 		annotation->EndEvent();
 	}
+	void Renderer::PassParticles()
+	{
+		if (reg.size<Emitter>() == 0) return;
+
+		ID3D11DeviceContext* context = gfx->Context();
+
+		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
+		annotation->BeginEvent(L"Particles Pass");
+
+		particle_pass.Begin(context);
+		context->OMSetBlendState(alpha_blend.Get(), nullptr, 0xffffffff);
+
+		auto emitters = reg.view<Emitter>();
+		for (auto emitter : emitters)
+		{
+			Emitter const& emitter_params = emitters.get(emitter);
+			particle_system.Render(emitter_params, depth_target.SRV(), texture_manager.GetTextureView(emitter_params.particle_texture));
+		}
+
+		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+		particle_pass.End(context);
+
+		annotation->EndEvent();
+	}
+
 	void Renderer::PassForwardCommon(bool transparent)
 	{
 		ID3D11DeviceContext* context = gfx->Context();

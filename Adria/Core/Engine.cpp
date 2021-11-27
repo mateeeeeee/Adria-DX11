@@ -105,7 +105,7 @@ namespace adria
 		gfx->SwapBuffers(vsync);
 	}
 
-	void Engine::InitializeScene(bool load_sponza) 
+	void Engine::InitializeScene(bool load_default_scene) 
 	{
 
 		skybox_parameters_t skybox_params{};
@@ -113,7 +113,7 @@ namespace adria
 
 		entity_loader->LoadSkybox(skybox_params);
 
-		if (load_sponza)
+		if (load_default_scene)
 		{
 			model_parameters_t model_params{};
 			model_params.model_path = "Resources/Models/Sponza/glTF/Sponza.gltf";
@@ -141,5 +141,21 @@ namespace adria
 		light_params.mesh_size = 250;
 		
 		entity_loader->LoadLight(light_params);
+
+		Emitter test_emitter{};
+		test_emitter.position = DirectX::XMFLOAT4(0, 50, 0, 1);
+		test_emitter.velocity = DirectX::XMFLOAT4(0, 6, 0, 0);
+		test_emitter.position_variance = DirectX::XMFLOAT4(1, 1, 1, 1);
+		test_emitter.velocity_variance = 1;
+		test_emitter.number_to_emit = 100000;
+		test_emitter.particle_life_span = 3.0f;
+		test_emitter.start_size = 15.0f;
+		test_emitter.end_size = 5.0f;
+		test_emitter.mass = 1.0f;
+		test_emitter.particles_per_second = 60 * 24;
+		test_emitter.particle_texture = renderer->GetTextureManager().LoadTexture("Resources/Textures/smoke.png");
+
+		tecs::entity emitter = reg.create();
+		reg.add(emitter, test_emitter);
 	}
 }

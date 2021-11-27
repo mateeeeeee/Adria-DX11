@@ -177,7 +177,7 @@ namespace adria
 		TEXTURE_HANDLE layer_texture = INVALID_TEXTURE_HANDLE;
 	};
 
-	struct COMPONENT EmitterComponent
+	struct COMPONENT Emitter
 	{
 		TEXTURE_HANDLE		particle_texture = INVALID_TEXTURE_HANDLE;
 		DirectX::XMFLOAT4	position;
@@ -190,8 +190,8 @@ namespace adria
 		f32					mass;
 		f32					velocity_variance;
 		f32					particles_per_second;
-		f32					accumulation;
-		f32					elapsed_time;
+		f32					accumulation = 0.0f;
+		f32					elapsed_time = 0.0f;
 		mutable bool		reset = true;
 	};
 

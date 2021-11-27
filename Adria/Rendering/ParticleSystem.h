@@ -83,7 +83,7 @@ namespace adria
 			CreateIndirectArgsBuffer();
 		}
 
-		void Update(f32 dt, EmitterComponent& emitter_params)
+		void Update(f32 dt, Emitter& emitter_params)
 		{
 			emitter_params.elapsed_time += dt;
 			if (emitter_params.particles_per_second > 0.0f)
@@ -101,7 +101,7 @@ namespace adria
 			}
 		}
 
-		void Render(EmitterComponent const& emitter_params, ID3D11ShaderResourceView* depth_srv, 
+		void Render(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, 
 			ID3D11ShaderResourceView* particle_srv)
 		{
 			if (emitter_params.reset)
@@ -112,7 +112,7 @@ namespace adria
 			}
 			Emit(emitter_params);
 			Simulate();
-			Rasterize(emitter_params, depth_srv, particle_srv);
+			//Rasterize(emitter_params, depth_srv, particle_srv);
 		}
 
 	private:
@@ -263,11 +263,13 @@ namespace adria
 			ZeroMemory(uavs, sizeof(uavs));
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
 		}
-		void Emit(EmitterComponent const& emitter_params)
+		void Emit(Emitter const& emitter_params)
 		{
 			ID3D11DeviceContext* context = gfx->Context();
 			if (emitter_params.number_to_emit > 0)
 			{
+				particle_compute_programs[EComputeShader::ParticleEmit].Bind(context);
+
 				ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV(), dead_list_buffer.UAV() };
 				u32 initial_counts[] = { (u32)-1, (u32)-1, (u32)-1 };
 				context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
@@ -288,11 +290,11 @@ namespace adria
 				emitter_cbuffer_data.VelocityVariance = emitter_params.velocity_variance;
 				emitter_cbuffer.Update(context, emitter_cbuffer_data);
 
-				emitter_cbuffer.Bind(context, ShaderStage::CS, 20);
-				dead_list_count_cbuffer.Bind(context, ShaderStage::CS, 21);
+				dead_list_count_cbuffer.Bind(context, ShaderStage::CS, 11);
+				emitter_cbuffer.Bind(context, ShaderStage::CS, 13);
 
 				context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.UAV());
-				u32 thread_groups_x = std::ceil(emitter_params.number_to_emit / 1024);
+				u32 thread_groups_x = std::ceil(emitter_params.number_to_emit / 1024.0f);
 				context->Dispatch(thread_groups_x, 1, 1);
 
 				ZeroMemory(srvs, sizeof(srvs));
@@ -300,6 +302,9 @@ namespace adria
 
 				ZeroMemory(uavs, sizeof(uavs));
 				context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
+
+				particle_compute_programs[EComputeShader::ParticleEmit].Unbind(context);
+
 			}
 		}
 		void Simulate()
@@ -319,7 +324,7 @@ namespace adria
 			ZeroMemory(uavs, sizeof(uavs));
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
 		}
-		void Rasterize(EmitterComponent const& emitter_params, ID3D11ShaderResourceView* depth_srv,
+		void Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv,
 			ID3D11ShaderResourceView* particle_srv)
 		{
 			ID3D11DeviceContext* context = gfx->Context();
