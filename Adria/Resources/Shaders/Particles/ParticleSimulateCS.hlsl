@@ -59,9 +59,9 @@ void main( uint3 id : SV_DispatchThreadID )
 
 			// Apply a little bit of a wind force
             float3 windDir = float3(wind_direction_x, wind_direction_y, 0);
-            float windStrength = 0.1;
-
-            pb.Velocity += normalize(windDir) * windStrength * delta_time;
+            float windLength = length(windDir);
+            const float windStrength = 0.1;
+            if (windLength > 0.0f) pb.Velocity += windDir / windLength * windStrength * delta_time;
 			
 			// Calculate the new position of the particle
             NewPosition += pb.Velocity * delta_time;

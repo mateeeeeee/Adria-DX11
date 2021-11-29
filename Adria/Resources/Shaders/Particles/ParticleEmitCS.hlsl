@@ -44,13 +44,18 @@ void main(uint3 id : SV_DispatchThreadID)
         float2 uv = float2(id.x / 1024.0, elapsedTime);
 		float3 randomValues0 = RandomBuffer.SampleLevel(linear_wrap_sampler, uv, 0).xyz;
 
-		float velocityMagnitude = length(EmitterVelocity.xyz);
+        float2 uv2 = float2((id.x + 1) / 1024.0, elapsedTime);
+        float3 randomValues1 = RandomBuffer.SampleLevel(linear_wrap_sampler, uv2, 0).xyz;
 
-		pa.Rotation = 0;
-		pa.IsSleeping = 0;
 		
+        pa.TintAndAlpha = float4(1, 1, 1, 1);
+        pa.Rotation = 0;
+        pa.IsSleeping = 0;
+		
+		float velocityMagnitude = length(EmitterVelocity.xyz);
+        pb.Position = EmitterPosition.xyz + (randomValues0.xyz * PositionVariance.xyz);
 		pb.Mass = Mass;
-        pb.Velocity = EmitterVelocity.xyz + (randomValues0.xyz * velocityMagnitude * VelocityVariance);
+        pb.Velocity = EmitterVelocity.xyz + (randomValues1.xyz * velocityMagnitude * VelocityVariance);
 		pb.Lifespan = ParticleLifeSpan;
 		pb.Age = pb.Lifespan;
 		pb.StartSize = StartSize;

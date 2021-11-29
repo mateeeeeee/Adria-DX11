@@ -118,7 +118,7 @@ namespace adria
 			model_parameters_t model_params{};
 			model_params.model_path = "Resources/Models/Sponza/glTF/Sponza.gltf";
 			model_params.textures_path = "Resources/Models/Sponza/glTF/";
-			model_params.model_scale = 0.25f;
+			model_params.model_scale = 0.5f;
 
 			//sun temple
 			//model_params.model_path = "Resources/Models/SunTemple/suntemple.gltf";
@@ -143,16 +143,16 @@ namespace adria
 		entity_loader->LoadLight(light_params);
 
 		Emitter test_emitter{};
-		test_emitter.position = DirectX::XMFLOAT4(0, 50, 0, 1);
-		test_emitter.velocity = DirectX::XMFLOAT4(0, 6, 0, 0);
-		test_emitter.position_variance = DirectX::XMFLOAT4(1, 1, 1, 1);
-		test_emitter.velocity_variance = 1;
-		test_emitter.number_to_emit = 100000;
-		test_emitter.particle_life_span = 3.0f;
-		test_emitter.start_size = 15.0f;
-		test_emitter.end_size = 5.0f;
+		test_emitter.position = DirectX::XMFLOAT4(0, 150, 0, 1);
+		test_emitter.velocity = DirectX::XMFLOAT4(0, 30, 0, 0);
+		test_emitter.position_variance = DirectX::XMFLOAT4(5, 0, 5, 1);
+		test_emitter.velocity_variance = 0.4f;
+		test_emitter.number_to_emit = 0;
+		test_emitter.particle_life_span = 40.0f;
+		test_emitter.start_size = 1.0f;
+		test_emitter.end_size = 0.3f;
 		test_emitter.mass = 1.0f;
-		test_emitter.particles_per_second = 60 * 24;
+		test_emitter.particles_per_second = 40;
 		test_emitter.particle_texture = renderer->GetTextureManager().LoadTexture("Resources/Textures/smoke.png");
 
 		tecs::entity emitter = reg.create();

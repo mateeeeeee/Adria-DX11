@@ -20,26 +20,26 @@ namespace adria
 
 	class ParticleSystem
 	{
-		static constexpr size_t MAX_PARTICLES = 400 * 1024;
+		static constexpr size_t MAX_PARTICLES = 256;// 400 * 1024;
 
 		struct GPUParticleA
 		{
-			DirectX::XMFLOAT4	TintAndAlpha;  // The color and opacity
-			f32		Rotation;				// The rotation angle
-			u32		IsSleeping;				// Whether or not the particle is sleeping (ie, don't update position)
+			DirectX::XMFLOAT4	TintAndAlpha;	// The color and opacity
+			f32		Rotation;					// The rotation angle
+			u32		IsSleeping;					// Whether or not the particle is sleeping (ie, don't update position)
 		};
 		struct GPUParticleB
 		{
-			DirectX::XMFLOAT3	Position;	// World space position
-			f32		Mass;					// Mass of particle
+			DirectX::XMFLOAT3	Position;		// World space position
+			f32		Mass;						// Mass of particle
 
-			DirectX::XMFLOAT3	Velocity;	// World space velocity
-			f32		Lifespan;				// Lifespan of the particle.
+			DirectX::XMFLOAT3	Velocity;		// World space velocity
+			f32		Lifespan;					// Lifespan of the particle.
 
-			f32		DistanceToEye;			// The distance from the particle to the eye
-			f32		Age;					// The current age counting down from lifespan to zero
-			f32		StartSize;				// The size at spawn time
-			f32		EndSize;				// The time at maximum age
+			f32		DistanceToEye;				// The distance from the particle to the eye
+			f32		Age;						// The current age counting down from lifespan to zero
+			f32		StartSize;					// The size at spawn time
+			f32		EndSize;					// The time at maximum age
 		};
 		struct EmitterCBuffer
 		{
@@ -101,10 +101,11 @@ namespace adria
 			}
 		}
 
-		void Render(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, 
-			ID3D11ShaderResourceView* particle_srv)
+		void Render(Emitter const& emitter_params,
+					ID3D11ShaderResourceView* depth_srv, 
+					ID3D11ShaderResourceView* particle_srv)
 		{
-			if (emitter_params.reset)
+			//if (emitter_params.reset)
 			{
 				InitializeDeadList();
 				ResetParticles();
@@ -112,7 +113,7 @@ namespace adria
 			}
 			Emit(emitter_params);
 			Simulate();
-			//Rasterize(emitter_params, depth_srv, particle_srv);
+			Rasterize(emitter_params, depth_srv, particle_srv);
 		}
 
 	private:
@@ -242,7 +243,7 @@ namespace adria
 			context->CSSetUnorderedAccessViews(0, 1, dead_list_uavs, initial_count);
 
 			particle_compute_programs[EComputeShader::ParticleInitDeadList].Bind(context);
-			context->Dispatch(std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+			context->Dispatch((UINT)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 			particle_compute_programs[EComputeShader::ParticleInitDeadList].Unbind(context);
 
 			ZeroMemory(dead_list_uavs, sizeof(dead_list_uavs));
@@ -257,7 +258,7 @@ namespace adria
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
 			particle_compute_programs[EComputeShader::ParticleReset].Bind(context);
-			context->Dispatch(std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+			context->Dispatch((UINT)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 			particle_compute_programs[EComputeShader::ParticleReset].Unbind(context);
 
 			ZeroMemory(uavs, sizeof(uavs));
@@ -294,7 +295,7 @@ namespace adria
 				emitter_cbuffer.Bind(context, ShaderStage::CS, 13);
 
 				context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.UAV());
-				u32 thread_groups_x = std::ceil(emitter_params.number_to_emit / 1024.0f);
+				u32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
 				context->Dispatch(thread_groups_x, 1, 1);
 
 				ZeroMemory(srvs, sizeof(srvs));
@@ -319,7 +320,7 @@ namespace adria
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
 			particle_compute_programs[EComputeShader::ParticleSimulate].Bind(context);
-			context->Dispatch(std::ceil(MAX_PARTICLES / 256 ), 1, 1);
+			context->Dispatch((UINT)std::ceil(MAX_PARTICLES * 1.0f / 256 ), 1, 1);
 
 			ZeroMemory(uavs, sizeof(uavs));
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
@@ -350,7 +351,7 @@ namespace adria
 			ZeroMemory(vs_srvs, sizeof(vs_srvs));
 			context->VSSetShaderResources(0, ARRAYSIZE(vs_srvs), vs_srvs);
 			ZeroMemory(ps_srvs, sizeof(ps_srvs));
-			context->CSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
+			context->PSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
 		}
 	};
 }

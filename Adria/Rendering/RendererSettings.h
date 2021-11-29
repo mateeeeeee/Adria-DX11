@@ -19,7 +19,7 @@ namespace adria
 		bool ibl = false;
 		f32 shadow_softness = 1.0f;
 		bool shadow_transparent = false;
-		f32 split_lambda = 0.5f;
+		f32 split_lambda = 0.25f;
 		
 		EAntiAliasing anti_aliasing = EAntiAliasing_None;
 		

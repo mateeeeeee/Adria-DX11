@@ -1,4 +1,4 @@
-#pragma once
+
 #include "../Globals/GlobalsCS.hlsli"
 
 struct GPUParticlePartA

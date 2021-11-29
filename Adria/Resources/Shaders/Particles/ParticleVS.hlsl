@@ -24,11 +24,11 @@ cbuffer ActiveListCountCBuffer : register(b12)
 
 struct PS_INPUT
 {
-    float4 Position : SV_POSITION;
     float4 ViewSpaceCentreAndRadius : TEXCOORD0;
     float2 TexCoord                 : TEXCOORD1;
     float3 ViewPos                  : TEXCOORD2;
     float4 Color                    : COLOR0;
+    float4 Position                 : SV_POSITION;
 };
 
 PS_INPUT main( uint VertexId : SV_VertexID )

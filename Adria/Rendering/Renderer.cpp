@@ -28,7 +28,7 @@ namespace adria
 
 		constexpr u32 SHADOW_MAP_SIZE = 2048;
 		constexpr u32 SHADOW_CUBE_SIZE = 512;
-		constexpr u32 SHADOW_CASCADE_SIZE = 1024;
+		constexpr u32 SHADOW_CASCADE_SIZE = 2048;
 		constexpr u32 CASCADE_COUNT = 3;
 
 		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Directional(Light const& light, BoundingSphere const&
@@ -245,9 +245,6 @@ namespace adria
 			//std::array<XMMATRIX, CASCADE_COUNT> projectionMatrices = RecalculateProjectionMatrices(camera);
 			std::array<XMMATRIX, CASCADE_COUNT> lightViewProjectionMatrices{};
 
-			//for (u32 i = 0; i < CASCADE_COUNT; ++i)
-			//{
-
 			BoundingFrustum frustum(projection_matrix);
 			frustum.Transform(frustum, XMMatrixInverse(nullptr, camera.View()));
 
@@ -397,6 +394,7 @@ namespace adria
 			else if (renderer_settings.use_clustered_deferred) PassDeferredClusteredLighting();
 		
 			PassForward();
+
 			PassParticles();
 		}
 
