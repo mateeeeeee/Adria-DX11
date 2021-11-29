@@ -20,7 +20,7 @@ namespace adria
 
 	class ParticleSystem
 	{
-		static constexpr size_t MAX_PARTICLES = 256;// 400 * 1024;
+		static constexpr size_t MAX_PARTICLES = 400 * 1024;
 
 		struct GPUParticleA
 		{
@@ -105,7 +105,7 @@ namespace adria
 					ID3D11ShaderResourceView* depth_srv, 
 					ID3D11ShaderResourceView* particle_srv)
 		{
-			//if (emitter_params.reset)
+			if (emitter_params.reset)
 			{
 				InitializeDeadList();
 				ResetParticles();

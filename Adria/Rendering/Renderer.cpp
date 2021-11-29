@@ -2192,6 +2192,13 @@ namespace adria
 			Emitter& emitter_params = emitters.get(emitter);
 			particle_system.Update(dt, emitter_params);
 		}
+		compute_cbuf_data.resolution = RESOLUTION;
+		compute_cbuf_data.wind_direction_x = renderer_settings.wind_direction[0];
+		compute_cbuf_data.wind_direction_y = renderer_settings.wind_direction[1];
+		compute_cbuf_data.delta_time = dt;
+
+		ID3D11DeviceContext* context = gfx->Context();
+		compute_cbuffer->Update(context, compute_cbuf_data);
 	}
 
 	void Renderer::UpdateLights()
