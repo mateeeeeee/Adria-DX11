@@ -132,6 +132,7 @@ namespace adria
         std::string texture_path = "Resources/Textures/Particles/atlas.dds";
         bool blend = true;
         bool collisions = false;
+        bool sort = false;
     };
    
     class TextureManager;

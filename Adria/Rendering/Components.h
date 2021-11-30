@@ -192,10 +192,11 @@ namespace adria
 		f32					particles_per_second = 100;
 		f32					accumulation = 0.0f;
 		f32					elapsed_time = 0.0f;
+		bool				collisions_enabled = false;
+		bool				alpha_blended = true;
+		bool				pause = false;
+		bool				sort = false;
 		mutable bool		reset_emitter = true;
-		mutable	bool		collisions_enabled = false;
-		mutable bool		alpha_blended = true;
-		mutable bool		pause = false;
 	};
 
 	struct COMPONENT Forward 
