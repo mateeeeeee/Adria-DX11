@@ -40,11 +40,13 @@ float4 main(PS_INPUT In) : SV_TARGET
 	// Calculate the depth fade factor
     float depthFade = saturate((viewSpacePos.z - particleViewSpacePos.z) / particleRadius);
 
-    float4 albedo = 1;
+    float4 albedo = 1.0f;
     albedo.a = depthFade;
-    albedo *= ParticleTexture.SampleLevel(linear_clamp_sampler, In.TexCoord, 0); // 2d
+    albedo *= ParticleTexture.SampleLevel(linear_clamp_sampler, In.TexCoord, 0);
 	// Multiply in the particle color
     float4 color = albedo * In.Color;
+
+    return color;
 	
 	// Calculate the UV based the screen space position
     float3 n = 0;

@@ -365,6 +365,7 @@ namespace adria
 		UpdateTerrainData();
 		UpdateVoxelData();
 		CameraFrustumCulling();
+		UpdateCBuffers(dt);
 		UpdateWeather(dt);
 		UpdateOcean(dt);
 		UpdateParticles(dt);
@@ -1963,9 +1964,50 @@ namespace adria
 		}
 
 	}
+
+	void Renderer::UpdateCBuffers(f32 dt)
+	{
+		compute_cbuf_data.bokeh_blur_threshold = renderer_settings.bokeh_blur_threshold;
+		compute_cbuf_data.bokeh_lum_threshold = renderer_settings.bokeh_lum_threshold;
+		compute_cbuf_data.dof_params = XMVectorSet(renderer_settings.dof_near_blur, renderer_settings.dof_near, renderer_settings.dof_far, renderer_settings.dof_far_blur);
+		compute_cbuf_data.bokeh_radius_scale = renderer_settings.bokeh_radius_scale;
+		compute_cbuf_data.bokeh_color_scale = renderer_settings.bokeh_color_scale;
+		compute_cbuf_data.bokeh_fallout = renderer_settings.bokeh_fallout;
+
+		compute_cbuf_data.visualize_tiled = static_cast<i32>(renderer_settings.visualize_tiled);
+		compute_cbuf_data.visualize_max_lights = renderer_settings.visualize_max_lights;
+
+		compute_cbuf_data.threshold = renderer_settings.bloom_threshold;
+		compute_cbuf_data.bloom_scale = renderer_settings.bloom_scale;
+
+		std::array<f32, 9> coeffs{};
+		coeffs.fill(1.0f / 9);
+		compute_cbuf_data.gauss_coeff1 = coeffs[0];
+		compute_cbuf_data.gauss_coeff2 = coeffs[1];
+		compute_cbuf_data.gauss_coeff3 = coeffs[2];
+		compute_cbuf_data.gauss_coeff4 = coeffs[3];
+		compute_cbuf_data.gauss_coeff5 = coeffs[4];
+		compute_cbuf_data.gauss_coeff6 = coeffs[5];
+		compute_cbuf_data.gauss_coeff7 = coeffs[6];
+		compute_cbuf_data.gauss_coeff8 = coeffs[7];
+		compute_cbuf_data.gauss_coeff9 = coeffs[8];
+
+		compute_cbuf_data.ocean_choppiness = renderer_settings.ocean_choppiness;
+		compute_cbuf_data.ocean_size = 512;
+		compute_cbuf_data.resolution = RESOLUTION;
+		compute_cbuf_data.wind_direction_x = renderer_settings.wind_direction[0];
+		compute_cbuf_data.wind_direction_y = renderer_settings.wind_direction[1];
+		compute_cbuf_data.delta_time = dt;
+
+		ID3D11DeviceContext* context = gfx->Context();
+		compute_cbuffer->Update(context, compute_cbuf_data);
+	}
+
 	void Renderer::UpdateOcean(f32 dt)
 	{
 		if (reg.size<Ocean>() == 0) return;
+		ID3D11DeviceContext* context = gfx->Context();
+
 		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
 		annotation->BeginEvent(L"Ocean Update Pass");
 
@@ -1978,16 +2020,6 @@ namespace adria
 				material.diffuse = XMFLOAT3(renderer_settings.ocean_color);
 			}
 		}
-
-		compute_cbuf_data.ocean_choppiness = renderer_settings.ocean_choppiness;
-		compute_cbuf_data.ocean_size = 512;
-		compute_cbuf_data.resolution = RESOLUTION;
-		compute_cbuf_data.wind_direction_x = renderer_settings.wind_direction[0];
-		compute_cbuf_data.wind_direction_y = renderer_settings.wind_direction[1];
-		compute_cbuf_data.delta_time = dt;
-
-		ID3D11DeviceContext* context = gfx->Context();
-		compute_cbuffer->Update(context, compute_cbuf_data);
 
 		if (renderer_settings.recreate_initial_spectrum)
 		{
@@ -2192,13 +2224,6 @@ namespace adria
 			Emitter& emitter_params = emitters.get(emitter);
 			particle_system.Update(dt, emitter_params);
 		}
-		compute_cbuf_data.resolution = RESOLUTION;
-		compute_cbuf_data.wind_direction_x = renderer_settings.wind_direction[0];
-		compute_cbuf_data.wind_direction_y = renderer_settings.wind_direction[1];
-		compute_cbuf_data.delta_time = dt;
-
-		ID3D11DeviceContext* context = gfx->Context();
-		compute_cbuffer->Update(context, compute_cbuf_data);
 	}
 
 	void Renderer::UpdateLights()
@@ -2686,10 +2711,6 @@ namespace adria
 
 		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
 		annotation->BeginEvent(L"Deferred Tiled Lighting Pass");
-
-		compute_cbuf_data.visualize_tiled = static_cast<i32>(renderer_settings.visualize_tiled);
-		compute_cbuf_data.visualize_max_lights = renderer_settings.visualize_max_lights;
-		compute_cbuffer->Update(context, compute_cbuf_data);
 
 		ID3D11ShaderResourceView* shader_views[3] = { nullptr };
 		shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic].SRV();
@@ -3805,18 +3826,8 @@ namespace adria
 
 		if (renderer_settings.bokeh)
 		{
-			compute_cbuf_data.bokeh_blur_threshold = renderer_settings.bokeh_blur_threshold;
-			compute_cbuf_data.bokeh_lum_threshold = renderer_settings.bokeh_lum_threshold;
-			compute_cbuf_data.dof_params = XMVectorSet(renderer_settings.dof_near_blur, renderer_settings.dof_near, renderer_settings.dof_far, renderer_settings.dof_far_blur);
-			compute_cbuf_data.bokeh_radius_scale = renderer_settings.bokeh_radius_scale;
-			compute_cbuf_data.bokeh_color_scale = renderer_settings.bokeh_color_scale;
-			compute_cbuf_data.bokeh_fallout = renderer_settings.bokeh_fallout;
-
-			compute_cbuffer->Update(context, compute_cbuf_data);
-
 			compute_programs[EComputeShader::BokehGenerate].Bind(context);
-			
-			
+
 			ID3D11ShaderResourceView* srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 			u32 initial_count = 0;
 			context->CSSetUnorderedAccessViews(0, 1, bokeh_uav.GetAddressOf(), &initial_count);
@@ -3901,10 +3912,6 @@ namespace adria
 
 		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
 		annotation->BeginEvent(L"Bloom Pass");
-
-		compute_cbuf_data.threshold = renderer_settings.bloom_threshold;
-		compute_cbuf_data.bloom_scale = renderer_settings.bloom_scale;
-		compute_cbuffer->Update(context, compute_cbuf_data);
 
 		static ID3D11UnorderedAccessView* const null_uav[1] = { nullptr };
 		static ID3D11ShaderResourceView*  const null_srv[2] = { nullptr };
@@ -4136,20 +4143,7 @@ namespace adria
 
 	void Renderer::BlurTexture(Texture2D const& src)
 	{
-		std::array<f32, 9> gauss{};
-		gauss.fill(1.0f / 9);
-		compute_cbuf_data.gauss_coeff1 = gauss[0];
-		compute_cbuf_data.gauss_coeff2 = gauss[1];
-		compute_cbuf_data.gauss_coeff3 = gauss[2];
-		compute_cbuf_data.gauss_coeff4 = gauss[3];
-		compute_cbuf_data.gauss_coeff5 = gauss[4];
-		compute_cbuf_data.gauss_coeff6 = gauss[5];
-		compute_cbuf_data.gauss_coeff7 = gauss[6];
-		compute_cbuf_data.gauss_coeff8 = gauss[7];
-		compute_cbuf_data.gauss_coeff9 = gauss[8];
-
 		ID3D11DeviceContext* context = gfx->Context();
-		compute_cbuffer->Update(context, compute_cbuf_data);
 
 		std::array<ID3D11UnorderedAccessView*, 2> uavs{};
 		std::array<ID3D11ShaderResourceView*, 2>  srvs{};

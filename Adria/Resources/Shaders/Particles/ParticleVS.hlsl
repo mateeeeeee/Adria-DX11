@@ -57,7 +57,7 @@ PS_INPUT main( uint VertexId : SV_VertexID )
     float4 ViewSpaceCentreAndRadius = ViewSpacePositions[index];
 
     float2 offset = offsets[cornerIndex];
-    float2 uv = (offset + 1) * float2(0.25, 0.5);
+    float2 uv = (offset + 1) * float2(0.5, 0.5);
 
     float radius = ViewSpaceCentreAndRadius.w;
     float3 cameraFacingPos;

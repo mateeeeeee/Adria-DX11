@@ -233,6 +233,8 @@ namespace adria
 
 		//called in update
 		void BindGlobals();
+
+		void UpdateCBuffers(f32 dt);
 		void UpdateOcean(f32 dt);
 		void UpdateWeather(f32 dt);
 		void UpdateParticles(f32 dt);
