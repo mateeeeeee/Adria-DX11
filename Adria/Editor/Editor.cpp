@@ -166,12 +166,13 @@ namespace adria
             engine->gfx->SetBackbuffer();
             gui->Begin();
             {
+				ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
                 MenuBar();
-                auto dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
                 ListEntities();
                 TerrainSettings();
                 OceanSettings();
                 SkySettings();
+                ParticleSettings();
                 Camera();
                 Scene();
                 RendererSettings();
@@ -750,6 +751,46 @@ namespace adria
         ImGui::End();
 	}
 
+	void Editor::ParticleSettings()
+	{
+		ImGui::Begin("Particles");
+        {
+            static emitter_parameters_t params{};
+            static char NAME_BUFFER[128];
+            ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
+            params.name = std::string(NAME_BUFFER);
+			if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+			if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+			{
+				if (ImGuiFileDialog::Instance()->IsOk())
+				{
+					std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+                    params.texture_path = texture_path;
+				}
+				ImGuiFileDialog::Instance()->Close();
+			}
+            ImGui::Text(params.texture_path.c_str());
+
+			ImGui::SliderFloat3("Position", params.position, -500.0f, 500.0f);
+			ImGui::SliderFloat3("Velocity", params.velocity, -50.0f, 50.0f);
+			ImGui::SliderFloat3("Position Variance", params.position_variance, -50.0f, 50.0f);
+			ImGui::SliderFloat("Velocity Variance", &params.velocity_variance, -10.0f, 10.0f);
+			ImGui::SliderFloat("Lifespan", &params.lifespan, 0.0f, 50.0f);
+			ImGui::SliderFloat("Start Size", &params.start_size, 0.0f, 50.0f);
+			ImGui::SliderFloat("End Size", &params.end_size, 0.0f, 10.0f);
+			ImGui::SliderFloat("Mass", &params.mass, 0.0f, 10.0f);
+			ImGui::SliderFloat("Particles Per Second", &params.particles_per_second, 1.0f, 1000.0f);
+			ImGui::Checkbox("Alpha Blend", &params.blend);
+			ImGui::Checkbox("Collisions", &params.collisions);
+
+			if (ImGui::Button("Load Emitter"))
+			{
+				engine->entity_loader->LoadEmitter(params);
+			}
+        }
+		ImGui::End();
+	}
+
 	void Editor::ListEntities()
     {
         auto all_entities = engine->reg.view<Tag>();
@@ -1015,7 +1056,6 @@ namespace adria
                 }
 
                 auto skybox = engine->reg.get_if<Skybox>(selected_entity);
-
                 if (skybox)
                 {
                     if (ImGui::CollapsingHeader("Skybox"))
@@ -1041,17 +1081,65 @@ namespace adria
                 }
 
                 auto forward = engine->reg.get_if<Forward>(selected_entity);
-
                 if (forward)
                 {
                     if (ImGui::CollapsingHeader("Forward")) ImGui::Checkbox("Transparent", &forward->transparent);
                 }
 
+                auto emitter = engine->reg.get_if<Emitter>(selected_entity);
+                if (emitter)
+                {
+                    if (ImGui::CollapsingHeader("Emitter"))
+                    {
+
+                        ImGui::Text("Particle Texture");
+                        ImGui::Image(engine->renderer->GetTextureManager().GetTextureView(emitter->particle_texture),
+                            ImVec2(48.0f, 48.0f));
+
+                        ImGui::PushID(0);
+                        if (ImGui::Button("Remove")) emitter->particle_texture = INVALID_TEXTURE_HANDLE;
+                        if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+                        if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+                        {
+                            if (ImGuiFileDialog::Instance()->IsOk())
+                            {
+                                std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+                                emitter->particle_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+                            }
+                            ImGuiFileDialog::Instance()->Close();
+                        }
+                        ImGui::PopID();
+
+                        f32 pos[3] = { emitter->position.x, emitter->position.y, emitter->position.z },
+                            vel[3] = { emitter->velocity.x, emitter->velocity.y, emitter->velocity.z },
+                            pos_var[3] = { emitter->position_variance.x, emitter->position_variance.y, emitter->position_variance.z };
+
+                        ImGui::SliderFloat3("Position", pos, -500.0f, 500.0f);
+                        ImGui::SliderFloat3("Velocity", vel, -50.0f, 50.0f);
+                        ImGui::SliderFloat3("Position Variance", pos_var, -50.0f, 50.0f);
+                        emitter->position = DirectX::XMFLOAT4(pos[0], pos[1], pos[2], 1.0f);
+                        emitter->velocity = DirectX::XMFLOAT4(vel[0], vel[1], vel[2], 1.0f);
+                        emitter->position_variance = DirectX::XMFLOAT4(pos_var[0], pos_var[1], pos_var[2], 1.0f);
+
+                        ImGui::SliderFloat("Velocity Variance", &emitter->velocity_variance, -10.0f, 10.0f);
+                        ImGui::SliderFloat("Lifespan", &emitter->particle_lifespan, 0.0f, 50.0f);
+                        ImGui::SliderFloat("Start Size", &emitter->start_size, 0.0f, 50.0f);
+                        ImGui::SliderFloat("End Size", &emitter->end_size, 0.0f, 10.0f);
+                        ImGui::SliderFloat("Mass", &emitter->mass, 0.0f, 10.0f);
+                        ImGui::SliderFloat("Particles Per Second", &emitter->particles_per_second, 1.0f, 1000.0f);
+
+                        ImGui::Checkbox("Alpha Blend", &emitter->alpha_blended);
+                        ImGui::Checkbox("Collisions", &emitter->collisions_enabled);
+                        ImGui::Checkbox("Reset", &emitter->reset_emitter);
+                        ImGui::Checkbox("Pause", &emitter->pause);
+                    }
+                }
+
                 static char const* const components[] = { "Mesh", "Transform", "Material",
-               "Visibility", "Light", "Skybox", "Deferred", "Forward" };
+               "Visibility", "Light", "Skybox", "Deferred", "Forward", "Emitter"};
                 
                 static int current_component = 0;
-                const char* combo_label = components[current_component];  
+                char const* combo_label = components[current_component];
                 if (ImGui::BeginCombo("Components", combo_label, 0))
                 {
                     for (int n = 0; n < IM_ARRAYSIZE(components); n++)
@@ -1076,7 +1164,8 @@ namespace adria
                     LIGHT,
                     SKYBOX,
                     DEFERRED,
-                    FORWARD
+                    FORWARD,
+                    EMITTER
                 };
 
                 static model_parameters_t params{};
@@ -1146,13 +1235,6 @@ namespace adria
                         else
                         {
                             Log::Error("This will be removed soon");
-                            //auto& mesh = engine->reg.get<Mesh>(selected_entity);
-                            //auto& transform = engine->reg.get<Transform>(selected_entity);
-                            //
-                            //BoundingBox aabb = AABBFromVertices(mesh.vertices);
-                            //aabb.Transform(aabb, transform.current_transform);
-                            //
-                            //engine->reg.emplace<Visibility>(selected_entity, aabb, true, true);
                         }
                         break;
                     case LIGHT:
@@ -1186,6 +1268,11 @@ namespace adria
                         else 
                             engine->reg.emplace<Forward>(selected_entity, false);
                         break;
+                    case EMITTER:
+                        if(engine->reg.has<Emitter>(selected_entity))
+                            Log::Warning("Entity already has Emitter Component!\n");
+						else
+							engine->reg.emplace<Emitter>(selected_entity);
                     }
                 }
 
@@ -1610,12 +1697,12 @@ namespace adria
             ImGui::TextWrapped("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
 			static bool enable_profiling = false;
 			ImGui::Checkbox("Enable Profiling", &enable_profiling);
-            //ImGui::PushTextWrapPos();
 			if (enable_profiling)
 			{
 				ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
 				ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
 				ImGui::Checkbox("Profile Forward Pass", &profiler_settings.profile_forward_pass);
+                ImGui::Checkbox("Profile Particles Pass", &profiler_settings.profile_particles_pass);
 				ImGui::Checkbox("Profile Postprocessing", &profiler_settings.profile_postprocessing);
 				
                 engine->renderer->SetProfilerSettings(profiler_settings);

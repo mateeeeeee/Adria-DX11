@@ -1148,6 +1148,10 @@ namespace adria
 		bs_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
 		bs_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
 
+		//bs_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+		//bs_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+		//bs_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+
 		device->CreateBlendState(&bs_desc, alpha_blend.GetAddressOf());
 
 		// Clear the blend state description.
@@ -3587,6 +3591,7 @@ namespace adria
 		if (reg.size<Emitter>() == 0) return;
 
 		ID3D11DeviceContext* context = gfx->Context();
+		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
 
 		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
 		annotation->BeginEvent(L"Particles Pass");

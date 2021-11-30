@@ -105,11 +105,11 @@ namespace adria
 					ID3D11ShaderResourceView* depth_srv, 
 					ID3D11ShaderResourceView* particle_srv)
 		{
-			if (emitter_params.reset)
+			if (emitter_params.reset_emitter)
 			{
 				InitializeDeadList();
 				ResetParticles();
-				emitter_params.reset = false;
+				emitter_params.reset_emitter = false;
 			}
 			Emit(emitter_params);
 			Simulate();
@@ -286,7 +286,7 @@ namespace adria
 				emitter_cbuffer_data.EndSize = emitter_params.end_size;
 				emitter_cbuffer_data.Mass = emitter_params.mass;
 				emitter_cbuffer_data.MaxParticlesThisFrame = emitter_params.number_to_emit;
-				emitter_cbuffer_data.ParticleLifeSpan = emitter_params.particle_life_span;
+				emitter_cbuffer_data.ParticleLifeSpan = emitter_params.particle_lifespan;
 				emitter_cbuffer_data.PositionVariance = emitter_params.position_variance;
 				emitter_cbuffer_data.VelocityVariance = emitter_params.velocity_variance;
 				emitter_cbuffer.Update(context, emitter_cbuffer_data);

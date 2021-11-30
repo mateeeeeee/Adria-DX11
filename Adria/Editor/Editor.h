@@ -51,6 +51,7 @@ namespace adria
         void TerrainSettings();
         void OceanSettings();
         void SkySettings();
+        void ParticleSettings();
         void ListEntities();
         void Properties();
         void Camera();
@@ -58,6 +59,7 @@ namespace adria
         void Log();
         void RendererSettings();
         void StatsAndProfiling();
+
         void OpenMaterialFileDialog(Material* mat, EMaterialTextureType type);
 	};
 }

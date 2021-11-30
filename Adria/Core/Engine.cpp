@@ -142,20 +142,20 @@ namespace adria
 		
 		entity_loader->LoadLight(light_params);
 
-		Emitter test_emitter{};
-		test_emitter.position = DirectX::XMFLOAT4(0, 10, 0, 1);
-		test_emitter.velocity = DirectX::XMFLOAT4(0, 5, 1, 0);
-		test_emitter.position_variance = DirectX::XMFLOAT4(5, 5, 5, 1);
-		test_emitter.velocity_variance = 1.0f;
+		/*Emitter test_emitter{};
+		test_emitter.position = DirectX::XMFLOAT4(50, 10, 0, 1);
+		test_emitter.velocity = DirectX::XMFLOAT4(0, 10, 0, 0);
+		test_emitter.position_variance = DirectX::XMFLOAT4(4, 0, 4, 1);
+		test_emitter.velocity_variance = 0.6f;
 		test_emitter.number_to_emit = 0;
-		test_emitter.particle_life_span = 10.0f;
-		test_emitter.start_size = 2.0f;
-		test_emitter.end_size = 0.1f;
-		test_emitter.mass = 1.0f;
+		test_emitter.particle_lifespan = 150.0f;
+		test_emitter.start_size = 22.0f;
+		test_emitter.end_size = 5.0f;
+		test_emitter.mass = 0.0003f;
 		test_emitter.particles_per_second = 100;
-		test_emitter.particle_texture = renderer->GetTextureManager().LoadTexture("Resources/Textures/fire.png");
+		test_emitter.particle_texture = renderer->GetTextureManager().LoadTexture("Resources/Textures/atlas.dds");
 
 		tecs::entity emitter = reg.create();
-		reg.add(emitter, test_emitter);
+		reg.add(emitter, test_emitter);*/
 	}
 }

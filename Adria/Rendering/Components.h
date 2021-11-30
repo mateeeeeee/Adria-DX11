@@ -180,19 +180,22 @@ namespace adria
 	struct COMPONENT Emitter
 	{
 		TEXTURE_HANDLE		particle_texture = INVALID_TEXTURE_HANDLE;
-		DirectX::XMFLOAT4	position;
-		DirectX::XMFLOAT4	velocity;
-		DirectX::XMFLOAT4	position_variance;
-		i32					number_to_emit;
-		f32					particle_life_span;
-		f32					start_size;
-		f32					end_size;
-		f32					mass;
-		f32					velocity_variance;
-		f32					particles_per_second;
+		DirectX::XMFLOAT4	position = DirectX::XMFLOAT4(0, 0, 0, 0);
+		DirectX::XMFLOAT4	velocity = DirectX::XMFLOAT4(0, 5, 0, 0);
+		DirectX::XMFLOAT4	position_variance = DirectX::XMFLOAT4(0, 0, 0, 0);
+		i32					number_to_emit = 0;
+		f32					particle_lifespan = 5.0f;
+		f32					start_size = 10.0f;
+		f32					end_size = 1.0f;
+		f32					mass = 1.0f;
+		f32					velocity_variance = 1.0f;
+		f32					particles_per_second = 100;
 		f32					accumulation = 0.0f;
 		f32					elapsed_time = 0.0f;
-		mutable bool		reset = true;
+		mutable bool		reset_emitter = true;
+		mutable	bool		collisions_enabled = false;
+		mutable bool		alpha_blended = true;
+		mutable bool		pause = false;
 	};
 
 	struct COMPONENT Forward 

@@ -832,7 +832,7 @@ namespace adria
 		struct FoliageInstance
 		{
 			XMFLOAT3 position;
-            float rotation_y;
+            f32 rotation_y;
 		};
 
 		RealRandomGenerator<float> random_x(params.foliage_center.x - params.foliage_extents.x, params.foliage_center.x + params.foliage_extents.x);
@@ -906,6 +906,7 @@ namespace adria
 		return foliage;
 	}
 
+    [[maybe_unused]]
 	std::vector<entity> EntityLoader::LoadTrees(tree_parameters_t const& params)
 	{
 		const f32 size = params.tree_scale;
@@ -913,7 +914,7 @@ namespace adria
 		struct TreeInstance
 		{
 			XMFLOAT3 position;
-			float rotation_y;
+			f32 rotation_y;
 		};
 
 		RealRandomGenerator<float> random_x(params.tree_center.x - params.tree_extents.x, params.tree_center.x + params.tree_extents.x);
@@ -987,6 +988,30 @@ namespace adria
         }
 
 		return trees;
+	}
+
+    [[maybe_unused]]
+	entity EntityLoader::LoadEmitter(emitter_parameters_t const& params)
+	{
+		Emitter test_emitter{};
+		test_emitter.position = DirectX::XMFLOAT4(params.position[0], params.position[1], params.position[2], 1);
+		test_emitter.velocity = DirectX::XMFLOAT4(params.velocity[0], params.velocity[1], params.velocity[2], 0);
+		test_emitter.position_variance = DirectX::XMFLOAT4(params.position_variance[0], params.position_variance[1], params.position_variance[2], 1);
+        test_emitter.velocity_variance = params.velocity_variance;
+		test_emitter.number_to_emit = 0;
+		test_emitter.particle_lifespan = params.lifespan;
+		test_emitter.start_size = params.start_size;
+		test_emitter.end_size = params.end_size;
+		test_emitter.mass = params.mass;
+		test_emitter.particles_per_second = params.particles_per_second;
+		test_emitter.particle_texture = texture_manager.LoadTexture(params.texture_path);
+
+		tecs::entity emitter = reg.create();
+		reg.add(emitter, test_emitter);
+
+        reg.emplace<Tag>(emitter, params.name);
+
+        return emitter;
 	}
 
 }

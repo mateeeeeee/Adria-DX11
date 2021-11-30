@@ -2,21 +2,17 @@
 
 struct GPUParticlePartA
 {
-    float4 TintAndAlpha; // The color and opacity
-    float Rotation; // The rotation angle
-    uint IsSleeping; // Whether or not the particle is sleeping (ie, don't update position)
+    float4 TintAndAlpha;    
+    float Rotation;         
+    uint IsSleeping;        
 };
 
-// The particle buffer data. Note this is only one half of the particle data - the data that is relevant to rendering as opposed to simulation
 StructuredBuffer<GPUParticlePartA> ParticleBufferA : register(t0);
 
-// A buffer containing the pre-computed view space positions of the particles
 StructuredBuffer<float4> ViewSpacePositions : register(t1);
 
-// The sorted index list of particles
 StructuredBuffer<float2> IndexBuffer : register(t2);
 
-// The number of alive particles this frame
 cbuffer ActiveListCountCBuffer : register(b12)
 {
     uint NumActiveParticles;
@@ -35,11 +31,9 @@ PS_INPUT main( uint VertexId : SV_VertexID )
 {
     PS_INPUT Output = (PS_INPUT) 0;
 
-	// Particle index 
-    uint particleIndex = VertexId / 4;
+	uint particleIndex = VertexId / 4;
 
-	// Per-particle corner index
-    uint cornerIndex = VertexId % 4;
+	uint cornerIndex = VertexId % 4;
 
     float xOffset = 0;
 	
