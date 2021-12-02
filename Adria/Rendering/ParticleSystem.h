@@ -66,6 +66,10 @@ namespace adria
 			DirectX::XMFLOAT3 viewspace_position;
 			f32 radius;
 		};
+		struct SortDispatchInfo
+		{
+			i32 x, y, z, w;
+		};
 	public:
 		ParticleSystem(GraphicsCoreDX11* gfx) : gfx{ gfx },
 			dead_list_buffer(gfx->Device(), MAX_PARTICLES),
@@ -75,12 +79,13 @@ namespace adria
 			dead_list_count_cbuffer(gfx->Device(), false),
 			active_list_count_cbuffer(gfx->Device(), false),
 			emitter_cbuffer(gfx->Device(), true),
+			sort_dispatch_info_cbuffer(gfx->Device(), true),
 			alive_index_buffer(gfx->Device(), MAX_PARTICLES, false, true)
 		{
 			LoadShaders();
 			CreateRandomTexture();
 			CreateIndexBuffer();
-			CreateIndirectArgsBuffer();
+			CreateIndirectArgsBuffers();
 		}
 
 		void Update(f32 dt, Emitter& emitter_params)
@@ -113,6 +118,10 @@ namespace adria
 			}
 			Emit(emitter_params);
 			Simulate();
+			if (emitter_params.sort)
+			{
+				Sort();
+			}
 			Rasterize(emitter_params, depth_srv, particle_srv);
 		}
 
@@ -129,15 +138,18 @@ namespace adria
 		ConstantBuffer<u32> dead_list_count_cbuffer;
 		ConstantBuffer<u32> active_list_count_cbuffer;
 		ConstantBuffer<EmitterCBuffer> emitter_cbuffer;
+		ConstantBuffer<SortDispatchInfo> sort_dispatch_info_cbuffer;
 
-		Microsoft::WRL::ComPtr<ID3D11Buffer> indirect_args_buffer;
-		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> indirect_args_uav;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> indirect_render_args_buffer;
+		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> indirect_render_args_uav;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> indirect_sort_args_buffer;
+		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> indirect_sort_args_uav;
 		IndexBuffer index_buffer;
 
 		std::unordered_map<EComputeShader, ComputeProgram>  particle_compute_programs;
 		std::unordered_map<EShader, StandardProgram>  particle_render_programs;
-
-	private:
+	
+private:
 		void LoadShaders()
 		{
 			ID3D11Device* device = gfx->Device();
@@ -154,31 +166,65 @@ namespace adria
 
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleSimulateCS.cso", cs_blob);
 			particle_compute_programs[EComputeShader::ParticleSimulate].Create(device, cs_blob);
+			
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BitonicSortStepCS.cso", cs_blob);
+			particle_compute_programs[EComputeShader::ParticleBitonicSortStep].Create(device, cs_blob);
+
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/Sort512CS.cso", cs_blob);
+			particle_compute_programs[EComputeShader::ParticleSort512].Create(device, cs_blob);
+
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SortInner512CS.cso", cs_blob);
+			particle_compute_programs[EComputeShader::ParticleSortInner512].Create(device, cs_blob);
+
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/InitSortDispatchArgsCS.cso", cs_blob);
+			particle_compute_programs[EComputeShader::ParticleSortInitArgs].Create(device, cs_blob);
 
 			ShaderBlob vs_blob, ps_blob;
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleVS.cso", vs_blob);
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticlePS.cso", ps_blob);
 			particle_render_programs[EShader::Particles].Create(device, vs_blob, ps_blob);
 		}
-		void CreateIndirectArgsBuffer()
+		void CreateIndirectArgsBuffers()
 		{
 			ID3D11Device* device = gfx->Device();
 
-			// Create the buffer to store the indirect args for the DrawInstancedIndirect call
-			D3D11_BUFFER_DESC desc{};
-			desc.Usage = D3D11_USAGE_DEFAULT;
-			desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
-			desc.ByteWidth = 5 * sizeof(UINT);
-			desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
-			device->CreateBuffer(&desc, nullptr, &indirect_args_buffer);
+			//rendering particles
+			{
+				D3D11_BUFFER_DESC desc{};
+				desc.Usage = D3D11_USAGE_DEFAULT;
+				desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+				desc.ByteWidth = 5 * sizeof(UINT);
+				desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
+				device->CreateBuffer(&desc, nullptr, &indirect_render_args_buffer);
 
-			D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-			uav_desc.Format = DXGI_FORMAT_R32_UINT;
-			uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-			uav_desc.Buffer.FirstElement = 0;
-			uav_desc.Buffer.NumElements = 5;
-			uav_desc.Buffer.Flags = 0;
-			device->CreateUnorderedAccessView(indirect_args_buffer.Get(), &uav_desc, &indirect_args_uav);
+				D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+				uav_desc.Format = DXGI_FORMAT_R32_UINT;
+				uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+				uav_desc.Buffer.FirstElement = 0;
+				uav_desc.Buffer.NumElements = 5;
+				uav_desc.Buffer.Flags = 0;
+				device->CreateUnorderedAccessView(indirect_render_args_buffer.Get(), &uav_desc, &indirect_render_args_uav);
+			}
+
+			//sorting particles
+			{
+
+				D3D11_BUFFER_DESC desc{};
+				desc.Usage = D3D11_USAGE_DEFAULT;
+				desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
+				desc.ByteWidth = 4 * sizeof(UINT);
+				desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
+				device->CreateBuffer(&desc, nullptr, &indirect_sort_args_buffer);
+
+				D3D11_UNORDERED_ACCESS_VIEW_DESC uav{};
+				uav.Format = DXGI_FORMAT_R32_UINT;
+				uav.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+				uav.Buffer.FirstElement = 0;
+				uav.Buffer.NumElements = 4;
+				uav.Buffer.Flags = 0;
+				device->CreateUnorderedAccessView(indirect_sort_args_buffer.Get(), &uav, &indirect_sort_args_uav);
+			}
+
 		}
 		void CreateIndexBuffer()
 		{
@@ -315,7 +361,7 @@ namespace adria
 			ID3D11UnorderedAccessView* uavs[] = {
 				particle_bufferA.UAV(), particle_bufferB.UAV(),
 				dead_list_buffer.UAV(), alive_index_buffer.UAV(),
-				view_space_positions_buffer.UAV(), indirect_args_uav.Get()};
+				view_space_positions_buffer.UAV(), indirect_render_args_uav.Get()};
 			u32 initial_counts[] = { (u32)-1, (u32)-1, (u32)-1, 0, (u32)-1, (u32)-1 };
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
@@ -325,8 +371,7 @@ namespace adria
 			ZeroMemory(uavs, sizeof(uavs));
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
 		}
-		void Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv,
-			ID3D11ShaderResourceView* particle_srv)
+		void Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* particle_srv)
 		{
 			ID3D11DeviceContext* context = gfx->Context();
 
@@ -346,12 +391,91 @@ namespace adria
 			context->PSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
 
 			particle_render_programs[EShader::Particles].Bind(context);
-			context->DrawIndexedInstancedIndirect(indirect_args_buffer.Get(), 0);
+			context->DrawIndexedInstancedIndirect(indirect_render_args_buffer.Get(), 0);
 
 			ZeroMemory(vs_srvs, sizeof(vs_srvs));
 			context->VSSetShaderResources(0, ARRAYSIZE(vs_srvs), vs_srvs);
 			ZeroMemory(ps_srvs, sizeof(ps_srvs));
 			context->PSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
+		}
+		void Sort()
+		{
+			ID3D11DeviceContext* context = gfx->Context();
+
+			active_list_count_cbuffer.Bind(context, ShaderStage::CS, 11);
+			sort_dispatch_info_cbuffer.Bind(context, ShaderStage::CS, 12);
+
+			// Write the indirect args to a UAV
+			context->CSSetUnorderedAccessViews(0, 1, &indirect_sort_args_uav, nullptr);
+			particle_compute_programs[EComputeShader::ParticleSortInitArgs].Bind(context);
+			context->Dispatch(1, 1, 1);
+
+			ID3D11UnorderedAccessView* uav = alive_index_buffer.UAV();
+			context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+
+			bool done = SortInitial();
+			u32 presorted = 512;
+			while (!done)
+			{
+				done = SortIncremental(presorted);
+				presorted *= 2;
+			}
+		}
+		
+		bool SortInitial()
+		{
+			ID3D11DeviceContext* context = gfx->Context();
+
+			bool done = true;
+			UINT numThreadGroups = ((MAX_PARTICLES - 1) >> 9) + 1;
+			if (numThreadGroups > 1) done = false;
+
+			particle_compute_programs[EComputeShader::ParticleSort512].Bind(context);
+			context->DispatchIndirect(indirect_sort_args_buffer.Get(), 0);
+			return done;
+		}
+
+		bool SortIncremental(u32 presorted)
+		{
+			ID3D11DeviceContext* context = gfx->Context();
+
+			bool done = true;
+			particle_compute_programs[EComputeShader::ParticleBitonicSortStep].Bind(context);
+
+			UINT num_thread_groups = 0;
+			if (MAX_PARTICLES > presorted)
+			{
+				if (MAX_PARTICLES > presorted * 2) done = false;
+				UINT pow2 = presorted;
+				while (pow2 < MAX_PARTICLES) pow2 *= 2;
+				num_thread_groups = pow2 >> 9;
+			}
+
+			u32 merge_size = presorted * 2;
+			for (u32 merge_subsize = merge_size >> 1; merge_subsize > 256; merge_subsize = merge_subsize >> 1)
+			{
+
+				SortDispatchInfo sort_dispatch_info{};
+				sort_dispatch_info.x = merge_subsize;
+				if (merge_subsize == merge_size >> 1)
+				{
+					sort_dispatch_info.y = (2 * merge_subsize - 1);
+					sort_dispatch_info.z = -1;
+				}
+				else
+				{
+					sort_dispatch_info.y = merge_subsize;
+					sort_dispatch_info.z = 1;
+				}
+				sort_dispatch_info.w = 0;
+				sort_dispatch_info_cbuffer.Update(context, sort_dispatch_info);
+				context->Dispatch(num_thread_groups, 1, 1);
+			}
+
+			particle_compute_programs[EComputeShader::ParticleSortInner512].Bind(context);
+			context->Dispatch(num_thread_groups, 1, 1);
+
+			return done;
 		}
 	};
 }

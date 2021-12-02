@@ -782,6 +782,7 @@ namespace adria
 			ImGui::SliderFloat("Particles Per Second", &params.particles_per_second, 1.0f, 1000.0f);
 			ImGui::Checkbox("Alpha Blend", &params.blend);
 			ImGui::Checkbox("Collisions", &params.collisions);
+			ImGui::Checkbox("Sort", &params.sort);
 
 			if (ImGui::Button("Load Emitter"))
 			{

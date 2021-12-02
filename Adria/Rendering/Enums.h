@@ -104,7 +104,11 @@ namespace adria
 		ParticleInitDeadList,
 		ParticleReset,
 		ParticleEmit,
-		ParticleSimulate
+		ParticleSimulate,
+		ParticleBitonicSortStep,
+		ParticleSort512,
+		ParticleSortInner512,
+		ParticleSortInitArgs
 	};
 
 	enum class EGeometryShader : u8
