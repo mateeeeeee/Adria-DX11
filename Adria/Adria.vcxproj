@@ -244,7 +244,7 @@
     <ClInclude Include="Rendering\ConstantBuffers.h" />
     <ClInclude Include="Rendering\Enums.h" />
     <ClInclude Include="Rendering\EntityLoader.h" />
-    <ClInclude Include="Rendering\ParticleSystem.h" />
+    <ClInclude Include="Rendering\ParticleRenderer.h" />
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\SkyModel.h" />

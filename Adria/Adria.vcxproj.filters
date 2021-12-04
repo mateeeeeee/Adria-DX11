@@ -448,7 +448,7 @@
     <ClInclude Include="Rendering\Terrain.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ParticleSystem.h">
+    <ClInclude Include="Rendering\ParticleRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\AppendBuffer.h">

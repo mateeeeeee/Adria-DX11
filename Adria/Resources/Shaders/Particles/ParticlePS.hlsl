@@ -36,7 +36,7 @@ float4 main(PS_INPUT In) : SV_TARGET
 
     float4 albedo = 1.0f;
     albedo.a = depthFade;
-    In.TexCoord.x /= 2; //remove later
+    //In.TexCoord.x /= 2; //remove later
     albedo *= ParticleTexture.SampleLevel(linear_clamp_sampler, In.TexCoord, 0);
     float4 color = albedo * In.Color;
 

@@ -2,7 +2,7 @@
 #include <DirectXCollision.h>
 #include <memory>
 #include <optional>
-#include "ParticleSystem.h"
+#include "ParticleRenderer.h"
 #include "RendererSettings.h"
 #include "ConstantBuffers.h"
 #include "../tecs/Registry.h"
@@ -74,7 +74,7 @@ namespace adria
 		Profiler profiler;
 		ProfilerSettings profiler_settings;
 
-		ParticleSystem particle_system;
+		ParticleRenderer particle_system;
 		//textures
 		std::vector<Texture2D> gbuffer; 
 		Texture2D depth_target;

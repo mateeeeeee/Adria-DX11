@@ -118,7 +118,7 @@ namespace adria
 			model_parameters_t model_params{};
 			model_params.model_path = "Resources/Models/Sponza/glTF/Sponza.gltf";
 			model_params.textures_path = "Resources/Models/Sponza/glTF/";
-			model_params.model_scale = 0.5f;
+			model_params.model_scale = 0.33f;
 
 			//sun temple
 			//model_params.model_path = "Resources/Models/SunTemple/suntemple.gltf";
@@ -141,21 +141,5 @@ namespace adria
 		light_params.mesh_size = 250;
 		
 		entity_loader->LoadLight(light_params);
-
-		/*Emitter test_emitter{};
-		test_emitter.position = DirectX::XMFLOAT4(50, 10, 0, 1);
-		test_emitter.velocity = DirectX::XMFLOAT4(0, 10, 0, 0);
-		test_emitter.position_variance = DirectX::XMFLOAT4(4, 0, 4, 1);
-		test_emitter.velocity_variance = 0.6f;
-		test_emitter.number_to_emit = 0;
-		test_emitter.particle_lifespan = 150.0f;
-		test_emitter.start_size = 22.0f;
-		test_emitter.end_size = 5.0f;
-		test_emitter.mass = 0.0003f;
-		test_emitter.particles_per_second = 100;
-		test_emitter.particle_texture = renderer->GetTextureManager().LoadTexture("Resources/Textures/atlas.dds");
-
-		tecs::entity emitter = reg.create();
-		reg.add(emitter, test_emitter);*/
 	}
 }

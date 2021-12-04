@@ -129,7 +129,7 @@ namespace adria
         f32 end_size = 5.0f;
         f32 mass = 0.0003f;
         f32 particles_per_second = 100.0f;
-        std::string texture_path = "Resources/Textures/Particles/atlas.dds";
+        std::string texture_path = "Resources/Textures/Particles/fire.png";
         bool blend = true;
         bool collisions = false;
         bool sort = false;

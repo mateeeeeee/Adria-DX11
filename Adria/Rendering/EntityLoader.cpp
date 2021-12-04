@@ -1004,12 +1004,14 @@ namespace adria
 		test_emitter.end_size = params.end_size;
 		test_emitter.mass = params.mass;
 		test_emitter.particles_per_second = params.particles_per_second;
+        test_emitter.sort = params.sort;
 		test_emitter.particle_texture = texture_manager.LoadTexture(params.texture_path);
 
 		tecs::entity emitter = reg.create();
 		reg.add(emitter, test_emitter);
 
-        reg.emplace<Tag>(emitter, params.name);
+        if (params.name.empty()) reg.emplace<Tag>(emitter);
+        else reg.emplace<Tag>(emitter, params.name);
 
         return emitter;
 	}

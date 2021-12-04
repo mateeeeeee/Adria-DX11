@@ -759,7 +759,7 @@ namespace adria
             static char NAME_BUFFER[128];
             ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
             params.name = std::string(NAME_BUFFER);
-			if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+			if (ImGui::Button("Select Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
 			if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
 			{
 				if (ImGuiFileDialog::Instance()->IsOk())
@@ -1062,7 +1062,6 @@ namespace adria
                     if (ImGui::CollapsingHeader("Skybox"))
                     {
                         ImGui::Checkbox("Active", &skybox->active);
-
                         if (ImGui::Button("Change Skybox Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Skybox Texture", "Choose File", ".hdr,.dds", ".");
 
                         if (ImGuiFileDialog::Instance()->Display("Choose Skybox Texture"))
@@ -1072,12 +1071,9 @@ namespace adria
                                 std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
 
                                 skybox->cubemap_texture = engine->renderer->GetTextureManager().LoadCubeMap(ConvertToWide(texture_path));
-
                             }
-
                             ImGuiFileDialog::Instance()->Close();
                         }
-
                     }
                 }
 
@@ -1131,8 +1127,9 @@ namespace adria
 
                         ImGui::Checkbox("Alpha Blend", &emitter->alpha_blended);
                         ImGui::Checkbox("Collisions", &emitter->collisions_enabled);
-                        ImGui::Checkbox("Reset", &emitter->reset_emitter);
+						ImGui::Checkbox("Sort", &emitter->sort);
                         ImGui::Checkbox("Pause", &emitter->pause);
+                        if (ImGui::Button("Reset")) emitter->reset_emitter = true;
                     }
                 }
 

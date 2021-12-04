@@ -18,7 +18,7 @@ namespace adria
 {
 	//based on AMD GPU Particles Sample: https://github.com/GPUOpen-LibrariesAndSDKs/GPUParticles11
 
-	class ParticleSystem
+	class ParticleRenderer
 	{
 		static constexpr size_t MAX_PARTICLES = 400 * 1024;
 
@@ -71,7 +71,7 @@ namespace adria
 			i32 x, y, z, w;
 		};
 	public:
-		ParticleSystem(GraphicsCoreDX11* gfx) : gfx{ gfx },
+		ParticleRenderer(GraphicsCoreDX11* gfx) : gfx{ gfx },
 			dead_list_buffer(gfx->Device(), MAX_PARTICLES),
 			particle_bufferA(gfx->Device(), MAX_PARTICLES),
 			particle_bufferB(gfx->Device(), MAX_PARTICLES),
@@ -313,6 +313,10 @@ private:
 		void Emit(Emitter const& emitter_params)
 		{
 			ID3D11DeviceContext* context = gfx->Context();
+
+			ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
+			annotation->BeginEvent(L"Particles Emit Pass");
+
 			if (emitter_params.number_to_emit > 0)
 			{
 				particle_compute_programs[EComputeShader::ParticleEmit].Bind(context);
@@ -353,10 +357,15 @@ private:
 				particle_compute_programs[EComputeShader::ParticleEmit].Unbind(context);
 
 			}
+
+			annotation->EndEvent();
 		}
 		void Simulate()
 		{
 			ID3D11DeviceContext* context = gfx->Context();
+
+			ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
+			annotation->BeginEvent(L"Particles Simulate Pass");
 
 			ID3D11UnorderedAccessView* uavs[] = {
 				particle_bufferA.UAV(), particle_bufferB.UAV(),
@@ -370,12 +379,17 @@ private:
 
 			ZeroMemory(uavs, sizeof(uavs));
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
+
+			context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.UAV());
+			annotation->EndEvent();
 		}
 		void Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* particle_srv)
 		{
 			ID3D11DeviceContext* context = gfx->Context();
 
-			context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.UAV());
+			ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
+			annotation->BeginEvent(L"Particles Rasterize Pass");
+
 			active_list_count_cbuffer.Bind(context, ShaderStage::VS, 12);
 
 			ID3D11Buffer* vb = nullptr;
@@ -397,16 +411,21 @@ private:
 			context->VSSetShaderResources(0, ARRAYSIZE(vs_srvs), vs_srvs);
 			ZeroMemory(ps_srvs, sizeof(ps_srvs));
 			context->PSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
+
+			annotation->EndEvent();
 		}
 		void Sort()
 		{
 			ID3D11DeviceContext* context = gfx->Context();
 
+			ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
+			annotation->BeginEvent(L"Particles Sort Pass");
+
 			active_list_count_cbuffer.Bind(context, ShaderStage::CS, 11);
 			sort_dispatch_info_cbuffer.Bind(context, ShaderStage::CS, 12);
 
 			// Write the indirect args to a UAV
-			context->CSSetUnorderedAccessViews(0, 1, &indirect_sort_args_uav, nullptr);
+			context->CSSetUnorderedAccessViews(0, 1, indirect_sort_args_uav.GetAddressOf(), nullptr);
 			particle_compute_programs[EComputeShader::ParticleSortInitArgs].Bind(context);
 			context->Dispatch(1, 1, 1);
 
@@ -420,6 +439,11 @@ private:
 				done = SortIncremental(presorted);
 				presorted *= 2;
 			}
+
+			uav = nullptr;
+			context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+
+			annotation->EndEvent();
 		}
 		
 		bool SortInitial()
@@ -434,7 +458,6 @@ private:
 			context->DispatchIndirect(indirect_sort_args_buffer.Get(), 0);
 			return done;
 		}
-
 		bool SortIncremental(u32 presorted)
 		{
 			ID3D11DeviceContext* context = gfx->Context();
