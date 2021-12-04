@@ -193,6 +193,7 @@ namespace adria
 		f32					accumulation = 0.0f;
 		f32					elapsed_time = 0.0f;
 		bool				collisions_enabled = false;
+		i32					collision_thickness = 40;
 		bool				alpha_blended = true;
 		bool				pause = false;
 		bool				sort = false;

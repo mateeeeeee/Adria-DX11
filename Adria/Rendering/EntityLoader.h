@@ -132,6 +132,7 @@ namespace adria
         std::string texture_path = "Resources/Textures/Particles/fire.png";
         bool blend = true;
         bool collisions = false;
+        i32 collision_thickness = 40;
         bool sort = false;
     };
    
@@ -159,6 +160,7 @@ namespace adria
         [[maybe_unused]] std::vector<tecs::entity> LoadTrees(tree_parameters_t const&);
 
         [[maybe_unused]] tecs::entity LoadEmitter(emitter_parameters_t const&);
+
 	private:
         tecs::registry& reg;
 		TextureManager& texture_manager;

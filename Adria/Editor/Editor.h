@@ -19,7 +19,6 @@ namespace adria
 		engine_init_t engine_init;
 		std::string log_file = "";
 	};
-
 	class Editor
 	{
 	public:

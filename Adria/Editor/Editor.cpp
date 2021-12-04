@@ -25,7 +25,6 @@ namespace adria
 		MetallicRoughness,
 		Emissive
 	};
-
 	struct EditorLogger
 	{
 		ImGuiTextBuffer     Buf;
@@ -783,6 +782,7 @@ namespace adria
 			ImGui::Checkbox("Alpha Blend", &params.blend);
 			ImGui::Checkbox("Collisions", &params.collisions);
 			ImGui::Checkbox("Sort", &params.sort);
+            if (params.collisions) ImGui::SliderInt("Collision Thickness", &params.collision_thickness, 0, 40);
 
 			if (ImGui::Button("Load Emitter"))
 			{
@@ -1127,6 +1127,8 @@ namespace adria
 
                         ImGui::Checkbox("Alpha Blend", &emitter->alpha_blended);
                         ImGui::Checkbox("Collisions", &emitter->collisions_enabled);
+						if (emitter->collisions_enabled) ImGui::SliderInt("Collision Thickness", &emitter->collision_thickness, 0, 40);
+
 						ImGui::Checkbox("Sort", &emitter->sort);
                         ImGui::Checkbox("Pause", &emitter->pause);
                         if (ImGui::Button("Reset")) emitter->reset_emitter = true;
@@ -1743,5 +1745,4 @@ namespace adria
             ImGuiFileDialog::Instance()->Close();
         }
     }
-
 }

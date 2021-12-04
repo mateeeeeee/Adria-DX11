@@ -9,22 +9,6 @@ RWStructuredBuffer<GPUParticlePartB>	ParticleBufferB		: register(u1);
 ConsumeStructuredBuffer<uint>			DeadListToAllocFrom	: register(u2);
 
 
-cbuffer EmitterCBuffer : register(b13)
-{
-	float4	EmitterPosition;
-	float4	EmitterVelocity;
-	float4	PositionVariance;
-
-	int		MaxParticlesThisFrame;
-	float	ParticleLifeSpan;
-	float	StartSize;
-	float	EndSize;
-
-	float	VelocityVariance;
-	float	Mass;
-    float	elapsedTime;
-};
-
 
 
 [numthreads(1024, 1, 1)]
@@ -35,13 +19,12 @@ void main(uint3 id : SV_DispatchThreadID)
 		GPUParticlePartA pa = (GPUParticlePartA)0;
 		GPUParticlePartB pb = (GPUParticlePartB)0;
 
-		float2 uv = float2(id.x / 1024.0, elapsedTime);
+		float2 uv = float2(id.x / 1024.0, ElapsedTime);
 		float3 randomValues0 = RandomBuffer.SampleLevel(linear_wrap_sampler, uv, 0).xyz;
 
-        float2 uv2 = float2((id.x + 1) / 1024.0, elapsedTime);
+        float2 uv2 = float2((id.x + 1) / 1024.0, ElapsedTime);
         float3 randomValues1 = RandomBuffer.SampleLevel(linear_wrap_sampler, uv2, 0).xyz;
 
-		
         pa.TintAndAlpha = float4(1, 1, 1, 1);
         pa.Rotation = 0;
         pa.IsSleeping = 0;

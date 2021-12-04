@@ -55,6 +55,9 @@ namespace adria
 			f32	VelocityVariance;
 			f32	Mass;
 			f32	ElapsedTime;
+			i32 Collisions;
+
+			i32 CollisionThickness;
 		};
 		struct IndexBufferElement
 		{
@@ -117,7 +120,7 @@ namespace adria
 				emitter_params.reset_emitter = false;
 			}
 			Emit(emitter_params);
-			Simulate();
+			Simulate(depth_srv);
 			if (emitter_params.sort)
 			{
 				Sort();
@@ -339,6 +342,8 @@ private:
 				emitter_cbuffer_data.ParticleLifeSpan = emitter_params.particle_lifespan;
 				emitter_cbuffer_data.PositionVariance = emitter_params.position_variance;
 				emitter_cbuffer_data.VelocityVariance = emitter_params.velocity_variance;
+				emitter_cbuffer_data.Collisions = emitter_params.collisions_enabled;
+				emitter_cbuffer_data.CollisionThickness = emitter_params.collision_thickness;
 				emitter_cbuffer.Update(context, emitter_cbuffer_data);
 
 				dead_list_count_cbuffer.Bind(context, ShaderStage::CS, 11);
@@ -360,7 +365,7 @@ private:
 
 			annotation->EndEvent();
 		}
-		void Simulate()
+		void Simulate(ID3D11ShaderResourceView* depth_srv)
 		{
 			ID3D11DeviceContext* context = gfx->Context();
 
@@ -374,11 +379,17 @@ private:
 			u32 initial_counts[] = { (u32)-1, (u32)-1, (u32)-1, 0, (u32)-1, (u32)-1 };
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
+			ID3D11ShaderResourceView* srvs[] = { depth_srv };
+			context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
+
 			particle_compute_programs[EComputeShader::ParticleSimulate].Bind(context);
 			context->Dispatch((UINT)std::ceil(MAX_PARTICLES * 1.0f / 256 ), 1, 1);
 
 			ZeroMemory(uavs, sizeof(uavs));
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
+
+			ZeroMemory(srvs, sizeof(srvs));
+			context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
 			context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.UAV());
 			annotation->EndEvent();

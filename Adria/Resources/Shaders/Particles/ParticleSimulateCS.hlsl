@@ -1,18 +1,18 @@
 #include "ParticleGlobals.hlsli"
 
 
+
 RWStructuredBuffer<GPUParticlePartA> ParticleBufferA : register(u0);
 RWStructuredBuffer<GPUParticlePartB> ParticleBufferB : register(u1);
 
 AppendStructuredBuffer<uint> DeadListToAddTo : register(u2);
-
 RWStructuredBuffer<float2> IndexBuffer : register(u3);
-
 RWStructuredBuffer<float4> ViewSpacePositions : register(u4);
-
 RWBuffer<uint> DrawArgs : register(u5);
 
-//Texture2D DepthBuffer : register(t0); for collisions maybe later
+Texture2D DepthBuffer : register(t0);
+
+float3 CalcViewSpacePositionFromDepth(float2 normalizedScreenPosition, int2 texelOffset);
 
 [numthreads(256, 1, 1)]
 void main( uint3 id : SV_DispatchThreadID )
@@ -59,6 +59,37 @@ void main( uint3 id : SV_DispatchThreadID )
 		
 		bool killParticle = false;
 
+        if (Collisions)
+        {
+			float3 viewSpaceParticlePosition = mul(float4(NewPosition, 1), view).xyz;
+			float4 screenSpaceParticlePosition = mul(float4(NewPosition, 1), viewprojection);
+            screenSpaceParticlePosition.xyz /= screenSpaceParticlePosition.w;
+
+			if (pa.IsSleeping == 0 && screenSpaceParticlePosition.x > -1 && screenSpaceParticlePosition.x < 1 && screenSpaceParticlePosition.y > -1 && screenSpaceParticlePosition.y < 1)
+            {
+				float3 viewSpacePosOfDepthBuffer = CalcViewSpacePositionFromDepth(screenSpaceParticlePosition.xy, int2(0, 0));
+
+                if ((viewSpaceParticlePosition.z > viewSpacePosOfDepthBuffer.z) && (viewSpaceParticlePosition.z < viewSpacePosOfDepthBuffer.z + CollisionThickness)) 
+                {
+					float3 surfaceNormal;
+
+					float3 p0 = viewSpacePosOfDepthBuffer;
+                    float3 p1 = CalcViewSpacePositionFromDepth(screenSpaceParticlePosition.xy, int2(1, 0));
+                    float3 p2 = CalcViewSpacePositionFromDepth(screenSpaceParticlePosition.xy, int2(0, 1));
+
+					float3 viewSpaceNormal = normalize(cross(p2 - p0, p1 - p0));
+
+					surfaceNormal = normalize(mul(-viewSpaceNormal, inverse_view).xyz);
+
+					float3 newVelocity = reflect(pb.Velocity, surfaceNormal);
+
+					pb.Velocity = 0.3 * newVelocity;
+
+					NewPosition = pb.Position + (pb.Velocity * delta_time);
+                }
+            }
+        }
+
         if (length(pb.Velocity) < 0.01)
         {
             pa.IsSleeping = 1;
@@ -100,4 +131,27 @@ void main( uint3 id : SV_DispatchThreadID )
 
     ParticleBufferA[id.x] = pa;
     ParticleBufferB[id.x] = pb;
+}
+
+
+float3 CalcViewSpacePositionFromDepth(float2 normalizedScreenPosition, int2 texelOffset)
+{
+	normalizedScreenPosition.x += (float) texelOffset.x / (float) screen_resolution.x;
+    normalizedScreenPosition.y += (float) texelOffset.y / (float) screen_resolution.y;
+
+    float2 uv;
+	uv.x = (0.5 + normalizedScreenPosition.x * 0.5) * (float) screen_resolution.x;
+    uv.y = (1 - (0.5 + normalizedScreenPosition.y * 0.5)) * (float) screen_resolution.y;
+
+	float depth = DepthBuffer.Load(uint3(uv.x, uv.y, 0)).x;
+	
+	float4 viewSpacePosOfDepthBuffer;
+    viewSpacePosOfDepthBuffer.xy = normalizedScreenPosition.xy;
+    viewSpacePosOfDepthBuffer.z = depth;
+    viewSpacePosOfDepthBuffer.w = 1;
+
+	viewSpacePosOfDepthBuffer = mul(viewSpacePosOfDepthBuffer, inverse_projection);
+    viewSpacePosOfDepthBuffer.xyz /= viewSpacePosOfDepthBuffer.w;
+
+    return viewSpacePosOfDepthBuffer.xyz;
 }

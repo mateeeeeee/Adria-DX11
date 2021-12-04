@@ -33,3 +33,20 @@ cbuffer ActiveListCountCBuffer : register(b12)
     uint NumActiveParticles;
 };
 
+cbuffer EmitterCBuffer : register(b13)
+{
+    float4 EmitterPosition;
+    float4 EmitterVelocity;
+    float4 PositionVariance;
+
+    int MaxParticlesThisFrame;
+    float ParticleLifeSpan;
+    float StartSize;
+    float EndSize;
+
+    float VelocityVariance;
+    float Mass;
+    float ElapsedTime;
+    int   Collisions;
+    int   CollisionThickness;
+};
