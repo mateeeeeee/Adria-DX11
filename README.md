@@ -36,6 +36,7 @@ Graphics engine written in C++/DirectX11.
     - Foam
 * Procedural Terrain with Instanced Foliage and Trees
 * Hosek-Wilkie Sky Model
+* Particles
 * ImGui Editor
 * Model Loading with tinygltf
 * Profiler
