@@ -180,6 +180,7 @@
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\EntityLoader.cpp" />
+    <ClCompile Include="Rendering\ParticleRenderer.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Rendering\Terrain.cpp" />
