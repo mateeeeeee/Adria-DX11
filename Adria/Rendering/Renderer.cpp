@@ -10,6 +10,7 @@
 #include "../Core/Window.h"
 #include "../Graphics/GraphicsCoreDX11.h"
 #include "../Graphics/CommonStates.h"
+#include "../Graphics/ScopedAnnotation.h"
 #include "../Math/Constants.h"
 #include "../Graphics/DDSTextureLoader.h"
 #include "../Utilities/Timer.h"
@@ -2009,12 +2010,10 @@ namespace adria
 
 	void Renderer::UpdateOcean(f32 dt)
 	{
-		if (reg.size<Ocean>() == 0) return;
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Ocean Update Pass");
-
+		if (reg.size<Ocean>() == 0) return;
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Ocean Update Pass");
+		
 		if (renderer_settings.ocean_color_changed)
 		{
 			auto ocean_view = reg.view<Ocean, Material>();
@@ -2165,10 +2164,10 @@ namespace adria
 			context->CSSetShaderResources(0, 1, &null_srv);
 			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 		}
-		annotation->EndEvent();
 	}
 	void Renderer::UpdateWeather(f32 dt)
 	{
+		ID3D11DeviceContext* context = gfx->Context();
 
 		static f32 total_time = 0.0f;
 		total_time += dt;
@@ -2215,8 +2214,7 @@ namespace adria
 		weather_cbuf_data.H = sky_params[(size_t)ESkyParams::H];
 		weather_cbuf_data.I = sky_params[(size_t)ESkyParams::I];
 		weather_cbuf_data.Z = sky_params[(size_t)ESkyParams::Z];
-		
-		ID3D11DeviceContext* context = gfx->Context();
+
 		weather_cbuffer->Update(context, weather_cbuf_data);
 	}
 
@@ -2348,8 +2346,7 @@ namespace adria
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"GBuffer Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"GBuffer Pass");
 
 		std::vector<ID3D11ShaderResourceView*> nullSRVs(gbuffer.size() + 1, nullptr);
 		context->PSSetShaderResources(0, static_cast<u32>(nullSRVs.size()), nullSRVs.data());
@@ -2499,16 +2496,12 @@ namespace adria
 			}
 		}
 		gbuffer_pass.End(context);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassSSAO()
 	{
-		ADRIA_ASSERT(renderer_settings.ambient_occlusion == EAmbientOcclusion::SSAO);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"SSAO Pass");
+		ADRIA_ASSERT(renderer_settings.ambient_occlusion == EAmbientOcclusion::SSAO);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"SSAO Pass");
 
 		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(7, 1, srv_null);
@@ -2538,16 +2531,12 @@ namespace adria
 
 		ID3D11ShaderResourceView* blurred_ssao = blur_texture_final.SRV();
 		context->PSSetShaderResources(7, 1, &blurred_ssao);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassHBAO()
 	{
-		ADRIA_ASSERT(renderer_settings.ambient_occlusion == EAmbientOcclusion::HBAO);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"HBAO Pass");
+		ADRIA_ASSERT(renderer_settings.ambient_occlusion == EAmbientOcclusion::HBAO);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"HBAO Pass");
 
 		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(7, 1, srv_null);
@@ -2575,15 +2564,11 @@ namespace adria
 
 		ID3D11ShaderResourceView* blurred_ssao = blur_texture_final.SRV();
 		context->PSSetShaderResources(7, 1, &blurred_ssao);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassAmbient()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Ambient Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Ambient Pass");
 
 		ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic].SRV(),gbuffer[EGBufferSlot_DiffuseRoughness].SRV(), depth_target.SRV(), gbuffer[EGBufferSlot_Emissive].SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
@@ -2599,14 +2584,11 @@ namespace adria
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 		if (!ibl_textures_generated) renderer_settings.ibl = false;
-
 		bool has_ao = renderer_settings.ambient_occlusion != EAmbientOcclusion::None;
-
 		if (has_ao && renderer_settings.ibl) standard_programs[EShader::AmbientPBR_AO_IBL].Bind(context);
 		else if (has_ao && !renderer_settings.ibl) standard_programs[EShader::AmbientPBR_AO].Bind(context);
 		else if (!has_ao && renderer_settings.ibl) standard_programs[EShader::AmbientPBR_IBL].Bind(context);
 		else standard_programs[EShader::AmbientPBR].Bind(context);
-
 		context->Draw(4, 0);
 
 		ambient_pass.End(context);
@@ -2614,16 +2596,12 @@ namespace adria
 		static ID3D11ShaderResourceView* null_srv[] = { nullptr, nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
 		context->PSSetShaderResources(7, ARRAYSIZE(null_srv), null_srv);
-		
-		annotation->EndEvent();
 	}
 	void Renderer::PassDeferredLighting()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::DeferredPass, profiler_settings.profile_deferred_pass);
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Deferred Lighting Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Deferred Lighting Pass");
 
 		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
 		auto lights = reg.view<Light>();
@@ -2704,17 +2682,12 @@ namespace adria
 
 		}
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassDeferredTiledLighting()
 	{
-		ADRIA_ASSERT(renderer_settings.use_tiled_deferred);
-
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Deferred Tiled Lighting Pass");
+		ADRIA_ASSERT(renderer_settings.use_tiled_deferred);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Deferred Tiled Lighting Pass");
 
 		ID3D11ShaderResourceView* shader_views[3] = { nullptr };
 		shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic].SRV();
@@ -2746,11 +2719,8 @@ namespace adria
 		if (renderer_settings.visualize_tiled)
 		{
 			context->CSSetUnorderedAccessViews(1, 1, &null_uav, nullptr);
-
 			context->OMSetBlendState(alpha_blend.Get(), nullptr, 0xfffffff);
-
 			AddTextures(uav_target, debug_tiled_texture);
-
 			context->OMSetBlendState(nullptr, nullptr, 0xfffffff);
 		}
 		else
@@ -2795,21 +2765,15 @@ namespace adria
 			light_cbuffer->Update(context, light_cbuf_data);
 
 			PassVolumetric(light);
-
 		}
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 		lighting_pass.End(context);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassDeferredClusteredLighting()
 	{
-		ADRIA_ASSERT(renderer_settings.use_clustered_deferred);
-
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Deferred Clustered Lighting Pass");
+		ADRIA_ASSERT(renderer_settings.use_clustered_deferred);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Deferred Clustered Lighting Pass");
 
 		if (recreate_clusters)
 		{
@@ -2896,16 +2860,12 @@ namespace adria
 		}
 		lighting_pass.End(context);
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassForward()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::ForwardPass, profiler_settings.profile_forward_pass);
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Forward Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Forward Pass");
 
 		forward_pass.Begin(context); 
 		PassForwardCommon(false);
@@ -2913,16 +2873,12 @@ namespace adria
 		PassOcean();
 		PassForwardCommon(true);
 		forward_pass.End(context);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassVoxelize()
 	{
-		ADRIA_ASSERT(renderer_settings.voxel_gi);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Voxelization Pass");
+		ADRIA_ASSERT(renderer_settings.voxel_gi);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Voxelization Pass");
 
 		std::vector<LightSBuffer> _lights{};
 		auto light_view = reg.view<Light>();
@@ -3026,16 +2982,12 @@ namespace adria
 
 			context->GenerateMips(voxel_texture_second_bounce.SRV());
 		}
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassVoxelizeDebug()
 	{
-		ADRIA_ASSERT(renderer_settings.voxel_gi && renderer_settings.voxel_debug);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Voxelization Debug Pass");
+		ADRIA_ASSERT(renderer_settings.voxel_gi && renderer_settings.voxel_debug);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Voxelization Debug Pass");
 
 		voxel_debug_pass.Begin(context);
 		{
@@ -3053,16 +3005,12 @@ namespace adria
 			context->VSSetShaderResources(9, 1, &null_srv);
 		}
 		voxel_debug_pass.End(context);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassVoxelGI()
 	{
-		ADRIA_ASSERT(renderer_settings.voxel_gi);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Voxel GI Pass");
+		ADRIA_ASSERT(renderer_settings.voxel_gi);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Voxel GI Pass");
 
 		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
 		lighting_pass.Begin(context);
@@ -3071,7 +3019,6 @@ namespace adria
 			shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic].SRV();
 			shader_views[1] = depth_target.SRV();
 			shader_views[2] = renderer_settings.voxel_second_bounce ? voxel_texture_second_bounce.SRV() : voxel_texture.SRV();
-
 			context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 
 			context->IASetInputLayout(nullptr);
@@ -3085,25 +3032,19 @@ namespace adria
 		}
 		lighting_pass.End(context);
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassPostprocessing()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::Postprocessing, profiler_settings.profile_postprocessing);
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Postprocessing Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Postprocessing Pass");
 
 		PassVelocityBuffer();
 
 		auto lights = reg.view<Light>();
 
-		postprocess_passes[postprocess_index].Begin(context); //set ping as rt
-
+		postprocess_passes[postprocess_index].Begin(context); 
 		CopyTexture(hdr_render_target);
-		
 		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
 		for (entity light : lights)
 		{
@@ -3115,7 +3056,6 @@ namespace adria
 
 		postprocess_passes[postprocess_index].End(context); 
 		postprocess_index = !postprocess_index;
-
 
 		if (renderer_settings.dof)
 		{
@@ -3191,9 +3131,7 @@ namespace adria
 					context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 					postprocess_passes[!postprocess_index].End(context);
 				}
-
 			}
-
 		}
 
 		if (renderer_settings.anti_aliasing & EAntiAliasing_TAA)
@@ -3203,23 +3141,18 @@ namespace adria
 			postprocess_passes[postprocess_index].End(context);
 			postprocess_index = !postprocess_index;
 
-			//copy hdr for next frame, todo: improve by using two hdr targets 
 			auto rtv = prev_hdr_render_target.RTV();
 			context->OMSetRenderTargets(1, &rtv, nullptr);
 			CopyTexture(postprocess_textures[!postprocess_index]);
 			context->OMSetRenderTargets(0, nullptr, nullptr);
 		}
-
-		annotation->EndEvent();
 	}
 
 	void Renderer::PassShadowMapDirectional(Light const& light)
 	{
-		ADRIA_ASSERT(light.type == ELightType::Directional);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Directional Shadow Map Pass");
+		ADRIA_ASSERT(light.type == ELightType::Directional);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Directional Shadow Map Pass");
 
 		auto const& [V, P] = scene_bounding_sphere ? LightViewProjection_Directional(light, *scene_bounding_sphere, light_bounding_box)
 			: LightViewProjection_Directional(light, *camera, light_bounding_box);
@@ -3242,16 +3175,12 @@ namespace adria
 		shadow_map_pass.End(context);
 		ID3D11ShaderResourceView* shadow_depth_srv[1] = { shadow_depth_map.SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, shadow_depth_srv);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassShadowMapSpot(Light const& light)
 	{
-		ADRIA_ASSERT(light.type == ELightType::Spot);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Spot Shadow Map Pass");
+		ADRIA_ASSERT(light.type == ELightType::Spot);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Spot Shadow Map Pass");
 
 		auto const& [V, P] = LightViewProjection_Spot(light, light_bounding_frustum);
 		shadow_cbuf_data.lightview = V;
@@ -3273,16 +3202,12 @@ namespace adria
 		shadow_map_pass.End(context);
 		ID3D11ShaderResourceView* shadow_depth_srv[1] = { shadow_depth_map.SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, shadow_depth_srv);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassShadowMapPoint(Light const& light)
 	{
-		ADRIA_ASSERT(light.type == ELightType::Point);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Point Shadow Map Pass");
+		ADRIA_ASSERT(light.type == ELightType::Point);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Point Shadow Map Pass");
 
 		for (u32 i = 0; i < shadow_cubemap_pass.size(); ++i)
 		{
@@ -3306,16 +3231,12 @@ namespace adria
 
 		ID3D11ShaderResourceView* srv[] = { shadow_depth_cubemap.SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWCUBE, 1, srv);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassShadowMapCascades(Light const& light)
 	{
-		ADRIA_ASSERT(light.type == ELightType::Directional);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Cascades Shadow Map Pass");
+		ADRIA_ASSERT(light.type == ELightType::Directional);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Cascades Shadow Map Pass");
 
 		std::array<f32, CASCADE_COUNT> split_distances;
 		std::array<XMMATRIX, CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, renderer_settings.split_lambda, split_distances);
@@ -3355,8 +3276,6 @@ namespace adria
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
 		shadow_cbuf_data.visualize = static_cast<int>(false);
 		shadow_cbuffer->Update(context, shadow_cbuf_data);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassShadowMapCommon()
 	{
@@ -3434,17 +3353,15 @@ namespace adria
 
 	void Renderer::PassVolumetric(Light const& light)
 	{
-		ADRIA_ASSERT(light.volumetric);
+		ID3D11DeviceContext* context = gfx->Context();
 		if (light.type == ELightType::Directional && !light.casts_shadows)
 		{
 			Log::Warning("Volumetric Directional Light \
 				that does not cast shadows does not make sense!\n");
 			return;
 		}
-		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Volumetric Lighting Pass");
+		ADRIA_ASSERT(light.volumetric);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Volumetric Lighting Pass");
 
 		ID3D11ShaderResourceView* srv[] = { depth_target.SRV() };
 		context->PSSetShaderResources(2, 1, srv);
@@ -3471,15 +3388,11 @@ namespace adria
 
 		static ID3D11ShaderResourceView* null_srv = nullptr;
 		context->PSSetShaderResources(2, 1, &null_srv);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassSky()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Sky Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Sky Pass");
 
 		object_cbuf_data.model = XMMatrixTranslationFromVector(camera->Position());
 		object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
@@ -3519,17 +3432,13 @@ namespace adria
 
 		context->OMSetDepthStencilState(nullptr, 0);
 		context->RSSetState(nullptr);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassOcean()
 	{
 		if (reg.size<Ocean>() == 0) return;
 
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Ocean Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Ocean Pass");
 
 		if (renderer_settings.ocean_wireframe) context->RSSetState(wireframe.Get());
 		context->OMSetBlendState(alpha_blend.Get(), nullptr, 0xffffffff);
@@ -3583,18 +3492,13 @@ namespace adria
 
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 		if (renderer_settings.ocean_wireframe) context->RSSetState(nullptr);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassParticles()
 	{
-		if (reg.size<Emitter>() == 0) return;
-
 		ID3D11DeviceContext* context = gfx->Context();
+		if (reg.size<Emitter>() == 0) return;
 		DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Particles Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Pass");
 
 		particle_pass.Begin(context);
 		context->OMSetBlendState(alpha_blend.Get(), nullptr, 0xffffffff);
@@ -3608,8 +3512,6 @@ namespace adria
 
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 		particle_pass.End(context);
-
-		annotation->EndEvent();
 	}
 
 	void Renderer::PassForwardCommon(bool transparent)
@@ -3659,12 +3561,10 @@ namespace adria
 
 	void Renderer::PassLensFlare(Light const& light)
 	{
-		ADRIA_ASSERT(light.lens_flare);
 		ID3D11DeviceContext* context = gfx->Context();
+		ADRIA_ASSERT(light.lens_flare);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Lens Flare Pass");
 
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Lens Flare Pass");
-		
 		if (light.type != ELightType::Directional) Log::Warning("Using Lens Flare on a Non-Directional Light Source\n");
 
 		{
@@ -3695,16 +3595,12 @@ namespace adria
 			context->GSSetShaderResources(0, static_cast<u32>(lens_null_array.size()), lens_null_array.data());
 			context->PSSetShaderResources(0, static_cast<u32>(lens_null_array.size()), lens_null_array.data());
 		}
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassVolumetricClouds()
 	{
-		ADRIA_ASSERT(renderer_settings.clouds);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Volumetric Clouds Pass");
+		ADRIA_ASSERT(renderer_settings.clouds);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Volumetric Clouds Pass");
 
 		ID3D11ShaderResourceView* const srv_array[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target.SRV()};
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
@@ -3722,51 +3618,35 @@ namespace adria
 		postprocess_passes[postprocess_index].Begin(context);
 
 		BlurTexture(postprocess_textures[!postprocess_index]);
-
 		context->OMSetBlendState(alpha_blend.Get(), nullptr, 0xfffffff);
-
 		CopyTexture(blur_texture_final);
-
 		context->OMSetBlendState(nullptr, nullptr, 0xfffffff);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassSSR()
 	{
-		ADRIA_ASSERT(renderer_settings.ssr);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"SSR Pass");
+		ADRIA_ASSERT(renderer_settings.ssr);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"SSR Pass");
 
 		postprocess_cbuf_data.ssr_ray_hit_threshold = renderer_settings.ssr_ray_hit_threshold;
 		postprocess_cbuf_data.ssr_ray_step = renderer_settings.ssr_ray_step;
-
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
 		ID3D11ShaderResourceView* srv_array[] = { gbuffer[EGBufferSlot_NormalMetallic].SRV(), postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
-
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-
 		context->IASetInputLayout(nullptr);
 
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		standard_programs[EShader::SSR].Bind(context);
 		context->Draw(4, 0);
-
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };
-
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassGodRays(Light const& light)
 	{
-		ADRIA_ASSERT(light.god_rays);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"God Rays Pass");
+		ADRIA_ASSERT(light.god_rays);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"God Rays Pass");
 
 		if (light.type != ELightType::Directional)
 		{
@@ -3818,16 +3698,12 @@ namespace adria
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 		}
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassDepthOfField()
 	{
-		ADRIA_ASSERT(renderer_settings.dof);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Depth of Field Pass");
+		ADRIA_ASSERT(renderer_settings.dof);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Depth of Field Pass");
 
 		if (renderer_settings.bokeh)
 		{
@@ -3907,16 +3783,12 @@ namespace adria
 
 			geometry_programs[EGeometryShader::BokehDraw].Unbind(context);
 		}
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassBloom()
 	{
-		ADRIA_ASSERT(renderer_settings.bloom);
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Bloom Pass");
+		ADRIA_ASSERT(renderer_settings.bloom);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Bloom Pass");
 
 		static ID3D11UnorderedAccessView* const null_uav[1] = { nullptr };
 		static ID3D11ShaderResourceView*  const null_srv[2] = { nullptr };
@@ -3946,16 +3818,12 @@ namespace adria
 
 		context->CSSetShaderResources(0, 2, null_srv);
 		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassVelocityBuffer()
 	{
-		if (!renderer_settings.motion_blur && !(renderer_settings.anti_aliasing & EAntiAliasing_TAA)) return;
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Velocity Buffer Pass");
+		if (!renderer_settings.motion_blur && !(renderer_settings.anti_aliasing & EAntiAliasing_TAA)) return;
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Velocity Buffer Pass");
 
 		postprocess_cbuf_data.velocity_buffer_scale = renderer_settings.velocity_buffer_scale;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
@@ -3977,16 +3845,13 @@ namespace adria
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 		}
 		velocity_buffer_pass.End(context);
-
-		annotation->EndEvent();
 	}
 
 	void Renderer::PassMotionBlur()
 	{
-		ADRIA_ASSERT(renderer_settings.motion_blur);
 		ID3D11DeviceContext* context = gfx->Context();
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Motion Blur Pass");
+		ADRIA_ASSERT(renderer_settings.motion_blur);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Motion Blur Pass");
 
 		ID3D11ShaderResourceView* const srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), velocity_buffer.SRV() };
 		static ID3D11ShaderResourceView* const srv_null[2] = { nullptr, nullptr };
@@ -3999,15 +3864,12 @@ namespace adria
 		standard_programs[EShader::MotionBlur].Bind(context);
 		context->Draw(4, 0);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassFog()
 	{
-		ADRIA_ASSERT(renderer_settings.fog);
 		ID3D11DeviceContext* context = gfx->Context();
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Fog Pass");
+		ADRIA_ASSERT(renderer_settings.fog);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Fog Pass");
 
 		postprocess_cbuf_data.fog_falloff = renderer_settings.fog_falloff;
 		postprocess_cbuf_data.fog_density = renderer_settings.fog_density;
@@ -4026,16 +3888,13 @@ namespace adria
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
-
-		annotation->EndEvent();
 	}
 
 	void Renderer::PassToneMap()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Tone Map Pass");
-
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Tone Map Pass");
+		
 		postprocess_cbuf_data.tone_map_exposure = renderer_settings.tone_map_exposure;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
@@ -4063,52 +3922,43 @@ namespace adria
 
 		context->Draw(4, 0);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
-
-		annotation->EndEvent();
 	}
 	void Renderer::PassFXAA()
 	{
-		ADRIA_ASSERT(renderer_settings.anti_aliasing & EAntiAliasing_FXAA);
 		ID3D11DeviceContext* context = gfx->Context();
+		ADRIA_ASSERT(renderer_settings.anti_aliasing & EAntiAliasing_FXAA);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"FXAA Pass");
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
-
 		ID3D11ShaderResourceView* srv_array[1] = { fxaa_texture.SRV() };
-
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		standard_programs[EShader::FXAA].Bind(context);
-
 		context->Draw(4, 0);
-
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
 	void Renderer::PassTAA()
 	{
-		ADRIA_ASSERT(renderer_settings.anti_aliasing & EAntiAliasing_TAA);
 		ID3D11DeviceContext* context = gfx->Context();
+		ADRIA_ASSERT(renderer_settings.anti_aliasing & EAntiAliasing_TAA);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"TAA Pass");
 		
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };
 		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index].SRV(), prev_hdr_render_target.SRV(), velocity_buffer.SRV() };
 		
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-		
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		standard_programs[EShader::TAA].Bind(context);
-		
 		context->Draw(4, 0);
-		
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
 
 	void Renderer::DrawSun(entity sun)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Sun Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Sun Pass");
 
 		ID3D11RenderTargetView* rtv = sun_target.RTV();
 		ID3D11DepthStencilView* dsv = depth_target.DSV();
@@ -4142,8 +3992,6 @@ namespace adria
 		}
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 		context->OMSetRenderTargets(0, nullptr, nullptr);
-
-		annotation->EndEvent();
 	}
 
 	void Renderer::BlurTexture(Texture2D const& src)
@@ -4199,38 +4047,26 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 
 		ID3D11ShaderResourceView* srv[] = { src.SRV() };
-
 		context->PSSetShaderResources(0, 1, srv);
-
 		context->IASetInputLayout(nullptr);
-
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		standard_programs[EShader::Copy].Bind(context);
 		context->Draw(4, 0);
-
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
-
 		context->PSSetShaderResources(0, 1, srv_null);
-
 	}
 	void Renderer::AddTextures(Texture2D const& src1, Texture2D const& src2)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
 		ID3D11ShaderResourceView* srv[] = { src1.SRV(), src2.SRV() };
-
 		context->PSSetShaderResources(0, ARRAYSIZE(srv), srv);
-
 		context->IASetInputLayout(nullptr);
-
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 		standard_programs[EShader::Add].Bind(context);
 		context->Draw(4, 0);
-
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
-
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
-
 	}
 
 	void Renderer::ResolveCustomRenderState(RenderState const& state, bool reset)
@@ -4264,7 +4100,6 @@ namespace adria
 				break;
 			}
 		}
-
 	}
 
 }

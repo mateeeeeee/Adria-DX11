@@ -221,6 +221,7 @@
     <ClInclude Include="Graphics\Profiler.h" />
     <ClInclude Include="Graphics\ProfilerSettings.h" />
     <ClInclude Include="Graphics\RenderPass.h" />
+    <ClInclude Include="Graphics\ScopedAnnotation.h" />
     <ClInclude Include="Graphics\ShaderProgram.h" />
     <ClInclude Include="Graphics\ShaderUtility.h" />
     <ClInclude Include="Graphics\StructuredBuffer.h" />

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <random>
 #include <cmath>
 #include <type_traits>

@@ -1,3 +1,5 @@
+#include "../Utilities/Random.h"
+#include "../Graphics/ScopedAnnotation.h"
 #include "ParticleRenderer.h"
 
 namespace adria
@@ -25,7 +27,6 @@ namespace adria
 		if (emitter_params.particles_per_second > 0.0f)
 		{
 			emitter_params.accumulation += emitter_params.particles_per_second * dt;
-
 			if (emitter_params.accumulation > 1.0f)
 			{
 				f64 integer_part = 0.0;
@@ -221,9 +222,7 @@ namespace adria
 	void ParticleRenderer::Emit(Emitter const& emitter_params)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Particles Emit Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Emit Pass");
 
 		if (emitter_params.number_to_emit > 0)
 		{
@@ -265,18 +264,13 @@ namespace adria
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
 
 			particle_compute_programs[EComputeShader::ParticleEmit].Unbind(context);
-
 		}
-
-		annotation->EndEvent();
 	}
 
 	void ParticleRenderer::Simulate(ID3D11ShaderResourceView* depth_srv)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Particles Simulate Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Simulate Pass");
 
 		ID3D11UnorderedAccessView* uavs[] = {
 			particle_bufferA.UAV(), particle_bufferB.UAV(),
@@ -298,15 +292,12 @@ namespace adria
 		context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
 		context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.UAV());
-		annotation->EndEvent();
 	}
 
 	void ParticleRenderer::Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* particle_srv)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Particles Rasterize Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Rasterize Pass");
 
 		active_list_count_cbuffer.Bind(context, ShaderStage::VS, 12);
 
@@ -329,16 +320,12 @@ namespace adria
 		context->VSSetShaderResources(0, ARRAYSIZE(vs_srvs), vs_srvs);
 		ZeroMemory(ps_srvs, sizeof(ps_srvs));
 		context->PSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
-
-		annotation->EndEvent();
 	}
 
 	void ParticleRenderer::Sort()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-
-		ID3DUserDefinedAnnotation* annotation = gfx->Annotation();
-		annotation->BeginEvent(L"Particles Sort Pass");
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Sort Pass");
 
 		active_list_count_cbuffer.Bind(context, ShaderStage::CS, 11);
 		sort_dispatch_info_cbuffer.Bind(context, ShaderStage::CS, 12);
@@ -361,8 +348,6 @@ namespace adria
 
 		uav = nullptr;
 		context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
-
-		annotation->EndEvent();
 	}
 
 	bool ParticleRenderer::SortInitial()
