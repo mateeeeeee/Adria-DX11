@@ -993,27 +993,27 @@ namespace adria
     [[maybe_unused]]
 	entity EntityLoader::LoadEmitter(emitter_parameters_t const& params)
 	{
-		Emitter test_emitter{};
-		test_emitter.position = DirectX::XMFLOAT4(params.position[0], params.position[1], params.position[2], 1);
-		test_emitter.velocity = DirectX::XMFLOAT4(params.velocity[0], params.velocity[1], params.velocity[2], 0);
-		test_emitter.position_variance = DirectX::XMFLOAT4(params.position_variance[0], params.position_variance[1], params.position_variance[2], 1);
-        test_emitter.velocity_variance = params.velocity_variance;
-		test_emitter.number_to_emit = 0;
-		test_emitter.particle_lifespan = params.lifespan;
-		test_emitter.start_size = params.start_size;
-		test_emitter.end_size = params.end_size;
-		test_emitter.mass = params.mass;
-		test_emitter.particles_per_second = params.particles_per_second;
-        test_emitter.sort = params.sort;
-		test_emitter.particle_texture = texture_manager.LoadTexture(params.texture_path);
+		Emitter emitter{};
+		emitter.position = DirectX::XMFLOAT4(params.position[0], params.position[1], params.position[2], 1);
+		emitter.velocity = DirectX::XMFLOAT4(params.velocity[0], params.velocity[1], params.velocity[2], 0);
+		emitter.position_variance = DirectX::XMFLOAT4(params.position_variance[0], params.position_variance[1], params.position_variance[2], 1);
+        emitter.velocity_variance = params.velocity_variance;
+		emitter.number_to_emit = 0;
+		emitter.particle_lifespan = params.lifespan;
+		emitter.start_size = params.start_size;
+		emitter.end_size = params.end_size;
+		emitter.mass = params.mass;
+		emitter.particles_per_second = params.particles_per_second;
+        emitter.sort = params.sort;
+		emitter.particle_texture = texture_manager.LoadTexture(params.texture_path);
 
-		tecs::entity emitter = reg.create();
-		reg.add(emitter, test_emitter);
+		tecs::entity emitter_entity = reg.create();
+		reg.add(emitter_entity, emitter);
 
-        if (params.name.empty()) reg.emplace<Tag>(emitter);
-        else reg.emplace<Tag>(emitter, params.name);
+        if (params.name.empty()) reg.emplace<Tag>(emitter_entity);
+        else reg.emplace<Tag>(emitter_entity, params.name);
 
-        return emitter;
+        return emitter_entity;
 	}
 
 }

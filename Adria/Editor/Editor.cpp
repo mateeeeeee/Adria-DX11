@@ -1416,8 +1416,7 @@ namespace adria
     }
 
     void Editor::RendererSettings()
-    {
-        
+    {  
         ImGui::Begin("Renderer Settings");
         {
             if (ImGui::TreeNode("Deferred Settings"))
