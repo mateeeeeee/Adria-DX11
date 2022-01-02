@@ -1768,6 +1768,8 @@ namespace adria
 			ImGui::Checkbox("Enable Profiling", &enable_profiling);
 			if (enable_profiling)
 			{
+                static bool log_results = false;
+                ImGui::Checkbox("Log Results", &log_results);
 				ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
 				ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
 				ImGui::Checkbox("Profile Forward Pass", &profiler_settings.profile_forward_pass);
@@ -1776,7 +1778,7 @@ namespace adria
 				
                 engine->renderer->SetProfilerSettings(profiler_settings);
 
-				std::vector<std::string> results = engine->renderer->GetProfilerResults();
+				std::vector<std::string> results = engine->renderer->GetProfilerResults(log_results);
 				std::string concatenated_results;
 				for (auto const& result : results) concatenated_results += result;
 				ImGui::TextWrapped(concatenated_results.c_str());
