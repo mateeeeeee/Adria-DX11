@@ -95,7 +95,7 @@ namespace adria
 					FLOAT time_ms = (end_ts - begin_ts) * 1000.0f / disjoint_ts.Frequency;
 
 					std::string time_ms_string = std::to_string(time_ms);
-					std::string result = ToString(block) + " time: " + time_ms_string + "ms\n";
+					std::string result = ToString(block) + " time: " + time_ms_string + "ms";
 
 					results.push_back(result);
 					if (log_results)
