@@ -69,14 +69,14 @@ namespace adria
 			{
 				while (context->GetData(query.disjoint_query.Get(), NULL, 0, 0) == S_FALSE)
 				{
-					Log::Info("Waiting for disjoint timestamp of " + ToString(block) + " in frame " + std::to_string(current_frame) + "\n");
+					ADRIA_LOG(INFO, "Waiting for disjoint timestamp of %s in frame %llu", ToString(block).c_str(), current_frame);
 					std::this_thread::sleep_for(std::chrono::nanoseconds(500));
 				}
 
 				hr = context->GetData(query.disjoint_query.Get(), &disjoint_ts, sizeof(D3D11_QUERY_DATA_TIMESTAMP_DISJOINT), 0);
 				if (disjoint_ts.Disjoint)
 				{
-					Log::Warning("Disjoint Timestamp Flag in " + ToString(block) + "!\n");
+					ADRIA_LOG(WARNING, "Disjoint Timestamp Flag in %s!", ToString(block).c_str());
 				}
 				else
 				{
@@ -87,7 +87,7 @@ namespace adria
 
 					while (context->GetData(query.timestamp_query_end.Get(), NULL, 0, 0) == S_FALSE)
 					{
-						Log::Info("Waiting for frame end timestamp in frame " + std::to_string(current_frame) + "\n");
+						ADRIA_LOG(INFO, "Waiting for frame end timestamp of %s in frame %llu", ToString(block).c_str(), current_frame);
 						std::this_thread::sleep_for(std::chrono::nanoseconds(500));
 					}
 					hr = context->GetData(query.timestamp_query_end.Get(), &end_ts, sizeof(UINT64), 0);
@@ -98,7 +98,10 @@ namespace adria
 					std::string result = ToString(block) + " time: " + time_ms_string + "ms\n";
 
 					results.push_back(result);
-					if (log_results) Log::Info(result);
+					if (log_results)
+					{
+						ADRIA_LOG(INFO, result.c_str());
+					}
 				}
 			}
 			query.begin_called = false;

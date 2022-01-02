@@ -3356,8 +3356,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		if (light.type == ELightType::Directional && !light.casts_shadows)
 		{
-			Log::Warning("Volumetric Directional Light \
-				that does not cast shadows does not make sense!\n");
+			ADRIA_LOG(WARNING, "Volumetric Directional Light that does not cast shadows does not make sense!");
 			return;
 		}
 		ADRIA_ASSERT(light.volumetric);
@@ -3565,7 +3564,10 @@ namespace adria
 		ADRIA_ASSERT(light.lens_flare);
 		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Lens Flare Pass");
 
-		if (light.type != ELightType::Directional) Log::Warning("Using Lens Flare on a Non-Directional Light Source\n");
+		if (light.type != ELightType::Directional) 
+		{
+			ADRIA_LOG(WARNING, "Using Lens Flare on a Non-Directional Light Source");
+		}
 
 		{
 			XMVECTOR light_pos_h = XMVector4Transform(light.position, camera->ViewProj());
@@ -3650,10 +3652,9 @@ namespace adria
 
 		if (light.type != ELightType::Directional)
 		{
-			Log::Warning("Using God Rays on a Non-Directional Light Source\n");
+			ADRIA_LOG(WARNING, "Using God Rays on a Non-Directional Light Source");
 			return;
 		}
-
 		{
 			light_cbuf_data.godrays_decay = light.godrays_decay;
 			light_cbuf_data.godrays_weight = light.godrays_weight;

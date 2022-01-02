@@ -25,14 +25,15 @@ namespace adria
 		MetallicRoughness,
 		Emissive
 	};
-	struct EditorLogger
+
+	struct ImGuiLogger
 	{
 		ImGuiTextBuffer     Buf;
 		ImGuiTextFilter     Filter;
 		ImVector<int>       LineOffsets;
 		bool                AutoScroll;
 
-		EditorLogger()
+		ImGuiLogger()
 		{
 			AutoScroll = true;
 			Clear();
@@ -65,14 +66,12 @@ namespace adria
 				return;
 			}
 
-			// Options menu
 			if (ImGui::BeginPopup("Options"))
 			{
 				ImGui::Checkbox("Auto-scroll", &AutoScroll);
 				ImGui::EndPopup();
 			}
 
-			// Main window
 			if (ImGui::Button("Options"))
 				ImGui::OpenPopup("Options");
 			ImGui::SameLine();
@@ -128,24 +127,34 @@ namespace adria
 		}
 	};
 
-    /////////////////////////////////////////////////////////////////////////
-    /////////////////////////////// PUBLIC //////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////
-
-    Editor::Editor(editor_init_t const& init) : engine(), editor_log(new EditorLogger{})
+    class EditorLogger : public ILogger
     {
-        Log::Initialize(init.log_file);
-        Log::AddLogCallback([this](std::string const& s) { editor_log->AddLog(s.c_str()); });
+    public:
+        EditorLogger(ImGuiLogger* logger, ELogLevel logger_level = ELogLevel::LOG_DEBUG) : logger{ logger }, logger_level{ logger_level } {}
 
+        virtual void Log(ELogLevel level, char const* entry, char const* file, uint32_t line) override
+        {
+			if (level < logger_level) return;
+			std::string log_entry = GetLogTime() + LevelToString(level) + std::string(entry) + "\n";
+            if (logger) logger->AddLog(log_entry.c_str());
+        }
+    private:
+        ImGuiLogger* logger;
+        ELogLevel logger_level;
+    };
+
+
+    Editor::Editor(editor_init_t const& init) : engine(), editor_log(new ImGuiLogger{})
+    {
         engine = std::make_unique<Engine>(init.engine_init);
         gui = std::make_unique<GUI>(engine->gfx.get());
+        ADRIA_REGISTER_LOGGER(new EditorLogger(editor_log.get()));
 
         SetStyle();
     }
 
     Editor::~Editor()
     {
-        Log::Destroy();
     }
 
 	void Editor::HandleWindowMessage(window_message_t const& msg_data)
@@ -188,10 +197,6 @@ namespace adria
             engine->Present();
         }
     }
-
-    /////////////////////////////////////////////////////////////////////////
-    /////////////////////////////// PRIVATE /////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////
 
     void Editor::SetStyle()
     {
@@ -1200,18 +1205,26 @@ namespace adria
                     {
                     case MESH:
                         if (engine->reg.has<Mesh>(selected_entity))
-                            Log::Warning("Entity already has Mesh Component!\n");
-                        else 
-                            Log::Warning("Not supported for now!\n");
+                        {
+                            ADRIA_LOG(WARNING, "Entity already has Mesh Component!");
+                        }
+                        else
+                        {
+                            ADRIA_LOG(WARNING, "Not supported for now!");
+                        }
                         break;
                     case TRANSFORM:
                         if (engine->reg.has<Transform>(selected_entity))
-                            Log::Warning("Entity already has Transform Component!\n");
+                        {
+                            ADRIA_LOG(WARNING, "Entity already has Transform Component!");
+                        }
                         else engine->reg.emplace<Transform>(selected_entity);
                         break;
                     case MATERIAL:
                         if (engine->reg.has<Material>(selected_entity))
-                            Log::Warning("Entity already has Material Component!\n");
+                        {
+                            ADRIA_LOG(WARNING, "Entity already has Material Component!");
+                        }
                         else
                         {
                             Material mat{};
@@ -1223,19 +1236,19 @@ namespace adria
                         break;
                     case VISIBILITY:
                         if (engine->reg.has<Visibility>(selected_entity))
-                            Log::Warning("Entity already has Visibility Component!\n");
+						{
+							ADRIA_LOG(WARNING, "Entity already has Visibility Component!");
+						}
                         else if (!engine->reg.has<Mesh>(selected_entity) || !engine->reg.has<Transform>(selected_entity))
                         {
-                            Log::Warning("Entity has to have Mesh and Transform Component before adding Visibility!\n");
-                        }
-                        else
-                        {
-                            Log::Error("This will be removed soon");
+                            ADRIA_LOG(WARNING, "Entity has to have Mesh and Transform Component before adding Visibility!");
                         }
                         break;
                     case LIGHT:
                         if (engine->reg.has<Light>(selected_entity))
-                            Log::Warning("Entity already has Light Component!\n");
+						{
+							ADRIA_LOG(WARNING, "Entity already has Light Component!");
+						}
                         else
                         {
                             Light light{};
@@ -1245,30 +1258,51 @@ namespace adria
                         break;
                     case SKYBOX:
                         if (engine->reg.has<Skybox>(selected_entity))
-                            Log::Warning("Entity already has Skybox Component!\n");
-                        else  engine->reg.emplace<Skybox>(selected_entity);
+						{
+							ADRIA_LOG(WARNING, "Entity already has Skybox Component!");
+						}
+                        else 
+                        {
+                            engine->reg.emplace<Skybox>(selected_entity);
+                        }
                         break;
                     case DEFERRED:
                         if(engine->reg.has<Deferred>(selected_entity))
-                            Log::Warning("Entity already has Deferred Component!\n");
+						{
+							ADRIA_LOG(WARNING, "Entity already has Deferred Component!");
+						}
                         else if (engine->reg.has<Forward>(selected_entity))
-                            Log::Warning("Cannot add Deferred Component to entity that has Forward Component!\n");
-                        else                        {
-                            engine->reg.emplace<Deferred>(selected_entity); }
+                        {
+                            ADRIA_LOG(WARNING, "Cannot add Deferred Component to entity that has Forward Component!");
+                        }
+                        else 
+                        {
+							engine->reg.emplace<Deferred>(selected_entity);
+                        }
                         break;
                     case FORWARD:
                         if (engine->reg.has<Forward>(selected_entity))
-                            Log::Warning("Entity already has Forward Component!\n");
+						{
+							ADRIA_LOG(WARNING, "Entity already has Forward Component!");
+						}
                         else if (engine->reg.has<Deferred>(selected_entity))
-                            Log::Warning("Cannot add Forward Component to entity that has Deferred Component!\n");
+                        {
+                            ADRIA_LOG(WARNING, "Cannot add Forward Component to entity that has Deferred Component!");
+                        }
                         else 
+                        {
                             engine->reg.emplace<Forward>(selected_entity, false);
+                        }
                         break;
                     case EMITTER:
-                        if(engine->reg.has<Emitter>(selected_entity))
-                            Log::Warning("Entity already has Emitter Component!\n");
-						else
-							engine->reg.emplace<Emitter>(selected_entity);
+                        if (engine->reg.has<Emitter>(selected_entity))
+                        {
+                            ADRIA_LOG(WARNING, "Entity already has Emitter Component!");
+                        }
+                        else
+                        {
+                            engine->reg.emplace<Emitter>(selected_entity);
+                        }
                     }
                 }
 
@@ -1278,43 +1312,83 @@ namespace adria
                     {
                     case MESH:
                         if (!engine->reg.has<Mesh>(selected_entity))
-                            Log::Warning("Entity doesn't have Mesh Component!\n");
-                        else engine->reg.remove<Mesh>(selected_entity);
+                        {
+                            ADRIA_LOG(WARNING, "Entity doesn't have Mesh Component!");
+                        }
+                        else 
+                        {
+                            engine->reg.remove<Mesh>(selected_entity);
+                        }
                         break;
                     case TRANSFORM:
-                        if (!engine->reg.has<Transform>(selected_entity))
-                            Log::Warning("Entity doesn't have Transform Component!\n");
-                        else engine->reg.remove<Transform>(selected_entity);
+						if (!engine->reg.has<Transform>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Transform Component!");
+						}
+						else
+						{
+							engine->reg.remove<Transform>(selected_entity);
+						}
                         break;
                     case MATERIAL:
-                        if (!engine->reg.has<Material>(selected_entity))
-                            Log::Warning("Entity doesn't have Material Component!\n");
-                        else engine->reg.remove<Material>(selected_entity);
+						if (!engine->reg.has<Material>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Material Component!");
+						}
+						else
+						{
+							engine->reg.remove<Material>(selected_entity);
+						}
                         break;
                     case VISIBILITY:
-                        if (!engine->reg.has<Visibility>(selected_entity))
-                            Log::Warning("Entity doesn't have Visibility Component!\n");
-                        else engine->reg.remove<Visibility>(selected_entity);
+						if (!engine->reg.has<Visibility>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Visibility Component!");
+						}
+						else
+						{
+							engine->reg.remove<Visibility>(selected_entity);
+						}
                         break;
                     case LIGHT:
-                        if (!engine->reg.has<Light>(selected_entity))
-                            Log::Warning("Entity doesn't have Light Component!\n");
-                        else engine->reg.remove<Light>(selected_entity);
+						if (!engine->reg.has<Light>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Light Component!");
+						}
+						else
+						{
+							engine->reg.remove<Light>(selected_entity);
+						}
                         break;
                     case SKYBOX:
-                        if (!engine->reg.has<Skybox>(selected_entity))
-                            Log::Warning("Entity doesn't have Skybox Component!\n");
-                        else engine->reg.remove<Skybox>(selected_entity);
+						if (!engine->reg.has<Skybox>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Skybox Component!");
+						}
+						else
+						{
+							engine->reg.remove<Skybox>(selected_entity);
+						}
                         break;
                     case DEFERRED:
-                        if (!engine->reg.has<Deferred>(selected_entity))
-                            Log::Warning("Entity doesn't have Deferred Component!\n");
-                        else engine->reg.remove<Deferred>(selected_entity);
+						if (!engine->reg.has<Deferred>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Deferred Component!");
+						}
+						else
+						{
+							engine->reg.remove<Deferred>(selected_entity);
+						}
                         break;
                     case FORWARD:
-                        if (!engine->reg.has<Forward>(selected_entity))
-                            Log::Warning("Entity doesn't have Forward Component!\n");
-                        else engine->reg.remove<Forward>(selected_entity);
+						if (!engine->reg.has<Forward>(selected_entity))
+						{
+							ADRIA_LOG(WARNING, "Entity doesn't have Forward Component!");
+						}
+						else
+						{
+							engine->reg.remove<Forward>(selected_entity);
+						}
                         break;
                     }
                 }
