@@ -37,25 +37,25 @@ namespace adria
 			{
 				for (u64 i = 0; i < width; ++i)
 				{
-					f32 x = i * tile_size_x;
-					f32 z = j * tile_size_z;
+					F32 x = i * tile_size_x;
+					F32 z = j * tile_size_z;
 
-					f32 height = terrain->HeightAt(x, z);
-					f32 normal_y = terrain->NormalAt(x, z).y;
+					F32 height = terrain->HeightAt(x, z);
+					F32 normal_y = terrain->NormalAt(x, z).y;
 
 					if (height > params.terrain_rocks_start)
 					{
-						f32 mix_multiplier = std::max(
+						F32 mix_multiplier = std::max(
 							(height - params.terrain_rocks_start) / params.height_mix_zone,
 							1.0f
 						);
-						f32 rock_slope_multiplier = std::clamp((normal_y - params.terrain_slope_rocks_start) / params.slope_mix_zone, 0.0f, 1.0f);
+						F32 rock_slope_multiplier = std::clamp((normal_y - params.terrain_slope_rocks_start) / params.slope_mix_zone, 0.0f, 1.0f);
 						temp_layer_data[(j * width + i) * 4 + 0] = (BYTE) (BYTE_MAX * mix_multiplier * rock_slope_multiplier);
 					}
 
 					if (height > params.terrain_sand_start && height <= params.terrain_sand_end)
 					{
-                        f32 mix_multiplier = std::min(
+                        F32 mix_multiplier = std::min(
                             (height-params.terrain_sand_start) / params.height_mix_zone,
                             (params.terrain_sand_end - height) / params.height_mix_zone
 						);
@@ -64,16 +64,16 @@ namespace adria
 
 					if (height > params.terrain_grass_start && height <= params.terrain_grass_end)
 					{
-						f32 mix_multiplier = std::min(
+						F32 mix_multiplier = std::min(
 							(height - params.terrain_grass_start) / params.height_mix_zone,
 							(params.terrain_grass_end - height) / params.height_mix_zone
 						);
 
-						f32 grass_slope_multiplier = std::clamp((normal_y - params.terrain_slope_grass_start) / params.slope_mix_zone, 0.0f, 1.0f);
+						F32 grass_slope_multiplier = std::clamp((normal_y - params.terrain_slope_grass_start) / params.slope_mix_zone, 0.0f, 1.0f);
                         temp_layer_data[(j * width + i) * 4 + 2] = (BYTE)(BYTE_MAX * mix_multiplier * grass_slope_multiplier);
 					}
 
-					u32 sum = temp_layer_data[(j * width + i) * 4 + 0]
+					U32 sum = temp_layer_data[(j * width + i) * 4 + 0]
 						+ temp_layer_data[(j * width + i) * 4 + 1] + temp_layer_data[(j * width + i) * 4 + 2] + 1;
 
 					temp_layer_data[(j * width + i) * 4 + 0] = (BYTE)((temp_layer_data[(j * width + i) * 4 + 0] * 1.0f / sum) * BYTE_MAX);
@@ -88,14 +88,14 @@ namespace adria
 			{
 				for (size_t i = 2; i < width - 2; ++i)
 				{
-					i32 n1 = 0, n2 = 0, n3 = 0, n4 = 0;
-					for (i32 k = -2; k <= 2; ++k)
+					I32 n1 = 0, n2 = 0, n3 = 0, n4 = 0;
+					for (I32 k = -2; k <= 2; ++k)
 					{
-						for (i32 l = -2; l <= 2; ++l)
+						for (I32 l = -2; l <= 2; ++l)
 						{
-							n1 += (i32)temp_layer_data[((j + k) * width + i + l) * 4 + 0];
-							n2 += (i32)temp_layer_data[((j + k) * width + i + l) * 4 + 1];
-							n3 += (i32)temp_layer_data[((j + k) * width + i + l) * 4 + 2];
+							n1 += (I32)temp_layer_data[((j + k) * width + i + l) * 4 + 0];
+							n2 += (I32)temp_layer_data[((j + k) * width + i + l) * 4 + 1];
+							n3 += (I32)temp_layer_data[((j + k) * width + i + l) * 4 + 2];
 						}
 					}
             
@@ -105,7 +105,7 @@ namespace adria
 				}
 			}
 
-			WriteImageTGA(texture_name, layer_data, (i32)width, (i32)depth);
+			WriteImageTGA(texture_name, layer_data, (I32)width, (I32)depth);
 		}
     }
 
@@ -129,7 +129,7 @@ namespace adria
             {
                 TexturedNormalVertex vertex{};
 
-                f32 height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
+                F32 height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
 
                 vertex.position = XMFLOAT3(i * params.tile_size_x + params.grid_offset.x, 
                     height + params.grid_offset.y, j * params.tile_size_z + params.grid_offset.z);
@@ -141,11 +141,11 @@ namespace adria
 
         if (!params.split_to_chunks)
         {
-            std::vector<u32> indices{};
-            u32 i1 = 0;
-            u32 i2 = 1;
-            u32 i3 = static_cast<u32>(i1 + params.tile_count_x + 1);
-            u32 i4 = static_cast<u32>(i2 + params.tile_count_x + 1);
+            std::vector<U32> indices{};
+            U32 i1 = 0;
+            U32 i2 = 1;
+            U32 i3 = static_cast<U32>(i1 + params.tile_count_x + 1);
+            U32 i4 = static_cast<U32>(i2 + params.tile_count_x + 1);
             for (u64 i = 0; i < params.tile_count_x * params.tile_count_z; ++i)
             {
                 indices.push_back(i1);
@@ -176,7 +176,7 @@ namespace adria
             entity grid = reg.create();
 
             Mesh mesh{};
-            mesh.indices_count = (u32)indices.size();
+            mesh.indices_count = (U32)indices.size();
             mesh.vertex_buffer = std::make_shared<VertexBuffer>();
             mesh.index_buffer = std::make_shared<IndexBuffer>();
             mesh.vertex_buffer->Create(device, vertices);
@@ -192,15 +192,15 @@ namespace adria
         }
         else
         {
-            std::vector<u32> indices{};
+            std::vector<U32> indices{};
             for (size_t j = 0; j < params.tile_count_z; j += params.chunk_count_z)
             {
                 for (size_t i = 0; i < params.tile_count_x; i += params.chunk_count_x)
                 {
                     entity chunk = reg.create();
 
-                    u32 const indices_count = static_cast<u32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
-                    u32 const indices_offset = static_cast<u32>(indices.size());
+                    U32 const indices_count = static_cast<U32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
+                    U32 const indices_offset = static_cast<U32>(indices.size());
 
 
                     std::vector<TexturedNormalVertex> chunk_vertices_aabb{};
@@ -209,10 +209,10 @@ namespace adria
                         for (size_t m = i; m < i + params.chunk_count_x; ++m)
                         {
 
-                            u32 i1 = static_cast<u32>(k * (params.tile_count_x + 1) + m);
-                            u32 i2 = static_cast<u32>(i1 + 1);
-                            u32 i3 = static_cast<u32>((k + 1) * (params.tile_count_x + 1) + m);
-                            u32 i4 = static_cast<u32>(i3 + 1);
+                            U32 i1 = static_cast<U32>(k * (params.tile_count_x + 1) + m);
+                            U32 i2 = static_cast<U32>(i1 + 1);
+                            U32 i3 = static_cast<U32>((k + 1) * (params.tile_count_x + 1) + m);
+                            U32 i4 = static_cast<U32>(i3 + 1);
 
                             indices.push_back(i1);
                             indices.push_back(i3);
@@ -354,7 +354,7 @@ namespace adria
 
 			Mesh mesh_component{};
 			mesh_component.base_vertex_location = 0;
-			mesh_component.vertex_count = static_cast<u32>(vertices.size());
+			mesh_component.vertex_count = static_cast<U32>(vertices.size());
             mesh_component.vertex_buffer = vb;
 			reg.emplace<Mesh>(e, mesh_component);
 
@@ -401,7 +401,7 @@ namespace adria
 			ADRIA_LOG(ERROR, "Failed to load model %s", model_name.c_str());
 		} 
 		std::vector<CompleteVertex> vertices{};
-		std::vector<u32> indices{};
+		std::vector<U32> indices{};
 		std::vector<entity> entities{};
 
         tinygltf::Scene const& scene = model.scenes[model.defaultScene];
@@ -420,9 +420,9 @@ namespace adria
                 entities.push_back(e);
 
                 Mesh mesh_component{};
-                mesh_component.indices_count = static_cast<u32>(index_accessor.count);
-                mesh_component.start_index_location = static_cast<u32>(indices.size());
-                mesh_component.base_vertex_location = static_cast<u32>(vertices.size());
+                mesh_component.indices_count = static_cast<U32>(index_accessor.count);
+                mesh_component.start_index_location = static_cast<U32>(indices.size());
+                mesh_component.base_vertex_location = static_cast<U32>(vertices.size());
                 switch (primitive.mode)
                 {
                 case TINYGLTF_MODE_POINTS:
@@ -449,25 +449,25 @@ namespace adria
                 tinygltf::BufferView const& position_buffer_view = model.bufferViews[position_accessor.bufferView];
                 tinygltf::Buffer const& position_buffer = model.buffers[position_buffer_view.buffer];
                 int const position_byte_stride = position_accessor.ByteStride(position_buffer_view);
-                u8 const* positions = &position_buffer.data[position_buffer_view.byteOffset + position_accessor.byteOffset];
+                U8 const* positions = &position_buffer.data[position_buffer_view.byteOffset + position_accessor.byteOffset];
 
                 tinygltf::Accessor const& texcoord_accessor = model.accessors[primitive.attributes["TEXCOORD_0"]];
                 tinygltf::BufferView const& texcoord_buffer_view = model.bufferViews[texcoord_accessor.bufferView];
                 tinygltf::Buffer const& texcoord_buffer = model.buffers[texcoord_buffer_view.buffer];
                 int const texcoord_byte_stride = texcoord_accessor.ByteStride(texcoord_buffer_view);
-                u8 const* texcoords = &texcoord_buffer.data[texcoord_buffer_view.byteOffset + texcoord_accessor.byteOffset];
+                U8 const* texcoords = &texcoord_buffer.data[texcoord_buffer_view.byteOffset + texcoord_accessor.byteOffset];
 
                 tinygltf::Accessor const& normal_accessor = model.accessors[primitive.attributes["NORMAL"]];
                 tinygltf::BufferView const& normal_buffer_view = model.bufferViews[normal_accessor.bufferView];
                 tinygltf::Buffer const& normal_buffer = model.buffers[normal_buffer_view.buffer];
                 int const normal_byte_stride = normal_accessor.ByteStride(normal_buffer_view);
-                u8 const* normals = &normal_buffer.data[normal_buffer_view.byteOffset + normal_accessor.byteOffset];
+                U8 const* normals = &normal_buffer.data[normal_buffer_view.byteOffset + normal_accessor.byteOffset];
 
                 tinygltf::Accessor const& tangent_accessor = model.accessors[primitive.attributes["TANGENT"]];
                 tinygltf::BufferView const& tangent_buffer_view = model.bufferViews[tangent_accessor.bufferView];
                 tinygltf::Buffer const& tangent_buffer = model.buffers[tangent_buffer_view.buffer];
                 int const tangent_byte_stride = tangent_accessor.ByteStride(tangent_buffer_view);
-                u8 const* tangents = &tangent_buffer.data[tangent_buffer_view.byteOffset + tangent_accessor.byteOffset];
+                U8 const* tangents = &tangent_buffer.data[tangent_buffer_view.byteOffset + tangent_accessor.byteOffset];
 
                 ADRIA_ASSERT(position_accessor.count == texcoord_accessor.count);
                 ADRIA_ASSERT(position_accessor.count == normal_accessor.count);
@@ -478,31 +478,31 @@ namespace adria
                 for (size_t i = 0; i < position_accessor.count; ++i)
                 {
                     XMFLOAT3 position;
-                    position.x = (reinterpret_cast<f32 const*>(positions + (i * position_byte_stride)))[0];
-                    position.y = (reinterpret_cast<f32 const*>(positions + (i * position_byte_stride)))[1];
-                    position.z = (reinterpret_cast<f32 const*>(positions + (i * position_byte_stride)))[2];
+                    position.x = (reinterpret_cast<F32 const*>(positions + (i * position_byte_stride)))[0];
+                    position.y = (reinterpret_cast<F32 const*>(positions + (i * position_byte_stride)))[1];
+                    position.z = (reinterpret_cast<F32 const*>(positions + (i * position_byte_stride)))[2];
                     position_array[i] = position;
 
                     XMFLOAT2 texcoord;
-                    texcoord.x = (reinterpret_cast<f32 const*>(texcoords + (i * texcoord_byte_stride)))[0];
-                    texcoord.y = (reinterpret_cast<f32 const*>(texcoords + (i * texcoord_byte_stride)))[1];
+                    texcoord.x = (reinterpret_cast<F32 const*>(texcoords + (i * texcoord_byte_stride)))[0];
+                    texcoord.y = (reinterpret_cast<F32 const*>(texcoords + (i * texcoord_byte_stride)))[1];
                     texcoord.y = 1.0f - texcoord.y;
                     texcoord_array[i] = texcoord;
 
                     XMFLOAT3 normal;
-                    normal.x = (reinterpret_cast<f32 const*>(normals + (i * normal_byte_stride)))[0];
-                    normal.y = (reinterpret_cast<f32 const*>(normals + (i * normal_byte_stride)))[1];
-                    normal.z = (reinterpret_cast<f32 const*>(normals + (i * normal_byte_stride)))[2];
+                    normal.x = (reinterpret_cast<F32 const*>(normals + (i * normal_byte_stride)))[0];
+                    normal.y = (reinterpret_cast<F32 const*>(normals + (i * normal_byte_stride)))[1];
+                    normal.z = (reinterpret_cast<F32 const*>(normals + (i * normal_byte_stride)))[2];
                     normal_array[i] = normal;
 
                     XMFLOAT3 tangent{};
                     XMFLOAT3 bitangent{};
                     if (tangents)
                     {
-                        tangent.x = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[0];
-                        tangent.y = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[1];
-                        tangent.z = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[2];
-                        float tangent_w = (reinterpret_cast<f32 const*>(tangents + (i * tangent_byte_stride)))[3];
+                        tangent.x = (reinterpret_cast<F32 const*>(tangents + (i * tangent_byte_stride)))[0];
+                        tangent.y = (reinterpret_cast<F32 const*>(tangents + (i * tangent_byte_stride)))[1];
+                        tangent.z = (reinterpret_cast<F32 const*>(tangents + (i * tangent_byte_stride)))[2];
+                        float tangent_w = (reinterpret_cast<F32 const*>(tangents + (i * tangent_byte_stride)))[3];
 
                         XMVECTOR _bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&normal), XMLoadFloat3(&tangent)), tangent_w);
 
@@ -516,19 +516,19 @@ namespace adria
                 tinygltf::BufferView const& index_buffer_view = model.bufferViews[index_accessor.bufferView];
                 tinygltf::Buffer const& index_buffer = model.buffers[index_buffer_view.buffer];
                 int const index_byte_stride = index_accessor.ByteStride(index_buffer_view);
-                u8 const* indexes = index_buffer.data.data() + index_buffer_view.byteOffset + index_accessor.byteOffset;
+                U8 const* indexes = index_buffer.data.data() + index_buffer_view.byteOffset + index_accessor.byteOffset;
 
                 indices.reserve(indices.size() + index_accessor.count);
                 for (size_t i = 0; i < index_accessor.count; ++i)
                 {
-                    u32 index = -1;
+                    U32 index = -1;
                     switch (index_accessor.componentType)
                     {
                     case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT:
-                        index = (u32)(reinterpret_cast<u16 const*>(indexes + (i * index_byte_stride)))[0];
+                        index = (U32)(reinterpret_cast<U16 const*>(indexes + (i * index_byte_stride)))[0];
                         break;
                     case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT:
-                        index = (reinterpret_cast<u32 const*>(indexes + (i * index_byte_stride)))[0];
+                        index = (reinterpret_cast<U32 const*>(indexes + (i * index_byte_stride)))[0];
                         break;
                     default:
                         ADRIA_ASSERT(false);
@@ -567,7 +567,7 @@ namespace adria
                     tinygltf::Image const& base_image = model.images[base_texture.source];
                     std::string texbase = params.textures_path + base_image.uri;
                     material.albedo_texture = texture_manager.LoadTexture(texbase);
-                    material.albedo_factor = (f32)pbr_metallic_roughness.baseColorFactor[0];
+                    material.albedo_factor = (F32)pbr_metallic_roughness.baseColorFactor[0];
                 }
 
                 if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
@@ -576,8 +576,8 @@ namespace adria
                     tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
                     std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
                     material.metallic_roughness_texture = texture_manager.LoadTexture(texmetallicroughness);
-                    material.metallic_factor = (f32)pbr_metallic_roughness.metallicFactor;
-                    material.roughness_factor = (f32)pbr_metallic_roughness.roughnessFactor;
+                    material.metallic_factor = (F32)pbr_metallic_roughness.metallicFactor;
+                    material.roughness_factor = (F32)pbr_metallic_roughness.roughnessFactor;
                 }
 
                 if (gltf_material.normalTexture.index >= 0)
@@ -594,7 +594,7 @@ namespace adria
                     tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
                     std::string texemissive = params.textures_path + emissive_image.uri;
                     material.emissive_texture = texture_manager.LoadTexture(texemissive);
-                    material.emissive_factor = (f32)gltf_material.emissiveFactor[0];
+                    material.emissive_factor = (F32)gltf_material.emissiveFactor[0];
                 }
                 material.shader = EShader::GBufferPBR;
 
@@ -656,7 +656,7 @@ namespace adria
 
         if (params.mesh_type == ELightMesh::Quad)
         {
-            u32 const size = params.mesh_size;
+            U32 const size = params.mesh_size;
             std::vector<TexturedVertex> const vertices =
             {
                 { {-0.5f * size, -0.5f * size, 0.0f}, {0.0f, 0.0f}},
@@ -664,7 +664,7 @@ namespace adria
                 { { 0.5f * size,  0.5f * size, 0.0f}, {1.0f, 1.0f}},
                 { {-0.5f * size,  0.5f * size, 0.0f}, {0.0f, 1.0f}}
             };
-            std::vector<u16> const indices =
+            std::vector<U16> const indices =
             {
                     0, 2, 1, 2, 0, 3
             };
@@ -674,7 +674,7 @@ namespace adria
             mesh.index_buffer = std::make_shared<IndexBuffer>();
             mesh.vertex_buffer->Create(device, vertices);
             mesh.index_buffer->Create(device, indices);
-            mesh.indices_count = static_cast<u32>(indices.size());
+            mesh.indices_count = static_cast<U32>(indices.size());
 
             reg.emplace<Mesh>(light, mesh);
 
@@ -843,17 +843,17 @@ namespace adria
 	[[maybe_unused]]
 	entity EntityLoader::LoadFoliage(foliage_parameters_t const& params)
 	{
-		const f32 size = params.foliage_scale;
+		const F32 size = params.foliage_scale;
 		
 		struct FoliageInstance
 		{
 			XMFLOAT3 position;
-            f32 rotation_y;
+            F32 rotation_y;
 		};
 
 		RealRandomGenerator<float> random_x(params.foliage_center.x - params.foliage_extents.x, params.foliage_center.x + params.foliage_extents.x);
 		RealRandomGenerator<float> random_z(params.foliage_center.y - params.foliage_extents.y, params.foliage_center.y + params.foliage_extents.y);
-        RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<f32>);
+        RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<F32>);
 
 		std::vector<entity> foliages;
 
@@ -876,12 +876,12 @@ namespace adria
 		entity foliage = foliages[0];
 
 		std::vector<FoliageInstance> instance_data{};
-		for (i32 i = 0; i < params.foliage_count; ++i)
+		for (I32 i = 0; i < params.foliage_count; ++i)
 		{
-            static const u32 MAX_ITERATIONS = 5;
+            static const U32 MAX_ITERATIONS = 5;
 			XMFLOAT3 position{};
 			XMFLOAT3 normal{};
-			u32 iteration = 0;
+			U32 iteration = 0;
 			do
 			{
                 if (iteration > MAX_ITERATIONS) break;
@@ -901,7 +901,7 @@ namespace adria
 		mesh_component.start_instance_location = 0;
 		mesh_component.instance_buffer = std::make_shared<VertexBuffer>();
 		mesh_component.instance_buffer->Create(device, instance_data);
-		mesh_component.instance_count = (u32)instance_data.size();
+		mesh_component.instance_count = (U32)instance_data.size();
 
 		Material material{};
 		material.albedo_texture = texture_manager.LoadTexture(params.mesh_texture_pair.second);
@@ -925,17 +925,17 @@ namespace adria
     [[maybe_unused]]
 	std::vector<entity> EntityLoader::LoadTrees(tree_parameters_t const& params)
 	{
-		const f32 size = params.tree_scale;
+		const F32 size = params.tree_scale;
 
 		struct TreeInstance
 		{
 			XMFLOAT3 position;
-			f32 rotation_y;
+			F32 rotation_y;
 		};
 
 		RealRandomGenerator<float> random_x(params.tree_center.x - params.tree_extents.x, params.tree_center.x + params.tree_extents.x);
 		RealRandomGenerator<float> random_z(params.tree_center.y - params.tree_extents.y, params.tree_center.y + params.tree_extents.y);
-		RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<f32>);
+		RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<F32>);
 
         std::vector<std::string> diffuse_textures{};
         std::vector<entity> trees;
@@ -956,12 +956,12 @@ namespace adria
         ADRIA_ASSERT(diffuse_textures.size() == trees.size());
 
 		std::vector<TreeInstance> instance_data{};
-		for (i32 i = 0; i < params.tree_count; ++i)
+		for (I32 i = 0; i < params.tree_count; ++i)
 		{
-			static const u32 MAX_ITERATIONS = 5;
+			static const U32 MAX_ITERATIONS = 5;
 			XMFLOAT3 position{};
 			XMFLOAT3 normal{};
-			u32 iteration = 0;
+			U32 iteration = 0;
 			do
 			{
 				if (iteration > MAX_ITERATIONS) break;
@@ -984,7 +984,7 @@ namespace adria
 			mesh_component.start_instance_location = 0;
 			mesh_component.instance_buffer = std::make_shared<VertexBuffer>();
 			mesh_component.instance_buffer->Create(device, instance_data);
-			mesh_component.instance_count = (u32)instance_data.size();
+			mesh_component.instance_count = (U32)instance_data.size();
 
 			Material material{};
 			material.albedo_texture = texture_manager.LoadTexture(texture_path + diffuse_textures[i]);

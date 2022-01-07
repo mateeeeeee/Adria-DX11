@@ -63,43 +63,43 @@ namespace adria
 		noise.SetFrequency(desc.frequency);
 		hm.resize(desc.depth);
 
-		f32 max_height_achieved = std::numeric_limits<f32>::min();
-		f32 min_height_achieved = std::numeric_limits<f32>::max();
+		F32 max_height_achieved = std::numeric_limits<F32>::min();
+		F32 min_height_achieved = std::numeric_limits<F32>::max();
 
-		for (u32 z = 0; z < desc.depth; z++)
+		for (U32 z = 0; z < desc.depth; z++)
 		{
 			hm[z].resize(desc.width);
-			for (u32 x = 0; x < desc.width; x++)
+			for (U32 x = 0; x < desc.width; x++)
 			{
-				f32 xf = x * desc.noise_scale / desc.width;
-				f32 zf = z * desc.noise_scale / desc.depth;
+				F32 xf = x * desc.noise_scale / desc.width;
+				F32 zf = z * desc.noise_scale / desc.depth;
 
-				f32 height = noise.GetNoise(xf, zf) * desc.max_height;
+				F32 height = noise.GetNoise(xf, zf) * desc.max_height;
 				if (height > max_height_achieved) max_height_achieved = height;
 				if (height < min_height_achieved) min_height_achieved = height;
 				hm[z][x] = height;
 			}
 		}
 
-		auto scale = [=](f32 h) -> f32
+		auto scale = [=](F32 h) -> F32
 		{
 			return (h - min_height_achieved) / (max_height_achieved - min_height_achieved)
 				* 2 * desc.max_height - desc.max_height;
 		};
 
-		for (u32 z = 0; z < desc.depth; z++)
+		for (U32 z = 0; z < desc.depth; z++)
 		{
-			for (u32 x = 0; x < desc.width; x++)
+			for (U32 x = 0; x < desc.width; x++)
 			{
 				hm[z][x] = scale(hm[z][x]);
 			}
 		}
 	}
-	Heightmap::Heightmap(std::string_view heightmap_path, u32 max_height)
+	Heightmap::Heightmap(std::string_view heightmap_path, U32 max_height)
 	{
 		Image img(heightmap_path, 1);
 
-		u8 const* image_data = img.Data<u8>();
+		U8 const* image_data = img.Data<U8>();
 
 		hm.resize(img.Height());
 		for (u64 z = 0; z < img.Height(); ++z)
@@ -111,7 +111,7 @@ namespace adria
 			}
 		}
 	}
-	f32 Heightmap::HeightAt(u64 x, u64 z) const
+	F32 Heightmap::HeightAt(u64 x, u64 z) const
 	{
 		return hm[z][x];
 	}
@@ -126,10 +126,10 @@ namespace adria
 
 	void Heightmap::ApplyThermalErosion(thermal_erosion_desc_t const& desc)
 	{
-		f32 v1, v2, v3, v4, v5, v6, v7, v8, v9;	
-		f32 d1, d2, d3, d4, d5, d6, d7, d8;		
-		f32 talus = desc.talus;//4.0f / resolution
-		f32 c = desc.c; //0.5f;					
+		F32 v1, v2, v3, v4, v5, v6, v7, v8, v9;	
+		F32 d1, d2, d3, d4, d5, d6, d7, d8;		
+		F32 talus = desc.talus;//4.0f / resolution
+		F32 c = desc.c; //0.5f;					
 
 		for (size_t k = 0; k < desc.iterations; k++)
 		{
@@ -138,8 +138,8 @@ namespace adria
 				for (size_t i = 0; i < hm[j].size(); i++)
 				{
 
-					f32 max_diff = 0.0f;
-					f32 total_diff = 0.0f;
+					F32 max_diff = 0.0f;
+					F32 total_diff = 0.0f;
 
 					d1 = 0.0f;
 					d2 = 0.0f;
@@ -269,8 +269,8 @@ namespace adria
 						d8 = v2 - v9;
 					}
 
-					f32 d_array[] = { d1, d2, d3, d4, d5, d6, d7, d8 };
-					for (f32 d : d_array)
+					F32 d_array[] = { d1, d2, d3, d4, d5, d6, d7, d8 };
+					for (F32 d : d_array)
 					{
 						if (d > talus)
 						{
@@ -367,18 +367,18 @@ namespace adria
 			u64 X = x_random();
 			u64 Y = y_random();
 
-			f32 carryingAmount = 0.0f;
-			f32 minSlope = 1.15f;
+			F32 carryingAmount = 0.0f;
+			F32 minSlope = 1.15f;
 
 			if (hm[Y][X] > 0.0f)
 			{
-				for (i32 iter = 0; iter < desc.iterations; iter++)
+				for (I32 iter = 0; iter < desc.iterations; iter++)
 				{
-					f32 val = hm[Y][X];
-					f32 left = 1000.0f;
-					f32 right = 1000.0f;
-					f32 up = 1000.0f;
-					f32 down = 1000.0f;
+					F32 val = hm[Y][X];
+					F32 left = 1000.0f;
+					F32 right = 1000.0f;
+					F32 up = 1000.0f;
+					F32 down = 1000.0f;
 
 					if (X == 0 && Y == 0)
 					{
@@ -437,8 +437,8 @@ namespace adria
 						CENTER = -1, LEFT, RIGHT, UP, DOWN
 					};
 					
-					f32 minHeight = val;
-					i32 minIndex = CENTER;
+					F32 minHeight = val;
+					I32 minIndex = CENTER;
 
 					if (left < minHeight)
 					{
@@ -462,8 +462,8 @@ namespace adria
 					}
 					if (minHeight < val) 
 					{
-						f32 slope = std::min(minSlope, (val - minHeight));
-						f32 valueToSteal = desc.deposition_speed * slope;
+						F32 slope = std::min(minSlope, (val - minHeight));
+						F32 valueToSteal = desc.deposition_speed * slope;
 
 						if (carryingAmount > desc.carrying_capacity)
 						{
@@ -474,7 +474,7 @@ namespace adria
 						{
 							if (carryingAmount + valueToSteal > desc.carrying_capacity)
 							{
-								f32 delta = carryingAmount + valueToSteal - desc.carrying_capacity;
+								F32 delta = carryingAmount + valueToSteal - desc.carrying_capacity;
 								carryingAmount += delta;
 								hm[Y][X] -= delta;
 							}

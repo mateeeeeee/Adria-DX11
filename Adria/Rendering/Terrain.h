@@ -9,13 +9,13 @@ namespace adria
 	class Terrain
 	{
 	public:
-		Terrain(std::vector<TexturedNormalVertex> const& terrain_vertices, f32 tx, f32 tz, u64 xcount, u64 zcount);
+		Terrain(std::vector<TexturedNormalVertex> const& terrain_vertices, F32 tx, F32 tz, u64 xcount, u64 zcount);
 
-		f32 HeightAt(f32 x, f32 z) const;
+		F32 HeightAt(F32 x, F32 z) const;
 		
-		DirectX::XMFLOAT3 NormalAt(f32 x, f32 z) const;
+		DirectX::XMFLOAT3 NormalAt(F32 x, F32 z) const;
 
-		std::pair<f32, f32> TileSizes() const 
+		std::pair<F32, F32> TileSizes() const 
 		{
 			return { tile_size_x, tile_size_z };
 		}
@@ -27,8 +27,8 @@ namespace adria
 
 	private:
 		std::vector<TexturedNormalVertex> terrain_vertices;
-		f32 tile_size_x;
-		f32 tile_size_z;
+		F32 tile_size_x;
+		F32 tile_size_z;
 		u64 tile_count_x;
 		u64 tile_count_z;
 		DirectX::XMFLOAT3 offset;

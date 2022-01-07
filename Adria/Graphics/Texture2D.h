@@ -9,24 +9,24 @@ namespace adria
 
     struct texture2d_srv_desc_t
     {
-        u32 most_detailed_mip;
-        u32 mip_levels;
+        U32 most_detailed_mip;
+        U32 mip_levels;
         DXGI_FORMAT format;
     };
 
     struct texture2d_uav_desc_t
     {
-        u32 mip_slice;
+        U32 mip_slice;
     };
 
     struct texture2d_rtv_desc_t
     {
-        u32 mip_slice;
+        U32 mip_slice;
     };
 
     struct texture2d_dsv_desc_t
     {
-        u32 mip_slice;
+        U32 mip_slice;
         DXGI_FORMAT depth_format;
         bool readonly;
     };
@@ -34,20 +34,20 @@ namespace adria
     struct init_data_t
     {
         void* data = nullptr;
-        u32 pitch = 0;
+        U32 pitch = 0;
     };
 
     struct texture2d_desc_t
     {
-        u32 width;
-        u32 height;
+        U32 width;
+        U32 height;
         DXGI_FORMAT format = DXGI_FORMAT_R16G16B16A16_FLOAT;
         D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
-        u32 bind_flags = D3D11_BIND_SHADER_RESOURCE;
+        U32 bind_flags = D3D11_BIND_SHADER_RESOURCE;
         bool generate_mipmaps = false;
-        u32 mipmap_count = 0;
+        U32 mipmap_count = 0;
         init_data_t init_data{};
-        texture2d_srv_desc_t srv_desc = { 0, u32(-1), DXGI_FORMAT_R16G16B16A16_FLOAT };
+        texture2d_srv_desc_t srv_desc = { 0, U32(-1), DXGI_FORMAT_R16G16B16A16_FLOAT };
         texture2d_uav_desc_t uav_desc = { 0 };
         texture2d_rtv_desc_t rtv_desc = { 0 };
         texture2d_dsv_desc_t dsv_desc = { 0, DXGI_FORMAT_D32_FLOAT, false};
@@ -140,7 +140,7 @@ namespace adria
             
         }
 
-        void UpdateTexture2D(ID3D11DeviceContext* context, void* data, u32 pitch)
+        void UpdateTexture2D(ID3D11DeviceContext* context, void* data, U32 pitch)
         {
             context->UpdateSubresource(tex2d.Get(), 0u, nullptr, data, pitch, 0u);
         }
@@ -171,12 +171,12 @@ namespace adria
             return tex_dsv.Get();
         }
 
-        u32 Width() const
+        U32 Width() const
         {
             return tex2d_desc.Width;
         }
 
-        u32 Height() const
+        U32 Height() const
         {
             return tex2d_desc.Height;
         }

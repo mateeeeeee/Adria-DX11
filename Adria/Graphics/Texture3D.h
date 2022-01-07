@@ -8,14 +8,14 @@ namespace adria
 {
     struct texture3d_desc_t
     {
-        u32 width;
-        u32 height;
-        u32 depth;
+        U32 width;
+        U32 height;
+        U32 depth;
         DXGI_FORMAT format = DXGI_FORMAT_R16G16B16A16_FLOAT;
         D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
-        u32 bind_flags = D3D11_BIND_SHADER_RESOURCE;
+        U32 bind_flags = D3D11_BIND_SHADER_RESOURCE;
         bool generate_mipmaps = false;
-        u32 mipmap_count = 0;
+        U32 mipmap_count = 0;
     };
 
     class Texture3D
@@ -80,7 +80,7 @@ namespace adria
 
         }
 
-        void UpdateTexture3D(ID3D11DeviceContext* context, void* data, u32 pitch)
+        void UpdateTexture3D(ID3D11DeviceContext* context, void* data, U32 pitch)
         {
             context->UpdateSubresource(tex3d.Get(), 0u, nullptr, data, pitch, 0u);
         }
@@ -107,17 +107,17 @@ namespace adria
         }
 
        
-        u32 Width() const
+        U32 Width() const
         {
             return tex3d_desc.Width;
         }
 
-        u32 Height() const
+        U32 Height() const
         {
             return tex3d_desc.Height;
         }
 
-        u32 Depth() const
+        U32 Depth() const
         {
             return tex3d_desc.Depth;
         }

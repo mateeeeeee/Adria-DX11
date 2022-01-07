@@ -53,7 +53,7 @@ namespace adria
 
 		virtual void InitializeScene(bool load_default_scene);
 
-		virtual void Update(f32 dt);
+		virtual void Update(F32 dt);
 
 		virtual void Render(RendererSettings const& settings, bool offscreen);
 	};

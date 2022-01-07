@@ -21,7 +21,7 @@ namespace adria
 		CreateIndirectArgsBuffers();
 	}
 
-	void ParticleRenderer::Update(f32 dt, Emitter& emitter_params)
+	void ParticleRenderer::Update(F32 dt, Emitter& emitter_params)
 	{
 		emitter_params.elapsed_time += dt;
 		if (emitter_params.particles_per_second > 0.0f)
@@ -29,10 +29,10 @@ namespace adria
 			emitter_params.accumulation += emitter_params.particles_per_second * dt;
 			if (emitter_params.accumulation > 1.0f)
 			{
-				f64 integer_part = 0.0;
-				f32 fraction = (f32)modf(emitter_params.accumulation, &integer_part);
+				F64 integer_part = 0.0;
+				F32 fraction = (F32)modf(emitter_params.accumulation, &integer_part);
 
-				emitter_params.number_to_emit = (i32)integer_part;
+				emitter_params.number_to_emit = (I32)integer_part;
 				emitter_params.accumulation = fraction;
 			}
 		}
@@ -170,9 +170,9 @@ namespace adria
 		desc.srv_desc.most_detailed_mip = 0;
 		desc.srv_desc.mip_levels = 1;
 
-		std::vector<f32> random_texture_data;
+		std::vector<F32> random_texture_data;
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
-		for (u32 i = 0; i < desc.width * desc.height; i++)
+		for (U32 i = 0; i < desc.width * desc.height; i++)
 		{
 			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
 			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
@@ -181,7 +181,7 @@ namespace adria
 		}
 
 		desc.init_data.data = (void*)random_texture_data.data();
-		desc.init_data.pitch = desc.width * 4 * sizeof(f32);
+		desc.init_data.pitch = desc.width * 4 * sizeof(F32);
 
 		random_texture = Texture2D(device, desc);
 	}
@@ -190,7 +190,7 @@ namespace adria
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
-		u32 initial_count[] = { 0 };
+		U32 initial_count[] = { 0 };
 		ID3D11UnorderedAccessView* dead_list_uavs[] = { dead_list_buffer.UAV() };
 		context->CSSetUnorderedAccessViews(0, 1, dead_list_uavs, initial_count);
 
@@ -207,7 +207,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 
 		ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV() };
-		u32 initial_counts[] = { (u32)-1, (u32)-1 };
+		U32 initial_counts[] = { (U32)-1, (U32)-1 };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
 		particle_compute_programs[EComputeShader::ParticleReset].Bind(context);
@@ -228,7 +228,7 @@ namespace adria
 			particle_compute_programs[EComputeShader::ParticleEmit].Bind(context);
 
 			ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV(), dead_list_buffer.UAV() };
-			u32 initial_counts[] = { (u32)-1, (u32)-1, (u32)-1 };
+			U32 initial_counts[] = { (U32)-1, (U32)-1, (U32)-1 };
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
 			ID3D11ShaderResourceView* srvs[] = { random_texture.SRV() };
@@ -253,7 +253,7 @@ namespace adria
 			emitter_cbuffer.Bind(context, ShaderStage::CS, 13);
 
 			context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.UAV());
-			u32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
+			U32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
 			context->Dispatch(thread_groups_x, 1, 1);
 
 			ZeroMemory(srvs, sizeof(srvs));
@@ -275,7 +275,7 @@ namespace adria
 			particle_bufferA.UAV(), particle_bufferB.UAV(),
 			dead_list_buffer.UAV(), alive_index_buffer.UAV(),
 			view_space_positions_buffer.UAV(), indirect_render_args_uav.Get() };
-		u32 initial_counts[] = { (u32)-1, (u32)-1, (u32)-1, 0, (u32)-1, (u32)-1 };
+		U32 initial_counts[] = { (U32)-1, (U32)-1, (U32)-1, 0, (U32)-1, (U32)-1 };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
 		ID3D11ShaderResourceView* srvs[] = { depth_srv };
@@ -338,7 +338,7 @@ namespace adria
 		context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
 
 		bool done = SortInitial();
-		u32 presorted = 512;
+		U32 presorted = 512;
 		while (!done)
 		{
 			done = SortIncremental(presorted);
@@ -362,7 +362,7 @@ namespace adria
 		return done;
 	}
 
-	bool ParticleRenderer::SortIncremental(u32 presorted)
+	bool ParticleRenderer::SortIncremental(U32 presorted)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
@@ -378,8 +378,8 @@ namespace adria
 			num_thread_groups = pow2 >> 9;
 		}
 
-		u32 merge_size = presorted * 2;
-		for (u32 merge_subsize = merge_size >> 1; merge_subsize > 256; merge_subsize = merge_subsize >> 1)
+		U32 merge_size = presorted * 2;
+		for (U32 merge_subsize = merge_size >> 1; merge_subsize > 256; merge_subsize = merge_subsize >> 1)
 		{
 
 			SortDispatchInfo sort_dispatch_info{};

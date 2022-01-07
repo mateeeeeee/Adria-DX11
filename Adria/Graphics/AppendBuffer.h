@@ -14,7 +14,7 @@ namespace adria
 	{
 	public:
 
-		AppendBuffer(ID3D11Device* device, u32 element_count) : element_count{ element_count }
+		AppendBuffer(ID3D11Device* device, U32 element_count) : element_count{ element_count }
 		{
 			CD3D11_BUFFER_DESC desc(sizeof(T) * element_count, D3D11_BIND_UNORDERED_ACCESS,
 				D3D11_USAGE_DEFAULT,
@@ -43,7 +43,7 @@ namespace adria
 		
 	private:
 
-		u32 const element_count;
+		U32 const element_count;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
 		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> uav;
 	};

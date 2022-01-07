@@ -5,7 +5,7 @@ namespace adria
 
 	RenderPass::RenderPass(render_pass_desc_t const& desc) : width(desc.width), height(desc.height)
 	{
-		for (u32 i = 0; i < desc.rtv_attachments.size(); ++i)
+		for (U32 i = 0; i < desc.rtv_attachments.size(); ++i)
 		{
 			auto const& attachment = desc.rtv_attachments[i];
 
@@ -38,7 +38,7 @@ namespace adria
 			context->ClearDepthStencilView(depth_target, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 				clear_depth, clear_stencil);
 
-		context->OMSetRenderTargets(static_cast<u32>(render_targets.size()), render_targets.data(), depth_target);
+		context->OMSetRenderTargets(static_cast<U32>(render_targets.size()), render_targets.data(), depth_target);
 
 		D3D11_VIEWPORT vp{};
 		vp.TopLeftX = vp.TopLeftY = 0.0f;

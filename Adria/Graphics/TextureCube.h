@@ -12,13 +12,13 @@ namespace adria
 
     struct texturecube_desc_t
     {
-        u32 width;
-        u32 height;
+        U32 width;
+        U32 height;
         DXGI_FORMAT format = DXGI_FORMAT_R32_TYPELESS;
         D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
-        u32 bind_flags = D3D11_BIND_SHADER_RESOURCE;
+        U32 bind_flags = D3D11_BIND_SHADER_RESOURCE;
         bool generate_mipmaps = false;
-        u32 mipmap_count = 0;
+        U32 mipmap_count = 0;
         DXGI_FORMAT srv_format = DXGI_FORMAT_R32_FLOAT;
         DXGI_FORMAT dsv_format = DXGI_FORMAT_D32_FLOAT;
         DXGI_FORMAT rtv_format = DXGI_FORMAT_R32_FLOAT;
@@ -64,7 +64,7 @@ namespace adria
 
             if (texcube_desc.BindFlags & D3D11_BIND_DEPTH_STENCIL)
             {
-                for (u32 face = 0; face < tex_dsv.size(); ++face)
+                for (U32 face = 0; face < tex_dsv.size(); ++face)
                 {
                     // create target view of depth stensil texture
                     D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc = {};
@@ -80,7 +80,7 @@ namespace adria
 
             if (texcube_desc.BindFlags & D3D11_BIND_RENDER_TARGET)
             {
-                for (u32 face = 0; face < tex_rtv.size(); ++face)
+                for (U32 face = 0; face < tex_rtv.size(); ++face)
                 {
                     // create target view of depth stensil texture
                     D3D11_RENDER_TARGET_VIEW_DESC rtv_desc = {};
@@ -94,7 +94,7 @@ namespace adria
             }
         }
 
-        void UpdateTextureCube(ID3D11DeviceContext* context, void* data, u32 pitch)
+        void UpdateTextureCube(ID3D11DeviceContext* context, void* data, U32 pitch)
         {
             context->UpdateSubresource(texcube.Get(), 0u, nullptr, data, pitch, 0u);
         }
@@ -105,12 +105,12 @@ namespace adria
             context->GenerateMips(tex_srv.Get());
         }
 
-        auto DSV(u32 i) const
+        auto DSV(U32 i) const
         {
             return tex_dsv[i].Get();
         }
 
-        auto RTV(u32 i) const
+        auto RTV(U32 i) const
         {
             return tex_rtv[i].Get();
         }

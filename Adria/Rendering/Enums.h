@@ -6,8 +6,8 @@
 namespace adria
 {
 	
-#define DECLARE_CBUFFER_SLOT(name, slot) static constexpr u16 CBUFFER_SLOT_##name = slot
-#define DECLARE_TEXTURE_SLOT(name, slot) static constexpr u16 TEXTURE_SLOT_##name = slot
+#define DECLARE_CBUFFER_SLOT(name, slot) static constexpr U16 CBUFFER_SLOT_##name = slot
+#define DECLARE_TEXTURE_SLOT(name, slot) static constexpr U16 TEXTURE_SLOT_##name = slot
 
 	DECLARE_CBUFFER_SLOT(FRAME, 0);
 	DECLARE_CBUFFER_SLOT(OBJECT, 1);
@@ -37,7 +37,7 @@ namespace adria
 	DECLARE_TEXTURE_SLOT(SAND, 3);
 	DECLARE_TEXTURE_SLOT(LAYER, 4);
 	
-	enum class EShader : u8
+	enum class EShader : U8
 	{
 		Skybox,
 		UniformColorSky,
@@ -83,7 +83,7 @@ namespace adria
         Unknown
 	};
 
-	enum class EComputeShader : u8
+	enum class EComputeShader : U8
 	{
 		Blur_Horizontal,
 		Blur_Vertical,
@@ -111,7 +111,7 @@ namespace adria
 		ParticleSortInitArgs
 	};
 
-	enum class EGeometryShader : u8
+	enum class EGeometryShader : U8
 	{
 		LensFlare,
 		BokehDraw,
@@ -119,39 +119,39 @@ namespace adria
 		VoxelizeDebug
 	};
 
-	enum class ETesselationShader : u8
+	enum class ETesselationShader : U8
 	{
 		Ocean
 	};
 
-	enum class EToneMap : u8
+	enum class EToneMap : U8
 	{
 		Reinhard,
 		Hable,
 		Linear
 	};
 
-	enum class ELightType : i32
+	enum class ELightType : I32
 	{
 		Directional,
 		Point,
 		Spot
 	};
 
-	enum class EFogType : i32
+	enum class EFogType : I32
 	{
 		Exponential, 
 		ExponentialHeight
 	};
 
-	enum class EAmbientOcclusion : u8
+	enum class EAmbientOcclusion : U8
 	{
 		None,
 		SSAO,
 		HBAO
 	};
 
-	enum class EBokehType : u8
+	enum class EBokehType : U8
 	{
 		Hex,
 		Oct,
@@ -159,7 +159,7 @@ namespace adria
 		Cross
 	};
 
-	enum class ESkyType : u8
+	enum class ESkyType : U8
 	{
 		UniformColor,
 		Skybox,
@@ -185,14 +185,14 @@ namespace adria
 		None
 	};
 
-	enum EAntiAliasing : u8
+	enum EAntiAliasing : U8
 	{
 		EAntiAliasing_None = 0x0,
 		EAntiAliasing_FXAA = 0x1,
 		EAntiAliasing_TAA = 0x2
 	};
 
-	enum EGBufferSlot : u8
+	enum EGBufferSlot : U8
 	{
 		EGBufferSlot_NormalMetallic,
 		EGBufferSlot_DiffuseRoughness,

@@ -10,14 +10,14 @@ namespace adria
 
     struct texture2darray_desc_t
     {
-        u32 width;
-        u32 height;
-        u32 array_size;
+        U32 width;
+        U32 height;
+        U32 array_size;
         DXGI_FORMAT format = DXGI_FORMAT_R32_TYPELESS;
         D3D11_USAGE usage = D3D11_USAGE_DEFAULT;
-        u32 bind_flags = D3D11_BIND_SHADER_RESOURCE;
+        U32 bind_flags = D3D11_BIND_SHADER_RESOURCE;
         bool generate_mipmaps = false;
-        u32 mipmap_count = 0;
+        U32 mipmap_count = 0;
         bool single_rtv = false;
         bool single_dsv = false;
         DXGI_FORMAT srv_format = DXGI_FORMAT_R32_FLOAT;
@@ -96,7 +96,7 @@ namespace adria
                     dsv_desc.Texture2DArray.MipSlice = 0;
 
                     tex_dsv.resize(tex2darray_desc.ArraySize);
-                    for (u32 i = 0; i < tex2darray_desc.ArraySize; ++i)
+                    for (U32 i = 0; i < tex2darray_desc.ArraySize; ++i)
                     {
                         dsv_desc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, i, 1);
 
@@ -132,7 +132,7 @@ namespace adria
                     rtv_desc.Texture2DArray.MipSlice = 0;
 
                     tex_rtv.resize(tex2darray_desc.ArraySize);
-                    for (u32 i = 0; i < tex2darray_desc.ArraySize; ++i)
+                    for (U32 i = 0; i < tex2darray_desc.ArraySize; ++i)
                     {
                         rtv_desc.Texture2DArray.FirstArraySlice = D3D11CalcSubresource(0, i, 1);
 
@@ -143,7 +143,7 @@ namespace adria
             }
         }
 
-        void UpdateTexture2DArray(ID3D11DeviceContext* context, void* data, u32 pitch)
+        void UpdateTexture2DArray(ID3D11DeviceContext* context, void* data, U32 pitch)
         {
             context->UpdateSubresource(tex2darray.Get(), 0u, nullptr, data, pitch, 0u);
         }
@@ -154,12 +154,12 @@ namespace adria
             context->GenerateMips(tex_srv.Get());
         }
 
-        auto DSV(u32 i) const
+        auto DSV(U32 i) const
         {
             return tex_dsv[i].Get();
         }
 
-        auto RTV(u32 i) const
+        auto RTV(U32 i) const
         {
             return tex_rtv[i].Get();
         }
