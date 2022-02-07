@@ -31,14 +31,24 @@ namespace adria
 
 	namespace 
 	{
-		SceneConfig ParseSceneConfig(char const* scene_file)
+		std::optional<SceneConfig> ParseSceneConfig(char const* scene_file)
 		{
 			SceneConfig config{};
+			json models, lights, camera, skybox;
+			try
+			{
+				JsonParams scene_params = json::parse(std::ifstream(scene_file));
+				models = scene_params.FindJsonArray("models");
+				lights = scene_params.FindJsonArray("lights");
+				camera = scene_params.FindJson("camera");
+				skybox = scene_params.FindJson("skybox");
+			}
+			catch (json::parse_error const& e)
+			{
+				ADRIA_LOG(ERROR, "JSON Parse error: %s! ", e.what());
+				return std::nullopt;
+			}
 
-			JsonParams scene_params = json::parse(std::ifstream(scene_file));
-			json models = scene_params.FindJsonArray("models");
-			json lights = scene_params.FindJsonArray("lights");
-			
 			for (auto&& model_json : models)
 			{
 				JsonParams model_params(model_json);
@@ -145,7 +155,7 @@ namespace adria
 				config.scene_lights.push_back(std::move(light));
 			}
 
-			JsonParams camera_params(scene_params.FindJson("camera"));
+			JsonParams camera_params(camera);
 			config.camera_params.near_plane = camera_params.FindOr<float32>("near", 1.0f);
 			config.camera_params.far_plane  = camera_params.FindOr<float32>("far", 3000.0f);
 			config.camera_params.fov = XMConvertToRadians(camera_params.FindOr<float32>("fov", 90.0f));
@@ -160,7 +170,7 @@ namespace adria
 			camera_params.FindArray("look_at", look_at);
 			config.camera_params.look_at = XMFLOAT3(look_at);
 
-			JsonParams skybox_params(scene_params.FindJson("skybox"));
+			JsonParams skybox_params(skybox);
 			std::vector<std::string> skybox_textures;
 			
 			std::string cubemap[1];
@@ -197,14 +207,8 @@ namespace adria
 		gfx = std::make_unique<GraphicsCoreDX11>(Window::Handle());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx->Device(), renderer->GetTextureManager());
-		
-		SceneConfig scene_config = ParseSceneConfig(init.scene_file);
-		InitializeScene(scene_config);
 
-		scene_config.camera_params.aspect_ratio = static_cast<float32>(Window::Width()) / Window::Height();
-		camera_manager.AddCamera(scene_config.camera_params);
-
-		event_queue.Subscribe<ResizeEvent>([this](ResizeEvent const& e) 
+		event_queue.Subscribe<ResizeEvent>([this](ResizeEvent const& e)
 			{
 				camera_manager.OnResize(e.width, e.height);
 				gfx->ResizeBackbuffer(e.width, e.height);
@@ -214,6 +218,15 @@ namespace adria
 			{
 				camera_manager.OnScroll(e.scroll);
 			});
+
+		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
+		if (scene_config.has_value())
+		{
+			InitializeScene(scene_config.value());
+			scene_config.value().camera_params.aspect_ratio = static_cast<float32>(Window::Width()) / Window::Height();
+			camera_manager.AddCamera(scene_config.value().camera_params);
+		}
+		else Window::Quit(1);
 	}
 
 	Engine::~Engine()
