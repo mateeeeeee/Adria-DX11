@@ -8,7 +8,7 @@ namespace adria
 {
 	struct ShaderBlob
 	{
-		std::vector<U8> bytecode;
+		std::vector<uint8> bytecode;
 
 		void* GetPointer() const
 		{
@@ -52,7 +52,7 @@ namespace adria
 		std::string shadersource = "";
 		std::string entrypoint = "";
 		std::vector<ShaderDefine> defines;
-		u64 flags = FLAG_NONE;
+		uint64 flags = FLAG_NONE;
 	};
 	
 	namespace ShaderUtility

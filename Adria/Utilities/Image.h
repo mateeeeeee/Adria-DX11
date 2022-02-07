@@ -9,7 +9,7 @@ namespace adria
 	class Image
 	{
 	public:
-		Image(std::string_view image_file, I32 desired_channels = 4);
+		Image(std::string_view image_file, int32 desired_channels = 4);
 
 		Image(Image const&) = delete;
 		Image(Image&&) = default;
@@ -18,15 +18,15 @@ namespace adria
 		~Image() = default;
 
 
-		U32 Width() const;
+		uint32 Width() const;
 
-		U32 Height() const;
+		uint32 Height() const;
 
-		U32 Channels() const;
+		uint32 Channels() const;
 
-		U32 BytesPerPixel() const;
+		uint32 BytesPerPixel() const;
 
-		U32 Pitch() const;
+		uint32 Pitch() const;
 
 		bool IsHDR() const;
 
@@ -34,9 +34,9 @@ namespace adria
 		T const* Data() const;
 
 	private:
-		U32 _width, _height;
-		U32 _channels;
-		std::unique_ptr<U8[]> _pixels;
+		uint32 _width, _height;
+		uint32 _channels;
+		std::unique_ptr<uint8[]> _pixels;
 		bool is_hdr;
 	};
 
@@ -46,9 +46,9 @@ namespace adria
 		return reinterpret_cast<T const*>(_pixels.get());
 	}
 
-	void WriteImageTGA(char const* name, std::vector<U8> const& data, int width, int height);
+	void WriteImageTGA(char const* name, std::vector<uint8> const& data, int width, int height);
 
-	void WriteImagePNG(char const* name, std::vector<U8> const& data, int width, int height);
+	void WriteImagePNG(char const* name, std::vector<uint8> const& data, int width, int height);
 
-	void WriteImageJPG(char const* name, std::vector<U8> const& data, int width, int height);
+	void WriteImageJPG(char const* name, std::vector<uint8> const& data, int width, int height);
 }

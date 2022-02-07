@@ -13,13 +13,13 @@ namespace adria
 		IndexBuffer() = default;
 
 		template<typename index_t>
-		void Create(ID3D11Device* device, index_t const* indices, U32 index_count)
+		void Create(ID3D11Device* device, index_t const* indices, uint32 index_count)
 		{
 
 			D3D11_BUFFER_DESC ibd{};
 
 			ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-			ibd.ByteWidth = static_cast<U32>(index_count * sizeof(index_t));
+			ibd.ByteWidth = static_cast<uint32>(index_count * sizeof(index_t));
 			ibd.StructureByteStride = sizeof(index_t);
 
 			ibd.CPUAccessFlags = 0;
@@ -29,9 +29,9 @@ namespace adria
 			D3D11_SUBRESOURCE_DATA data{};
 			data.pSysMem = indices;
 			device->CreateBuffer(&ibd, &data, buffer.GetAddressOf());
-			this->index_count = static_cast<U32>(index_count);
-			if (std::is_same_v<index_t, U32>) format = DXGI_FORMAT_R32_UINT;
-			else if (std::is_same_v<index_t, U16>) format = DXGI_FORMAT_R16_UINT;
+			this->index_count = static_cast<uint32>(index_count);
+			if (std::is_same_v<index_t, uint32>) format = DXGI_FORMAT_R32_UINT;
+			else if (std::is_same_v<index_t, uint16>) format = DXGI_FORMAT_R16_UINT;
 			else format = DXGI_FORMAT_UNKNOWN;
 
 		}
@@ -39,15 +39,15 @@ namespace adria
 		template<typename index_t>
 		void Create(ID3D11Device* device, std::vector<index_t> const& indices)
 		{
-			Create(device, indices.data(), (U32)indices.size());
+			Create(device, indices.data(), (uint32)indices.size());
 		}
 
-		void Bind(ID3D11DeviceContext* context, U32 offset = 0u) const
+		void Bind(ID3D11DeviceContext* context, uint32 offset = 0u) const
 		{
 			context->IASetIndexBuffer(buffer.Get(), format, offset);
 		}
 
-		U32 Count() const
+		uint32 Count() const
 		{
 			return index_count;
 		}
@@ -55,7 +55,7 @@ namespace adria
 	private:
 		Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
 		DXGI_FORMAT format;
-		U32 index_count;
+		uint32 index_count;
 
 	};
 

@@ -15,7 +15,7 @@ namespace adria
     class StructuredBuffer
     {
     public:
-        StructuredBuffer(ID3D11Device* device, U32 element_count,
+        StructuredBuffer(ID3D11Device* device, uint32 element_count,
             bool dynamic = false, bool counter = false) : element_count{ element_count }
         {
             UINT bind_flags = D3D11_BIND_SHADER_RESOURCE;
@@ -64,7 +64,7 @@ namespace adria
         auto SRV() const { return srv.Get(); }
         bool HasCounter() const { return has_counter; }
 
-        void Update(ID3D11DeviceContext* context, void const* data, u64 data_size)
+        void Update(ID3D11DeviceContext* context, void const* data, uint64 data_size)
         {
             if (data_size == 0) return;
 
@@ -101,7 +101,7 @@ namespace adria
 
     private:
 
-        U32 const element_count;
+        uint32 const element_count;
         bool has_counter = false;
         Microsoft::WRL::ComPtr<ID3D11Buffer> buffer;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;

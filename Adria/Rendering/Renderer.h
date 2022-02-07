@@ -29,24 +29,24 @@ namespace adria
 
 	class Renderer
 	{
-		static constexpr U32 AO_NOISE_DIM = 8;
-		static constexpr U32 SSAO_KERNEL_SIZE = 16;
-		static constexpr U32 RESOLUTION = 512;
-		static constexpr U32 VOXEL_RESOLUTION = 128;
-		static constexpr U32 VOXELIZE_MAX_LIGHTS = 8;
-		static constexpr U32 CLUSTER_SIZE_X = 16;
-		static constexpr U32 CLUSTER_SIZE_Y = 16;
-		static constexpr U32 CLUSTER_SIZE_Z = 16;
-		static constexpr U32 CLUSTER_MAX_LIGHTS = 128;
+		static constexpr uint32 AO_NOISE_DIM = 8;
+		static constexpr uint32 SSAO_KERNEL_SIZE = 16;
+		static constexpr uint32 RESOLUTION = 512;
+		static constexpr uint32 VOXEL_RESOLUTION = 128;
+		static constexpr uint32 VOXELIZE_MAX_LIGHTS = 8;
+		static constexpr uint32 CLUSTER_SIZE_X = 16;
+		static constexpr uint32 CLUSTER_SIZE_Y = 16;
+		static constexpr uint32 CLUSTER_SIZE_Z = 16;
+		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
 		static constexpr DXGI_FORMAT GBUFFER_FORMAT[EGBufferSlot_Count] = { DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
 
 	public:
 
-		Renderer(tecs::registry& reg, GraphicsCoreDX11* gfx, U32 width, U32 height); 
+		Renderer(tecs::registry& reg, GraphicsCoreDX11* gfx, uint32 width, uint32 height); 
 
 		void NewFrame(Camera const*);
 
-		void Update(F32 dt);
+		void Update(float32 dt);
 
 		void SetProfilerSettings(ProfilerSettings const&);
 
@@ -56,7 +56,7 @@ namespace adria
 
 		void ResolveToBackbuffer();
 
-		void OnResize(U32 width, U32 height);
+		void OnResize(uint32 width, uint32 height);
 
 		Texture2D GetOffscreenTexture() const;
 
@@ -65,7 +65,7 @@ namespace adria
 		std::vector<std::string> GetProfilerResults(bool log = false);
 
 	private:
-		U32 width, height;
+		uint32 width, height;
 		tecs::registry& reg;
 		GraphicsCoreDX11* gfx;
 		TextureManager texture_manager;
@@ -188,8 +188,8 @@ namespace adria
 		std::unique_ptr<StructuredBuffer<LightSBuffer>> lights = nullptr;
 		std::unique_ptr<StructuredBuffer<VoxelType>>	voxels = nullptr;
 		std::unique_ptr<StructuredBuffer<ClusterAABB>>	clusters = nullptr;
-		std::unique_ptr<StructuredBuffer<U32>>			light_counter = nullptr;
-		std::unique_ptr<StructuredBuffer<U32>>			light_list = nullptr;
+		std::unique_ptr<StructuredBuffer<uint32>>			light_counter = nullptr;
+		std::unique_ptr<StructuredBuffer<uint32>>			light_list = nullptr;
 		std::unique_ptr<StructuredBuffer<LightGrid>>	light_grid = nullptr;
 
 		VertexBuffer cube_vb;
@@ -220,24 +220,24 @@ namespace adria
 		void CreateBuffers();
 		void CreateSamplers();
 		void CreateRenderStates();
-		void CreateResolutionDependentResources(U32 width, U32 height);
+		void CreateResolutionDependentResources(uint32 width, uint32 height);
 		void CreateOtherResources();
 
-		void CreateBokehViews(U32 width, U32 height);
-		void CreateRenderTargets(U32 width, U32 height);
-		void CreateGBuffer(U32 width, U32 height);
-		void CreateAOTexture(U32 width, U32 height);
-		void CreateRenderPasses(U32 width, U32 height);
-		void CreateComputeTextures(U32 width, U32 height);
+		void CreateBokehViews(uint32 width, uint32 height);
+		void CreateRenderTargets(uint32 width, uint32 height);
+		void CreateGBuffer(uint32 width, uint32 height);
+		void CreateAOTexture(uint32 width, uint32 height);
+		void CreateRenderPasses(uint32 width, uint32 height);
+		void CreateComputeTextures(uint32 width, uint32 height);
 		void CreateIBLTextures();
 
 		//called in update
 		void BindGlobals();
 
-		void UpdateCBuffers(F32 dt);
-		void UpdateOcean(F32 dt);
-		void UpdateWeather(F32 dt);
-		void UpdateParticles(F32 dt);
+		void UpdateCBuffers(float32 dt);
+		void UpdateOcean(float32 dt);
+		void UpdateWeather(float32 dt);
+		void UpdateParticles(float32 dt);
 		void UpdateLights();
 		void UpdateTerrainData();
 		void UpdateVoxelData();

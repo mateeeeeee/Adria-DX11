@@ -22,7 +22,7 @@ namespace adria
 		GraphicsCoreDX11& operator=(GraphicsCoreDX11&&) = default;
 		~GraphicsCoreDX11();
 
-		void ResizeBackbuffer(U32 w, U32 h);
+		void ResizeBackbuffer(uint32 w, uint32 h);
 		void ClearBackbuffer();
 		void SwapBuffers(bool vsync);
 		void SetBackbuffer();
@@ -32,7 +32,7 @@ namespace adria
 		ID3DUserDefinedAnnotation* Annotation() const;
 
 	private:
-		U32 width, height;
+		uint32 width, height;
 		Microsoft::WRL::ComPtr<ID3D11Device> device = nullptr;
 		Microsoft::WRL::ComPtr<IDXGISwapChain> swapchain = nullptr;
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> backbuffer_rtv = nullptr;
@@ -44,6 +44,6 @@ namespace adria
 
 		void WaitForGPU();
 
-		void CreateBackBufferResources(U32 w, U32 h);
+		void CreateBackBufferResources(uint32 w, uint32 h);
 	};
 }

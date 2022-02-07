@@ -13,7 +13,7 @@ namespace adria
 		width	= rect.right - rect.left;
 		height	= rect.bottom - rect.top;
 
-		U32 swapCreateFlags = 0;
+		uint32 swapCreateFlags = 0;
 
 #if defined(_DEBUG)  || defined(FORCE_DEBUG_LAYER)
 		swapCreateFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -81,7 +81,7 @@ namespace adria
 	{
 		WaitForGPU();
 	}
-	void GraphicsCoreDX11::ResizeBackbuffer(U32 w, U32 h)
+	void GraphicsCoreDX11::ResizeBackbuffer(uint32 w, uint32 h)
 	{
 		if ((width != w || height != h) && w > 0 && h > 0)
 		{
@@ -92,7 +92,7 @@ namespace adria
 	}
 	void GraphicsCoreDX11::ClearBackbuffer()
 	{
-		F32 clear_color[] = { 0.0f,0.0f, 0.0f,0.0f };
+		float32 clear_color[] = { 0.0f,0.0f, 0.0f,0.0f };
 		immediate_context->ClearRenderTargetView(backbuffer_rtv.Get(), clear_color);
 	}
 	void GraphicsCoreDX11::SwapBuffers(bool vsync)
@@ -103,8 +103,8 @@ namespace adria
 	void GraphicsCoreDX11::SetBackbuffer()
 	{
 		D3D11_VIEWPORT vp = {};
-		vp.Width = static_cast<F32>(width);
-		vp.Height = static_cast<F32>(height);
+		vp.Width = static_cast<float32>(width);
+		vp.Height = static_cast<float32>(height);
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 		vp.TopLeftX = 0;
@@ -140,7 +140,7 @@ namespace adria
 		while (immediate_context->GetData(query.Get(), &result, sizeof(result), 0) == S_FALSE);
 		ADRIA_ASSERT(result == TRUE);
 	}
-	void GraphicsCoreDX11::CreateBackBufferResources(U32 w, U32 h)
+	void GraphicsCoreDX11::CreateBackBufferResources(uint32 w, uint32 h)
 	{
 		immediate_context->OMSetRenderTargets(0, 0, 0);
 
@@ -172,8 +172,8 @@ namespace adria
 
 		immediate_context->OMSetRenderTargets(1, backbuffer_rtv.GetAddressOf(), nullptr);
 		D3D11_VIEWPORT vp{};
-		vp.Width = static_cast<F32>(w);
-		vp.Height = static_cast<F32>(h);
+		vp.Width = static_cast<float32>(w);
+		vp.Height = static_cast<float32>(h);
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 		vp.TopLeftX = 0.0f;

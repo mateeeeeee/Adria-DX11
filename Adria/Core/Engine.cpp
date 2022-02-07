@@ -25,10 +25,10 @@ namespace adria
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx->Device(), renderer->GetTextureManager());
 		
 		camera_desc_t camera_desc{};
-		camera_desc.aspect_ratio = static_cast<F32>(Window::Width()) / Window::Height();
+		camera_desc.aspect_ratio = static_cast<float32>(Window::Width()) / Window::Height();
 		camera_desc.near_plane = 1.0f;
 		camera_desc.far_plane = 3000.0f;
-		camera_desc.fov = pi_div_4<F32>;
+		camera_desc.fov = pi_div_4<float32>;
 		camera_desc.position_x = 0.0f;
 		camera_desc.position_y = 25.0f;
 		camera_desc.position_z = 0.0f;
@@ -62,7 +62,7 @@ namespace adria
 		
 		static EngineTimer timer;
 
-		F32 const dt = timer.MarkInSeconds();
+		float32 const dt = timer.MarkInSeconds();
 
 		if (Window::IsActive())
 		{
@@ -80,7 +80,7 @@ namespace adria
 
 	}
 
-	void Engine::Update(F32 dt)
+	void Engine::Update(float32 dt)
 	{
 		camera_manager.Update(dt);
 		auto& camera = camera_manager.GetActiveCamera();

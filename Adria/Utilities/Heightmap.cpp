@@ -63,73 +63,73 @@ namespace adria
 		noise.SetFrequency(desc.frequency);
 		hm.resize(desc.depth);
 
-		F32 max_height_achieved = std::numeric_limits<F32>::min();
-		F32 min_height_achieved = std::numeric_limits<F32>::max();
+		float32 max_height_achieved = std::numeric_limits<float32>::min();
+		float32 min_height_achieved = std::numeric_limits<float32>::max();
 
-		for (U32 z = 0; z < desc.depth; z++)
+		for (uint32 z = 0; z < desc.depth; z++)
 		{
 			hm[z].resize(desc.width);
-			for (U32 x = 0; x < desc.width; x++)
+			for (uint32 x = 0; x < desc.width; x++)
 			{
-				F32 xf = x * desc.noise_scale / desc.width;
-				F32 zf = z * desc.noise_scale / desc.depth;
+				float32 xf = x * desc.noise_scale / desc.width;
+				float32 zf = z * desc.noise_scale / desc.depth;
 
-				F32 height = noise.GetNoise(xf, zf) * desc.max_height;
+				float32 height = noise.GetNoise(xf, zf) * desc.max_height;
 				if (height > max_height_achieved) max_height_achieved = height;
 				if (height < min_height_achieved) min_height_achieved = height;
 				hm[z][x] = height;
 			}
 		}
 
-		auto scale = [=](F32 h) -> F32
+		auto scale = [=](float32 h) -> float32
 		{
 			return (h - min_height_achieved) / (max_height_achieved - min_height_achieved)
 				* 2 * desc.max_height - desc.max_height;
 		};
 
-		for (U32 z = 0; z < desc.depth; z++)
+		for (uint32 z = 0; z < desc.depth; z++)
 		{
-			for (U32 x = 0; x < desc.width; x++)
+			for (uint32 x = 0; x < desc.width; x++)
 			{
 				hm[z][x] = scale(hm[z][x]);
 			}
 		}
 	}
-	Heightmap::Heightmap(std::string_view heightmap_path, U32 max_height)
+	Heightmap::Heightmap(std::string_view heightmap_path, uint32 max_height)
 	{
 		Image img(heightmap_path, 1);
 
-		U8 const* image_data = img.Data<U8>();
+		uint8 const* image_data = img.Data<uint8>();
 
 		hm.resize(img.Height());
-		for (u64 z = 0; z < img.Height(); ++z)
+		for (uint64 z = 0; z < img.Height(); ++z)
 		{
 			hm[z].resize(img.Width());
-			for (u64 x = 0; x < img.Width(); ++x)
+			for (uint64 x = 0; x < img.Width(); ++x)
 			{
 				hm[z][x] = image_data[z * img.Width() + x] / 255.0f * max_height;
 			}
 		}
 	}
-	F32 Heightmap::HeightAt(u64 x, u64 z) const
+	float32 Heightmap::HeightAt(uint64 x, uint64 z) const
 	{
 		return hm[z][x];
 	}
-	u64 Heightmap::Width() const
+	uint64 Heightmap::Width() const
 	{
 		return hm[0].size();
 	}
-	u64 Heightmap::Depth() const
+	uint64 Heightmap::Depth() const
 	{
 		return hm.size();
 	}
 
 	void Heightmap::ApplyThermalErosion(thermal_erosion_desc_t const& desc)
 	{
-		F32 v1, v2, v3, v4, v5, v6, v7, v8, v9;	
-		F32 d1, d2, d3, d4, d5, d6, d7, d8;		
-		F32 talus = desc.talus;//4.0f / resolution
-		F32 c = desc.c; //0.5f;					
+		float32 v1, v2, v3, v4, v5, v6, v7, v8, v9;	
+		float32 d1, d2, d3, d4, d5, d6, d7, d8;		
+		float32 talus = desc.talus;//4.0f / resolution
+		float32 c = desc.c; //0.5f;					
 
 		for (size_t k = 0; k < desc.iterations; k++)
 		{
@@ -138,8 +138,8 @@ namespace adria
 				for (size_t i = 0; i < hm[j].size(); i++)
 				{
 
-					F32 max_diff = 0.0f;
-					F32 total_diff = 0.0f;
+					float32 max_diff = 0.0f;
+					float32 total_diff = 0.0f;
 
 					d1 = 0.0f;
 					d2 = 0.0f;
@@ -269,8 +269,8 @@ namespace adria
 						d8 = v2 - v9;
 					}
 
-					F32 d_array[] = { d1, d2, d3, d4, d5, d6, d7, d8 };
-					for (F32 d : d_array)
+					float32 d_array[] = { d1, d2, d3, d4, d5, d6, d7, d8 };
+					for (float32 d : d_array)
 					{
 						if (d > talus)
 						{
@@ -353,32 +353,32 @@ namespace adria
 
 	void Heightmap::ApplyHydraulicErosion(hydraulic_erosion_desc_t const& desc)
 	{
-		u64 drops = (u64)desc.drops;
+		uint64 drops = (uint64)desc.drops;
 
-		u64 xresolution = Width();
-		u64 yresolution = Depth();
+		uint64 xresolution = Width();
+		uint64 yresolution = Depth();
 
-		IntRandomGenerator<u64> x_random(0, xresolution - 1);
-		IntRandomGenerator<u64> y_random(0, yresolution - 1);
+		IntRandomGenerator<uint64> x_random(0, xresolution - 1);
+		IntRandomGenerator<uint64> y_random(0, yresolution - 1);
 
-		for (u64 drop = 0; drop < drops; drop++)
+		for (uint64 drop = 0; drop < drops; drop++)
 		{
 			// Get random coordinates to drop the water droplet at
-			u64 X = x_random();
-			u64 Y = y_random();
+			uint64 X = x_random();
+			uint64 Y = y_random();
 
-			F32 carryingAmount = 0.0f;
-			F32 minSlope = 1.15f;
+			float32 carryingAmount = 0.0f;
+			float32 minSlope = 1.15f;
 
 			if (hm[Y][X] > 0.0f)
 			{
-				for (I32 iter = 0; iter < desc.iterations; iter++)
+				for (int32 iter = 0; iter < desc.iterations; iter++)
 				{
-					F32 val = hm[Y][X];
-					F32 left = 1000.0f;
-					F32 right = 1000.0f;
-					F32 up = 1000.0f;
-					F32 down = 1000.0f;
+					float32 val = hm[Y][X];
+					float32 left = 1000.0f;
+					float32 right = 1000.0f;
+					float32 up = 1000.0f;
+					float32 down = 1000.0f;
 
 					if (X == 0 && Y == 0)
 					{
@@ -437,8 +437,8 @@ namespace adria
 						CENTER = -1, LEFT, RIGHT, UP, DOWN
 					};
 					
-					F32 minHeight = val;
-					I32 minIndex = CENTER;
+					float32 minHeight = val;
+					int32 minIndex = CENTER;
 
 					if (left < minHeight)
 					{
@@ -462,8 +462,8 @@ namespace adria
 					}
 					if (minHeight < val) 
 					{
-						F32 slope = std::min(minSlope, (val - minHeight));
-						F32 valueToSteal = desc.deposition_speed * slope;
+						float32 slope = std::min(minSlope, (val - minHeight));
+						float32 valueToSteal = desc.deposition_speed * slope;
 
 						if (carryingAmount > desc.carrying_capacity)
 						{
@@ -474,7 +474,7 @@ namespace adria
 						{
 							if (carryingAmount + valueToSteal > desc.carrying_capacity)
 							{
-								F32 delta = carryingAmount + valueToSteal - desc.carrying_capacity;
+								float32 delta = carryingAmount + valueToSteal - desc.carrying_capacity;
 								carryingAmount += delta;
 								hm[Y][X] -= delta;
 							}

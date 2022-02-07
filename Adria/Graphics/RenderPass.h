@@ -23,15 +23,15 @@ namespace adria
 	{
 		rtv_t view;
 		LoadOp load_op;
-		std::array<F32,4> clear_color;
+		std::array<float32,4> clear_color;
 	};
 
 	struct dsv_attachment_desc_t
 	{
 		dsv_t view;
 		LoadOp load_op;
-		F32 clear_depth;
-		U8 clear_stencil;
+		float32 clear_depth;
+		uint8 clear_stencil;
 	};
 
 	
@@ -39,7 +39,7 @@ namespace adria
 	{
 		std::vector<rtv_attachment_desc_t> rtv_attachments;
 		std::optional<dsv_attachment_desc_t> dsv_attachment;
-		U32 width, height;
+		uint32 width, height;
 	};
 
 
@@ -57,13 +57,13 @@ namespace adria
 		void End(ID3D11DeviceContext* context);
 
 	private:
-		U32 width, height;
+		uint32 width, height;
 		std::vector<rtv_t> render_targets;
-		std::unordered_map<u64, std::array<F32,4>> clear_values;
+		std::unordered_map<uint64, std::array<float32,4>> clear_values;
 		dsv_t depth_target = nullptr;
 		bool depth_clear = false;
-		F32 clear_depth = 0.0f;
-		U8 clear_stencil = 0;
+		float32 clear_depth = 0.0f;
+		uint8 clear_stencil = 0;
 		
 	};
 

@@ -11,32 +11,31 @@ namespace adria
 	{
 		void* handle	= nullptr;
         void* instance  = nullptr;
-		U32 msg			= 0;
-        u64 wparam      = 0;
-        I64 lparam      = 0;
-		F32 width		= 0;
-		F32 height		= 0;
+		uint32 msg			= 0;
+        uint64 wparam      = 0;
+        int64 lparam      = 0;
+		float32 width		= 0;
+		float32 height		= 0;
 	};
 
     struct window_init_t
     {
         HINSTANCE instance;
         std::string title;
-        U32 width, height;
+        uint32 width, height;
         bool maximize;
     };
 
-    //move definitions to .cpp file
-	class Window
+    class Window
 	{
 	public:
         static void Initialize(window_init_t const& init);
 
-        static U32 Width();
+        static uint32 Width();
 
-        static U32 Height();
+        static uint32 Height();
 
-        static std::pair<U32, U32> Position();
+        static std::pair<uint32, uint32> Position();
 
         static void SetCallback(std::function<void(window_message_t const& window_data)> callback);
 

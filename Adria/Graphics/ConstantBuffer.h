@@ -12,7 +12,7 @@ namespace adria
 	template<typename CBuffer>
 	class ConstantBuffer
 	{
-		static constexpr U32 GetCBufferSize(U32 buffer_size)
+		static constexpr uint32 GetCBufferSize(uint32 buffer_size)
 		{
 			return (buffer_size + (64 - 1)) & ~(64 - 1);
 		}
@@ -23,11 +23,11 @@ namespace adria
 
 		ConstantBuffer(ID3D11Device* device, CBuffer const& initialdata, bool dynamic = true);
 
-		void Update(ID3D11DeviceContext* context, void const* data, U32 data_size);
+		void Update(ID3D11DeviceContext* context, void const* data, uint32 data_size);
 
 		void Update(ID3D11DeviceContext* context, CBuffer const& buffer_data);
 
-		void Bind(ID3D11DeviceContext* context, ShaderStage stage, U32 slot) const;
+		void Bind(ID3D11DeviceContext* context, ShaderStage stage, uint32 slot) const;
 
 		ID3D11Buffer* const Buffer() const 
 		{
@@ -72,7 +72,7 @@ namespace adria
 	}
 
 	template<typename CBuffer>
-	void ConstantBuffer<CBuffer>::Update(ID3D11DeviceContext* context, void const* data, U32 data_size)
+	void ConstantBuffer<CBuffer>::Update(ID3D11DeviceContext* context, void const* data, uint32 data_size)
 	{
 		D3D11_BUFFER_DESC desc{};
 		buffer->GetDesc(&desc);
@@ -96,7 +96,7 @@ namespace adria
 	}
 
 	template<typename CBuffer>
-	void ConstantBuffer<CBuffer>::Bind(ID3D11DeviceContext* context, ShaderStage stage, U32 slot) const
+	void ConstantBuffer<CBuffer>::Bind(ID3D11DeviceContext* context, ShaderStage stage, uint32 slot) const
 	{
 		switch (stage)
 		{
