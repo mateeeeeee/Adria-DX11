@@ -494,12 +494,12 @@ namespace adria
 		frame_cbuf_data.previous_view_projection = camera->ViewProj(); 
 
 
-		static float32 _near = 0.0f, _far = 0.0f, _fov = 0.0f, _ar = 0.0f;
-		if (fabs(_near - camera->Near()) > 1e-4 || fabs(_far - camera->Far()) > 1e-4 || fabs(_fov - camera->Fov()) > 1e-4
+		static float32 _near = 0.0f, far_plane = 0.0f, _fov = 0.0f, _ar = 0.0f;
+		if (fabs(_near - camera->Near()) > 1e-4 || fabs(far_plane - camera->Far()) > 1e-4 || fabs(_fov - camera->Fov()) > 1e-4
 			|| fabs(_ar - camera->AspectRatio()) > 1e-4)
 		{
 			_near = camera->Near();
-			_far = camera->Far();
+			far_plane = camera->Far();
 			_fov = camera->Fov();
 			_ar = camera->AspectRatio();
 			recreate_clusters = true;

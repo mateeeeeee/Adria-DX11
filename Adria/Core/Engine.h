@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-
 #include "../Events/EventQueue.h"
 #include "../Input/Input.h"
 #include "../tecs/registry.h"
@@ -18,8 +17,10 @@ namespace adria
 	struct engine_init_t
 	{
 		bool vsync = false;
-		bool load_default_scene = true;
+		char const* scene_file = "scene.json";
 	};
+
+	struct SceneConfig;
 
 	class Engine
 	{
@@ -51,7 +52,7 @@ namespace adria
 		std::unique_ptr<EntityLoader> entity_loader;
 	private:
 
-		virtual void InitializeScene(bool load_default_scene);
+		virtual void InitializeScene(SceneConfig const& config);
 
 		virtual void Update(float32 dt);
 

@@ -15,6 +15,7 @@ namespace adria
 		std::string window_title = "adria";
 		bool window_maximize = false;
 		bool vsync = false;
+		std::string scene_file = "scene.json";
 		std::string log_file = "adria.log";
 		int log_level = 0;
 	};
@@ -41,6 +42,10 @@ namespace adria
 			else if (args[i] == L"--loglevel")
 			{
 				config.log_level = _wtoi(args[++i].c_str());
+			}
+			else if (args[i] == L"--scene")
+			{
+				config.scene_file = ConvertToNarrow(args[++i]);
 			}
 			else if (args[i] == L"--max")
 			{
