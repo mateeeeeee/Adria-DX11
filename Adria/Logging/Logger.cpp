@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "../Core/Macros.h"
+#include "../Core/Windows.h"
 
 namespace adria
 {
@@ -104,5 +105,18 @@ namespace adria
 		(use_cerr ? std::cerr : std::cout) << GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) << "\n";
 	}
 
+
+	OutputDebugStringLogger::OutputDebugStringLogger(ELogLevel logger_level /*= ELogLevel::LOG_DEBUG*/)
+		: logger_level{ logger_level }
+	{}
+
+	OutputDebugStringLogger::~OutputDebugStringLogger()
+	{}
+
+	void OutputDebugStringLogger::Log(ELogLevel level, char const* entry, char const* file, uint32_t line)
+	{
+		std::string log = GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) + "\n";
+		OutputDebugStringA(log.c_str());
+	}
 
 }

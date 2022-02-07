@@ -7,6 +7,7 @@
 #include <source_location>
 #include "../Utilities/ConcurrentQueue.h"
 
+
 namespace adria
 {
 
@@ -48,6 +49,16 @@ namespace adria
 		virtual void Log(ELogLevel level, char const* entry, char const* file, uint32_t line) override;
 	private:
 		bool const use_cerr;
+		ELogLevel const logger_level;
+	};
+
+	class OutputDebugStringLogger : public ILogger
+	{
+	public:
+		OutputDebugStringLogger(ELogLevel logger_level = ELogLevel::LOG_DEBUG);
+		virtual ~OutputDebugStringLogger() override;
+		virtual void Log(ELogLevel level, char const* entry, char const* file, uint32_t line) override;
+	private:
 		ELogLevel const logger_level;
 	};
 

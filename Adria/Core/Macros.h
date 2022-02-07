@@ -7,5 +7,5 @@
 #define THROW_EXCEPTION(msg) throw adria::AppException(__LINE__, __FILE__, msg)
 
 #define ADRIA_ASSERT(expr) assert(expr)
-#define DEBUG_PRINT(...) {char buf[512]; sprintf_s(buf, 512, __VA_ARGS__);  OutputDebugStringA(buf);}
+#define DEBUG_PRINT(...) {char buf[512]; sprintf_s(buf, 512, __VA_ARGS__); OutputDebugStringA(buf);}
 
