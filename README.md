@@ -56,6 +56,8 @@ Graphics engine written in C++/DirectX11.
 
 [FastNoiseLite](https://github.com/Auburn/FastNoiseLite)
 
+[json](https://github.com/nlohmann/json)
+
 ## Screenshots
 
 Editor 
