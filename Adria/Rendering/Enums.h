@@ -101,6 +101,7 @@ namespace adria
 		ClusterCulling,
 		VoxelCopy,
 		VoxelSecondBounce,
+		Picker,
 		ParticleInitDeadList,
 		ParticleReset,
 		ParticleEmit,

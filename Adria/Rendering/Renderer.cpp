@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Components.h"
 #include "SkyModel.h"
+#include "../Input/Input.h"
 #include "../Editor/GUI.h"
 #include "../Logging/Logger.h"
 #include "../Core/Window.h"
@@ -341,13 +342,15 @@ namespace adria
 			return gauss;
 		}
 	}
+
+
 	/////////////////////////////////////////////////////////////////////////
 	/////////////////////////////// PUBLIC //////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////
 
 	Renderer::Renderer(registry& reg, GraphicsCoreDX11* gfx, uint32 width, uint32 height)
 		: width(width), height(height), reg(reg), gfx(gfx), texture_manager(gfx->Device(), gfx->Context()),
-		profiler(gfx->Device()), particle_system(gfx)
+		profiler(gfx->Device()), particle_system(gfx), current_picking_data(nullptr), picking_buffer(nullptr)
 	{
 		uint32 w = width, h = height;
 
@@ -371,6 +374,14 @@ namespace adria
 		UpdateOcean(dt);
 		UpdateParticles(dt);
 	}
+
+	void Renderer::CheckInput(Input& input)
+	{
+		pick_in_current_frame = true; // input.GetKey(EKeyCode::ClickLeft);
+		mx = (uint32)input.GetMousePositionX();
+		my = (uint32)input.GetMousePositionY();
+	}
+
 	void Renderer::SetProfilerSettings(ProfilerSettings const& _profiler_settings)
 	{
 		profiler_settings = _profiler_settings;
@@ -382,6 +393,11 @@ namespace adria
 		if (renderer_settings.ibl && !ibl_textures_generated) CreateIBLTextures();
 
 		PassGBuffer();
+
+		if (pick_in_current_frame)
+		{
+			PassPicking();
+		}
 		
 		if(!renderer_settings.voxel_debug)
 		{
@@ -461,6 +477,7 @@ namespace adria
 		}
 
 	}
+
 	Texture2D Renderer::GetOffscreenTexture() const
 	{
 		return offscreen_ldr_render_target;
@@ -485,6 +502,8 @@ namespace adria
 		frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
 		frame_cbuf_data.screen_resolution_x = (float32)width;
 		frame_cbuf_data.screen_resolution_y = (float32)height;
+		frame_cbuf_data.mouse_position_x = mx;
+		frame_cbuf_data.mouse_position_x = my;
 
 		frame_cbuffer->Update(gfx->Context(), frame_cbuf_data);
 
@@ -853,6 +872,9 @@ namespace adria
 
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelSecondBounceCS.cso", cs_blob);
 			compute_programs[EComputeShader::VoxelSecondBounce].Create(device, cs_blob);
+
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/PickerCS.cso", cs_blob);
+			compute_programs[EComputeShader::Picker].Create(device, cs_blob);
 		}
 
 		//ocean
@@ -995,6 +1017,7 @@ namespace adria
 		light_counter = std::make_unique<StructuredBuffer<uint32>>(device, 1);
 		light_list = std::make_unique<StructuredBuffer<uint32>>(device, CLUSTER_COUNT * CLUSTER_MAX_LIGHTS);
 		light_grid = std::make_unique<StructuredBuffer<LightGrid>>(device, CLUSTER_COUNT);
+		picking_buffer = std::make_unique<StructuredBuffer<PickingData>>(device, 1, false, false, true);
 
 		//for sky
 		const SimpleVertex cube_vertices[8] = 
@@ -2007,7 +2030,6 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		compute_cbuffer->Update(context, compute_cbuf_data);
 	}
-
 	void Renderer::UpdateOcean(float32 dt)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
@@ -2217,7 +2239,6 @@ namespace adria
 
 		weather_cbuffer->Update(context, weather_cbuf_data);
 	}
-
 	void Renderer::UpdateParticles(float32 dt)
 	{
 		auto emitters = reg.view<Emitter>();
@@ -2342,6 +2363,34 @@ namespace adria
 
 	///////////////////////////////////////////////////////////////////////
 
+	void Renderer::PassPicking()
+	{
+		ID3D11DeviceContext* context = gfx->Context();
+		ADRIA_ASSERT(pick_in_current_frame);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Picking Pass");
+
+		pick_in_current_frame = true;
+
+		ID3D11ShaderResourceView* shader_views[3] = { nullptr };
+		shader_views[0] = depth_target.SRV();
+		shader_views[1] = gbuffer[EGBufferSlot_NormalMetallic].SRV();
+		context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
+		ID3D11UnorderedAccessView* lights_uav = picking_buffer->UAV();
+		context->CSSetUnorderedAccessViews(0, 1, &lights_uav, nullptr);
+
+		compute_programs[EComputeShader::Picker].Bind(context);
+		context->Dispatch(1, 1, 1);
+
+		ID3D11ShaderResourceView* null_srv[2] = { nullptr };
+		context->CSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
+		ID3D11UnorderedAccessView* null_uav = nullptr;
+		context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
+
+		PickingData const* data = picking_buffer->MapForRead(context);
+		ADRIA_LOG(INFO, "picking buffer position: %f %f %f", data->position.x, data->position.y, data->position.z);
+		ADRIA_LOG(INFO, "picking buffer normal: %f %f %f", data->normal.x, data->normal.y, data->normal.z);
+		picking_buffer->Unmap(context);
+	}
 	void Renderer::PassGBuffer()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
@@ -2497,6 +2546,11 @@ namespace adria
 		}
 		gbuffer_pass.End(context);
 	}
+	void Renderer::PassDecals()
+	{
+
+	}
+
 	void Renderer::PassSSAO()
 	{
 		ID3D11DeviceContext* context = gfx->Context();

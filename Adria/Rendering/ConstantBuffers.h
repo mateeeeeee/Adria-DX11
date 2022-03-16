@@ -26,6 +26,8 @@ namespace adria
 		float32 camera_far;
 		float32 screen_resolution_x;
 		float32 screen_resolution_y;
+		uint32  mouse_position_x;
+		uint32  mouse_position_y;
 	};
 
 	DECLSPEC_ALIGN(16) struct LightCBuffer

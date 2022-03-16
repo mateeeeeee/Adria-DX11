@@ -16,18 +16,19 @@ namespace adria
     {
     public:
         StructuredBuffer(ID3D11Device* device, uint32 element_count,
-            bool dynamic = false, bool counter = false) : element_count{ element_count }
+            bool dynamic = false, bool counter = false, bool cpu_read = false) : element_count{ element_count }
         {
             UINT bind_flags = D3D11_BIND_SHADER_RESOURCE;
             if (!dynamic) bind_flags |= D3D11_BIND_UNORDERED_ACCESS;
 
             CD3D11_BUFFER_DESC desc(sizeof(T) * element_count, bind_flags,
                 dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT,
-                dynamic ? D3D11_CPU_ACCESS_WRITE : 0,
+                dynamic ? D3D11_CPU_ACCESS_WRITE : (cpu_read ? D3D11_CPU_ACCESS_READ : 0),
                 D3D11_RESOURCE_MISC_BUFFER_STRUCTURED,
                 sizeof(T));
 
-            device->CreateBuffer(&desc, nullptr, &buffer);
+            HRESULT hr = device->CreateBuffer(&desc, nullptr, &buffer);
+            BREAK_IF_FAILED(hr);
 
             if (bind_flags & D3D11_BIND_SHADER_RESOURCE)
             {
@@ -88,11 +89,27 @@ namespace adria
 
         T* Map(ID3D11DeviceContext* context)
         {
+			D3D11_BUFFER_DESC buffer_desc{};
+			buffer->GetDesc(&buffer_desc);
+			ADRIA_ASSERT(buffer_desc.CPUAccessFlags == D3D11_CPU_ACCESS_WRITE && "Cannot Map Structured Buffer without D3D11_CPU_ACCESS_WRITE");
+
             D3D11_MAPPED_SUBRESOURCE mapped_buffer = {};
             HRESULT hr = context->Map(buffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mapped_buffer);
             BREAK_IF_FAILED(hr);
             return static_cast<T*>(mapped_buffer.pData);
         }
+
+		T const* MapForRead(ID3D11DeviceContext* context)
+		{
+			D3D11_BUFFER_DESC buffer_desc{};
+			buffer->GetDesc(&buffer_desc);
+			ADRIA_ASSERT(buffer_desc.CPUAccessFlags == D3D11_CPU_ACCESS_READ && "Cannot MapForRead Structured Buffer without D3D11_CPU_ACCESS_READ");
+
+			D3D11_MAPPED_SUBRESOURCE mapped_buffer = {};
+			HRESULT hr = context->Map(buffer.Get(), 0u, D3D11_MAP_READ, 0u, &mapped_buffer);
+			BREAK_IF_FAILED(hr);
+			return static_cast<T const*>(mapped_buffer.pData);
+		}
 
         void Unmap(ID3D11DeviceContext* context)
         {

@@ -29,6 +29,8 @@ cbuffer PerFrame : register(b0)
     float camera_far;
     
     float2 screen_resolution;
+
+    uint2 mouse_position;
 }
 
 SamplerState linear_wrap_sampler : register(s0);

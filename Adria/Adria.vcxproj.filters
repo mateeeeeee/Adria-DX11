@@ -792,5 +792,8 @@
     <FxCompile Include="Resources\Shaders\Particles\SortInner512CS.hlsl">
       <Filter>Shaders\Particles</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Misc\PickerCS.hlsl">
+      <Filter>Shaders\Misc</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

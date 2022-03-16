@@ -24,6 +24,7 @@ namespace adria
 
 	class Camera;
 	class GraphicsCoreDX11;
+	class Input;
 	struct Light;
 	struct RenderState;
 
@@ -40,28 +41,30 @@ namespace adria
 		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
 		static constexpr DXGI_FORMAT GBUFFER_FORMAT[EGBufferSlot_Count] = { DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
 
+
+		struct PickingData
+		{
+			DirectX::XMFLOAT4 position;
+			DirectX::XMFLOAT4 normal;
+		};
 	public:
 
 		Renderer(tecs::registry& reg, GraphicsCoreDX11* gfx, uint32 width, uint32 height); 
 
 		void NewFrame(Camera const*);
-
 		void Update(float32 dt);
+		void CheckInput(Input& input);
 
 		void SetProfilerSettings(ProfilerSettings const&);
-
 		void Render(RendererSettings const&);
 
 		void ResolveToOffscreenFramebuffer();
-
 		void ResolveToBackbuffer();
 
 		void OnResize(uint32 width, uint32 height);
 
 		Texture2D GetOffscreenTexture() const;
-
 		TextureManager& GetTextureManager();
-
 		std::vector<std::string> GetProfilerResults(bool log = false);
 
 	private:
@@ -73,8 +76,14 @@ namespace adria
 		RendererSettings renderer_settings;
 		Profiler profiler;
 		ProfilerSettings profiler_settings;
-
 		ParticleRenderer particle_system;
+
+		//move pick related stuff somewhere else
+		bool pick_in_current_frame = false;
+		uint32 mx, my;
+		std::unique_ptr<PickingData> current_picking_data; 
+		std::unique_ptr<StructuredBuffer<PickingData>> picking_buffer;
+
 		//textures
 		std::vector<Texture2D> gbuffer; 
 		Texture2D depth_target;
@@ -245,7 +254,9 @@ namespace adria
 		void LightFrustumCulling(ELightType type);
 		
 		//called in render
+		void PassPicking();
 		void PassGBuffer();
+		void PassDecals();
 		void PassSSAO();
 		void PassHBAO();
 		void PassAmbient();
