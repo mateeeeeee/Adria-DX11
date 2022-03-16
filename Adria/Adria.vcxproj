@@ -118,7 +118,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D11\ThirdParty\json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
     </ClCompile>
     <Link>
@@ -137,7 +137,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D11\ThirdParty\json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
     </ClCompile>
     <Link>
