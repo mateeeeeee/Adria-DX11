@@ -375,12 +375,6 @@ namespace adria
 		UpdateParticles(dt);
 	}
 
-	void Renderer::CheckInput(Input& input)
-	{
-		pick_in_current_frame = true; // input.GetKey(EKeyCode::ClickLeft);
-		mx = (uint32)input.GetMousePositionX();
-		my = (uint32)input.GetMousePositionY();
-	}
 
 	void Renderer::SetProfilerSettings(ProfilerSettings const& _profiler_settings)
 	{
@@ -2387,8 +2381,8 @@ namespace adria
 		context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 
 		PickingData const* data = picking_buffer->MapForRead(context);
-		ADRIA_LOG(INFO, "picking buffer position: %f %f %f", data->position.x, data->position.y, data->position.z);
-		ADRIA_LOG(INFO, "picking buffer normal: %f %f %f", data->normal.x, data->normal.y, data->normal.z);
+		//ADRIA_LOG(INFO, "picking buffer position: %f %f %f", data->position.x, data->position.y, data->position.z);
+		//ADRIA_LOG(INFO, "picking buffer normal: %f %f %f", data->normal.x, data->normal.y, data->normal.z);
 		picking_buffer->Unmap(context);
 	}
 	void Renderer::PassGBuffer()
@@ -2679,7 +2673,10 @@ namespace adria
 				light_cbuf_data.type = static_cast<int32>(light_data.type);
 				light_cbuf_data.use_cascades = light_data.use_cascades;
 				light_cbuf_data.volumetric_strength = light_data.volumetric_strength;
-				light_cbuf_data.screenspace_shadows = light_data.screen_space_shadows;
+				light_cbuf_data.sscs = light_data.screen_space_contact_shadows;
+				light_cbuf_data.sscs_thickness = light_data.sscs_thickness;
+				light_cbuf_data.sscs_max_ray_distance = light_data.sscs_max_ray_distance;
+				light_cbuf_data.sscs_max_depth_distance = light_data.sscs_max_depth_distance;
 				
 				XMMATRIX camera_view = camera->View();
 				light_cbuf_data.position = XMVector4Transform(light_cbuf_data.position, camera_view);
@@ -2694,7 +2691,7 @@ namespace adria
 					switch (light_data.type)
 					{
 					case ELightType::Directional:
-						if (light_data.use_cascades) PassShadowMapCascades(light_data);//cascade_shadow_pass->FillShadowMap(context, light, camera);
+						if (light_data.use_cascades) PassShadowMapCascades(light_data);
 						else PassShadowMapDirectional(light_data);
 						break;
 					case ELightType::Spot:

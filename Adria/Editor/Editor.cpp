@@ -953,11 +953,17 @@ namespace adria
 						ImGui::SliderFloat("God Rays exposure", &light->godrays_exposure, 0.1f, 10.0f);
 					}
 
-
 					ImGui::Checkbox("Casts Shadows", &light->casts_shadows);
-					ImGui::Checkbox("Screen Space Shadows", &light->screen_space_shadows);
-					ImGui::Checkbox("Volumetric Lighting", &light->volumetric);
 
+					ImGui::Checkbox("Screen Space Contact Shadows", &light->screen_space_contact_shadows);
+                    if (light->screen_space_contact_shadows)
+                    {
+                        ImGui::SliderFloat("Thickness", &light->sscs_thickness, 0.0f, 1.0f);
+                        ImGui::SliderFloat("Max Ray Distance", &light->sscs_max_ray_distance, 0.0f, 0.3f);
+                        ImGui::SliderFloat("Max Depth Distance", &light->sscs_max_depth_distance, 0.0f, 500.0f);
+                    }
+
+					ImGui::Checkbox("Volumetric Lighting", &light->volumetric);
 					if (light->volumetric)
 					{
 						ImGui::SliderFloat("Volumetric lighting Strength", &light->volumetric_strength, 0.0f, 5.0f);
@@ -1427,9 +1433,11 @@ namespace adria
     {
         ImGui::Begin("Scene");
         {
-            ImVec2 _scene_dimension = ImGui::GetWindowSize();
-            ImGui::Image(engine->renderer->GetOffscreenTexture().SRV(), _scene_dimension);
-
+			ImVec2 _scene_dimension = ImGui::GetWindowSize();
+			//ImVec2 _window_position = ImGui::GetWindowPos();
+			//ADRIA_LOG(INFO, "Dims: %f %f", _scene_dimension.x, _scene_dimension.y);
+			//ADRIA_LOG(INFO, "Pos:  %f %f", _window_position.x, _window_position.y);
+			ImGui::Image(engine->renderer->GetOffscreenTexture().SRV(), _scene_dimension);
             mouse_in_scene = ImGui::IsWindowFocused();
         }
 

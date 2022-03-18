@@ -53,8 +53,7 @@ namespace adria
 
 		void NewFrame(Camera const*);
 		void Update(float32 dt);
-		void CheckInput(Input& input);
-
+		
 		void SetProfilerSettings(ProfilerSettings const&);
 		void Render(RendererSettings const&);
 

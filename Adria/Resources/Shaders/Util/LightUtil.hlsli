@@ -19,6 +19,9 @@ struct Light
     int use_cascades;
     float volumetric_strength;
     int screen_space_shadows;
+    float sscs_thickness;
+    float sscs_max_ray_distance;
+    float sscs_max_depth_distance;
     float godrays_density;
     float godrays_weight;
     float godrays_decay;

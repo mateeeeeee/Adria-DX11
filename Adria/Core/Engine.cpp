@@ -268,7 +268,6 @@ namespace adria
 		auto& camera = camera_manager.GetActiveCamera();
 		renderer->NewFrame(&camera);
 		renderer->Update(dt);
-		renderer->CheckInput(input);
 	}
 
 	void Engine::Render(RendererSettings const& settings, bool offscreen)

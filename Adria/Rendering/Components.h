@@ -130,7 +130,10 @@ namespace adria
 		bool active = true;
 		bool volumetric = false;
 		float32 volumetric_strength = 1.0f;
-		bool screen_space_shadows = false;
+		bool screen_space_contact_shadows = false;
+		float32 sscs_thickness = 0.5f;
+		float32 sscs_max_ray_distance = 0.05f;
+		float32 sscs_max_depth_distance = 200.0f;
 		bool lens_flare = false;
 		bool god_rays = false;
 		float32 godrays_decay = 0.825f;

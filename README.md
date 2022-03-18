@@ -24,6 +24,7 @@ Graphics engine written in C++/DirectX11. For successful build you will need tex
     - Bokeh shapes supported - Hexagon, Octagon, Circle, Cross
 * Ambient Occlusion: SSAO, HBAO
 * SSR
+* SSCS
 * FXAA
 * TAA
 * God Rays
