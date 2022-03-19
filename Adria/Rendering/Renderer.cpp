@@ -350,7 +350,7 @@ namespace adria
 
 	Renderer::Renderer(registry& reg, GraphicsCoreDX11* gfx, uint32 width, uint32 height)
 		: width(width), height(height), reg(reg), gfx(gfx), texture_manager(gfx->Device(), gfx->Context()),
-		profiler(gfx->Device()), particle_system(gfx), current_picking_data(nullptr), picking_buffer(nullptr)
+		profiler(gfx->Device()), particle_renderer(gfx), current_picking_data(nullptr), picking_buffer(nullptr)
 	{
 		uint32 w = width, h = height;
 
@@ -376,6 +376,10 @@ namespace adria
 	}
 
 
+	void Renderer::SetSceneViewportData(SceneViewport&& vp)
+	{
+		current_scene_viewport = std::move(vp);
+	}
 	void Renderer::SetProfilerSettings(ProfilerSettings const& _profiler_settings)
 	{
 		profiler_settings = _profiler_settings;
@@ -388,10 +392,10 @@ namespace adria
 
 		PassGBuffer();
 
-		if (pick_in_current_frame)
+		/*if (pick_in_current_frame)
 		{
 			PassPicking();
-		}
+		}*/
 		
 		if(!renderer_settings.voxel_debug)
 		{
@@ -472,6 +476,14 @@ namespace adria
 
 	}
 
+	void Renderer::OnLeftMouseClicked()
+	{
+		if (current_scene_viewport.scene_viewport_focused)
+		{
+			pick_in_current_frame = true;
+		}
+	}
+
 	Texture2D Renderer::GetOffscreenTexture() const
 	{
 		return offscreen_ldr_render_target;
@@ -496,8 +508,8 @@ namespace adria
 		frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
 		frame_cbuf_data.screen_resolution_x = (float32)width;
 		frame_cbuf_data.screen_resolution_y = (float32)height;
-		frame_cbuf_data.mouse_position_x = mx;
-		frame_cbuf_data.mouse_position_x = my;
+		frame_cbuf_data.mouse_normalized_coords_x = (current_scene_viewport.mouse_position_x - current_scene_viewport.scene_viewport_pos_x) / current_scene_viewport.scene_viewport_size_x;
+		frame_cbuf_data.mouse_normalized_coords_y = (current_scene_viewport.mouse_position_y - current_scene_viewport.scene_viewport_pos_y) / current_scene_viewport.scene_viewport_size_y;
 
 		frame_cbuffer->Update(gfx->Context(), frame_cbuf_data);
 
@@ -517,8 +529,6 @@ namespace adria
 			_ar = camera->AspectRatio();
 			recreate_clusters = true;
 		}
-			
-
 	}
 	TextureManager& Renderer::GetTextureManager()
 	{
@@ -2239,7 +2249,7 @@ namespace adria
 		for (auto emitter : emitters)
 		{
 			Emitter& emitter_params = emitters.get(emitter);
-			particle_system.Update(dt, emitter_params);
+			particle_renderer.Update(dt, emitter_params);
 		}
 	}
 
@@ -2362,8 +2372,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		ADRIA_ASSERT(pick_in_current_frame);
 		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Picking Pass");
-
-		pick_in_current_frame = true;
+		pick_in_current_frame = false;
 
 		ID3D11ShaderResourceView* shader_views[3] = { nullptr };
 		shader_views[0] = depth_target.SRV();
@@ -2381,8 +2390,8 @@ namespace adria
 		context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 
 		PickingData const* data = picking_buffer->MapForRead(context);
-		//ADRIA_LOG(INFO, "picking buffer position: %f %f %f", data->position.x, data->position.y, data->position.z);
-		//ADRIA_LOG(INFO, "picking buffer normal: %f %f %f", data->normal.x, data->normal.y, data->normal.z);
+		ADRIA_LOG(INFO, "picking buffer position: %f %f %f", data->position.x, data->position.y, data->position.z);
+		ADRIA_LOG(INFO, "picking buffer normal: %f %f %f", data->normal.x, data->normal.y, data->normal.z);
 		picking_buffer->Unmap(context);
 	}
 	void Renderer::PassGBuffer()
@@ -3557,7 +3566,7 @@ namespace adria
 		for (auto emitter : emitters)
 		{
 			Emitter const& emitter_params = emitters.get(emitter);
-			particle_system.Render(emitter_params, depth_target.SRV(), texture_manager.GetTextureView(emitter_params.particle_texture));
+			particle_renderer.Render(emitter_params, depth_target.SRV(), texture_manager.GetTextureView(emitter_params.particle_texture));
 		}
 
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);

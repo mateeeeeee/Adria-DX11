@@ -26,8 +26,8 @@ namespace adria
 		float32 camera_far;
 		float32 screen_resolution_x;
 		float32 screen_resolution_y;
-		uint32  mouse_position_x;
-		uint32  mouse_position_y;
+		float32 mouse_normalized_coords_x;
+		float32 mouse_normalized_coords_y;
 	};
 
 	DECLSPEC_ALIGN(16) struct LightCBuffer
@@ -192,13 +192,13 @@ namespace adria
 		DirectX::XMFLOAT3 grid_center;
 		float32   data_size;        // voxel half-extent in world space units
 		float32   data_size_rcp;    // 1.0 / voxel-half extent
-		uint32   data_res;         // voxel grid resolution
+		uint32    data_res;         // voxel grid resolution
 		float32   data_res_rcp;     // 1.0 / voxel grid resolution
-		uint32   num_cones;
+		uint32    num_cones;
 		float32   num_cones_rcp;
 		float32   max_distance;
 		float32   ray_step_size;
-		uint32   mips;
+		uint32    mips;
 	};
 
 	DECLSPEC_ALIGN(16) struct TerrainCBuffer

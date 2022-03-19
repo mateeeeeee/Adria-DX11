@@ -1,3 +1,4 @@
+#include <windowsx.h>
 #include "Input.h"
 #include "../Core/Window.h"
 #include "../Logging/Logger.h"
@@ -160,6 +161,14 @@ namespace adria
                 break;
             case WM_MOUSEWHEEL:
                 event_queue.ConstructAndPushEvent<ScrollEvent>((int32)GET_WHEEL_DELTA_WPARAM(data.wparam) / WHEEL_DELTA);
+                break;
+			case WM_LBUTTONDOWN:
+			    {
+			    	auto mx = GET_X_LPARAM(data.lparam);
+			    	auto my = GET_Y_LPARAM(data.lparam);
+			    	event_queue.ConstructAndPushEvent<LeftMouseClickedEvent>(mx, my);
+			    }
+                break;
             }
 
         }

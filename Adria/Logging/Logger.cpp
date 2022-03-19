@@ -87,7 +87,8 @@ namespace adria
 	void FileLogger::Log(ELogLevel level, char const* entry, char const* file, uint32_t line)
 	{
 		if (level < logger_level) return;
-		log_stream << GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) << "\n";
+		//log_stream << GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) << "\n";
+		log_stream << std::string(entry) << "\n";
 	}
 
 	OutputStreamLogger::OutputStreamLogger(bool use_cerr /*= false*/, ELogLevel logger_level /*= ELogLevel::LOG_DEBUG*/)

@@ -17,7 +17,7 @@ cbuffer FrameCBuf : register(b0)
     float camera_near;
     float camera_far;
     float2 screen_resolution;
-    uint2 mouse_position;
+    float2 mouse_normalized_coords;
 }
 
 cbuffer ObjectCBuf : register(b1)

@@ -17,9 +17,7 @@ Texture2DArray  cascadeDepthMap : register(t6);
 static const uint  SSCS_MAX_STEPS = 16; // Max ray steps, affects quality and performance.
 //static const float SSCS_RAY_MAX_DISTANCE = 0.05f; // Max shadow length, longer shadows are less accurate.
 //static const float SSCS_THICKNESS = 0.5f; // Depth testing thickness.
-static 
 //static const float SSCS_MAX_DISTANCE = 200.0f;
-
 
 float SSCS(float3 pos_vs)
 {

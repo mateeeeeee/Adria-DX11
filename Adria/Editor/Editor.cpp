@@ -166,10 +166,11 @@ namespace adria
     void Editor::Run()
     {
         HandleInput();
-
+        
         if (gui->IsVisible())
         {
-            engine->Run(renderer_settings, true);
+            engine->SetSceneViewportData(scene_viewport_data);
+            engine->Run(renderer_settings);
             engine->gfx->ClearBackbuffer();
             engine->gfx->SetBackbuffer();
             gui->Begin();
@@ -193,7 +194,8 @@ namespace adria
         }
         else
         {
-            engine->Run(renderer_settings, false);
+            engine->SetSceneViewportData(std::nullopt);
+            engine->Run(renderer_settings);
             engine->Present();
         }
     }
@@ -247,25 +249,18 @@ namespace adria
 
     void Editor::HandleInput()
     {
-        if (mouse_in_scene && engine->input.IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
-
-        if (mouse_in_scene && engine->input.IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
-
+        if (scene_focused && engine->input.IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
+        if (scene_focused && engine->input.IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
         if (gizmo_enabled && gui->IsVisible())
         {
-
             if (engine->input.IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
-
             if (engine->input.IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
-
             if (engine->input.IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE; //e because s is for camera movement and its close to wasd and tr
-
         }
-
-        engine->camera_manager.ShouldUpdate(mouse_in_scene);
+        engine->camera_manager.ShouldUpdate(scene_focused);
     }
 
-    void Editor::MenuBar()
+	void Editor::MenuBar()
     {
         if (ImGui::BeginMainMenuBar())
         {
@@ -1433,12 +1428,25 @@ namespace adria
     {
         ImGui::Begin("Scene");
         {
-			ImVec2 _scene_dimension = ImGui::GetWindowSize();
-			//ImVec2 _window_position = ImGui::GetWindowPos();
-			//ADRIA_LOG(INFO, "Dims: %f %f", _scene_dimension.x, _scene_dimension.y);
-			//ADRIA_LOG(INFO, "Pos:  %f %f", _window_position.x, _window_position.y);
-			ImGui::Image(engine->renderer->GetOffscreenTexture().SRV(), _scene_dimension);
-            mouse_in_scene = ImGui::IsWindowFocused();
+			ImVec2 v_min = ImGui::GetWindowContentRegionMin();
+			ImVec2 v_max = ImGui::GetWindowContentRegionMax();
+			v_min.x += ImGui::GetWindowPos().x;
+			v_min.y += ImGui::GetWindowPos().y;
+			v_max.x += ImGui::GetWindowPos().x;
+			v_max.y += ImGui::GetWindowPos().y;
+            ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
+
+            scene_focused = ImGui::IsWindowFocused();
+            ImGui::Image(engine->renderer->GetOffscreenTexture().SRV(), size);
+            ImGui::GetForegroundDrawList()->AddRect(v_min, v_max, IM_COL32(255, 0, 0, 255));
+            ImVec2 mouse_pos = ImGui::GetMousePos();
+            scene_viewport_data.mouse_position_x = mouse_pos.x;
+            scene_viewport_data.mouse_position_y = mouse_pos.y;
+            scene_viewport_data.scene_viewport_focused = scene_focused;
+            scene_viewport_data.scene_viewport_pos_x = v_min.x;
+            scene_viewport_data.scene_viewport_pos_y = v_min.y;
+			scene_viewport_data.scene_viewport_size_x = size.x;
+			scene_viewport_data.scene_viewport_size_y = size.y;
         }
 
         if (selected_entity != null_entity && engine->reg.has<Transform>(selected_entity) && gizmo_enabled)

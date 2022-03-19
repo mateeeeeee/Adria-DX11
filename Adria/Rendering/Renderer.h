@@ -41,7 +41,6 @@ namespace adria
 		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
 		static constexpr DXGI_FORMAT GBUFFER_FORMAT[EGBufferSlot_Count] = { DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
 
-
 		struct PickingData
 		{
 			DirectX::XMFLOAT4 position;
@@ -54,6 +53,7 @@ namespace adria
 		void NewFrame(Camera const*);
 		void Update(float32 dt);
 		
+		void SetSceneViewportData(SceneViewport&&);
 		void SetProfilerSettings(ProfilerSettings const&);
 		void Render(RendererSettings const&);
 
@@ -61,6 +61,7 @@ namespace adria
 		void ResolveToBackbuffer();
 
 		void OnResize(uint32 width, uint32 height);
+		void OnLeftMouseClicked();
 
 		Texture2D GetOffscreenTexture() const;
 		TextureManager& GetTextureManager();
@@ -75,11 +76,11 @@ namespace adria
 		RendererSettings renderer_settings;
 		Profiler profiler;
 		ProfilerSettings profiler_settings;
-		ParticleRenderer particle_system;
+		ParticleRenderer particle_renderer;
 
 		//move pick related stuff somewhere else
+		SceneViewport current_scene_viewport;
 		bool pick_in_current_frame = false;
-		uint32 mx, my;
 		std::unique_ptr<PickingData> current_picking_data; 
 		std::unique_ptr<StructuredBuffer<PickingData>> picking_buffer;
 

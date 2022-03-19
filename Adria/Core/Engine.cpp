@@ -200,7 +200,8 @@ namespace adria
 
 	using namespace tecs;
 
-	Engine::Engine(engine_init_t const& init)  : vsync{ init.vsync }, event_queue {}, input{ event_queue }, camera_manager{ input }
+	Engine::Engine(engine_init_t const& init)  : vsync{ init.vsync }, event_queue {}, input{ event_queue }, camera_manager{ input },
+		scene_viewport_data{}
 	{
 		TaskSystem::Initialize();
 
@@ -217,6 +218,10 @@ namespace adria
 		event_queue.Subscribe<ScrollEvent>([this](ScrollEvent const& e)
 			{
 				camera_manager.OnScroll(e.scroll);
+			});
+		event_queue.Subscribe<LeftMouseClickedEvent>([this](LeftMouseClickedEvent const& e)
+			{
+				renderer->OnLeftMouseClicked();
 			});
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
@@ -239,11 +244,9 @@ namespace adria
 		input.HandleWindowMessage(msg_data);
 	}
 
-	void Engine::Run(RendererSettings const& settings, bool offscreen)
+	void Engine::Run(RendererSettings const& settings)
 	{
-		
 		static EngineTimer timer;
-
 		float32 const dt = timer.MarkInSeconds();
 
 		if (Window::IsActive())
@@ -252,33 +255,57 @@ namespace adria
 			event_queue.ProcessEvents();
 
 			Update(dt);
-			Render(settings, offscreen);
+			Render(settings);
 		}
 		else
 		{
 			input.NewFrame();
 			event_queue.ProcessEvents();
 		}
-
 	}
 
 	void Engine::Update(float32 dt)
 	{
 		camera_manager.Update(dt);
 		auto& camera = camera_manager.GetActiveCamera();
+		renderer->SetSceneViewportData(std::move(scene_viewport_data));
 		renderer->NewFrame(&camera);
 		renderer->Update(dt);
 	}
 
-	void Engine::Render(RendererSettings const& settings, bool offscreen)
+	void Engine::Render(RendererSettings const& settings)
 	{
 		renderer->Render(settings);
-
-		if (offscreen) renderer->ResolveToOffscreenFramebuffer();
+		if (editor_active)
+		{
+			renderer->ResolveToOffscreenFramebuffer();
+		}
 		else
 		{
 			gfx->ClearBackbuffer();
 			renderer->ResolveToBackbuffer();
+		}
+	}
+
+	void Engine::SetSceneViewportData(std::optional<SceneViewport> viewport_data)
+	{
+		if (viewport_data.has_value())
+		{
+			editor_active = true;
+			scene_viewport_data = viewport_data.value();
+		}
+		else
+		{
+			editor_active = false;
+			scene_viewport_data.scene_viewport_focused = true;
+			scene_viewport_data.mouse_position_x = input.GetMousePositionX();
+			scene_viewport_data.mouse_position_y = input.GetMousePositionY();
+			
+			auto [pos_x, pos_y] = Window::Position();
+			scene_viewport_data.scene_viewport_pos_x = static_cast<float32>(pos_x);
+			scene_viewport_data.scene_viewport_pos_y = static_cast<float32>(pos_y);
+			scene_viewport_data.scene_viewport_size_x = static_cast<float32>(Window::Width());
+			scene_viewport_data.scene_viewport_size_y = static_cast<float32>(Window::Height());
 		}
 	}
 

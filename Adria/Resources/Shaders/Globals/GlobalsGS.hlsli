@@ -35,7 +35,7 @@ cbuffer PerFrame : register(b0)
     
     float2 screen_resolution;
 
-    uint2 mouse_position;
+    float2 mouse_normalized_coords;
 }
 
 cbuffer LightCbuf : register(b2)
