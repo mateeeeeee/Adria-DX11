@@ -392,10 +392,10 @@ namespace adria
 
 		PassGBuffer();
 
-		/*if (pick_in_current_frame)
+		if (pick_in_current_frame)
 		{
 			PassPicking();
-		}*/
+		}
 		
 		if(!renderer_settings.voxel_debug)
 		{

@@ -1438,7 +1438,7 @@ namespace adria
 
             scene_focused = ImGui::IsWindowFocused();
             ImGui::Image(engine->renderer->GetOffscreenTexture().SRV(), size);
-            ImGui::GetForegroundDrawList()->AddRect(v_min, v_max, IM_COL32(255, 0, 0, 255));
+            //ImGui::GetForegroundDrawList()->AddRect(v_min, v_max, IM_COL32(255, 0, 0, 255));
             ImVec2 mouse_pos = ImGui::GetMousePos();
             scene_viewport_data.mouse_position_x = mouse_pos.x;
             scene_viewport_data.mouse_position_y = mouse_pos.y;

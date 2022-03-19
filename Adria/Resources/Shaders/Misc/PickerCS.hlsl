@@ -26,6 +26,6 @@ void main( )
 
     PickingData picking_data;
     picking_data.position = positionWS / positionWS.w;
-    picking_data.normal = float4(mul(normalVS, (float3x3) transpose(view)), 0.0f);
+    picking_data.normal = float4(normalize(mul(normalVS, (float3x3) transpose(view))), 0.0f);
     PickingBuffer[0] = picking_data;
 }
