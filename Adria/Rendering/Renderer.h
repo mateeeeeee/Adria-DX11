@@ -2,6 +2,7 @@
 #include <DirectXCollision.h>
 #include <memory>
 #include <optional>
+#include "Picker.h"
 #include "ParticleRenderer.h"
 #include "RendererSettings.h"
 #include "ConstantBuffers.h"
@@ -41,11 +42,6 @@ namespace adria
 		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
 		static constexpr DXGI_FORMAT GBUFFER_FORMAT[EGBufferSlot_Count] = { DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
 
-		struct PickingData
-		{
-			DirectX::XMFLOAT4 position;
-			DirectX::XMFLOAT4 normal;
-		};
 	public:
 
 		Renderer(tecs::registry& reg, GraphicsCoreDX11* gfx, uint32 width, uint32 height); 
@@ -78,11 +74,9 @@ namespace adria
 		ProfilerSettings profiler_settings;
 		ParticleRenderer particle_renderer;
 
-		//move pick related stuff somewhere else
 		SceneViewport current_scene_viewport;
 		bool pick_in_current_frame = false;
-		std::unique_ptr<PickingData> current_picking_data; 
-		std::unique_ptr<StructuredBuffer<PickingData>> picking_buffer;
+		Picker picker;
 
 		//textures
 		std::vector<Texture2D> gbuffer; 

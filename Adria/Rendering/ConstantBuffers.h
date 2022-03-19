@@ -207,7 +207,6 @@ namespace adria
 		int ocean_active;
 	};
 
-
 	//Structured Buffers
 	struct VoxelType
 	{

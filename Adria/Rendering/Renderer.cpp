@@ -350,7 +350,7 @@ namespace adria
 
 	Renderer::Renderer(registry& reg, GraphicsCoreDX11* gfx, uint32 width, uint32 height)
 		: width(width), height(height), reg(reg), gfx(gfx), texture_manager(gfx->Device(), gfx->Context()),
-		profiler(gfx->Device()), particle_renderer(gfx), current_picking_data(nullptr), picking_buffer(nullptr)
+		profiler(gfx->Device()), particle_renderer(gfx), picker(gfx)
 	{
 		uint32 w = width, h = height;
 
@@ -876,9 +876,6 @@ namespace adria
 
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelSecondBounceCS.cso", cs_blob);
 			compute_programs[EComputeShader::VoxelSecondBounce].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/PickerCS.cso", cs_blob);
-			compute_programs[EComputeShader::Picker].Create(device, cs_blob);
 		}
 
 		//ocean
@@ -1021,7 +1018,6 @@ namespace adria
 		light_counter = std::make_unique<StructuredBuffer<uint32>>(device, 1);
 		light_list = std::make_unique<StructuredBuffer<uint32>>(device, CLUSTER_COUNT * CLUSTER_MAX_LIGHTS);
 		light_grid = std::make_unique<StructuredBuffer<LightGrid>>(device, CLUSTER_COUNT);
-		picking_buffer = std::make_unique<StructuredBuffer<PickingData>>(device, 1, false, false, true);
 
 		//for sky
 		const SimpleVertex cube_vertices[8] = 
@@ -2374,25 +2370,10 @@ namespace adria
 		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Picking Pass");
 		pick_in_current_frame = false;
 
-		ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-		shader_views[0] = depth_target.SRV();
-		shader_views[1] = gbuffer[EGBufferSlot_NormalMetallic].SRV();
-		context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
-		ID3D11UnorderedAccessView* lights_uav = picking_buffer->UAV();
-		context->CSSetUnorderedAccessViews(0, 1, &lights_uav, nullptr);
+		Picker::PickingData data = picker.Pick(depth_target.SRV(), gbuffer[EGBufferSlot_NormalMetallic].SRV());
+		ADRIA_LOG(INFO, "picking buffer position: %f %f %f", data.position.x, data.position.y, data.position.z);
+		ADRIA_LOG(INFO, "picking buffer normal: %f %f %f", data.normal.x, data.normal.y, data.normal.z);
 
-		compute_programs[EComputeShader::Picker].Bind(context);
-		context->Dispatch(1, 1, 1);
-
-		ID3D11ShaderResourceView* null_srv[2] = { nullptr };
-		context->CSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
-		ID3D11UnorderedAccessView* null_uav = nullptr;
-		context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
-
-		PickingData const* data = picking_buffer->MapForRead(context);
-		ADRIA_LOG(INFO, "picking buffer position: %f %f %f", data->position.x, data->position.y, data->position.z);
-		ADRIA_LOG(INFO, "picking buffer normal: %f %f %f", data->normal.x, data->normal.y, data->normal.z);
-		picking_buffer->Unmap(context);
 	}
 	void Renderer::PassGBuffer()
 	{

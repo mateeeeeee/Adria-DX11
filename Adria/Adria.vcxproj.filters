@@ -463,6 +463,9 @@
     <ClInclude Include="Utilities\JsonUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="Rendering\Picker.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -793,6 +796,12 @@
       <Filter>Shaders\Particles</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\PickerCS.hlsl">
+      <Filter>Shaders\Misc</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Misc\DecalVS.hlsl">
+      <Filter>Shaders\Misc</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Misc\DecalPS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
   </ItemGroup>
