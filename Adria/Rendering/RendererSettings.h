@@ -107,8 +107,6 @@ namespace adria
 		float32 sky_color[3] = { 0.53f, 0.81f, 0.92f };
 		float32 turbidity = 2.0f;
 		float32 ground_albedo = 0.1f;
-
-		//terrain
 	};
 
 	

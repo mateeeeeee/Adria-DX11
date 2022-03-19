@@ -80,6 +80,7 @@ namespace adria
 		VelocityBuffer,
 		GBuffer_Foliage,
 		Particles,
+		Decals,
         Unknown
 	};
 

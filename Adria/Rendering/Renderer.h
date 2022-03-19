@@ -61,6 +61,7 @@ namespace adria
 
 		Texture2D GetOffscreenTexture() const;
 		TextureManager& GetTextureManager();
+		PickingData GetLastPickingData() const;
 		std::vector<std::string> GetProfilerResults(bool log = false);
 
 	private:
@@ -77,6 +78,7 @@ namespace adria
 		SceneViewport current_scene_viewport;
 		bool pick_in_current_frame = false;
 		Picker picker;
+		PickingData last_picking_data;
 
 		//textures
 		std::vector<Texture2D> gbuffer; 
@@ -135,6 +137,7 @@ namespace adria
 		RenderPass voxel_debug_pass;
 		RenderPass offscreen_resolve_pass;
 		RenderPass particle_pass;
+		RenderPass decal_pass;
 		std::array<RenderPass, 6> shadow_cubemap_pass;
 		std::vector<RenderPass> cascade_shadow_pass;
 		std::array<RenderPass, 2> postprocess_passes; 

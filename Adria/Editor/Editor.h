@@ -51,6 +51,7 @@ namespace adria
         void OceanSettings();
         void SkySettings();
         void ParticleSettings();
+        void DecalSettings();
         void ListEntities();
         void Properties();
         void Camera();

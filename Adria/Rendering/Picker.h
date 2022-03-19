@@ -9,18 +9,18 @@
 namespace adria
 {
 
+	struct PickingData
+	{
+		DirectX::XMFLOAT4 position = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
+		DirectX::XMFLOAT4 normal   = DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
+	};
 
 	class Picker
 	{
 		friend class Renderer;
-
-		struct PickingData
-		{
-			DirectX::XMFLOAT4 position;
-			DirectX::XMFLOAT4 normal;
-		};
 		
 	private:
+
 		Picker(GraphicsCoreDX11* gfx) : gfx(gfx), picking_buffer(nullptr)
 		{
 			picking_buffer = std::make_unique<StructuredBuffer<PickingData>>(gfx->Device(), 1, false, false, true);
@@ -33,9 +33,7 @@ namespace adria
 		PickingData Pick(ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* normal_srv)
 		{
 			ID3D11DeviceContext* context = gfx->Context();
-			ID3D11ShaderResourceView* shader_views[2] = { nullptr };
-			shader_views[0] = depth_srv;
-			shader_views[1] = normal_srv;
+			ID3D11ShaderResourceView* shader_views[2] = { depth_srv, normal_srv };
 			context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 			ID3D11UnorderedAccessView* lights_uav = picking_buffer->UAV();
 			context->CSSetUnorderedAccessViews(0, 1, &lights_uav, nullptr);
@@ -55,6 +53,7 @@ namespace adria
 		}
 
 	private:
+
 		GraphicsCoreDX11* gfx;
 		std::unique_ptr<StructuredBuffer<PickingData>> picking_buffer;
 		ComputeProgram pick_program;

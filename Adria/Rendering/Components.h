@@ -203,6 +203,16 @@ namespace adria
 		mutable bool		reset_emitter = true;
 	};
 
+	struct COMPONENT Decal
+	{
+		DirectX::XMFLOAT4X4 projection;
+		DirectX::XMFLOAT4X4 view_projection;
+		DirectX::XMFLOAT4X4 inverse_view_projection;
+		TEXTURE_HANDLE albedo_decal_texture = INVALID_TEXTURE_HANDLE;
+		TEXTURE_HANDLE normal_decal_texture = INVALID_TEXTURE_HANDLE;
+		DirectX::XMFLOAT2 aspect_ratio;
+	};
+
 	struct COMPONENT Forward 
 	{
 		bool transparent;

@@ -182,6 +182,7 @@ namespace adria
                 OceanSettings();
                 SkySettings();
                 ParticleSettings();
+				DecalSettings();
                 Camera();
                 Scene();
                 RendererSettings();
@@ -788,7 +789,56 @@ namespace adria
 			{
 				engine->entity_loader->LoadEmitter(params);
 			}
+			if (ImGui::Button("Clear Particle Emitters"))
+			{
+				engine->reg.destroy<Emitter>();
+			}
         }
+		ImGui::End();
+	}
+
+	void Editor::DecalSettings()
+	{
+		ImGui::Begin("Decals");
+		{
+			static decal_parameters_t params{};
+			static char NAME_BUFFER[128];
+			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
+			params.name = std::string(NAME_BUFFER);
+			if (ImGui::Button("Select Albedo Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Albedo Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+			if (ImGuiFileDialog::Instance()->Display("Choose Albedo Texture"))
+			{
+				if (ImGuiFileDialog::Instance()->IsOk())
+				{
+					std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+					params.albedo_texture_path = texture_path;
+				}
+				ImGuiFileDialog::Instance()->Close();
+			}
+			ImGui::Text(params.albedo_texture_path.c_str());
+
+
+			ImGui::DragFloat("Size", &params.size, 10.0f, 10.0f, 200.0f);
+			ImGui::DragFloat("Rotation", &params.rotation, 1.0f, -180.0f, 180.0f);
+			ImGui::DragFloat("Outer Depth", &params.outer_depth, 1.0f, 2.0f, 50.0f);
+			ImGui::DragFloat("Inner Depth", &params.inner_depth, 1.0f, 2.0f, 50.0f);
+
+			auto picking_data = engine->renderer->GetLastPickingData();
+			ImGui::Text("Picked Position: %f %f %f", picking_data.position.x, picking_data.position.y, picking_data.position.z);
+			ImGui::Text("Picked Normal: %f %f %f", picking_data.normal.x, picking_data.normal.y, picking_data.normal.z);
+			if (ImGui::Button("Load Decal"))
+			{
+				params.position = picking_data.position;
+				params.normal = picking_data.normal;
+				params.rotation = XMConvertToRadians(params.rotation);
+
+				engine->entity_loader->LoadDecal(params);
+			}
+			if (ImGui::Button("Clear Decals"))
+			{
+				engine->reg.destroy<Decal>();
+			}
+		}
 		ImGui::End();
 	}
 

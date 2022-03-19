@@ -1032,4 +1032,38 @@ namespace adria
         return emitter_entity;
 	}
 
+    [[maybe_unused]]
+	entity EntityLoader::LoadDecal(decal_parameters_t const& params)
+	{
+        Decal decal{};
+        decal.aspect_ratio = XMFLOAT2(1.0f, 1.0f); //for now, change later
+        if(!params.albedo_texture_path.empty()) decal.albedo_decal_texture = texture_manager.LoadTexture(params.albedo_texture_path);
+        if(!params.normal_texture_path.empty()) decal.normal_decal_texture = texture_manager.LoadTexture(params.normal_texture_path);
+
+        XMVECTOR P = XMLoadFloat4(&params.position);
+        XMVECTOR N = XMLoadFloat4(&params.normal);
+
+        XMVECTOR ProjectorPosition = XMVectorAdd(P, XMVectorScale(N, params.outer_depth));
+        XMVECTOR ProjectorDirection = XMVectorNegate(N);
+        XMMATRIX RotationMatrix = XMMatrixRotationAxis(ProjectorDirection, XMConvertToRadians(params.rotation));
+
+        XMVECTOR Up = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+        XMVECTOR RotatedUp = XMVector3Normalize(XMVector4Transform(Up, RotationMatrix));
+
+        XMMATRIX decal_view = XMMatrixLookAtLH(ProjectorPosition, P, RotatedUp);
+        XMMATRIX decal_proj = XMMatrixOrthographicOffCenterLH(-params.size, params.size, -params.size, params.size, 0.1f, params.inner_depth + params.outer_depth);
+        XMMATRIX decal_view_proj = decal_view * decal_proj;
+
+        XMStoreFloat4x4(&decal.projection, decal_proj);
+        XMStoreFloat4x4(&decal.view_projection, decal_view_proj);
+        XMStoreFloat4x4(&decal.inverse_view_projection, XMMatrixInverse(nullptr, decal_view_proj));
+
+        entity decal_entity = reg.create();
+        reg.add(decal_entity, decal);
+		if (params.name.empty()) reg.emplace<Tag>(decal_entity, "decal");
+		else reg.emplace<Tag>(decal_entity, params.name);
+
+        return decal_entity;
+	}
+
 }

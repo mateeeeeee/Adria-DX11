@@ -343,11 +343,6 @@ namespace adria
 		}
 	}
 
-
-	/////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// PUBLIC //////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
-
 	Renderer::Renderer(registry& reg, GraphicsCoreDX11* gfx, uint32 width, uint32 height)
 		: width(width), height(height), reg(reg), gfx(gfx), texture_manager(gfx->Device(), gfx->Context()),
 		profiler(gfx->Device()), particle_renderer(gfx), picker(gfx)
@@ -391,6 +386,7 @@ namespace adria
 		if (renderer_settings.ibl && !ibl_textures_generated) CreateIBLTextures();
 
 		PassGBuffer();
+		PassDecals();
 
 		if (pick_in_current_frame)
 		{
@@ -534,14 +530,14 @@ namespace adria
 	{
 		return texture_manager;
 	}
+	PickingData Renderer::GetLastPickingData() const
+	{
+		return last_picking_data;
+	}
 	std::vector<std::string> Renderer::GetProfilerResults(bool log)
 	{
 		return profiler.GetProfilingResults(gfx->Context(), log);
 	}
-
-	/////////////////////////////////////////////////////////////////////////
-	/////////////////////////////// PRIVATE /////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
 
 	void Renderer::LoadShaders()
 	{
@@ -574,6 +570,10 @@ namespace adria
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BillboardVS.cso", vs_blob);
 			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BillboardPS.cso", ps_blob);
 			standard_programs[EShader::Billboard].Create(device, vs_blob, ps_blob);
+
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/DecalVS.cso", vs_blob);
+			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/DecalPS.cso", ps_blob);
+			standard_programs[EShader::Decals].Create(device, vs_blob, ps_blob);
 		}
 
 		//gbuffer (not compiled)
@@ -1600,6 +1600,15 @@ namespace adria
 			particle_pass = RenderPass(render_pass_desc);
 		}
 
+		//decal pass
+		{
+			render_pass_desc_t render_pass_desc{};
+			render_pass_desc.width = width;
+			render_pass_desc.height = height;
+			render_pass_desc.rtv_attachments.push_back(gbuffer_albedo_attachment);
+			decal_pass = RenderPass(render_pass_desc);
+		}
+
 		//fxaa pass
 		{
 			render_pass_desc_t render_pass_desc{};
@@ -2369,11 +2378,7 @@ namespace adria
 		ADRIA_ASSERT(pick_in_current_frame);
 		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Picking Pass");
 		pick_in_current_frame = false;
-
-		Picker::PickingData data = picker.Pick(depth_target.SRV(), gbuffer[EGBufferSlot_NormalMetallic].SRV());
-		ADRIA_LOG(INFO, "picking buffer position: %f %f %f", data.position.x, data.position.y, data.position.z);
-		ADRIA_LOG(INFO, "picking buffer normal: %f %f %f", data.normal.x, data.normal.y, data.normal.z);
-
+		last_picking_data = picker.Pick(depth_target.SRV(), gbuffer[EGBufferSlot_NormalMetallic].SRV());
 	}
 	void Renderer::PassGBuffer()
 	{
@@ -2532,7 +2537,44 @@ namespace adria
 	}
 	void Renderer::PassDecals()
 	{
+		if (reg.size<Decal>() == 0) return;
+		ID3D11DeviceContext* context = gfx->Context();
+		//DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
+		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Decal Pass");
 
+		struct DecalCBuffer
+		{
+			DirectX::XMFLOAT4X4 decal_projection;
+			DirectX::XMFLOAT4X4 decal_viewprojection;
+			DirectX::XMFLOAT4X4 decal_inverse_viewprojection;
+			DirectX::XMFLOAT2   aspect_ratio;
+		};
+		static ConstantBuffer<DecalCBuffer> decal_cbuffer(gfx->Device());
+
+		//bind resources and states maybe?
+		decal_pass.Begin(context);
+		{
+			decal_cbuffer.Bind(context, ShaderStage::VS, 11);
+			decal_cbuffer.Bind(context, ShaderStage::PS, 11);
+			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			cube_vb.Bind(context, 0, 0);
+			cube_ib.Bind(context, 0);
+			auto decal_view = reg.view<Decal>();
+			standard_programs[EShader::Decals].Bind(context);
+			for (auto e : decal_view)
+			{
+				Decal decal = decal_view.get(e);
+
+				ID3D11ShaderResourceView* albedo_srv = texture_manager.GetTextureView(decal.albedo_decal_texture);
+				context->PSSetShaderResources(0, 1, &albedo_srv);
+
+				ID3D11ShaderResourceView* depth_srv = depth_target.SRV();
+				context->PSSetShaderResources(2, 1, &depth_srv);
+
+				context->DrawIndexed(cube_ib.Count(), 0, 0);
+			}
+		}
+		decal_pass.End(context);
 	}
 
 	void Renderer::PassSSAO()

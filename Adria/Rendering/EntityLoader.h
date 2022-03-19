@@ -134,6 +134,19 @@ namespace adria
         int32 collision_thickness = 40;
         bool sort = false;
     };
+
+    struct decal_parameters_t
+    {
+        std::string name = "Decal";
+        std::string albedo_texture_path = "";
+        std::string normal_texture_path = "";
+        float32 rotation = 0.0f;
+        float32 size = 50.0f;
+        float32 outer_depth = 20.0f;
+        float32 inner_depth = 20.0f;
+        DirectX::XMFLOAT4 position;
+        DirectX::XMFLOAT4 normal;
+    };
    
     class TextureManager;
 
@@ -159,6 +172,8 @@ namespace adria
         [[maybe_unused]] std::vector<tecs::entity> LoadTrees(tree_parameters_t const&);
 
         [[maybe_unused]] tecs::entity LoadEmitter(emitter_parameters_t const&);
+
+        [[maybe_unused]] tecs::entity LoadDecal(decal_parameters_t const&);
 
 	private:
         tecs::registry& reg;
