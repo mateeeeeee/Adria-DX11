@@ -5,6 +5,7 @@
 #include "../Graphics/GraphicsCoreDX11.h" //
 #include "../Graphics/ShaderProgram.h" 
 
+#include "../Logging/Logger.h"
 
 namespace adria
 {
@@ -48,6 +49,9 @@ namespace adria
 
 			PickingData const* data = picking_buffer->MapForRead(context);
 			PickingData picking_data = *data;
+
+			ADRIA_LOG(INFO, "Pick position: %f %f %f", data->position.x, data->position.y, data->position.z);
+
 			picking_buffer->Unmap(context);
 			return picking_data;
 		}

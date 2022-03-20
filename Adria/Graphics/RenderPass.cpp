@@ -11,7 +11,7 @@ namespace adria
 
 			render_targets.push_back(attachment.view);
 
-			if (attachment.load_op == LoadOp::eClear) clear_values[i] = attachment.clear_color;
+			if (attachment.load_op == ELoadOp::Clear) clear_values[i] = attachment.clear_color;
 		}
 
 		if (desc.dsv_attachment.has_value())
@@ -20,7 +20,7 @@ namespace adria
 
 			depth_target = dsv.view;
 
-			if (dsv.load_op == LoadOp::eClear)
+			if (dsv.load_op == ELoadOp::Clear)
 			{
 				depth_clear = true;
 				clear_depth = dsv.clear_depth;

@@ -817,11 +817,8 @@ namespace adria
 			}
 			ImGui::Text(params.albedo_texture_path.c_str());
 
-
 			ImGui::DragFloat("Size", &params.size, 10.0f, 10.0f, 200.0f);
 			ImGui::DragFloat("Rotation", &params.rotation, 1.0f, -180.0f, 180.0f);
-			ImGui::DragFloat("Outer Depth", &params.outer_depth, 1.0f, 2.0f, 50.0f);
-			ImGui::DragFloat("Inner Depth", &params.inner_depth, 1.0f, 2.0f, 50.0f);
 
 			auto picking_data = engine->renderer->GetLastPickingData();
 			ImGui::Text("Picked Position: %f %f %f", picking_data.position.x, picking_data.position.y, picking_data.position.z);

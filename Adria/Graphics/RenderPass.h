@@ -12,24 +12,24 @@ namespace adria
 	using rtv_t = ID3D11RenderTargetView*;
 	using dsv_t = ID3D11DepthStencilView*;
 	
-	enum class LoadOp
+	enum class ELoadOp
 	{
-		eLoad,
-		eClear,
-		eDontCare
+		Load,
+		Clear,
+		DontCare
 	};
 
 	struct rtv_attachment_desc_t
 	{
 		rtv_t view;
-		LoadOp load_op;
+		ELoadOp load_op;
 		std::array<float32,4> clear_color;
 	};
 
 	struct dsv_attachment_desc_t
 	{
 		dsv_t view;
-		LoadOp load_op;
+		ELoadOp load_op;
 		float32 clear_depth;
 		uint8 clear_stencil;
 	};

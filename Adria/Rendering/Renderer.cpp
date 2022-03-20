@@ -1022,14 +1022,14 @@ namespace adria
 		//for sky
 		const SimpleVertex cube_vertices[8] = 
 		{
-			XMFLOAT3{ -1.0, -1.0,  1.0 },
-			XMFLOAT3{ 1.0, -1.0,  1.0 },
-			XMFLOAT3{ 1.0,  1.0,  1.0 },
-			XMFLOAT3{ -1.0,  1.0,  1.0 },
-			XMFLOAT3{ -1.0, -1.0, -1.0 },
-			XMFLOAT3{ 1.0, -1.0, -1.0 },
-			XMFLOAT3{ 1.0,  1.0, -1.0 },
-			XMFLOAT3{ -1.0,  1.0, -1.0 }
+			XMFLOAT3{ -0.5f, -0.5f,  0.5f },
+			XMFLOAT3{  0.5f, -0.5f,  0.5f },
+			XMFLOAT3{  0.5f,  0.5f,  0.5f },
+			XMFLOAT3{ -0.5f,  0.5f,  0.5f },
+			XMFLOAT3{ -0.5f, -0.5f, -0.5f },
+			XMFLOAT3{  0.5f, -0.5f, -0.5f },
+			XMFLOAT3{  0.5f,  0.5f, -0.5f },
+			XMFLOAT3{ -0.5f,  0.5f, -0.5f }
 		};
 
 		const uint16_t cube_indices[36] = 
@@ -1487,68 +1487,72 @@ namespace adria
 		rtv_attachment_desc_t gbuffer_normal_attachment{};
 		gbuffer_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic].RTV();
 		gbuffer_normal_attachment.clear_color = clear_black;
-		gbuffer_normal_attachment.load_op = LoadOp::eClear;
+		gbuffer_normal_attachment.load_op = ELoadOp::Clear;
 
 		rtv_attachment_desc_t gbuffer_albedo_attachment{};
 		gbuffer_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness].RTV();
 		gbuffer_albedo_attachment.clear_color = clear_black;
-		gbuffer_albedo_attachment.load_op = LoadOp::eClear;
+		gbuffer_albedo_attachment.load_op = ELoadOp::Clear;
 
 		rtv_attachment_desc_t gbuffer_emissive_attachment{};
 		gbuffer_emissive_attachment.view = gbuffer[EGBufferSlot_Emissive].RTV();
 		gbuffer_emissive_attachment.clear_color = clear_black;
-		gbuffer_emissive_attachment.load_op = LoadOp::eClear;
+		gbuffer_emissive_attachment.load_op = ELoadOp::Clear;
+
+		rtv_attachment_desc_t decal_albedo_attachment{};
+		decal_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness].RTV();
+		decal_albedo_attachment.load_op = ELoadOp::Load;
 
 		dsv_attachment_desc_t depth_clear_attachment{};
 		depth_clear_attachment.view = depth_target.DSV();
 		depth_clear_attachment.clear_depth = 1.0f;
-		depth_clear_attachment.load_op = LoadOp::eClear;
+		depth_clear_attachment.load_op = ELoadOp::Clear;
 
 		rtv_attachment_desc_t hdr_color_clear_attachment{};
 		hdr_color_clear_attachment.view = hdr_render_target.RTV();
 		hdr_color_clear_attachment.clear_color = clear_black;
-		hdr_color_clear_attachment.load_op = LoadOp::eClear;
+		hdr_color_clear_attachment.load_op = ELoadOp::Clear;
 
 		rtv_attachment_desc_t hdr_color_load_attachment{};
 		hdr_color_load_attachment.view = hdr_render_target.RTV();
-		hdr_color_load_attachment.load_op = LoadOp::eLoad;
+		hdr_color_load_attachment.load_op = ELoadOp::Load;
 
 		
 		dsv_attachment_desc_t depth_load_attachment{};
 		depth_load_attachment.view = depth_target.DSV();
 		depth_load_attachment.clear_depth = 1.0f;
-		depth_load_attachment.load_op = LoadOp::eLoad;
+		depth_load_attachment.load_op = ELoadOp::Load;
 
 		rtv_attachment_desc_t fxaa_source_attachment{};
 		fxaa_source_attachment.view = fxaa_texture.RTV();
-		fxaa_source_attachment.load_op = LoadOp::eDontCare;
+		fxaa_source_attachment.load_op = ELoadOp::DontCare;
 
 		dsv_attachment_desc_t shadow_map_attachment{};
 		shadow_map_attachment.view = shadow_depth_map.DSV();
 		shadow_map_attachment.clear_depth = 1.0f;
-		shadow_map_attachment.load_op = LoadOp::eClear;
+		shadow_map_attachment.load_op = ELoadOp::Clear;
 
 		rtv_attachment_desc_t ssao_attachment{};
 		ssao_attachment.view = ao_texture.RTV();
-		ssao_attachment.load_op = LoadOp::eDontCare;
+		ssao_attachment.load_op = ELoadOp::DontCare;
 
 		rtv_attachment_desc_t ping_color_load_attachment{};
 		ping_color_load_attachment.view = postprocess_textures[0].RTV();
-		ping_color_load_attachment.load_op = LoadOp::eLoad;
+		ping_color_load_attachment.load_op = ELoadOp::Load;
 
 		rtv_attachment_desc_t pong_color_load_attachment{};
 		pong_color_load_attachment.view = postprocess_textures[1].RTV();
-		pong_color_load_attachment.load_op = LoadOp::eLoad;
+		pong_color_load_attachment.load_op = ELoadOp::Load;
 
 		rtv_attachment_desc_t offscreen_clear_attachment{};
 		offscreen_clear_attachment.view = offscreen_ldr_render_target.RTV();
 		offscreen_clear_attachment.clear_color = clear_black;
-		offscreen_clear_attachment.load_op = LoadOp::eClear;
+		offscreen_clear_attachment.load_op = ELoadOp::Clear;
 
 		rtv_attachment_desc_t velocity_clear_attachment{};
 		velocity_clear_attachment.view = velocity_buffer.RTV();
 		velocity_clear_attachment.clear_color = clear_black;
-		velocity_clear_attachment.load_op = LoadOp::eClear;
+		velocity_clear_attachment.load_op = ELoadOp::Clear;
 
 		//gbuffer pass
 		{
@@ -1605,7 +1609,7 @@ namespace adria
 			render_pass_desc_t render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
-			render_pass_desc.rtv_attachments.push_back(gbuffer_albedo_attachment);
+			render_pass_desc.rtv_attachments.push_back(decal_albedo_attachment);
 			decal_pass = RenderPass(render_pass_desc);
 		}
 
@@ -1634,7 +1638,7 @@ namespace adria
 				dsv_attachment_desc_t shadow_cubemap_attachment{};
 				shadow_cubemap_attachment.view = shadow_depth_cubemap.DSV(i);
 				shadow_cubemap_attachment.clear_depth = 1.0f;
-				shadow_cubemap_attachment.load_op = LoadOp::eClear;
+				shadow_cubemap_attachment.load_op = ELoadOp::Clear;
 
 				render_pass_desc_t render_pass_desc{};
 				render_pass_desc.width = SHADOW_CUBE_SIZE;
@@ -1652,7 +1656,7 @@ namespace adria
 				dsv_attachment_desc_t cascade_shadow_map_attachment{};
 				cascade_shadow_map_attachment.view = shadow_cascade_maps.DSV(i);
 				cascade_shadow_map_attachment.clear_depth = 1.0f;
-				cascade_shadow_map_attachment.load_op = LoadOp::eClear;
+				cascade_shadow_map_attachment.load_op = ELoadOp::Clear;
 
 				render_pass_desc_t render_pass_desc{};
 				render_pass_desc.width = SHADOW_CASCADE_SIZE;
@@ -2400,7 +2404,7 @@ namespace adria
 				if (!visibility.camera_visible) continue;
 
 				object_cbuf_data.model = transform.current_transform;
-				object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 				object_cbuffer->Update(context, object_cbuf_data);
 
 				material_cbuf_data.albedo_factor = material.albedo_factor;
@@ -2473,7 +2477,7 @@ namespace adria
 				if (!visibility.camera_visible) continue;
 
 				object_cbuf_data.model = transform.current_transform;
-				object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 				object_cbuffer->Update(context, object_cbuf_data);
 
 				if (terrain.grass_texture != INVALID_TEXTURE_HANDLE)
@@ -2520,7 +2524,7 @@ namespace adria
 				if (!visibility.camera_visible) continue;
 
 				object_cbuf_data.model = transform.current_transform;
-				object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 				object_cbuffer->Update(context, object_cbuf_data);
 
 				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
@@ -2542,20 +2546,8 @@ namespace adria
 		//DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
 		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Decal Pass");
 
-		struct DecalCBuffer
-		{
-			DirectX::XMFLOAT4X4 decal_projection;
-			DirectX::XMFLOAT4X4 decal_viewprojection;
-			DirectX::XMFLOAT4X4 decal_inverse_viewprojection;
-			DirectX::XMFLOAT2   aspect_ratio;
-		};
-		static ConstantBuffer<DecalCBuffer> decal_cbuffer(gfx->Device());
-
-		//bind resources and states maybe?
 		decal_pass.Begin(context);
 		{
-			decal_cbuffer.Bind(context, ShaderStage::VS, 11);
-			decal_cbuffer.Bind(context, ShaderStage::PS, 11);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			cube_vb.Bind(context, 0, 0);
 			cube_ib.Bind(context, 0);
@@ -2565,9 +2557,12 @@ namespace adria
 			{
 				Decal decal = decal_view.get(e);
 
+				object_cbuf_data.model = decal.decal_model_matrix;
+				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuffer->Update(context, object_cbuf_data);
+
 				ID3D11ShaderResourceView* albedo_srv = texture_manager.GetTextureView(decal.albedo_decal_texture);
 				context->PSSetShaderResources(0, 1, &albedo_srv);
-
 				ID3D11ShaderResourceView* depth_srv = depth_target.SRV();
 				context->PSSetShaderResources(2, 1, &depth_srv);
 
@@ -3012,7 +3007,7 @@ namespace adria
 			if (!visibility.camera_visible) continue;
 
 			object_cbuf_data.model = transform.current_transform;
-			object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+			object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 			object_cbuffer->Update(context, object_cbuf_data);
 
 			material_cbuf_data.albedo_factor = material.albedo_factor;
@@ -3377,7 +3372,7 @@ namespace adria
 					auto const& mesh = shadow_view.get<Mesh>(e);
 
 					object_cbuf_data.model = transform.current_transform;
-					object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+					object_cbuf_data.transposed_inverse_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 					object_cbuffer->Update(context, object_cbuf_data);
 					mesh.Draw(context);
 				}
@@ -3408,7 +3403,7 @@ namespace adria
 				auto& mesh = shadow_view.get<Mesh>(e);
 
 				object_cbuf_data.model = transform.current_transform;
-				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+				object_cbuf_data.transposed_inverse_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 				object_cbuffer->Update(context, object_cbuf_data);
 				mesh.Draw(context);
 			}
@@ -3423,7 +3418,7 @@ namespace adria
 				ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
 
 				object_cbuf_data.model = transform.current_transform;
-				object_cbuf_data.inverse_transposed_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+				object_cbuf_data.transposed_inverse_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 				object_cbuffer->Update(context, object_cbuf_data);
 
 				auto view = texture_manager.GetTextureView(material->albedo_texture);
@@ -3477,7 +3472,7 @@ namespace adria
 		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Sky Pass");
 
 		object_cbuf_data.model = XMMatrixTranslationFromVector(camera->Position());
-		object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+		object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 		object_cbuffer->Update(context, object_cbuf_data);
 
 		context->RSSetState(cull_none.Get());
@@ -3553,7 +3548,7 @@ namespace adria
 			if (visibility.camera_visible)
 			{
 				object_cbuf_data.model = transform.current_transform;
-				object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 				object_cbuffer->Update(context, object_cbuf_data);
 				
 				material_cbuf_data.diffuse = material.diffuse;
@@ -3614,7 +3609,7 @@ namespace adria
 			standard_programs[material.shader].Bind(context);
 
 			object_cbuf_data.model = transform.current_transform;
-			object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+			object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 			object_cbuffer->Update(context, object_cbuf_data);
 				
 			material_cbuf_data.diffuse = material.diffuse;
@@ -4057,7 +4052,7 @@ namespace adria
 			standard_programs[EShader::Sun].Bind(context);
 
 			object_cbuf_data.model = transform.current_transform;
-			object_cbuf_data.inverse_transposed_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+			object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 			object_cbuffer->Update(context, object_cbuf_data);
 			material_cbuf_data.diffuse = material.diffuse;
 			material_cbuf_data.albedo_factor = material.albedo_factor;

@@ -56,7 +56,7 @@ namespace adria
 	DECLSPEC_ALIGN(16) struct ObjectCBuffer
 	{
 		DirectX::XMMATRIX model;
-		DirectX::XMMATRIX inverse_transposed_model; //jos nesto?
+		DirectX::XMMATRIX transposed_inverse_model;
 	};
 
 	DECLSPEC_ALIGN(16) struct MaterialCBuffer
