@@ -459,8 +459,6 @@ namespace adria
 			PassToneMap();
 			offscreen_resolve_pass.End(context);
 		}
-
-
 	}
 	void Renderer::OnResize(uint32 w, uint32 h)
 	{

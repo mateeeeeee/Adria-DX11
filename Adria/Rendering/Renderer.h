@@ -116,9 +116,9 @@ namespace adria
 		Texture2D velocity_buffer;
 
 		//shaders
-		std::unordered_map<EShader, StandardProgram> standard_programs;
-		std::unordered_map<EComputeShader, ComputeProgram>  compute_programs;
-		std::unordered_map<EGeometryShader, GeometryProgram> geometry_programs;
+		std::unordered_map<EShader, StandardProgram>				standard_programs;
+		std::unordered_map<EComputeShader, ComputeProgram>			compute_programs;
+		std::unordered_map<EGeometryShader, GeometryProgram>		geometry_programs;
 		std::unordered_map<ETesselationShader, TessellationProgram> tesselation_programs;
 		
 		//render passes

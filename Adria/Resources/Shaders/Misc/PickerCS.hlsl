@@ -14,7 +14,7 @@ RWStructuredBuffer<PickingData> PickingBuffer : register(u0);
 [numthreads(1, 1, 1)]
 void main( )
 {
-    if (any(mouse_normalized_coords > 1.0f)) return;
+    if (any(mouse_normalized_coords > 1.0f) || any(mouse_normalized_coords < 0.0f)) return;
 
     uint2 mouse_coords = uint2(mouse_normalized_coords * screen_resolution);
 

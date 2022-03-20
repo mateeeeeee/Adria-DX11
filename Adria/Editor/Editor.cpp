@@ -178,6 +178,7 @@ namespace adria
 				ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
                 MenuBar();
                 ListEntities();
+				Properties();
                 TerrainSettings();
                 OceanSettings();
                 SkySettings();
@@ -186,7 +187,6 @@ namespace adria
                 Camera();
                 Scene();
                 RendererSettings();
-                Properties();
                 Log();
                 StatsAndProfiling();
             }
@@ -805,6 +805,7 @@ namespace adria
 			static char NAME_BUFFER[128];
 			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
 			params.name = std::string(NAME_BUFFER);
+			ImGui::PushID(5);
 			if (ImGui::Button("Select Albedo Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Albedo Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
 			if (ImGuiFileDialog::Instance()->Display("Choose Albedo Texture"))
 			{
@@ -815,6 +816,7 @@ namespace adria
 				}
 				ImGuiFileDialog::Instance()->Close();
 			}
+			ImGui::PopID();
 			ImGui::Text(params.albedo_texture_path.c_str());
 
 			ImGui::DragFloat("Size", &params.size, 10.0f, 10.0f, 200.0f);
@@ -1184,6 +1186,27 @@ namespace adria
 					if (ImGui::Button("Reset")) emitter->reset_emitter = true;
                 }
 
+				auto decal = engine->reg.get_if<Decal>(selected_entity);
+				if (decal && ImGui::CollapsingHeader("Decal"))
+				{
+					ImGui::Text("Decal Albedo Texture");
+					ImGui::Image(engine->renderer->GetTextureManager().GetTextureView(decal->albedo_decal_texture), ImVec2(48.0f, 48.0f));
+
+					ImGui::PushID(4);
+					if (ImGui::Button("Remove")) decal->albedo_decal_texture = INVALID_TEXTURE_HANDLE;
+					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+					if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+					{
+						if (ImGuiFileDialog::Instance()->IsOk())
+						{
+							std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+							decal->albedo_decal_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+						}
+						ImGuiFileDialog::Instance()->Close();
+					}
+					ImGui::PopID();
+				}
+
                 static char const* const components[] = { "Mesh", "Transform", "Material",
                "Visibility", "Light", "Skybox", "Deferred", "Forward", "Emitter"};
                 
@@ -1204,7 +1227,7 @@ namespace adria
                     ImGui::EndCombo();
                 }
 
-                enum COMPONENT_INDEX
+                enum EComponentIndex
                 {
                     MESH,
                     TRANSFORM,
