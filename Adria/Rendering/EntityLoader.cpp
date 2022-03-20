@@ -1043,7 +1043,7 @@ namespace adria
         XMVECTOR N = XMLoadFloat4(&params.normal);
 
         XMVECTOR ProjectorDirection = XMVectorNegate(N);
-        XMMATRIX RotationMatrix = XMMatrixRotationAxis(ProjectorDirection, XMConvertToRadians(params.rotation));
+        XMMATRIX RotationMatrix = XMMatrixRotationAxis(ProjectorDirection, params.rotation);
         XMMATRIX model_matrix = XMMatrixScaling(params.size, params.size, params.size) * RotationMatrix * XMMatrixTranslationFromVector(P);
 
         decal.decal_model_matrix = model_matrix;

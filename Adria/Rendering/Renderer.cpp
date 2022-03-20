@@ -2553,6 +2553,8 @@ namespace adria
 			cube_ib.Bind(context, 0);
 			auto decal_view = reg.view<Decal>();
 			standard_programs[EShader::Decals].Bind(context);
+
+			context->RSSetState(cull_none.Get());
 			for (auto e : decal_view)
 			{
 				Decal decal = decal_view.get(e);
@@ -2568,6 +2570,7 @@ namespace adria
 
 				context->DrawIndexed(cube_ib.Count(), 0, 0);
 			}
+			context->RSSetState(nullptr);
 		}
 		decal_pass.End(context);
 	}
