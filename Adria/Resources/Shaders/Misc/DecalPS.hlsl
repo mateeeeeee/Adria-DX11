@@ -16,12 +16,12 @@ struct PS_INPUT
     matrix InverseModel : INVERSE_MODEL;
 };
 
+#define DECAL_WALL  0
+#define DECAL_FLOOR 1
+
 cbuffer DecalCBuffer : register(b11)
 {
-    row_major matrix decal_projection;
-    row_major matrix decal_viewprojection;
-    row_major matrix decal_inverse_viewprojection;
-    float2 aspect_ratio;
+    int decal_type;
 }
 
 PS_DECAL_OUT main(PS_INPUT input)
@@ -39,7 +39,20 @@ PS_DECAL_OUT main(PS_INPUT input)
 
     clip(0.5f - abs(posLS.xyz));
 
-    float2 tex_coords = posLS.xy + 0.5f;
+    float2 tex_coords = 0.0f;
+    switch (decal_type)
+    {
+        case DECAL_WALL:
+            tex_coords = posLS.xy + 0.5f;
+            break;
+        case DECAL_FLOOR:
+            tex_coords = posLS.xz + 0.5f;
+            break;
+        default:
+            pout.DiffuseRoughness.rgb = float3(1, 0, 0);
+            return pout;
+    }
+
     float4 albedo = txAlbedoDecal.Sample(linear_wrap_sampler, tex_coords);
     if (albedo.a < 0.1) discard;
     pout.DiffuseRoughness.rgb = albedo.rgb;

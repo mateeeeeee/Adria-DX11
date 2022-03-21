@@ -201,4 +201,10 @@ namespace adria
 		EGBufferSlot_Emissive,
 		EGBufferSlot_Count
 	};
+
+	enum class EDecalType : uint8 
+	{
+		Wall,
+		Floor
+	};
 }

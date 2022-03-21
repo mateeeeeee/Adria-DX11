@@ -819,8 +819,23 @@ namespace adria
 			ImGui::PopID();
 			ImGui::Text(params.albedo_texture_path.c_str());
 
-			ImGui::DragFloat("Size", &params.size, 10.0f, 10.0f, 200.0f);
+			ImGui::DragFloat("Size", &params.size, 2.0f, 10.0f, 200.0f);
 			ImGui::DragFloat("Rotation", &params.rotation, 1.0f, -180.0f, 180.0f);
+
+			const char* decal_types[] = { "Wall", "Floor" };
+			static int current_decal_type = 0;
+			const char* combo_label = decal_types[current_decal_type];
+			if (ImGui::BeginCombo("Decal Type", combo_label, 0))
+			{
+				for (int n = 0; n < IM_ARRAYSIZE(decal_types); n++)
+				{
+					const bool is_selected = (current_decal_type == n);
+					if (ImGui::Selectable(decal_types[n], is_selected)) current_decal_type = n;
+					if (is_selected) ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+			params.decal_type = static_cast<EDecalType>(current_decal_type);
 
 			auto picking_data = engine->renderer->GetLastPickingData();
 			ImGui::Text("Picked Position: %f %f %f", picking_data.position.x, picking_data.position.y, picking_data.position.z);

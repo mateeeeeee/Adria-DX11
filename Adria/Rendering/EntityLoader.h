@@ -142,6 +142,7 @@ namespace adria
         std::string normal_texture_path = "Resources/Decals/Decal_00_Normal.png";
         float32 rotation = 0.0f;
         float32 size = 50.0f;
+        EDecalType decal_type = EDecalType::Wall;
         DirectX::XMFLOAT4 position;
         DirectX::XMFLOAT4 normal;
     };

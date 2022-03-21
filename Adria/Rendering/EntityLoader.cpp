@@ -1047,6 +1047,8 @@ namespace adria
         XMMATRIX model_matrix = XMMatrixScaling(params.size, params.size, params.size) * RotationMatrix * XMMatrixTranslationFromVector(P);
 
         decal.decal_model_matrix = model_matrix;
+        decal.decal_type = params.decal_type;
+
         entity decal_entity = reg.create();
         reg.add(decal_entity, decal);
 		if (params.name.empty()) reg.emplace<Tag>(decal_entity, "decal");

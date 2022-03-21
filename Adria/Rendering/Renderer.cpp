@@ -2544,6 +2544,14 @@ namespace adria
 		//DECLARE_SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
 		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Decal Pass");
 
+		struct DecalCBuffer
+		{
+			int32 decal_type;
+		};
+		static ConstantBuffer<DecalCBuffer> decal_cbuffer(gfx->Device());
+		static DecalCBuffer decal_cbuf_data{};
+		decal_cbuffer.Bind(context, ShaderStage::PS, 11);
+
 		decal_pass.Begin(context);
 		{
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -2556,6 +2564,9 @@ namespace adria
 			for (auto e : decal_view)
 			{
 				Decal decal = decal_view.get(e);
+
+				decal_cbuf_data.decal_type = static_cast<int32>(decal.decal_type);
+				decal_cbuffer.Update(context, decal_cbuf_data);
 
 				object_cbuf_data.model = decal.decal_model_matrix;
 				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
