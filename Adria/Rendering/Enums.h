@@ -81,6 +81,7 @@ namespace adria
 		GBuffer_Foliage,
 		Particles,
 		Decals,
+		Decals_ModifyNormals,
         Unknown
 	};
 

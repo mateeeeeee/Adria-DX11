@@ -4,9 +4,14 @@ Texture2D<float4> txAlbedoDecal : register(t0);
 Texture2D<float4> txNormalDecal : register(t1);
 Texture2D<float>  txDepth       : register(t2);
 
+
+
 struct PS_DECAL_OUT
 {
     float4 DiffuseRoughness : SV_TARGET0;
+#ifdef DECAL_MODIFY_NORMALS
+    float4 NormalMetallic   : SV_TARGET1;
+#endif
 };
 
 struct PS_INPUT
@@ -18,6 +23,7 @@ struct PS_INPUT
 
 #define DECAL_WALL  0
 #define DECAL_FLOOR 1
+
 
 cbuffer DecalCBuffer : register(b11)
 {
@@ -54,7 +60,27 @@ PS_DECAL_OUT main(PS_INPUT input)
     }
 
     float4 albedo = txAlbedoDecal.Sample(linear_wrap_sampler, tex_coords);
-    if (albedo.a < 0.1) discard;
+    if (albedo.a < 0.1)
+        discard;
     pout.DiffuseRoughness.rgb = albedo.rgb;
+
+#ifdef DECAL_MODIFY_NORMALS
+    posWS /= posWS.w;
+    float3 ddx_ws = ddx(posWS.xyz);
+    float3 ddy_ws = ddy(posWS.xyz);
+
+    float3 normal   = normalize(cross(ddx_ws, ddy_ws));
+    float3 binormal = normalize(ddx_ws);
+    float3 tangent  = normalize(ddy_ws);
+
+    float3x3 TBN = float3x3(tangent, binormal, normal);
+
+    float3 DecalNormal = txNormalDecal.Sample(linear_wrap_sampler, tex_coords);
+    DecalNormal = 2.0f * DecalNormal - 1.0f;
+    DecalNormal = mul(DecalNormal, TBN);
+    float3 DecalNormalVS = normalize(mul(DecalNormal, (float3x3)view));
+    pout.NormalMetallic.rgb = 0.5 * DecalNormalVS + 0.5;
+#endif
+
     return pout;
 }

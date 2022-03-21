@@ -143,6 +143,7 @@ namespace adria
         float32 rotation = 0.0f;
         float32 size = 50.0f;
         EDecalType decal_type = EDecalType::Wall;
+        bool modify_gbuffer_normals = false;
         DirectX::XMFLOAT4 position;
         DirectX::XMFLOAT4 normal;
     };

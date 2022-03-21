@@ -805,7 +805,7 @@ namespace adria
 			static char NAME_BUFFER[128];
 			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
 			params.name = std::string(NAME_BUFFER);
-			ImGui::PushID(5);
+			ImGui::PushID(6);
 			if (ImGui::Button("Select Albedo Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Albedo Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
 			if (ImGuiFileDialog::Instance()->Display("Choose Albedo Texture"))
 			{
@@ -819,8 +819,23 @@ namespace adria
 			ImGui::PopID();
 			ImGui::Text(params.albedo_texture_path.c_str());
 
+			ImGui::PushID(7);
+			if (ImGui::Button("Select Normal Texture")) ImGuiFileDialog::Instance()->OpenDialog("Choose Normal Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+			if (ImGuiFileDialog::Instance()->Display("Choose Normal Texture"))
+			{
+				if (ImGuiFileDialog::Instance()->IsOk())
+				{
+					std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+					params.normal_texture_path = texture_path;
+				}
+				ImGuiFileDialog::Instance()->Close();
+			}
+			ImGui::PopID();
+			ImGui::Text(params.normal_texture_path.c_str());
+
 			ImGui::DragFloat("Size", &params.size, 2.0f, 10.0f, 200.0f);
 			ImGui::DragFloat("Rotation", &params.rotation, 1.0f, -180.0f, 180.0f);
+			ImGui::Checkbox("Modify GBuffer Normals", &params.modify_gbuffer_normals);
 
 			const char* decal_types[] = { "Wall", "Floor" };
 			static int current_decal_type = 0;
@@ -1220,6 +1235,22 @@ namespace adria
 						ImGuiFileDialog::Instance()->Close();
 					}
 					ImGui::PopID();
+
+					ImGui::PushID(5);
+					if (ImGui::Button("Remove")) decal->normal_decal_texture = INVALID_TEXTURE_HANDLE;
+					if (ImGui::Button("Select")) ImGuiFileDialog::Instance()->OpenDialog("Choose Texture", "Choose File", ".jpg,.jpeg,.tga,.dds,.png", ".");
+					if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
+					{
+						if (ImGuiFileDialog::Instance()->IsOk())
+						{
+							std::string texture_path = ImGuiFileDialog::Instance()->GetFilePathName();
+							decal->normal_decal_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+						}
+						ImGuiFileDialog::Instance()->Close();
+					}
+					ImGui::PopID();
+
+					ImGui::Checkbox("Modify GBuffer Normals", &decal->modify_gbuffer_normals);
 				}
 
                 static char const* const components[] = { "Mesh", "Transform", "Material",
@@ -1875,6 +1906,7 @@ namespace adria
                 static bool log_results = false;
                 ImGui::Checkbox("Log Results", &log_results);
 				ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
+				ImGui::Checkbox("Profile Decal Pass", &profiler_settings.profile_decal_pass);
 				ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
 				ImGui::Checkbox("Profile Forward Pass", &profiler_settings.profile_forward_pass);
                 ImGui::Checkbox("Profile Particles Pass", &profiler_settings.profile_particles_pass);

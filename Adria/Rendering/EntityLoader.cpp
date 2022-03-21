@@ -1048,6 +1048,7 @@ namespace adria
 
         decal.decal_model_matrix = model_matrix;
         decal.decal_type = params.decal_type;
+        decal.modify_gbuffer_normals = params.modify_gbuffer_normals;
 
         entity decal_entity = reg.create();
         reg.add(decal_entity, decal);

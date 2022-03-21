@@ -221,7 +221,7 @@ namespace adria
 	void ParticleRenderer::Emit(Emitter const& emitter_params)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Emit Pass");
+		SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Emit Pass");
 
 		if (emitter_params.number_to_emit > 0)
 		{
@@ -269,7 +269,7 @@ namespace adria
 	void ParticleRenderer::Simulate(ID3D11ShaderResourceView* depth_srv)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Simulate Pass");
+		SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Simulate Pass");
 
 		ID3D11UnorderedAccessView* uavs[] = {
 			particle_bufferA.UAV(), particle_bufferB.UAV(),
@@ -296,7 +296,7 @@ namespace adria
 	void ParticleRenderer::Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* particle_srv)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Rasterize Pass");
+		SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Rasterize Pass");
 
 		active_list_count_cbuffer.Bind(context, ShaderStage::VS, 12);
 
@@ -324,7 +324,7 @@ namespace adria
 	void ParticleRenderer::Sort()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		DECLARE_SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Sort Pass");
+		SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Sort Pass");
 
 		active_list_count_cbuffer.Bind(context, ShaderStage::CS, 11);
 		sort_dispatch_info_cbuffer.Bind(context, ShaderStage::CS, 12);

@@ -209,6 +209,7 @@ namespace adria
 		TEXTURE_HANDLE normal_decal_texture = INVALID_TEXTURE_HANDLE;
 		DirectX::XMMATRIX decal_model_matrix = DirectX::XMMatrixIdentity();
 		EDecalType decal_type = EDecalType::Wall;
+		bool modify_gbuffer_normals = false;
 	};
 
 	struct COMPONENT Forward 

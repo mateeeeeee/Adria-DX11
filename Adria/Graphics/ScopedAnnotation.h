@@ -22,5 +22,5 @@ namespace adria
 		ID3DUserDefinedAnnotation* annotation;
 	};
 
-#define DECLARE_SCOPED_ANNOTATION(annotation, name) ScopedAnnotation _annotation(annotation, name)
+#define SCOPED_ANNOTATION(annotation, name) ScopedAnnotation _annotation(annotation, name)
 }
