@@ -109,4 +109,7 @@ Hosek-Wilkie Sky Model
 God Rays and Instanced Foliage
 ![alt text](Screenshots/foliage.png "God Rays and Instanced Foliage")
 
+Deferred Decals
+![alt text](Screenshots/decals.png "Deferred Decals")
+
 
