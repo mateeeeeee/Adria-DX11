@@ -1048,9 +1048,23 @@ namespace adria
         XMMATRIX model_matrix = XMMatrixScaling(params.size, params.size, params.size) * RotationMatrix * XMMatrixTranslationFromVector(P);
 
         decal.decal_model_matrix = model_matrix;
-        decal.decal_type = params.decal_type;
-        decal.modify_gbuffer_normals = params.modify_gbuffer_normals;
+		decal.modify_gbuffer_normals = params.modify_gbuffer_normals;
 
+		XMFLOAT3 abs_normal;
+		XMStoreFloat3(&abs_normal, XMVectorAbs(N));
+		if (abs_normal.x >= abs_normal.y && abs_normal.x >= abs_normal.z)
+		{
+			decal.decal_type = EDecalType::Project_YZ;
+		}
+		else if (abs_normal.y >= abs_normal.x && abs_normal.y >= abs_normal.z)
+		{
+			decal.decal_type = EDecalType::Project_XZ;
+		}
+		else
+		{
+			decal.decal_type = EDecalType::Project_XY;
+		}
+        
         entity decal_entity = reg.create();
         reg.add(decal_entity, decal);
 		if (params.name.empty()) reg.emplace<Tag>(decal_entity, "decal");

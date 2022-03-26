@@ -205,7 +205,8 @@ namespace adria
 
 	enum class EDecalType : uint8 
 	{
-		Wall,
-		Floor
+		Project_XY,
+		Project_YZ,
+		Project_XZ
 	};
 }

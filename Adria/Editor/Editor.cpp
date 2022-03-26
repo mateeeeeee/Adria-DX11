@@ -837,21 +837,6 @@ namespace adria
 			ImGui::DragFloat("Rotation", &params.rotation, 1.0f, -180.0f, 180.0f);
 			ImGui::Checkbox("Modify GBuffer Normals", &params.modify_gbuffer_normals);
 
-			const char* decal_types[] = { "Wall", "Floor" };
-			static int current_decal_type = 0;
-			const char* combo_label = decal_types[current_decal_type];
-			if (ImGui::BeginCombo("Decal Type", combo_label, 0))
-			{
-				for (int n = 0; n < IM_ARRAYSIZE(decal_types); n++)
-				{
-					const bool is_selected = (current_decal_type == n);
-					if (ImGui::Selectable(decal_types[n], is_selected)) current_decal_type = n;
-					if (is_selected) ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
-			params.decal_type = static_cast<EDecalType>(current_decal_type);
-
 			auto picking_data = engine->renderer->GetLastPickingData();
 			ImGui::Text("Picked Position: %f %f %f", picking_data.position.x, picking_data.position.y, picking_data.position.z);
 			ImGui::Text("Picked Normal: %f %f %f", picking_data.normal.x, picking_data.normal.y, picking_data.normal.z);
