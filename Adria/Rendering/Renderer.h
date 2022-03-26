@@ -5,6 +5,7 @@
 #include "Picker.h"
 #include "ParticleRenderer.h"
 #include "RendererSettings.h"
+#include "SceneViewport.h"
 #include "ConstantBuffers.h"
 #include "../tecs/Registry.h"
 #include "../Graphics/TextureManager.h"
