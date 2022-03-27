@@ -155,21 +155,6 @@ namespace adria
 
 		pBuffer->Release();
 
-		D3D11_TEXTURE2D_DESC depthStencilDesc{};
-		depthStencilDesc.Width = w;
-		depthStencilDesc.Height = h;
-		depthStencilDesc.MipLevels = 1;
-		depthStencilDesc.ArraySize = 1;
-		depthStencilDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-
-		depthStencilDesc.SampleDesc.Count = 1;
-		depthStencilDesc.SampleDesc.Quality = 0;
-
-		depthStencilDesc.Usage = D3D11_USAGE_DEFAULT;
-		depthStencilDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
-		depthStencilDesc.CPUAccessFlags = 0;
-		depthStencilDesc.MiscFlags = 0;
-
 		immediate_context->OMSetRenderTargets(1, backbuffer_rtv.GetAddressOf(), nullptr);
 		D3D11_VIEWPORT vp{};
 		vp.Width = static_cast<float32>(w);
