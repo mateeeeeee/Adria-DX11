@@ -27,7 +27,7 @@ namespace adria
 
 		void Update(ID3D11DeviceContext* context, CBuffer const& buffer_data);
 
-		void Bind(ID3D11DeviceContext* context, ShaderStage stage, uint32 slot) const;
+		void Bind(ID3D11DeviceContext* context, EShaderStage stage, uint32 slot) const;
 
 		ID3D11Buffer* const Buffer() const 
 		{
@@ -96,26 +96,26 @@ namespace adria
 	}
 
 	template<typename CBuffer>
-	void ConstantBuffer<CBuffer>::Bind(ID3D11DeviceContext* context, ShaderStage stage, uint32 slot) const
+	void ConstantBuffer<CBuffer>::Bind(ID3D11DeviceContext* context, EShaderStage stage, uint32 slot) const
 	{
 		switch (stage)
 		{
-		case ShaderStage::VS:
+		case EShaderStage::VS:
 			context->VSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
-		case ShaderStage::PS:
+		case EShaderStage::PS:
 			context->PSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
-		case ShaderStage::HS:
+		case EShaderStage::HS:
 			context->HSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
-		case ShaderStage::DS:
+		case EShaderStage::DS:
 			context->DSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
-		case ShaderStage::GS:
+		case EShaderStage::GS:
 			context->GSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
-		case ShaderStage::CS:
+		case EShaderStage::CS:
 			context->CSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
 		default:

@@ -177,7 +177,7 @@ TEXTURE_HANDLE TextureManager::LoadCubeMap(std::wstring const& name)
 
 			ShaderInfo input{};
 			input.shadersource = "Resources\\Shaders\\Deferred\\Equirect2cubeCS.hlsl";
-			input.stage = ShaderStage::CS;
+			input.stage = EShaderStage::CS;
 			input.entrypoint = "cs_main";
 			ShaderUtility::CompileShader(input, blob);
 			device->CreateComputeShader(blob.GetPointer(), blob.GetLength(), nullptr, &equirect_to_cube);

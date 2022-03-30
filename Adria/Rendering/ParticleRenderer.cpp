@@ -249,8 +249,8 @@ namespace adria
 			emitter_cbuffer_data.CollisionThickness = emitter_params.collision_thickness;
 			emitter_cbuffer.Update(context, emitter_cbuffer_data);
 
-			dead_list_count_cbuffer.Bind(context, ShaderStage::CS, 11);
-			emitter_cbuffer.Bind(context, ShaderStage::CS, 13);
+			dead_list_count_cbuffer.Bind(context, EShaderStage::CS, 11);
+			emitter_cbuffer.Bind(context, EShaderStage::CS, 13);
 
 			context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.UAV());
 			uint32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
@@ -298,7 +298,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Rasterize Pass");
 
-		active_list_count_cbuffer.Bind(context, ShaderStage::VS, 12);
+		active_list_count_cbuffer.Bind(context, EShaderStage::VS, 12);
 
 		ID3D11Buffer* vb = nullptr;
 		UINT stride = 0;
@@ -326,8 +326,8 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Sort Pass");
 
-		active_list_count_cbuffer.Bind(context, ShaderStage::CS, 11);
-		sort_dispatch_info_cbuffer.Bind(context, ShaderStage::CS, 12);
+		active_list_count_cbuffer.Bind(context, EShaderStage::CS, 11);
+		sort_dispatch_info_cbuffer.Bind(context, EShaderStage::CS, 12);
 
 		// Write the indirect args to a UAV
 		context->CSSetUnorderedAccessViews(0, 1, indirect_sort_args_uav.GetAddressOf(), nullptr);

@@ -575,7 +575,7 @@ namespace adria
 
 			ShaderInfo decal_modify_normals_ps{};
 			decal_modify_normals_ps.shadersource = "Resources/Shaders/Misc/DecalPS.hlsl";
-			decal_modify_normals_ps.stage = ShaderStage::PS;
+			decal_modify_normals_ps.stage = EShaderStage::PS;
 			decal_modify_normals_ps.defines = { {"DECAL_MODIFY_NORMALS", ""}};
 			decal_modify_normals_ps.entrypoint = "main";
 #if _DEBUG
@@ -592,13 +592,13 @@ namespace adria
 			ShaderBlob vs_blob, ps_blob;
 			ShaderInfo geometry_pass_input_vs{};
 			geometry_pass_input_vs.shadersource = "Resources/Shaders/Deferred/GeometryPassPBR_VS.hlsl";
-			geometry_pass_input_vs.stage = ShaderStage::VS;
+			geometry_pass_input_vs.stage = EShaderStage::VS;
 			geometry_pass_input_vs.defines = {};
 			ShaderUtility::CompileShader(geometry_pass_input_vs, vs_blob);
 			
 			ShaderInfo geometry_pass_input_ps{};
 			geometry_pass_input_ps.shadersource = "Resources/Shaders/Deferred/GeometryPassPBR_PS.hlsl";
-			geometry_pass_input_ps.stage = ShaderStage::PS;
+			geometry_pass_input_ps.stage = EShaderStage::PS;
 			geometry_pass_input_ps.defines = {};
 			geometry_pass_input_ps.flags = ShaderInfo::FLAG_DISABLE_OPTIMIZATION | ShaderInfo::FLAG_DEBUG;
 			
@@ -619,7 +619,7 @@ namespace adria
 
 			ShaderInfo input{};
 			input.shadersource = "Resources/Shaders/Deferred/AmbientPBR_PS.hlsl";
-			input.stage = ShaderStage::PS;
+			input.stage = EShaderStage::PS;
 			input.flags = ShaderInfo::FLAG_DEBUG | ShaderInfo::FLAG_DISABLE_OPTIMIZATION;
 
 			ShaderUtility::CompileShader(input, ps_blob);
@@ -661,7 +661,7 @@ namespace adria
 				ShaderInfo input{};
 				input.shadersource = "Resources/Shaders/Postprocess/ToneMapPS.hlsl";
 				input.entrypoint = "main";
-				input.stage = ShaderStage::PS;
+				input.stage = EShaderStage::PS;
 				ps_defines.push_back(ShaderDefine{ "REINHARD", "1" });
 				input.defines = ps_defines;
 
@@ -787,10 +787,10 @@ namespace adria
 			ShaderBlob vs_blob, ps_blob;
 			ShaderInfo vs_input{}, ps_input{};
 			vs_input.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
-			vs_input.stage = ShaderStage::VS;
+			vs_input.stage = EShaderStage::VS;
 
 			ps_input.shadersource = "Resources/Shaders/Shadows/DepthMapPS.hlsl";
-			ps_input.stage = ShaderStage::PS;
+			ps_input.stage = EShaderStage::PS;
 
 			ShaderUtility::CompileShader(vs_input, vs_blob);
 			ShaderUtility::CompileShader(ps_input, ps_blob);
@@ -834,7 +834,7 @@ namespace adria
 
 			ShaderInfo blur_input{};
 			blur_input.shadersource = "Resources/Shaders/Postprocess/BlurCS.hlsl";
-			blur_input.stage = ShaderStage::CS;
+			blur_input.stage = EShaderStage::CS;
 			blur_input.defines = {};
 			blur_input.flags = ShaderInfo::FLAG_NONE; // CompilerInput::FLAG_DISABLE_OPTIMIZATION | CompilerInput::FLAG_DEBUG;
 
@@ -1821,7 +1821,7 @@ namespace adria
 
 			ConstantBuffer<RoughnessCBuffer> roughness_cb(device);
 			spmap_program.Bind(context);
-			roughness_cb.Bind(context, ShaderStage::CS, 0);
+			roughness_cb.Bind(context, EShaderStage::CS, 0);
 			context->CSSetShaderResources(0, 1, &unfiltered_env_srv);
 
 
@@ -1972,44 +1972,44 @@ namespace adria
 		{
 			ID3D11DeviceContext* context = gfx->Context();
 			//VS GLOBALS
-			frame_cbuffer->Bind(context,  ShaderStage::VS, CBUFFER_SLOT_FRAME);
-			object_cbuffer->Bind(context, ShaderStage::VS, CBUFFER_SLOT_OBJECT);
-			shadow_cbuffer->Bind(context, ShaderStage::VS, CBUFFER_SLOT_SHADOW);
-			weather_cbuffer->Bind(context, ShaderStage::VS, CBUFFER_SLOT_WEATHER);
-			voxel_cbuffer->Bind(context,  ShaderStage::VS, CBUFFER_SLOT_VOXEL);
+			frame_cbuffer->Bind(context,  EShaderStage::VS, CBUFFER_SLOT_FRAME);
+			object_cbuffer->Bind(context, EShaderStage::VS, CBUFFER_SLOT_OBJECT);
+			shadow_cbuffer->Bind(context, EShaderStage::VS, CBUFFER_SLOT_SHADOW);
+			weather_cbuffer->Bind(context, EShaderStage::VS, CBUFFER_SLOT_WEATHER);
+			voxel_cbuffer->Bind(context,  EShaderStage::VS, CBUFFER_SLOT_VOXEL);
 			context->VSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 
 			//TS/HS GLOBALS
-			frame_cbuffer->Bind(context, ShaderStage::DS, CBUFFER_SLOT_FRAME);
-			frame_cbuffer->Bind(context, ShaderStage::HS, CBUFFER_SLOT_FRAME);
+			frame_cbuffer->Bind(context, EShaderStage::DS, CBUFFER_SLOT_FRAME);
+			frame_cbuffer->Bind(context, EShaderStage::HS, CBUFFER_SLOT_FRAME);
 			context->DSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 			context->HSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 
 			//CS GLOBALS
-			frame_cbuffer->Bind(context, ShaderStage::CS, CBUFFER_SLOT_FRAME);
-			compute_cbuffer->Bind(context, ShaderStage::CS, CBUFFER_SLOT_COMPUTE);
-			voxel_cbuffer->Bind(context, ShaderStage::CS, CBUFFER_SLOT_VOXEL);
+			frame_cbuffer->Bind(context, EShaderStage::CS, CBUFFER_SLOT_FRAME);
+			compute_cbuffer->Bind(context, EShaderStage::CS, CBUFFER_SLOT_COMPUTE);
+			voxel_cbuffer->Bind(context, EShaderStage::CS, CBUFFER_SLOT_VOXEL);
 			context->CSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 			context->CSSetSamplers(1, 1, point_wrap_sampler.GetAddressOf());
 			context->CSSetSamplers(2, 1, linear_border_sampler.GetAddressOf());
 			context->CSSetSamplers(3, 1, linear_clamp_sampler.GetAddressOf());
 
 			//GS GLOBALS
-			frame_cbuffer->Bind(context, ShaderStage::GS, CBUFFER_SLOT_FRAME);
-			light_cbuffer->Bind(context, ShaderStage::GS, CBUFFER_SLOT_LIGHT);
-			voxel_cbuffer->Bind(context, ShaderStage::GS, CBUFFER_SLOT_VOXEL);
+			frame_cbuffer->Bind(context, EShaderStage::GS, CBUFFER_SLOT_FRAME);
+			light_cbuffer->Bind(context, EShaderStage::GS, CBUFFER_SLOT_LIGHT);
+			voxel_cbuffer->Bind(context, EShaderStage::GS, CBUFFER_SLOT_VOXEL);
 			context->GSSetSamplers(1, 1, point_wrap_sampler.GetAddressOf());
 			context->GSSetSamplers(4, 1, point_clamp_sampler.GetAddressOf());
 			
 			//PS GLOBALS
-			material_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_MATERIAL);
-			frame_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_FRAME);
-			light_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_LIGHT);
-			shadow_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_SHADOW);
-			postprocess_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_POSTPROCESS);
-			weather_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_WEATHER);
-			voxel_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_VOXEL);
-			terrain_cbuffer->Bind(context, ShaderStage::PS, CBUFFER_SLOT_TERRAIN);
+			material_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_MATERIAL);
+			frame_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_FRAME);
+			light_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_LIGHT);
+			shadow_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_SHADOW);
+			postprocess_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_POSTPROCESS);
+			weather_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_WEATHER);
+			voxel_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_VOXEL);
+			terrain_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_TERRAIN);
 			context->PSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 			context->PSSetSamplers(1, 1, point_wrap_sampler.GetAddressOf());
 			context->PSSetSamplers(2, 1, linear_border_sampler.GetAddressOf());
@@ -2143,7 +2143,7 @@ namespace adria
 			static FFTCBuffer fft_cbuf_data{ .seq_count = RESOLUTION };
 			static ConstantBuffer<FFTCBuffer> fft_cbuffer(gfx->Device());
 
-			fft_cbuffer.Bind(context, ShaderStage::CS, 10);
+			fft_cbuffer.Bind(context, EShaderStage::CS, 10);
 
 			//fft horizontal
 			{
@@ -2570,7 +2570,7 @@ namespace adria
 
 		static ConstantBuffer<DecalCBuffer> decal_cbuffer(gfx->Device());
 		static DecalCBuffer decal_cbuf_data{};
-		decal_cbuffer.Bind(context, ShaderStage::PS, 11);
+		decal_cbuffer.Bind(context, EShaderStage::PS, 11);
 
 		decal_pass.Begin(context);
 		{

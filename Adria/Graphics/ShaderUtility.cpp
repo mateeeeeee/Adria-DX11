@@ -30,27 +30,27 @@ namespace adria
 			std::string entrypoint, model;
 			switch (input.stage)
 			{
-			case ShaderStage::VS:
+			case EShaderStage::VS:
 				entrypoint = "vs_main";
 				model = "vs_5_0";
 				break;
-			case ShaderStage::PS:
+			case EShaderStage::PS:
 				entrypoint = "ps_main";
 				model = "ps_5_0";
 				break;
-			case ShaderStage::HS:
+			case EShaderStage::HS:
 				entrypoint = "hs_main";
 				model = "hs_5_0";
 				break;
-			case ShaderStage::DS:
+			case EShaderStage::DS:
 				entrypoint = "ds_main";
 				model = "ds_5_0";
 				break;
-			case ShaderStage::GS:
+			case EShaderStage::GS:
 				entrypoint = "gs_main";
 				model = "gs_5_0";
 				break;
-			case ShaderStage::CS:
+			case EShaderStage::CS:
 				entrypoint = "cs_main";
 				model = "cs_5_0";
 				break;
