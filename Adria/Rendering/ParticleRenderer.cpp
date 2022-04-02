@@ -1,6 +1,7 @@
 #include "../Utilities/Random.h"
 #include "../Graphics/ScopedAnnotation.h"
 #include "ParticleRenderer.h"
+#include "ShaderCache.h"
 
 namespace adria
 {
@@ -15,7 +16,6 @@ namespace adria
 		sort_dispatch_info_cbuffer(gfx->Device(), true),
 		alive_index_buffer(gfx->Device(), MAX_PARTICLES, false, true)
 	{
-		LoadShaders();
 		CreateRandomTexture();
 		CreateIndexBuffer();
 		CreateIndirectArgsBuffers();
@@ -53,41 +53,6 @@ namespace adria
 			Sort();
 		}
 		Rasterize(emitter_params, depth_srv, particle_srv);
-	}
-
-	void ParticleRenderer::LoadShaders()
-	{
-		ID3D11Device* device = gfx->Device();
-		ShaderBlob cs_blob;
-
-		ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/InitDeadListCS.cso", cs_blob);
-		particle_compute_programs[EComputeShader::ParticleInitDeadList].Create(device, cs_blob);
-
-		ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleResetCS.cso", cs_blob);
-		particle_compute_programs[EComputeShader::ParticleReset].Create(device, cs_blob);
-
-		ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleEmitCS.cso", cs_blob);
-		particle_compute_programs[EComputeShader::ParticleEmit].Create(device, cs_blob);
-
-		ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleSimulateCS.cso", cs_blob);
-		particle_compute_programs[EComputeShader::ParticleSimulate].Create(device, cs_blob);
-
-		ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BitonicSortStepCS.cso", cs_blob);
-		particle_compute_programs[EComputeShader::ParticleBitonicSortStep].Create(device, cs_blob);
-
-		ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/Sort512CS.cso", cs_blob);
-		particle_compute_programs[EComputeShader::ParticleSort512].Create(device, cs_blob);
-
-		ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SortInner512CS.cso", cs_blob);
-		particle_compute_programs[EComputeShader::ParticleSortInner512].Create(device, cs_blob);
-
-		ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/InitSortDispatchArgsCS.cso", cs_blob);
-		particle_compute_programs[EComputeShader::ParticleSortInitArgs].Create(device, cs_blob);
-
-		ShaderBlob vs_blob, ps_blob;
-		ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleVS.cso", vs_blob);
-		ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticlePS.cso", ps_blob);
-		particle_render_programs[EShader::Particles].Create(device, vs_blob, ps_blob);
 	}
 
 	void ParticleRenderer::CreateIndirectArgsBuffers()
@@ -186,7 +151,7 @@ namespace adria
 		random_texture = Texture2D(device, desc);
 	}
 
-	void ParticleRenderer::InitializeDeadList()
+	void ParticleRenderer::InitializeDeadList() 
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
@@ -194,9 +159,9 @@ namespace adria
 		ID3D11UnorderedAccessView* dead_list_uavs[] = { dead_list_buffer.UAV() };
 		context->CSSetUnorderedAccessViews(0, 1, dead_list_uavs, initial_count);
 
-		particle_compute_programs[EComputeShader::ParticleInitDeadList].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::ParticleInitDeadList)->Bind(context);
 		context->Dispatch((UINT)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
-		particle_compute_programs[EComputeShader::ParticleInitDeadList].Unbind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::ParticleInitDeadList)->Unbind(context);
 
 		ZeroMemory(dead_list_uavs, sizeof(dead_list_uavs));
 		context->CSSetUnorderedAccessViews(0, 1, dead_list_uavs, nullptr);
@@ -210,9 +175,9 @@ namespace adria
 		uint32 initial_counts[] = { (uint32)-1, (uint32)-1 };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
-		particle_compute_programs[EComputeShader::ParticleReset].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::ParticleReset)->Bind(context);
 		context->Dispatch((UINT)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
-		particle_compute_programs[EComputeShader::ParticleReset].Unbind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::ParticleReset)->Unbind(context);
 
 		ZeroMemory(uavs, sizeof(uavs));
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
@@ -225,7 +190,7 @@ namespace adria
 
 		if (emitter_params.number_to_emit > 0)
 		{
-			particle_compute_programs[EComputeShader::ParticleEmit].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::ParticleEmit)->Bind(context);
 
 			ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV(), dead_list_buffer.UAV() };
 			uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1 };
@@ -262,7 +227,7 @@ namespace adria
 			ZeroMemory(uavs, sizeof(uavs));
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
 
-			particle_compute_programs[EComputeShader::ParticleEmit].Unbind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::ParticleEmit)->Unbind(context);
 		}
 	}
 
@@ -281,7 +246,7 @@ namespace adria
 		ID3D11ShaderResourceView* srvs[] = { depth_srv };
 		context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
-		particle_compute_programs[EComputeShader::ParticleSimulate].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::ParticleSimulate)->Bind(context); 
 		context->Dispatch((UINT)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 
 		ZeroMemory(uavs, sizeof(uavs));
@@ -312,7 +277,7 @@ namespace adria
 		context->VSSetShaderResources(0, ARRAYSIZE(vs_srvs), vs_srvs);
 		context->PSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
 
-		particle_render_programs[EShader::Particles].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::Particles)->Bind(context);
 		context->DrawIndexedInstancedIndirect(indirect_render_args_buffer.Get(), 0);
 
 		ZeroMemory(vs_srvs, sizeof(vs_srvs));
@@ -331,7 +296,7 @@ namespace adria
 
 		// Write the indirect args to a UAV
 		context->CSSetUnorderedAccessViews(0, 1, indirect_sort_args_uav.GetAddressOf(), nullptr);
-		particle_compute_programs[EComputeShader::ParticleSortInitArgs].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::ParticleSortInitArgs)->Bind(context);
 		context->Dispatch(1, 1, 1);
 
 		ID3D11UnorderedAccessView* uav = alive_index_buffer.UAV();
@@ -356,8 +321,7 @@ namespace adria
 		bool done = true;
 		UINT numThreadGroups = ((MAX_PARTICLES - 1) >> 9) + 1;
 		if (numThreadGroups > 1) done = false;
-
-		particle_compute_programs[EComputeShader::ParticleSort512].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::ParticleSort512)->Bind(context);
 		context->DispatchIndirect(indirect_sort_args_buffer.Get(), 0);
 		return done;
 	}
@@ -367,7 +331,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 
 		bool done = true;
-		particle_compute_programs[EComputeShader::ParticleBitonicSortStep].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::ParticleBitonicSortStep)->Bind(context);
 
 		UINT num_thread_groups = 0;
 		if (MAX_PARTICLES > presorted)
@@ -398,8 +362,7 @@ namespace adria
 			sort_dispatch_info_cbuffer.Update(context, sort_dispatch_info);
 			context->Dispatch(num_thread_groups, 1, 1);
 		}
-
-		particle_compute_programs[EComputeShader::ParticleSortInner512].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::ParticleSortInner512)->Bind(context);
 		context->Dispatch(num_thread_groups, 1, 1);
 
 		return done;

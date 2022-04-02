@@ -37,7 +37,7 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, f
 }
 
 
-PS_GBUFFER_OUT ps_main(VS_OUTPUT In)
+PS_GBUFFER_OUT main(VS_OUTPUT In)
 {
 
     In.Uvs.y = 1 - In.Uvs.y;

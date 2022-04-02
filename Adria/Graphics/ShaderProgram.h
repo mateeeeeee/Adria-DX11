@@ -1,16 +1,17 @@
 #pragma once
 #include <wrl.h>
-#include "ShaderUtility.h"
+#include "ShaderCompiler.h"
 
 
 namespace adria
 {
 	struct ShaderProgram 
 	{
+		
 		virtual ~ShaderProgram() = default;
 		virtual void Bind(ID3D11DeviceContext* context) = 0;
 		virtual void Unbind(ID3D11DeviceContext* context) = 0; //this can be static rather than virtual 
-		};
+	};
 
 	struct StandardProgram : ShaderProgram
 	{
@@ -18,7 +19,7 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> ps	= nullptr;
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> il	= nullptr;
 
-		void Create(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& ps_blob,
+		StandardProgram(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& ps_blob,
 			bool input_layout_from_reflection = true);
 
 		virtual void Bind(ID3D11DeviceContext* context) override;
@@ -34,16 +35,13 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11PixelShader>	ps = nullptr;;
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>	il = nullptr;;
 		
-		void Create(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& ps_blob,
-			ShaderBlob const& hs_blob, ShaderBlob const& ds_blob,
+		TessellationProgram(ID3D11Device* device, ShaderBlob const& vs_blob,
+			ShaderBlob const& hs_blob, ShaderBlob const& ds_blob, ShaderBlob const& ps_blob,
 			bool input_layout_from_reflection = true);
-
 
 		virtual void Bind(ID3D11DeviceContext* context) override;
 
 		virtual void Unbind(ID3D11DeviceContext* context) override;
-
-		
 	};
 
 	struct GeometryProgram : ShaderProgram
@@ -53,7 +51,7 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11PixelShader>		ps= nullptr;
 		Microsoft::WRL::ComPtr<ID3D11InputLayout>		il= nullptr;
 
-		void Create(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& gs_blob, ShaderBlob const& ps_blob,
+		GeometryProgram(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& gs_blob, ShaderBlob const& ps_blob,
 			bool input_layout_from_reflection = true);
 		
 		virtual void Bind(ID3D11DeviceContext* context) override;
@@ -65,7 +63,7 @@ namespace adria
 	{
 		Microsoft::WRL::ComPtr<ID3D11ComputeShader> cs = nullptr;
 
-		void Create(ID3D11Device* device, ShaderBlob const& cs_blob);
+		ComputeProgram(ID3D11Device* device, ShaderBlob const& cs_blob);
 
 		virtual void Bind(ID3D11DeviceContext* context) override;
 

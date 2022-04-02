@@ -171,7 +171,7 @@
     <ClCompile Include="Graphics\Profiler.cpp" />
     <ClCompile Include="Graphics\RenderPass.cpp" />
     <ClCompile Include="Graphics\ShaderProgram.cpp" />
-    <ClCompile Include="Graphics\ShaderUtility.cpp" />
+    <ClCompile Include="Graphics\ShaderCompiler.cpp" />
     <ClCompile Include="Graphics\TextureManager.cpp" />
     <ClCompile Include="Graphics\WICTextureLoader.cpp" />
     <ClCompile Include="Input\Input.cpp" />
@@ -182,6 +182,7 @@
     <ClCompile Include="Rendering\EntityLoader.cpp" />
     <ClCompile Include="Rendering\ParticleRenderer.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
+    <ClCompile Include="Rendering\ShaderCache.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Rendering\Terrain.cpp" />
     <ClCompile Include="Utilities\AppException.cpp" />
@@ -223,7 +224,7 @@
     <ClInclude Include="Graphics\RenderPass.h" />
     <ClInclude Include="Graphics\ScopedAnnotation.h" />
     <ClInclude Include="Graphics\ShaderProgram.h" />
-    <ClInclude Include="Graphics\ShaderUtility.h" />
+    <ClInclude Include="Graphics\ShaderCompiler.h" />
     <ClInclude Include="Graphics\StructuredBuffer.h" />
     <ClInclude Include="Graphics\Texture2D.h" />
     <ClInclude Include="Graphics\Texture2DArray.h" />
@@ -251,6 +252,7 @@
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\SceneViewport.h" />
+    <ClInclude Include="Rendering\ShaderCache.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
     <ClInclude Include="Rendering\Terrain.h" />
     <ClInclude Include="resource.h" />

@@ -110,7 +110,7 @@
     <ClCompile Include="Graphics\ShaderProgram.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\ShaderUtility.cpp">
+    <ClCompile Include="Graphics\ShaderCompiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\TextureManager.cpp">
@@ -188,6 +188,7 @@
     <ClCompile Include="Rendering\ParticleRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="Rendering\ShaderCache.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -268,7 +269,7 @@
     <ClInclude Include="Graphics\ShaderProgram.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ShaderUtility.h">
+    <ClInclude Include="Graphics\ShaderCompiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\TextureManager.h">
@@ -467,6 +468,9 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\SceneViewport.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\ShaderCache.h">
       <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>

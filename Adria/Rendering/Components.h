@@ -112,7 +112,7 @@ namespace adria
 		float32 emissive_factor		= 1.0f;
 
 		DirectX::XMFLOAT3 diffuse = DirectX::XMFLOAT3(1, 1, 1);
-		EShader shader = EShader::Unknown;
+		EShaderProgram shader = EShaderProgram::Unknown;
 	};
 
 	struct COMPONENT Light

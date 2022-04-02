@@ -24,7 +24,7 @@ struct VS_OUTPUT
 };
 
 
-VS_OUTPUT vs_main(VS_INPUT input)
+VS_OUTPUT main(VS_INPUT input)
 {
     VS_OUTPUT Output;
     

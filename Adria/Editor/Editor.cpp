@@ -1083,12 +1083,12 @@ namespace adria
 					if (engine->reg.has<Forward>(selected_entity))
 					{
 						if (material->albedo_texture != INVALID_TEXTURE_HANDLE)
-							material->shader = EShader::Texture;
-						else material->shader = EShader::Solid;
+							material->shader = EShaderProgram::Texture;
+						else material->shader = EShaderProgram::Solid;
 					}
 					else
 					{
-						material->shader = EShader::GBufferPBR;
+						material->shader = EShaderProgram::GBufferPBR;
 					}
                 }
 
@@ -1332,8 +1332,8 @@ namespace adria
                         {
                             Material mat{};
                             if (engine->reg.has<Deferred>(selected_entity))
-                                mat.shader = EShader::GBufferPBR;
-                            else mat.shader = EShader::Solid;
+                                mat.shader = EShaderProgram::GBufferPBR;
+                            else mat.shader = EShaderProgram::Solid;
                             engine->reg.emplace<Material>(selected_entity, mat);
                         }
                         break;

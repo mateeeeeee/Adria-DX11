@@ -1,6 +1,6 @@
 #include <wrl.h>
 #include <d3dcompiler.h> 
-#include "ShaderUtility.h"
+#include "ShaderCompiler.h"
 #include "../Utilities/HashUtil.h"
 #include "../Core/Macros.h" 
 #include "../Utilities/StringUtil.h"
@@ -9,7 +9,7 @@
 namespace adria
 {
 
-	namespace ShaderUtility
+	namespace ShaderCompiler
 	{
 
 		void GetBlobFromCompiledShader(std::string_view filename, ShaderBlob& blob)
@@ -20,7 +20,7 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 
 			blob.bytecode.resize(pBytecodeBlob->GetBufferSize());
-			memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
+			std::memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
 		}
 
 		void CompileShader(ShaderInfo const& input,
@@ -99,13 +99,9 @@ namespace adria
 				if (define.Name)		free((void*)define.Name);
 				if (define.Definition)  free((void*)define.Definition); //change malloc and free to new and delete
 			}
-
-
 			BREAK_IF_FAILED(hr);
-
 			blob.bytecode.resize(pBytecodeBlob->GetBufferSize());
-			memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
-
+			std::memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
 		}
 
 		void CreateInputLayoutWithReflection(ID3D11Device* device, ShaderBlob const& blob, ID3D11InputLayout** il)
@@ -160,13 +156,13 @@ namespace adria
 					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 				}
 
-				//save element desc
 				inputLayoutDesc.push_back(elementDesc);
 			}
 
 			// Try to create Input Layout
 			HRESULT hr = device->CreateInputLayout(inputLayoutDesc.data(), static_cast<UINT>(inputLayoutDesc.size()), blob.GetPointer(), blob.GetLength(), 
 				il);
+			BREAK_IF_FAILED(hr);
 		}
 
 	}

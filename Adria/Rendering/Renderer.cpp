@@ -4,6 +4,7 @@
 #include "Renderer.h"
 #include "Camera.h"
 #include "Components.h"
+#include "ShaderCache.h"
 #include "SkyModel.h"
 #include "../Input/Input.h"
 #include "../Editor/GUI.h"
@@ -18,7 +19,6 @@
 
 using namespace DirectX;
 
-
 namespace adria
 {
 	using namespace tecs;
@@ -27,7 +27,6 @@ namespace adria
 	namespace
 	{
 		//Shadow stuff
-
 		constexpr uint32 SHADOW_MAP_SIZE = 2048;
 		constexpr uint32 SHADOW_CUBE_SIZE = 512;
 		constexpr uint32 SHADOW_CASCADE_SIZE = 2048;
@@ -352,7 +351,6 @@ namespace adria
 		CreateRenderStates();
 		CreateBuffers();
 		CreateSamplers();
-		LoadShaders();
 		LoadTextures();
 
 		CreateOtherResources();
@@ -369,8 +367,6 @@ namespace adria
 		UpdateOcean(dt);
 		UpdateParticles(dt);
 	}
-
-
 	void Renderer::SetSceneViewportData(SceneViewport&& vp)
 	{
 		current_scene_viewport = std::move(vp);
@@ -469,7 +465,6 @@ namespace adria
 		}
 
 	}
-
 	void Renderer::OnLeftMouseClicked()
 	{
 		if (current_scene_viewport.scene_viewport_focused)
@@ -537,416 +532,6 @@ namespace adria
 		return profiler.GetProfilingResults(gfx->Context(), log);
 	}
 
-	void Renderer::LoadShaders()
-	{
-		auto device = gfx->Device();
-		//misc (all compiled)
-		{
-			ShaderBlob vs_blob, ps_blob;
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SkyboxVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SkyboxPS.cso", ps_blob);
-			standard_programs[EShader::Skybox].Create(device, vs_blob, ps_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/HosekWilkieSkyPS.cso", ps_blob);
-			standard_programs[EShader::HosekWilkieSky].Create(device, vs_blob, ps_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/UniformColorSkyPS.cso", ps_blob);
-			standard_programs[EShader::UniformColorSky].Create(device, vs_blob, ps_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/TextureVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/TexturePS.cso", ps_blob);
-			standard_programs[EShader::Texture].Create(device, vs_blob, ps_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SolidVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SolidPS.cso", ps_blob);
-			standard_programs[EShader::Solid].Create(device, vs_blob, ps_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SunVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SunPS.cso", ps_blob);
-			standard_programs[EShader::Sun].Create(device, vs_blob, ps_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BillboardVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BillboardPS.cso", ps_blob);
-			standard_programs[EShader::Billboard].Create(device, vs_blob, ps_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/DecalVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/DecalPS.cso", ps_blob);
-			standard_programs[EShader::Decals].Create(device, vs_blob, ps_blob);
-
-			ShaderInfo decal_modify_normals_ps{};
-			decal_modify_normals_ps.shadersource = "Resources/Shaders/Misc/DecalPS.hlsl";
-			decal_modify_normals_ps.stage = EShaderStage::PS;
-			decal_modify_normals_ps.defines = { {"DECAL_MODIFY_NORMALS", ""}};
-			decal_modify_normals_ps.entrypoint = "main";
-#if _DEBUG
-			decal_modify_normals_ps.flags = ShaderInfo::FLAG_DEBUG | ShaderInfo::FLAG_DISABLE_OPTIMIZATION;
-#else
-			decal_modify_normals_ps.flags = ShaderInfo::FLAG_NONE;
-#endif
-			ShaderUtility::CompileShader(decal_modify_normals_ps, ps_blob);
-			standard_programs[EShader::Decals_ModifyNormals].Create(device, vs_blob, ps_blob);
-		}
-
-		//gbuffer (not compiled)
-		{
-			ShaderBlob vs_blob, ps_blob;
-			ShaderInfo geometry_pass_input_vs{};
-			geometry_pass_input_vs.shadersource = "Resources/Shaders/Deferred/GeometryPassPBR_VS.hlsl";
-			geometry_pass_input_vs.stage = EShaderStage::VS;
-			geometry_pass_input_vs.defines = {};
-			ShaderUtility::CompileShader(geometry_pass_input_vs, vs_blob);
-			
-			ShaderInfo geometry_pass_input_ps{};
-			geometry_pass_input_ps.shadersource = "Resources/Shaders/Deferred/GeometryPassPBR_PS.hlsl";
-			geometry_pass_input_ps.stage = EShaderStage::PS;
-			geometry_pass_input_ps.defines = {};
-			geometry_pass_input_ps.flags = ShaderInfo::FLAG_DISABLE_OPTIMIZATION | ShaderInfo::FLAG_DEBUG;
-			
-			ShaderUtility::CompileShader(geometry_pass_input_ps, ps_blob);
-			standard_programs[EShader::GBufferPBR].Create(device, vs_blob, ps_blob); 
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/GeometryPassTerrain_VS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/GeometryPassTerrain_PS.cso", ps_blob);
-			standard_programs[EShader::GBuffer_Terrain].Create(device, vs_blob, ps_blob);
-		}
-
-		//ambient & lighting (not compiled)
-		{
-			ShaderBlob vs_blob, ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FullscreenQuadVS.cso", vs_blob);
-
-
-			ShaderInfo input{};
-			input.shadersource = "Resources/Shaders/Deferred/AmbientPBR_PS.hlsl";
-			input.stage = EShaderStage::PS;
-			input.flags = ShaderInfo::FLAG_DEBUG | ShaderInfo::FLAG_DISABLE_OPTIMIZATION;
-
-			ShaderUtility::CompileShader(input, ps_blob);
-			standard_programs[EShader::AmbientPBR].Create(device, vs_blob, ps_blob);
-
-			input.defines.push_back(ShaderDefine{ "SSAO", "1" });
-			ShaderUtility::CompileShader(input, ps_blob);
-			standard_programs[EShader::AmbientPBR_AO].Create(device, vs_blob, ps_blob);
-
-			input.defines.push_back(ShaderDefine{ "IBL", "1" });
-			ShaderUtility::CompileShader(input, ps_blob);
-			standard_programs[EShader::AmbientPBR_AO_IBL].Create(device, vs_blob, ps_blob);
-
-			input.defines.clear();
-			input.defines.push_back(ShaderDefine{ "IBL", "1" });
-			ShaderUtility::CompileShader(input, ps_blob);
-			standard_programs[EShader::AmbientPBR_IBL].Create(device, vs_blob, ps_blob);
-
-			//lighting
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/LightingPBR_PS.cso", ps_blob);
-			standard_programs[EShader::LightingPBR].Create(device, vs_blob, ps_blob);
-
-			//eClusterLightingPBR
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ClusterLightingPBR_PS.cso", ps_blob);
-			standard_programs[EShader::ClusterLightingPBR].Create(device, vs_blob, ps_blob);
-
-		}
-
-		//postprocess
-		{
-			ShaderBlob vs_blob, ps_blob;
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ScreenQuadVS.cso", vs_blob);
-
-			//tonemap
-			{
-				std::vector<ShaderDefine> ps_defines{};
-
-				ShaderInfo input{};
-				input.shadersource = "Resources/Shaders/Postprocess/ToneMapPS.hlsl";
-				input.entrypoint = "main";
-				input.stage = EShaderStage::PS;
-				ps_defines.push_back(ShaderDefine{ "REINHARD", "1" });
-				input.defines = ps_defines;
-
-				ShaderUtility::CompileShader(input, ps_blob);
-				standard_programs[EShader::ToneMap_Reinhard].Create(device, vs_blob, ps_blob);
-
-				ps_defines[0] = ShaderDefine{ "LINEAR", "1" };
-				input.defines = ps_defines;
-				ShaderUtility::CompileShader(input, ps_blob);
-				standard_programs[EShader::ToneMap_Linear].Create(device, vs_blob, ps_blob);
-
-				ps_defines[0] = ShaderDefine{ "HABLE", "1" };
-				input.defines = ps_defines;
-				ShaderUtility::CompileShader(input, ps_blob);
-				standard_programs[EShader::ToneMap_Hable].Create(device, vs_blob, ps_blob);
-
-			}
-
-			//fxaa
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FXAA.cso", ps_blob);
-				standard_programs[EShader::FXAA].Create(device, vs_blob, ps_blob);
-			}
-
-			//taa
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/TAA_PS.cso", ps_blob);
-				standard_programs[EShader::TAA].Create(device, vs_blob, ps_blob);
-			}
-
-			//copy
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/CopyPS.cso", ps_blob);
-				standard_programs[EShader::Copy].Create(device, vs_blob, ps_blob);
-			}
-
-			//add
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/AddPS.cso", ps_blob);
-				standard_programs[EShader::Add].Create(device, vs_blob, ps_blob);
-			}
-
-			//ssao
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SSAO_PS.cso", ps_blob);
-				standard_programs[EShader::SSAO].Create(device, vs_blob, ps_blob);
-			}
-
-			//hbao
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/HBAO_PS.cso", ps_blob);
-				standard_programs[EShader::HBAO].Create(device, vs_blob, ps_blob);
-			}
-			
-			//ssr
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SSR_PS.cso", ps_blob);
-				standard_programs[EShader::SSR].Create(device, vs_blob, ps_blob);
-			}
-
-			//lens flare
-			{
-				ShaderBlob vs_blob, gs_blob, ps_blob;
-
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/LensFlareVS.cso", vs_blob);
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/LensFlareGS.cso", gs_blob);
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/LensFlarePS.cso", ps_blob);
-
-				geometry_programs[EGeometryShader::LensFlare].Create(device, vs_blob, gs_blob, ps_blob);
-			}
-
-			//god rays
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/GodRaysPS.cso", ps_blob);
-				standard_programs[EShader::GodRays].Create(device, vs_blob, ps_blob);
-			}
-
-			//dof
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/DOF_PS.cso", ps_blob);
-
-				standard_programs[EShader::DOF].Create(device, vs_blob, ps_blob);
-
-				ShaderBlob vs_blob, gs_blob, ps_blob;
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BokehVS.cso", vs_blob);
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BokehGS.cso", gs_blob);
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BokehPS.cso", ps_blob);
-
-				geometry_programs[EGeometryShader::BokehDraw].Create(device, vs_blob, gs_blob, ps_blob);
-			}
-
-			//clouds
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/CloudsPS.cso", ps_blob);
-
-				standard_programs[EShader::Volumetric_Clouds].Create(device, vs_blob, ps_blob);
-			}
-
-			//velocity buffer
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VelocityBufferPS.cso", ps_blob);
-
-				standard_programs[EShader::VelocityBuffer].Create(device, vs_blob, ps_blob);
-			}
-
-			//motion blur
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/MotionBlurPS.cso", ps_blob);
-
-				standard_programs[EShader::MotionBlur].Create(device, vs_blob, ps_blob);
-			}
-
-			//fog
-			{
-				ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FogPS.cso", ps_blob);
-
-				standard_programs[EShader::Fog].Create(device, vs_blob, ps_blob);
-			}
-		}
-
-		//shadows
-		{
-			ShaderBlob vs_blob, ps_blob;
-			ShaderInfo vs_input{}, ps_input{};
-			vs_input.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
-			vs_input.stage = EShaderStage::VS;
-
-			ps_input.shadersource = "Resources/Shaders/Shadows/DepthMapPS.hlsl";
-			ps_input.stage = EShaderStage::PS;
-
-			ShaderUtility::CompileShader(vs_input, vs_blob);
-			ShaderUtility::CompileShader(ps_input, ps_blob);
-
-			//eDepthMap_Transparent
-			standard_programs[EShader::DepthMap].Create(device, vs_blob, ps_blob);
-
-			std::vector<ShaderDefine> transparent_define = { ShaderDefine{"TRANSPARENT", "1"} };
-
-			vs_input.defines = transparent_define;
-			ps_input.defines = transparent_define;
-
-			ShaderUtility::CompileShader(vs_input, vs_blob);
-			ShaderUtility::CompileShader(ps_input, ps_blob);
-
-			standard_programs[EShader::DepthMap_Transparent].Create(device, vs_blob, ps_blob);
-		}
-
-		//volumetric lighting
-		{
-			ShaderBlob vs_blob, ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ScreenQuadVS.cso", vs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VolumetricLightDirectionalPS.cso", ps_blob);
-			standard_programs[EShader::Volumetric_Directional].Create(device, vs_blob, ps_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VolumetricLightDirectionalCascadesPS.cso", ps_blob);
-			standard_programs[EShader::Volumetric_DirectionalCascades].Create(device, vs_blob, ps_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VolumetricLightSpotPS.cso", ps_blob);
-			standard_programs[EShader::Volumetric_Spot].Create(device, vs_blob, ps_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VolumetricLightPointPS.cso", ps_blob);
-			standard_programs[EShader::Volumetric_Point].Create(device, vs_blob, ps_blob);
-		}
-
-		//compute shaders
-		{
-			ShaderBlob cs_blob;
-
-			ShaderInfo blur_input{};
-			blur_input.shadersource = "Resources/Shaders/Postprocess/BlurCS.hlsl";
-			blur_input.stage = EShaderStage::CS;
-			blur_input.defines = {};
-			blur_input.flags = ShaderInfo::FLAG_NONE; // CompilerInput::FLAG_DISABLE_OPTIMIZATION | CompilerInput::FLAG_DEBUG;
-
-			ShaderUtility::CompileShader(blur_input, cs_blob);
-			compute_programs[EComputeShader::Blur_Horizontal].Create(device, cs_blob);
-
-			blur_input.defines.push_back(ShaderDefine{ "VERTICAL", "1" });
-
-			ShaderUtility::CompileShader(blur_input, cs_blob);
-			compute_programs[EComputeShader::Blur_Vertical].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BokehCS.cso", cs_blob);
-			compute_programs[EComputeShader::BokehGenerate].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BloomExtractCS.cso", cs_blob);
-			compute_programs[EComputeShader::BloomExtract].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/BloomCombineCS.cso", cs_blob);
-			compute_programs[EComputeShader::BloomCombine].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/InitialSpectrumCS.cso", cs_blob);
-			compute_programs[EComputeShader::OceanInitialSpectrum].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/PhaseCS.cso", cs_blob);
-			compute_programs[EComputeShader::OceanPhase].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpectrumCS.cso", cs_blob);
-			compute_programs[EComputeShader::OceanSpectrum].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FFT_horizontalCS.cso", cs_blob);
-			compute_programs[EComputeShader::OceanFFT_Horizontal].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FFT_verticalCS.cso", cs_blob);
-			compute_programs[EComputeShader::OceanFFT_Vertical].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/NormalMapCS.cso", cs_blob);
-			compute_programs[EComputeShader::OceanNormalMap].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/TiledLightingCS.cso", cs_blob);
-			compute_programs[EComputeShader::TiledLighting].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ClusterBuildingCS.cso", cs_blob);
-			compute_programs[EComputeShader::ClusterBuilding].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/ClusterCullingCS.cso", cs_blob);
-			compute_programs[EComputeShader::ClusterCulling].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelCopyCS.cso", cs_blob);
-			compute_programs[EComputeShader::VoxelCopy].Create(device, cs_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelSecondBounceCS.cso", cs_blob);
-			compute_programs[EComputeShader::VoxelSecondBounce].Create(device, cs_blob);
-		}
-
-		//ocean
-		{
-			ShaderBlob vs_blob, ps_blob;
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/OceanVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/OceanPS.cso", ps_blob);
-			standard_programs[EShader::Ocean].Create(device, vs_blob, ps_blob);
-
-			ShaderBlob ds_blob, hs_blob;
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/OceanLodVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/OceanLodPS.cso", ps_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/OceanLodHS.cso", hs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/OceanLodDS.cso", ds_blob);
-			tesselation_programs[ETesselationShader::Ocean].Create(device, vs_blob, ps_blob, hs_blob, ds_blob);
-		}
-
-		//voxelization
-		{
-			ShaderBlob vs_blob, gs_blob, ps_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelizeVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelizeGS.cso", gs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelizePS.cso", ps_blob);
-
-			geometry_programs[EGeometryShader::Voxelize].Create(device, vs_blob, gs_blob, ps_blob);
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelDebugVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelDebugGS.cso", gs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelDebugPS.cso", ps_blob);
-
-			geometry_programs[EGeometryShader::VoxelizeDebug].Create(device, vs_blob, gs_blob, ps_blob);
-
-			
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FullscreenQuadVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelGI_PS.cso", ps_blob);
-			standard_programs[EShader::VoxelGI].Create(device, vs_blob, ps_blob);
-
-		}
-
-		//instancing shaders
-		{
-			ShaderBlob vs_blob, ps_blob;
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FoliageVS.cso", vs_blob);
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/FoliagePS.cso", ps_blob);
-			standard_programs[EShader::GBuffer_Foliage].Create(device, vs_blob, ps_blob, false);
-
-			std::vector<D3D11_INPUT_ELEMENT_DESC> input_desc = { 
-				{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-				{ "INSTANCE_OFFSET", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-				{ "INSTANCE_ROTATION", 0, DXGI_FORMAT_R32_FLOAT, 1, 12, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
-			};
-
-			device->CreateInputLayout(input_desc.data(), (UINT)input_desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(),
-				standard_programs[EShader::GBuffer_Foliage].il.GetAddressOf());
-		}
-
-	}
 	void Renderer::LoadTextures()
 	{
 		//make for loop
@@ -1773,18 +1358,11 @@ namespace adria
 
 		D3D11_TEXTURE2D_DESC tex_desc{};
 		unfiltered_env_tex->GetDesc(&tex_desc);
-
-
 		//Compute pre-filtered specular environment map.
 		{
-
-			ComputeProgram spmap_program{};
-
 			ShaderBlob cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpmapCS.cso", cs_blob);
-
-			spmap_program.Create(device, cs_blob);
+			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpmapCS.cso", cs_blob);
+			ComputeProgram spmap_program{ device, cs_blob };
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> env_tex = nullptr;
 			D3D11_TEXTURE2D_DESC env_desc = {};
@@ -1824,11 +1402,10 @@ namespace adria
 			roughness_cb.Bind(context, EShaderStage::CS, 0);
 			context->CSSetShaderResources(0, 1, &unfiltered_env_srv);
 
-
 			float32 const delta_roughness = 1.0f / (std::max)(float32(tex_desc.MipLevels - 1), 1.0f);
 
 			uint32 size = (std::max)(tex_desc.Width, tex_desc.Height);
-			RoughnessCBuffer  spmap_constants{};
+			RoughnessCBuffer spmap_constants{};
 
 			Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> env_uav;
 			D3D11_UNORDERED_ACCESS_VIEW_DESC env_uav_desc{};
@@ -1858,17 +1435,11 @@ namespace adria
 			ID3D11UnorderedAccessView* nullUAV[] = { nullptr };
 			context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
 		}
-
-
 		// Compute diffuse irradiance cubemap.
 		{
-			ComputeProgram irmap_program{};
-
 			ShaderBlob cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/IrmapCS.cso", cs_blob);
-
-			irmap_program.Create(device, cs_blob);
+			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/IrmapCS.cso", cs_blob);
+			ComputeProgram irmap_program(device, cs_blob);
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> irmap_tex = nullptr;
 			D3D11_TEXTURE2D_DESC irmap_desc{};
@@ -1913,13 +1484,9 @@ namespace adria
 
 		// Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.
 		{
-			ComputeProgram BRDFprogram{};
-
 			ShaderBlob cs_blob;
-
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpbrdfCS.cso", cs_blob);
-
-			BRDFprogram.Create(device, cs_blob);
+			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpbrdfCS.cso", cs_blob);
+			ComputeProgram BRDFprogram(device, cs_blob);
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> brdf_tex = nullptr;
 			D3D11_TEXTURE2D_DESC brdf_desc = {};
@@ -1959,7 +1526,6 @@ namespace adria
 		}
 
 		ibl_textures_generated = true;
-
 	}
 
 	///////////////////////////////////////////////////////////////////////
@@ -2077,7 +1643,7 @@ namespace adria
 
 		if (renderer_settings.recreate_initial_spectrum)
 		{
-			compute_programs[EComputeShader::OceanInitialSpectrum].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::OceanInitialSpectrum)->Bind(context);
 
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
 
@@ -2100,7 +1666,7 @@ namespace adria
 			ID3D11ShaderResourceView*  srv[] = { ping_pong_phase_textures[pong_phase].SRV()};
 			ID3D11UnorderedAccessView* uav[] = { ping_pong_phase_textures[!pong_phase].UAV() };
 
-			compute_programs[EComputeShader::OceanPhase].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::OceanPhase)->Bind(context);
 
 			context->CSSetShaderResources(0, 1, srv);
 			context->CSSetUnorderedAccessViews(0, 1, uav, nullptr);
@@ -2119,7 +1685,7 @@ namespace adria
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
 
-			compute_programs[EComputeShader::OceanSpectrum].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::OceanSpectrum)->Bind(context);
 
 			context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav), uav, nullptr);
@@ -2144,10 +1710,9 @@ namespace adria
 			static ConstantBuffer<FFTCBuffer> fft_cbuffer(gfx->Device());
 
 			fft_cbuffer.Bind(context, EShaderStage::CS, 10);
-
 			//fft horizontal
 			{
-				compute_programs[EComputeShader::OceanFFT_Horizontal].Bind(context);
+				ShaderCache::GetShaderProgram(EShaderProgram::OceanFFT_Horizontal)->Bind(context);
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 
@@ -2170,10 +1735,9 @@ namespace adria
 					pong_spectrum = !pong_spectrum;
 				}
 			}
-
 			//fft vertical
 			{
-				compute_programs[EComputeShader::OceanFFT_Vertical].Bind(context);
+				ShaderCache::GetShaderProgram(EShaderProgram::OceanFFT_Vertical)->Bind(context);
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 					ID3D11ShaderResourceView* srv[] = { ping_pong_spectrum_textures[!pong_spectrum].SRV() };
@@ -2196,13 +1760,11 @@ namespace adria
 				}
 			}
 		}
-
 		//normal
 		{
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
-
-			compute_programs[EComputeShader::OceanNormalMap].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::OceanNormalMap)->Bind(context);
 
 			ID3D11ShaderResourceView* final_spectrum = ping_pong_spectrum_textures[!pong_spectrum].SRV();
 			ID3D11UnorderedAccessView* normal_map_uav = ocean_normal_map.UAV();
@@ -2280,7 +1842,6 @@ namespace adria
 
 	void Renderer::UpdateLights()
 	{
-
 		uint32 current_light_count = (uint32)reg.size<Light>();
 		static uint32 light_count = 0;
 		bool light_count_changed = current_light_count != light_count;
@@ -2324,7 +1885,6 @@ namespace adria
 	}
 	void Renderer::UpdateVoxelData()
 	{
-		
 		float32 const f = 0.05f / renderer_settings.voxel_size;
 
 		XMFLOAT3 cam_pos;
@@ -2412,7 +1972,7 @@ namespace adria
 		gbuffer_pass.Begin(context);
 		{
 			auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
-			standard_programs[EShader::GBufferPBR].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::GBufferPBR)->Bind(context);
 			for (auto e : gbuffer_view)
 			{
 				auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
@@ -2485,7 +2045,7 @@ namespace adria
 			}
 
 			auto terrain_view = reg.view<Mesh, Transform, Visibility, TerrainComponent>();
-			standard_programs[EShader::GBuffer_Terrain].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::GBuffer_Terrain)->Bind(context);
 			for (auto e : terrain_view)
 			{
 				auto [mesh, transform, visibility, terrain] = terrain_view.get<Mesh, Transform, Visibility, TerrainComponent>(e);
@@ -2532,7 +2092,7 @@ namespace adria
 			}
 
 			auto foliage_view = reg.view<Mesh, Transform, Material, Visibility, Foliage>();
-			standard_programs[EShader::GBuffer_Foliage].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::GBuffer_Foliage)->Bind(context);
 			for (auto e : foliage_view)
 			{
 				auto [mesh, transform, visibility, material] = foliage_view.get<Mesh, Transform, Visibility, Material>(e);
@@ -2549,7 +2109,6 @@ namespace adria
 
 					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 				}
-
 				mesh.Draw(context);
 			}
 		}
@@ -2583,7 +2142,7 @@ namespace adria
 			for (auto e : decal_view)
 			{
 				Decal decal = decal_view.get(e);
-				decal.modify_gbuffer_normals ? standard_programs[EShader::Decals_ModifyNormals].Bind(context) : standard_programs[EShader::Decals].Bind(context); //refactor this 
+				decal.modify_gbuffer_normals ? ShaderCache::GetShaderProgram(EShaderProgram::Decals_ModifyNormals)->Bind(context) : ShaderCache::GetShaderProgram(EShaderProgram::Decals)->Bind(context); //refactor this 
 
 				decal_cbuf_data.decal_type = static_cast<int32>(decal.decal_type);
 				decal_cbuffer.Update(context, decal_cbuf_data);
@@ -2628,7 +2187,7 @@ namespace adria
 			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-			standard_programs[EShader::SSAO].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::SSAO)->Bind(context);
 			context->Draw(4, 0);
 			context->PSSetShaderResources(1, ARRAYSIZE(srv_null), srv_null);
 		}
@@ -2661,7 +2220,7 @@ namespace adria
 			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-			standard_programs[EShader::HBAO].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::HBAO)->Bind(context);
 			context->Draw(4, 0);
 			context->PSSetShaderResources(1, ARRAYSIZE(srv_null), srv_null);
 		}
@@ -2692,10 +2251,10 @@ namespace adria
 
 		if (!ibl_textures_generated) renderer_settings.ibl = false;
 		bool has_ao = renderer_settings.ambient_occlusion != EAmbientOcclusion::None;
-		if (has_ao && renderer_settings.ibl) standard_programs[EShader::AmbientPBR_AO_IBL].Bind(context);
-		else if (has_ao && !renderer_settings.ibl) standard_programs[EShader::AmbientPBR_AO].Bind(context);
-		else if (!has_ao && renderer_settings.ibl) standard_programs[EShader::AmbientPBR_IBL].Bind(context);
-		else standard_programs[EShader::AmbientPBR].Bind(context);
+		if (has_ao && renderer_settings.ibl) ShaderCache::GetShaderProgram(EShaderProgram::AmbientPBR_AO_IBL)->Bind(context);
+		else if (has_ao && !renderer_settings.ibl) ShaderCache::GetShaderProgram(EShaderProgram::AmbientPBR_AO)->Bind(context);
+		else if (!has_ao && renderer_settings.ibl) ShaderCache::GetShaderProgram(EShaderProgram::AmbientPBR_IBL)->Bind(context);
+		else ShaderCache::GetShaderProgram(EShaderProgram::AmbientPBR)->Bind(context);
 		context->Draw(4, 0);
 
 		ambient_pass.End(context);
@@ -2779,7 +2338,7 @@ namespace adria
 				context->IASetInputLayout(nullptr);
 				context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-				standard_programs[EShader::LightingPBR].Bind(context);
+				ShaderCache::GetShaderProgram(EShaderProgram::LightingPBR)->Bind(context);
 				context->Draw(4, 0);
 				
 				static ID3D11ShaderResourceView* null_srv[] = { nullptr, nullptr, nullptr };
@@ -2815,7 +2374,7 @@ namespace adria
 			context->CSSetUnorderedAccessViews(1, 1, &debug_uav, nullptr);
 		}
 
-		compute_programs[EComputeShader::TiledLighting].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::TiledLighting)->Bind(context);
 		context->Dispatch((uint32)std::ceil(width * 1.0f / 16), (uint32)std::ceil(height * 1.0f / 16), 1);
 
 		ID3D11ShaderResourceView* null_srv[4] = { nullptr };
@@ -2890,9 +2449,9 @@ namespace adria
 			ID3D11UnorderedAccessView* clusters_uav = clusters->UAV();
 			context->CSSetUnorderedAccessViews(0, 1, &clusters_uav, nullptr);
 
-			compute_programs[EComputeShader::ClusterBuilding].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::ClusterBuilding)->Bind(context);
 			context->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
-			compute_programs[EComputeShader::ClusterBuilding].Unbind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::ClusterBuilding)->Unbind(context);
 
 			ID3D11UnorderedAccessView* null_uav = nullptr;
 			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
@@ -2905,9 +2464,9 @@ namespace adria
 		ID3D11UnorderedAccessView* uavs[] = { light_counter->UAV(), light_list->UAV(), light_grid->UAV() };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
 
-		compute_programs[EComputeShader::ClusterCulling].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::ClusterCulling)->Bind(context);
 		context->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 4);
-		compute_programs[EComputeShader::ClusterCulling].Unbind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::ClusterCulling)->Unbind(context);
 
 		ID3D11ShaderResourceView* null_srvs[2] = { nullptr };
 		context->CSSetShaderResources(0, ARRAYSIZE(null_srvs), null_srvs);
@@ -2931,7 +2490,7 @@ namespace adria
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-			standard_programs[EShader::ClusterLightingPBR].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::ClusterLightingPBR)->Bind(context);
 			context->Draw(4, 0);
 
 			static ID3D11ShaderResourceView* null_srv[6] = { nullptr};
@@ -2966,7 +2525,6 @@ namespace adria
 
 				PassVolumetric(light);
 			}
-
 		}
 		lighting_pass.End(context);
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
@@ -3015,7 +2573,7 @@ namespace adria
 
 		auto voxel_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
 
-		geometry_programs[EGeometryShader::Voxelize].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::Voxelize)->Bind(context);
 		context->RSSetState(cull_none.Get());
 
 		D3D11_VIEWPORT vp{};
@@ -3054,16 +2612,13 @@ namespace adria
 			0, 0, nullptr, nullptr);
 
 		context->RSSetState(nullptr);
-
-		geometry_programs[EGeometryShader::Voxelize].Unbind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::Voxelize)->Unbind(context);
 
 		ID3D11UnorderedAccessView* uavs[] = { voxels_uav, voxel_texture.UAV() };
 		context->CSSetUnorderedAccessViews(0, 2, uavs, nullptr);
-		compute_programs[EComputeShader::VoxelCopy].Bind(context);
-
+		ShaderCache::GetShaderProgram(EShaderProgram::VoxelCopy)->Bind(context);
 		context->Dispatch(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION / 256, 1, 1);
-
-		compute_programs[EComputeShader::VoxelCopy].Unbind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::VoxelCopy)->Unbind(context);
 
 		static ID3D11UnorderedAccessView* null_uavs[] = { nullptr, nullptr };
 		context->CSSetUnorderedAccessViews(0, 2, null_uavs, nullptr);
@@ -3077,12 +2632,9 @@ namespace adria
 
 			ID3D11ShaderResourceView* srvs[] = { voxels->SRV(), voxel_texture.SRV() };
 			context->CSSetShaderResources(0, 2, srvs);
-
-			compute_programs[EComputeShader::VoxelSecondBounce].Bind(context);
-
+			ShaderCache::GetShaderProgram(EShaderProgram::VoxelSecondBounce)->Bind(context);
 			context->Dispatch(VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8);
-
-			compute_programs[EComputeShader::VoxelSecondBounce].Unbind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::VoxelSecondBounce)->Unbind(context);
 
 			static ID3D11ShaderResourceView* null_srvs[] = { nullptr, nullptr };
 			context->CSSetShaderResources(0, 2, null_srvs);
@@ -3104,12 +2656,11 @@ namespace adria
 			ID3D11ShaderResourceView* voxel_srv = voxel_texture.SRV();
 			context->VSSetShaderResources(9, 1, &voxel_srv);
 
-			geometry_programs[EGeometryShader::VoxelizeDebug].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::VoxelizeDebug)->Bind(context);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 			context->Draw(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION, 0);
-			context->GSSetShader(nullptr, nullptr, 0);
-			geometry_programs[EGeometryShader::VoxelizeDebug].Unbind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::VoxelizeDebug)->Unbind(context);
 
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			context->VSSetShaderResources(9, 1, &null_srv);
@@ -3133,10 +2684,9 @@ namespace adria
 
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-			standard_programs[EShader::VoxelGI].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::VoxelGI)->Bind(context);
 			context->Draw(4, 0);
-
+			ShaderCache::GetShaderProgram(EShaderProgram::VoxelGI)->Unbind(context);
 			static ID3D11ShaderResourceView* null_srv[] = { nullptr, nullptr, nullptr };
 			context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
 		}
@@ -3394,7 +2944,7 @@ namespace adria
 		auto shadow_view = reg.view<Mesh, Transform, Visibility>();
 		if (!renderer_settings.shadow_transparent)
 		{
-			standard_programs[EShader::DepthMap].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::DepthMap)->Bind(context);
 			for (auto e : shadow_view)
 			{
 				auto& visibility = shadow_view.get<Visibility>(e);
@@ -3428,7 +2978,7 @@ namespace adria
 				}
 			}
 
-			standard_programs[EShader::DepthMap].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::DepthMap)->Bind(context);
 			for (auto e : not_transparent)
 			{
 				auto& transform = shadow_view.get<Transform>(e);
@@ -3440,7 +2990,7 @@ namespace adria
 				mesh.Draw(context);
 			}
 
-			standard_programs[EShader::DepthMap_Transparent].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::DepthMap_Transparent)->Bind(context);
 			for (auto e : potentially_transparent)
 			{
 				auto& transform = shadow_view.get<Transform>(e);
@@ -3481,14 +3031,14 @@ namespace adria
 		switch (light.type)
 		{
 		case ELightType::Directional:
-			if (light.use_cascades) standard_programs[EShader::Volumetric_DirectionalCascades].Bind(context);
-			else standard_programs[EShader::Volumetric_Directional].Bind(context);
+			if (light.use_cascades) ShaderCache::GetShaderProgram(EShaderProgram::Volumetric_DirectionalCascades)->Bind(context);
+			else ShaderCache::GetShaderProgram(EShaderProgram::Volumetric_Directional)->Bind(context);
 			break;
 		case ELightType::Spot:
-			standard_programs[EShader::Volumetric_Spot].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::Volumetric_Spot)->Bind(context);
 			break;
 		case ELightType::Point:
-			standard_programs[EShader::Volumetric_Point].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::Volumetric_Point)->Bind(context);
 			break;
 		default:
 			ADRIA_ASSERT(false && "Invalid Light Type!");
@@ -3514,7 +3064,7 @@ namespace adria
 		switch (renderer_settings.sky_type)
 		{
 		case ESkyType::Skybox:
-			standard_programs[EShader::Skybox].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::Skybox)->Bind(context);
 			for (auto e : skybox_view)
 			{
 				auto const& skybox = skybox_view.get(e);
@@ -3525,10 +3075,10 @@ namespace adria
 			}
 			break;
 		case ESkyType::UniformColor:
-			standard_programs[EShader::UniformColorSky].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::UniformColorSky)->Bind(context);
 			break;
 		case ESkyType::HosekWilkie:
-			standard_programs[EShader::HosekWilkieSky].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::HosekWilkieSky)->Bind(context);
 			break;
 		default:
 			ADRIA_ASSERT(false);
@@ -3569,8 +3119,8 @@ namespace adria
 		 texture_manager.GetTextureView(foam_handle) };
 		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
-		renderer_settings.ocean_tesselation ? tesselation_programs[ETesselationShader::Ocean].Bind(context)
-						  : standard_programs[EShader::Ocean].Bind(context);
+		renderer_settings.ocean_tesselation ? ShaderCache::GetShaderProgram(EShaderProgram::OceanLOD)->Bind(context)
+						  : ShaderCache::GetShaderProgram(EShaderProgram::Ocean)->Bind(context);
 
 		auto ocean_chunk_view = reg.view<Mesh, Material, Transform, Visibility, Ocean>();
 		for (auto ocean_chunk : ocean_chunk_view)
@@ -3590,7 +3140,7 @@ namespace adria
 			}
 		}
 
-		renderer_settings.ocean_tesselation ? tesselation_programs[ETesselationShader::Ocean].Unbind(context) : standard_programs[EShader::Ocean].Unbind(context);
+		renderer_settings.ocean_tesselation ? ShaderCache::GetShaderProgram(EShaderProgram::OceanLOD)->Unbind(context) : ShaderCache::GetShaderProgram(EShaderProgram::Ocean)->Unbind(context);
 
 		static ID3D11ShaderResourceView* null_srv = nullptr;
 		renderer_settings.ocean_tesselation ? context->DSSetShaderResources(0, 1, &null_srv) :
@@ -3638,7 +3188,7 @@ namespace adria
 			
 			auto [transform, mesh, material] = forward_view.get<Transform, Mesh, Material>(e);
 
-			standard_programs[material.shader].Bind(context);
+			ShaderCache::GetShaderProgram(material.shader)->Bind(context);
 
 			object_cbuf_data.model = transform.current_transform;
 			object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
@@ -3659,9 +3209,7 @@ namespace adria
 			auto const* states = reg.get_if<RenderState>(e);
 				
 			if (states) ResolveCustomRenderState(*states, false);
-
 			mesh.Draw(context);
-
 			if (states) ResolveCustomRenderState(*states, true);
 		}
 
@@ -3694,12 +3242,11 @@ namespace adria
 			context->GSSetShaderResources(0, static_cast<uint32>(lens_flare_textures.size()), lens_flare_textures.data());
 			context->PSSetShaderResources(0, static_cast<uint32>(lens_flare_textures.size()), lens_flare_textures.data());
 
-
-			geometry_programs[EGeometryShader::LensFlare].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::LensFlare)->Bind(context);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 			context->Draw(7, 0);
-			geometry_programs[EGeometryShader::LensFlare].Unbind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::LensFlare)->Unbind(context);
 
 			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 			static std::vector<ID3D11ShaderResourceView*> const lens_null_array(lens_flare_textures.size(), nullptr);
@@ -3719,7 +3266,7 @@ namespace adria
 		context->IASetInputLayout(nullptr);
 
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		standard_programs[EShader::Volumetric_Clouds].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::Volumetric_Clouds)->Bind(context);
 		context->Draw(4, 0);
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr, nullptr };
@@ -3749,7 +3296,7 @@ namespace adria
 		context->IASetInputLayout(nullptr);
 
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		standard_programs[EShader::SSR].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::SSR)->Bind(context);
 		context->Draw(4, 0);
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
@@ -3798,14 +3345,10 @@ namespace adria
 			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-			standard_programs[EShader::GodRays].Bind(context);
-
+			ShaderCache::GetShaderProgram(EShaderProgram::GodRays)->Bind(context);
 			context->Draw(4, 0);
-
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 		}
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
@@ -3818,8 +3361,7 @@ namespace adria
 
 		if (renderer_settings.bokeh)
 		{
-			compute_programs[EComputeShader::BokehGenerate].Bind(context);
-
+			ShaderCache::GetShaderProgram(EShaderProgram::BokehGenerate)->Bind(context);
 			ID3D11ShaderResourceView* srv_array[2] = { postprocess_textures[!postprocess_index].SRV(), depth_target.SRV() };
 			uint32 initial_count = 0;
 			context->CSSetUnorderedAccessViews(0, 1, bokeh_uav.GetAddressOf(), &initial_count);
@@ -3830,8 +3372,7 @@ namespace adria
 			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 			static ID3D11ShaderResourceView* null_srvs[2] = { nullptr, nullptr };
 			context->CSSetShaderResources(0, 2, null_srvs);
-
-			compute_programs[EComputeShader::BokehGenerate].Unbind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::BokehGenerate)->Unbind(context);
 		}
 
 		BlurTexture(hdr_render_target);
@@ -3845,7 +3386,7 @@ namespace adria
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		standard_programs[EShader::DOF].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::DOF)->Bind(context);
 		context->Draw(4, 0);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 
@@ -3884,15 +3425,14 @@ namespace adria
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 			context->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
 
-			geometry_programs[EGeometryShader::BokehDraw].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::BokehDraw)->Bind(context);
 			context->OMSetBlendState(additive_blend.Get(), nullptr, 0xfffffff);
 			context->DrawInstancedIndirect(bokeh_indirect_draw_buffer.Get(), 0);
 			context->OMSetBlendState(nullptr, nullptr, 0xfffffff);
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			context->VSSetShaderResources(0, 1, &null_srv);
 			context->PSSetShaderResources(0, 1, &null_srv);
-
-			geometry_programs[EGeometryShader::BokehDraw].Unbind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::BokehDraw)->Unbind(context);
 		}
 	}
 	void Renderer::PassBloom()
@@ -3909,22 +3449,17 @@ namespace adria
 		context->CSSetShaderResources(0, 1, srv); 
 
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav), uav, nullptr);
-
-		compute_programs[EComputeShader::BloomExtract].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::BloomExtract)->Bind(context);
 		context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
-
 		context->CSSetShaderResources(0, 1, null_srv);
 		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
-
 		bloom_extract_texture.GenerateMips(context);
 
 		ID3D11UnorderedAccessView* const uav2[1] = { postprocess_textures[postprocess_index].UAV() };
 		ID3D11ShaderResourceView* const srv2[2] = { postprocess_textures[!postprocess_index].SRV(), bloom_extract_texture.SRV() };
 		context->CSSetShaderResources(0, 2, srv2);
-
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav2), uav2, nullptr);
-
-		compute_programs[EComputeShader::BloomCombine].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::BloomCombine)->Bind(context);
 		context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 
 		context->CSSetShaderResources(0, 2, null_srv);
@@ -3945,14 +3480,10 @@ namespace adria
 			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-
-			standard_programs[EShader::VelocityBuffer].Bind(context);
-
+			ShaderCache::GetShaderProgram(EShaderProgram::VelocityBuffer)->Bind(context);
 			context->Draw(4, 0);
-
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 		}
 		velocity_buffer_pass.End(context);
@@ -3968,11 +3499,10 @@ namespace adria
 		static ID3D11ShaderResourceView* const srv_null[2] = { nullptr, nullptr };
 
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-		standard_programs[EShader::MotionBlur].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::MotionBlur)->Bind(context);
 		context->Draw(4, 0);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
@@ -3994,7 +3524,7 @@ namespace adria
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		standard_programs[EShader::Fog].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::Fog)->Bind(context);
 		context->Draw(4, 0);
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
@@ -4019,13 +3549,13 @@ namespace adria
 		switch (renderer_settings.tone_map_op)
 		{
 		case EToneMap::Reinhard:
-			standard_programs[EShader::ToneMap_Reinhard].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::ToneMap_Reinhard)->Bind(context);
 			break;
 		case EToneMap::Linear:
-			standard_programs[EShader::ToneMap_Linear].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::ToneMap_Linear)->Bind(context);
 			break;
 		case EToneMap::Hable:
-			standard_programs[EShader::ToneMap_Hable].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::ToneMap_Hable)->Bind(context);
 			break;
 		default:
 			ADRIA_ASSERT(false && "Unsupported Basic effect!");
@@ -4045,7 +3575,7 @@ namespace adria
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		standard_programs[EShader::FXAA].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::FXAA)->Bind(context);
 		context->Draw(4, 0);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
@@ -4061,7 +3591,7 @@ namespace adria
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		standard_programs[EShader::TAA].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::TAA)->Bind(context);
 		context->Draw(4, 0);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
@@ -4081,7 +3611,7 @@ namespace adria
 		context->OMSetBlendState(alpha_blend.Get(), nullptr, 0xffffffff);
 		{
 			auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
-			standard_programs[EShader::Sun].Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::Sun)->Bind(context);
 
 			object_cbuf_data.model = transform.current_transform;
 			object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
@@ -4130,8 +3660,7 @@ namespace adria
 
 		context->CSSetShaderResources(0, 1, &src_srv);
 		context->CSSetUnorderedAccessViews(0, 1, &uavs[0], nullptr);
-
-		compute_programs[EComputeShader::Blur_Horizontal].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::Blur_Horizontal)->Bind(context);
 
 		context->Dispatch((uint32)std::ceil(width * 1.0f / 1024), height, 1);
 
@@ -4140,11 +3669,10 @@ namespace adria
 		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
 
 		//and set as srv
-
 		context->CSSetShaderResources(0, 1, &srvs[0]);
 		context->CSSetUnorderedAccessViews(0, 1, &uavs[1], nullptr);
 
-		compute_programs[EComputeShader::Blur_Vertical].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::Blur_Vertical)->Bind(context);
 
 		context->Dispatch(width, (uint32)std::ceil(height * 1.0f / 1024), 1);
 
@@ -4161,7 +3689,7 @@ namespace adria
 		context->PSSetShaderResources(0, 1, srv);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		standard_programs[EShader::Copy].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::Copy)->Bind(context);
 		context->Draw(4, 0);
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
 		context->PSSetShaderResources(0, 1, srv_null);
@@ -4174,7 +3702,7 @@ namespace adria
 		context->PSSetShaderResources(0, ARRAYSIZE(srv), srv);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		standard_programs[EShader::Add].Bind(context);
+		ShaderCache::GetShaderProgram(EShaderProgram::Add)->Bind(context);
 		context->Draw(4, 0);
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);

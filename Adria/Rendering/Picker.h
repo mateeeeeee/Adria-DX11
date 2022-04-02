@@ -1,10 +1,10 @@
 #pragma once
 #include <memory>
 #include <DirectXMath.h>
+#include "ShaderCache.h"
 #include "../Graphics/StructuredBuffer.h"
-#include "../Graphics/GraphicsCoreDX11.h" //
+#include "../Graphics/GraphicsCoreDX11.h" 
 #include "../Graphics/ShaderProgram.h" 
-
 #include "../Logging/Logger.h"
 
 namespace adria
@@ -25,10 +25,6 @@ namespace adria
 		Picker(GraphicsCoreDX11* gfx) : gfx(gfx), picking_buffer(nullptr)
 		{
 			picking_buffer = std::make_unique<StructuredBuffer<PickingData>>(gfx->Device(), 1, false, false, true);
-
-			ShaderBlob cs_blob;
-			ShaderUtility::GetBlobFromCompiledShader("Resources/Compiled Shaders/PickerCS.cso", cs_blob);
-			pick_program.Create(gfx->Device(), cs_blob);
 		}
 
 		PickingData Pick(ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* normal_srv)
@@ -39,7 +35,7 @@ namespace adria
 			ID3D11UnorderedAccessView* lights_uav = picking_buffer->UAV();
 			context->CSSetUnorderedAccessViews(0, 1, &lights_uav, nullptr);
 
-			pick_program.Bind(context);
+			ShaderCache::GetShaderProgram(EShaderProgram::Picker)->Bind(context);
 			context->Dispatch(1, 1, 1);
 
 			ID3D11ShaderResourceView* null_srv[2] = { nullptr };
@@ -57,6 +53,5 @@ namespace adria
 
 		GraphicsCoreDX11* gfx;
 		std::unique_ptr<StructuredBuffer<PickingData>> picking_buffer;
-		ComputeProgram pick_program;
 	};
 }

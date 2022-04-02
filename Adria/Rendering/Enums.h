@@ -36,8 +36,111 @@ namespace adria
 	DECLARE_TEXTURE_SLOT(ROCK, 2);
 	DECLARE_TEXTURE_SLOT(SAND, 3);
 	DECLARE_TEXTURE_SLOT(LAYER, 4);
-	
-	enum class EShader : uint8
+
+	enum EShader : uint8
+	{
+		VS_Sky,
+		PS_Skybox,
+		PS_HosekWilkieSky,
+		PS_UniformColorSky,
+		VS_Texture,
+		PS_Texture,
+		VS_Solid,
+		PS_Solid,
+		VS_Sun,
+		PS_Sun,
+		VS_Billboard,
+		PS_Billboard,
+		VS_Decals,
+		PS_Decals,
+		PS_DecalsModifyNormals,
+		VS_GBufferPBR,
+		PS_GBufferPBR,
+		VS_GBufferTerrain,
+		PS_GBufferTerrain,
+		VS_ScreenQuad,
+		PS_AmbientPBR,
+		PS_AmbientPBR_AO,
+		PS_AmbientPBR_IBL,
+		PS_AmbientPBR_AO_IBL,
+		PS_LightingPBR,
+		PS_ClusterLightingPBR,
+		PS_ToneMap_Reinhard,
+		PS_ToneMap_Linear,
+		PS_ToneMap_Hable,
+		PS_FXAA,
+		PS_TAA,
+		PS_Copy,
+		PS_Add,
+		PS_SSAO,
+		PS_HBAO,
+		PS_SSR,
+		VS_LensFlare,
+		GS_LensFlare,
+		PS_LensFlare,
+		PS_GodRays,
+		PS_DepthOfField,
+		VS_Bokeh,
+		GS_Bokeh,
+		PS_Bokeh,
+		PS_VolumetricClouds,
+		PS_VelocityBuffer,
+		PS_MotionBlur,
+		PS_Fog,
+		VS_DepthMap,
+		PS_DepthMap,
+		VS_DepthMapTransparent,
+		PS_DepthMapTransparent,
+		PS_VolumetricLight_Directional,
+		PS_VolumetricLight_Spot,
+		PS_VolumetricLight_Point,
+		PS_VolumetricLight_DirectionalWithCascades,
+		CS_BlurHorizontal,
+		CS_BlurVertical,
+		CS_BokehGenerate,
+		CS_BloomExtract,
+		CS_BloomCombine,
+		CS_OceanInitialSpectrum,
+		CS_OceanPhase,
+		CS_OceanSpectrum,
+		CS_OceanFFT_Horizontal,
+		CS_OceanFFT_Vertical,
+		CS_OceanNormalMap,
+		CS_TiledLighting,
+		CS_ClusterBuilding,
+		CS_ClusterCulling,
+		CS_VoxelCopy,
+		CS_VoxelSecondBounce,
+		VS_Ocean,
+		PS_Ocean,
+		VS_OceanLOD,
+		HS_OceanLOD,
+		DS_OceanLOD,
+		PS_OceanLOD,
+		VS_Voxelize,
+		GS_Voxelize,
+		PS_Voxelize,
+		VS_VoxelizeDebug,
+		GS_VoxelizeDebug,
+		PS_VoxelizeDebug,
+		PS_VoxelGI,
+		VS_Foliage,
+		PS_Foliage,
+		CS_Picker,
+		VS_Particles,
+		PS_Particles,
+		CS_ParticleInitDeadList,
+		CS_ParticleReset,
+		CS_ParticleEmit,
+		CS_ParticleSimulate,
+		CS_ParticleBitonicSortStep,
+		CS_ParticleSort512,
+		CS_ParticleSortInner512,
+		CS_ParticleSortInitArgs,
+		EShader_Count
+	};
+
+	enum class EShaderProgram : uint8 
 	{
 		Skybox,
 		UniformColorSky,
@@ -82,11 +185,6 @@ namespace adria
 		Particles,
 		Decals,
 		Decals_ModifyNormals,
-        Unknown
-	};
-
-	enum class EComputeShader : uint8
-	{
 		Blur_Horizontal,
 		Blur_Vertical,
 		BloomExtract,
@@ -111,20 +209,13 @@ namespace adria
 		ParticleBitonicSortStep,
 		ParticleSort512,
 		ParticleSortInner512,
-		ParticleSortInitArgs
-	};
-
-	enum class EGeometryShader : uint8
-	{
+		ParticleSortInitArgs,
 		LensFlare,
 		BokehDraw,
 		Voxelize,
-		VoxelizeDebug
-	};
-
-	enum class ETesselationShader : uint8
-	{
-		Ocean
+		VoxelizeDebug,
+		OceanLOD,
+		Unknown
 	};
 
 	enum class EToneMap : uint8
@@ -168,7 +259,6 @@ namespace adria
 		Skybox,
 		HosekWilkie
 	};
-
 
 	enum class EBlendState
 	{

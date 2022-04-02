@@ -102,11 +102,7 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> indirect_sort_args_uav;
 		IndexBuffer index_buffer;
 
-		std::unordered_map<EComputeShader, ComputeProgram>  particle_compute_programs;
-		std::unordered_map<EShader, StandardProgram>  particle_render_programs;
-	
 private:
-		void LoadShaders();
 		void CreateIndirectArgsBuffers();
 		void CreateIndexBuffer();
 		void CreateRandomTexture();

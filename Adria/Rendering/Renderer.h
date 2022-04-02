@@ -116,14 +116,7 @@ namespace adria
 		Texture2D sun_target;
 		Texture2D velocity_buffer;
 
-		//shaders
-		std::unordered_map<EShader, StandardProgram>				standard_programs;
-		std::unordered_map<EComputeShader, ComputeProgram>			compute_programs;
-		std::unordered_map<EGeometryShader, GeometryProgram>		geometry_programs;
-		std::unordered_map<ETesselationShader, TessellationProgram> tesselation_programs;
-		
 		//render passes
-		
 		RenderPass gbuffer_pass;
 		RenderPass deep_gbuffer_pass;
 		RenderPass ambient_pass;
@@ -221,8 +214,7 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState>		wireframe;
 
 	private:
-		//called in constructor
-		void LoadShaders();
+
 		void LoadTextures();
 		void CreateBuffers();
 		void CreateSamplers();

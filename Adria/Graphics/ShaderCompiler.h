@@ -55,7 +55,7 @@ namespace adria
 		uint64 flags = FLAG_NONE;
 	};
 	
-	namespace ShaderUtility
+	namespace ShaderCompiler
 	{
 		void CompileShader(ShaderInfo const& input, ShaderBlob& blob);
 

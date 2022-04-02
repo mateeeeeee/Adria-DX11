@@ -36,7 +36,7 @@ struct VertexOut
     float2 Tex : TEX;
 };
 
-float4 ps_main(VertexOut pin) : SV_TARGET
+float4 main(VertexOut pin) : SV_TARGET
 {
     float4 albedo_roughness = diffuseTx.Sample(anisotropic_sampler, pin.Tex);
     float3 albedo = albedo_roughness.rgb;

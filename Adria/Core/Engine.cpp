@@ -4,10 +4,11 @@
 #include "Events.h"
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
+#include "../Editor/GUI.h"
 #include "../Graphics/GraphicsCoreDX11.h"
 #include "../Rendering/Renderer.h"
-#include "../Editor/GUI.h"
 #include "../Rendering/EntityLoader.h"
+#include "../Rendering/ShaderCache.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/Timer.h"
 #include "../Utilities/JsonUtil.h"
@@ -206,6 +207,7 @@ namespace adria
 		TaskSystem::Initialize();
 
 		gfx = std::make_unique<GraphicsCoreDX11>(Window::Handle());
+		ShaderCache::Initialize(gfx->Device());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx->Device(), renderer->GetTextureManager());
 

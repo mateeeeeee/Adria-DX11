@@ -596,7 +596,7 @@ namespace adria
                     material.emissive_texture = texture_manager.LoadTexture(texemissive);
                     material.emissive_factor = (float32)gltf_material.emissiveFactor[0];
                 }
-                material.shader = EShader::GBufferPBR;
+                material.shader = EShaderProgram::GBufferPBR;
 
                 reg.emplace<Material>(e, material);
 
@@ -687,9 +687,9 @@ namespace adria
                 material.albedo_texture = texture_manager.LoadTexture(L"Resources/Textures/sun.png");
 
             if (params.light_data.type == ELightType::Directional)
-                material.shader = EShader::Sun;
+                material.shader = EShaderProgram::Sun;
             else if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
-                material.shader = EShader::Billboard;
+                material.shader = EShaderProgram::Billboard;
             else 
             { 
                 ADRIA_LOG(ERROR, "Light with quad mesh needs diffuse texture!"); 
@@ -794,7 +794,7 @@ namespace adria
 
         Material ocean_material{};
         ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
-        ocean_material.shader = EShader::Unknown; 
+        ocean_material.shader = EShaderProgram::Unknown; 
 
         Ocean ocean_component{};
         for (auto ocean_chunk : ocean_chunks)
@@ -906,7 +906,7 @@ namespace adria
 		Material material{};
 		material.albedo_texture = texture_manager.LoadTexture(params.mesh_texture_pair.second);
 		material.albedo_factor = 1.0f;
-		material.shader = EShader::GBuffer_Foliage;
+		material.shader = EShaderProgram::GBuffer_Foliage;
 		reg.emplace<Material>(foliage, material);
 		reg.emplace<Foliage>(foliage);
 
@@ -989,7 +989,7 @@ namespace adria
 			Material material{};
 			material.albedo_texture = texture_manager.LoadTexture(texture_path + diffuse_textures[i]);
 			material.albedo_factor = 1.0f;
-			material.shader = EShader::GBuffer_Foliage;
+			material.shader = EShaderProgram::GBuffer_Foliage;
 			reg.emplace<Material>(tree, material);
 			reg.emplace<Foliage>(tree);
 

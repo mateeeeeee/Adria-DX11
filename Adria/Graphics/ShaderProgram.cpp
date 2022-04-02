@@ -4,7 +4,7 @@
 
 namespace adria
 {
-	void StandardProgram::Create(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& ps_blob, bool input_layout_from_reflection)
+	StandardProgram::StandardProgram(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& ps_blob, bool input_layout_from_reflection)
 	{
 		HRESULT hr;
 		hr = device->CreateVertexShader(vs_blob.GetPointer(), vs_blob.GetLength(), nullptr, vs.GetAddressOf());
@@ -13,7 +13,7 @@ namespace adria
 		BREAK_IF_FAILED(hr);
 		if (input_layout_from_reflection)
 		{
-			ShaderUtility::CreateInputLayoutWithReflection(device, vs_blob, il.GetAddressOf());
+			ShaderCompiler::CreateInputLayoutWithReflection(device, vs_blob, il.GetAddressOf());
 		}
 	}
 
@@ -32,7 +32,7 @@ namespace adria
 		context->PSSetShader(nullptr, nullptr, 0);
 	}
 
-	void TessellationProgram::Create(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& ps_blob, ShaderBlob const& hs_blob, ShaderBlob const& ds_blob, bool input_layout_from_reflection)
+	TessellationProgram::TessellationProgram(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& hs_blob, ShaderBlob const& ds_blob, ShaderBlob const& ps_blob, bool input_layout_from_reflection /*= true*/)
 	{
 		HRESULT hr;
 		hr = device->CreateVertexShader(vs_blob.GetPointer(), vs_blob.GetLength(), nullptr, vs.GetAddressOf());
@@ -46,7 +46,7 @@ namespace adria
 
 		if (input_layout_from_reflection)
 		{
-			ShaderUtility::CreateInputLayoutWithReflection(device, vs_blob, il.GetAddressOf());
+			ShaderCompiler::CreateInputLayoutWithReflection(device, vs_blob, il.GetAddressOf());
 		}
 	}
 	void TessellationProgram::Bind(ID3D11DeviceContext* context)
@@ -65,7 +65,7 @@ namespace adria
 		context->DSSetShader(nullptr, nullptr, 0);
 		context->PSSetShader(nullptr, nullptr, 0);
 	}
-	void GeometryProgram::Create(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& gs_blob, ShaderBlob const& ps_blob, bool input_layout_from_reflection)
+	GeometryProgram::GeometryProgram(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& gs_blob, ShaderBlob const& ps_blob, bool input_layout_from_reflection)
 	{
 		HRESULT hr;
 		hr = device->CreateVertexShader(vs_blob.GetPointer(), vs_blob.GetLength(), nullptr, vs.GetAddressOf());
@@ -76,7 +76,7 @@ namespace adria
 		BREAK_IF_FAILED(hr);
 		if (input_layout_from_reflection)
 		{
-			ShaderUtility::CreateInputLayoutWithReflection(device, vs_blob, il.GetAddressOf());
+			ShaderCompiler::CreateInputLayoutWithReflection(device, vs_blob, il.GetAddressOf());
 		}
 	}
 	void GeometryProgram::Bind(ID3D11DeviceContext* context)
@@ -93,7 +93,7 @@ namespace adria
 		context->PSSetShader(nullptr, nullptr, 0);
 		context->GSSetShader(nullptr, nullptr, 0);
 	}
-	void ComputeProgram::Create(ID3D11Device* device, ShaderBlob const& cs_blob)
+	ComputeProgram::ComputeProgram(ID3D11Device* device, ShaderBlob const& cs_blob)
 	{
 		HRESULT hr = device->CreateComputeShader(cs_blob.GetPointer(), cs_blob.GetLength(), nullptr, cs.GetAddressOf());
 		BREAK_IF_FAILED(hr);

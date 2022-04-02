@@ -4,7 +4,7 @@
 #include <wrl.h>
 #include "../Core/Definitions.h" 
 #include "../Core/Macros.h" 
-#include "ShaderUtility.h"
+#include "ShaderCompiler.h"
 
 namespace adria
 {

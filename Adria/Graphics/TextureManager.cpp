@@ -1,6 +1,6 @@
 #include "TextureManager.h"
 #include <algorithm>
-#include "ShaderUtility.h"
+#include "ShaderCompiler.h"
 #include "DDSTextureLoader.h"
 #include "WICTextureLoader.h"
 #include "../Logging/Logger.h"
@@ -179,7 +179,7 @@ TEXTURE_HANDLE TextureManager::LoadCubeMap(std::wstring const& name)
 			input.shadersource = "Resources\\Shaders\\Deferred\\Equirect2cubeCS.hlsl";
 			input.stage = EShaderStage::CS;
 			input.entrypoint = "cs_main";
-			ShaderUtility::CompileShader(input, blob);
+			ShaderCompiler::CompileShader(input, blob);
 			device->CreateComputeShader(blob.GetPointer(), blob.GetLength(), nullptr, &equirect_to_cube);
 
 
