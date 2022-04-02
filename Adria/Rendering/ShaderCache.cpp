@@ -1,5 +1,6 @@
 
 #include <unordered_map>
+#include <set>
 #include <memory>
 #include <string_view>
 #include "ShaderCache.h"
@@ -14,103 +15,102 @@ namespace adria
 		ID3D11Device* device;
 		std::unordered_map<EShader, ShaderBlob> shader_map;
 		std::unordered_map<EShaderProgram, std::unique_ptr<ShaderProgram>> shader_program_map;
-		std::unordered_map<EShader, std::vector<EShaderProgram>> dependent_programs;
+		std::unordered_map<EShaderProgram, std::vector<EShader>> dependency_map;
 
-		//use std::filesystem?
 		constexpr std::string_view compiled_shaders_directory = "Resources/Compiled Shaders/";
 		constexpr std::string_view shaders_directory = "Resources/Shaders/";
 		constexpr std::string_view shaders_headers_directories[] = { "Resources/Shaders/Globals", "Resources/Shaders/Util/" };
 
 		void AddDependency(EShaderProgram program, std::vector<EShader> const& shaders)
 		{
-			for (auto shader : shaders) dependent_programs[shader].push_back(program);
+			dependency_map[program] = shaders;
 		}
 		void CreateAllPrograms()
 		{
-			shader_program_map[EShaderProgram::Skybox] = std::make_unique<StandardProgram>(device, shader_map[VS_Sky], shader_map[PS_Skybox]);
-			shader_program_map[EShaderProgram::HosekWilkieSky] = std::make_unique<StandardProgram>(device, shader_map[VS_Sky], shader_map[PS_HosekWilkieSky]);
-			shader_program_map[EShaderProgram::UniformColorSky] = std::make_unique<StandardProgram>(device, shader_map[VS_Sky], shader_map[PS_UniformColorSky]);
-			shader_program_map[EShaderProgram::Texture] = std::make_unique<StandardProgram>(device, shader_map[VS_Texture], shader_map[PS_Texture]);
-			shader_program_map[EShaderProgram::Solid] = std::make_unique<StandardProgram>(device, shader_map[VS_Solid], shader_map[PS_Solid]);
-			shader_program_map[EShaderProgram::Sun] = std::make_unique<StandardProgram>(device, shader_map[VS_Sun], shader_map[PS_Sun]);
-			shader_program_map[EShaderProgram::Billboard] = std::make_unique<StandardProgram>(device, shader_map[VS_Billboard], shader_map[PS_Billboard]);
-			shader_program_map[EShaderProgram::Decals] = std::make_unique<StandardProgram>(device, shader_map[VS_Decals], shader_map[PS_Decals]);
-			shader_program_map[EShaderProgram::Decals_ModifyNormals] = std::make_unique<StandardProgram>(device, shader_map[VS_Decals], shader_map[PS_DecalsModifyNormals]);
-			shader_program_map[EShaderProgram::GBuffer_Terrain] = std::make_unique<StandardProgram>(device, shader_map[VS_GBufferTerrain], shader_map[PS_GBufferTerrain]);
-			shader_program_map[EShaderProgram::GBufferPBR] = std::make_unique<StandardProgram>(device, shader_map[VS_GBufferPBR], shader_map[PS_GBufferPBR]);
-			shader_program_map[EShaderProgram::AmbientPBR] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_AmbientPBR]);
-			shader_program_map[EShaderProgram::AmbientPBR_AO] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_AmbientPBR_AO]);
-			shader_program_map[EShaderProgram::AmbientPBR_IBL] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_AmbientPBR_IBL]);
-			shader_program_map[EShaderProgram::AmbientPBR_AO_IBL] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_AmbientPBR_AO_IBL]);
-			shader_program_map[EShaderProgram::LightingPBR] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_LightingPBR]);
-			shader_program_map[EShaderProgram::ClusterLightingPBR] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_ClusterLightingPBR]);
-			shader_program_map[EShaderProgram::ToneMap_Reinhard] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_ToneMap_Reinhard]);
-			shader_program_map[EShaderProgram::ToneMap_Linear] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_ToneMap_Linear]);
-			shader_program_map[EShaderProgram::ToneMap_Hable] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_ToneMap_Hable]);
+			shader_program_map[EShaderProgram::Skybox] = std::make_unique<StandardProgram>(device, shader_map[VS_Sky], shader_map[PS_Skybox]); AddDependency(EShaderProgram::Skybox, {VS_Sky, PS_Skybox});
+			shader_program_map[EShaderProgram::HosekWilkieSky] = std::make_unique<StandardProgram>(device, shader_map[VS_Sky], shader_map[PS_HosekWilkieSky]); AddDependency(EShaderProgram::HosekWilkieSky, {VS_Sky, PS_HosekWilkieSky});
+			shader_program_map[EShaderProgram::UniformColorSky] = std::make_unique<StandardProgram>(device, shader_map[VS_Sky], shader_map[PS_UniformColorSky]); AddDependency(EShaderProgram::UniformColorSky, {VS_Sky, PS_UniformColorSky});
+			shader_program_map[EShaderProgram::Texture] = std::make_unique<StandardProgram>(device, shader_map[VS_Texture], shader_map[PS_Texture]); AddDependency(EShaderProgram::Texture, {VS_Texture, PS_Texture});
+			shader_program_map[EShaderProgram::Solid] = std::make_unique<StandardProgram>(device, shader_map[VS_Solid], shader_map[PS_Solid]); AddDependency(EShaderProgram::Solid, {VS_Solid, PS_Solid});
+			shader_program_map[EShaderProgram::Sun] = std::make_unique<StandardProgram>(device, shader_map[VS_Sun], shader_map[PS_Sun]); AddDependency(EShaderProgram::Sun, {VS_Sun, PS_Sun});
+			shader_program_map[EShaderProgram::Billboard] = std::make_unique<StandardProgram>(device, shader_map[VS_Billboard], shader_map[PS_Billboard]); AddDependency(EShaderProgram::Billboard, {VS_Billboard, PS_Billboard});
+			shader_program_map[EShaderProgram::Decals] = std::make_unique<StandardProgram>(device, shader_map[VS_Decals], shader_map[PS_Decals]); AddDependency(EShaderProgram::Decals, {VS_Decals, PS_Decals});
+			shader_program_map[EShaderProgram::Decals_ModifyNormals] = std::make_unique<StandardProgram>(device, shader_map[VS_Decals], shader_map[PS_DecalsModifyNormals]); AddDependency(EShaderProgram::Decals_ModifyNormals, {VS_Decals, PS_DecalsModifyNormals});
+			shader_program_map[EShaderProgram::GBuffer_Terrain] = std::make_unique<StandardProgram>(device, shader_map[VS_GBufferTerrain], shader_map[PS_GBufferTerrain]); AddDependency(EShaderProgram::GBuffer_Terrain, {VS_GBufferTerrain, PS_GBufferTerrain});
+			shader_program_map[EShaderProgram::GBufferPBR] = std::make_unique<StandardProgram>(device, shader_map[VS_GBufferPBR], shader_map[PS_GBufferPBR]); AddDependency(EShaderProgram::GBufferPBR, {VS_GBufferPBR, PS_GBufferPBR});
+			shader_program_map[EShaderProgram::AmbientPBR] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_AmbientPBR]); AddDependency(EShaderProgram::AmbientPBR, {VS_ScreenQuad, PS_AmbientPBR});
+			shader_program_map[EShaderProgram::AmbientPBR_AO] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_AmbientPBR_AO]); AddDependency(EShaderProgram::AmbientPBR_AO, {VS_ScreenQuad, PS_AmbientPBR_AO});
+			shader_program_map[EShaderProgram::AmbientPBR_IBL] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_AmbientPBR_IBL]); AddDependency(EShaderProgram::AmbientPBR_IBL, {VS_ScreenQuad, PS_AmbientPBR_IBL});
+			shader_program_map[EShaderProgram::AmbientPBR_AO_IBL] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_AmbientPBR_AO_IBL]); AddDependency(EShaderProgram::AmbientPBR_AO_IBL, {VS_ScreenQuad, PS_AmbientPBR_AO_IBL});
+			shader_program_map[EShaderProgram::LightingPBR] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_LightingPBR]); AddDependency(EShaderProgram::LightingPBR, {VS_ScreenQuad, PS_LightingPBR});
+			shader_program_map[EShaderProgram::ClusterLightingPBR] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_ClusterLightingPBR]); AddDependency(EShaderProgram::ClusterLightingPBR, {VS_ScreenQuad, PS_ClusterLightingPBR});
+			shader_program_map[EShaderProgram::ToneMap_Reinhard] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_ToneMap_Reinhard]); AddDependency(EShaderProgram::ToneMap_Reinhard, {VS_ScreenQuad, PS_ToneMap_Reinhard});
+			shader_program_map[EShaderProgram::ToneMap_Linear] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_ToneMap_Linear]); AddDependency(EShaderProgram::ToneMap_Linear, {VS_ScreenQuad, PS_ToneMap_Linear});
+			shader_program_map[EShaderProgram::ToneMap_Hable] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_ToneMap_Hable]); AddDependency(EShaderProgram::ToneMap_Hable, {VS_ScreenQuad, PS_ToneMap_Hable});
 
-			shader_program_map[EShaderProgram::FXAA] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_FXAA]);
-			shader_program_map[EShaderProgram::TAA] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_TAA]);
-			shader_program_map[EShaderProgram::Copy] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_Copy]);
-			shader_program_map[EShaderProgram::Add] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_Add]);
-			shader_program_map[EShaderProgram::SSAO] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_SSAO]);
-			shader_program_map[EShaderProgram::HBAO] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_HBAO]);
-			shader_program_map[EShaderProgram::SSR] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_SSR]);
-			shader_program_map[EShaderProgram::GodRays] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_GodRays]);
-			shader_program_map[EShaderProgram::DOF] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_DepthOfField]);
-			shader_program_map[EShaderProgram::LensFlare] = std::make_unique<GeometryProgram>(device, shader_map[VS_LensFlare], shader_map[GS_LensFlare], shader_map[PS_LensFlare]);
-			shader_program_map[EShaderProgram::BokehDraw] = std::make_unique<GeometryProgram>(device, shader_map[VS_Bokeh], shader_map[GS_Bokeh], shader_map[PS_Bokeh]);
+			shader_program_map[EShaderProgram::FXAA] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_FXAA]); AddDependency(EShaderProgram::FXAA, {VS_ScreenQuad, PS_FXAA});
+			shader_program_map[EShaderProgram::TAA] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_TAA]); AddDependency(EShaderProgram::TAA, {VS_ScreenQuad, PS_TAA});
+			shader_program_map[EShaderProgram::Copy] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_Copy]); AddDependency(EShaderProgram::Copy, {VS_ScreenQuad, PS_Copy});
+			shader_program_map[EShaderProgram::Add] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_Add]); AddDependency(EShaderProgram::Add, {VS_ScreenQuad, PS_Add});
+			shader_program_map[EShaderProgram::SSAO] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_SSAO]); AddDependency(EShaderProgram::SSAO, {VS_ScreenQuad, PS_SSAO});
+			shader_program_map[EShaderProgram::HBAO] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_HBAO]); AddDependency(EShaderProgram::HBAO, {VS_ScreenQuad, PS_HBAO});
+			shader_program_map[EShaderProgram::SSR] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_SSR]); AddDependency(EShaderProgram::SSR, {VS_ScreenQuad, PS_SSR});
+			shader_program_map[EShaderProgram::GodRays] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_GodRays]); AddDependency(EShaderProgram::GodRays, {VS_ScreenQuad, PS_GodRays});
+			shader_program_map[EShaderProgram::DOF] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_DepthOfField]); AddDependency(EShaderProgram::DOF, {VS_ScreenQuad, PS_DepthOfField});
+			shader_program_map[EShaderProgram::LensFlare] = std::make_unique<GeometryProgram>(device, shader_map[VS_LensFlare], shader_map[GS_LensFlare], shader_map[PS_LensFlare]); AddDependency(EShaderProgram::LensFlare, {VS_LensFlare, GS_LensFlare, PS_LensFlare});
+			shader_program_map[EShaderProgram::BokehDraw] = std::make_unique<GeometryProgram>(device, shader_map[VS_Bokeh], shader_map[GS_Bokeh], shader_map[PS_Bokeh]); AddDependency(EShaderProgram::BokehDraw, {VS_Bokeh, GS_Bokeh, PS_Bokeh});
 
-			shader_program_map[EShaderProgram::Volumetric_Clouds] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VolumetricClouds]);
-			shader_program_map[EShaderProgram::VelocityBuffer] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VelocityBuffer]);
-			shader_program_map[EShaderProgram::MotionBlur] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_MotionBlur]);
-			shader_program_map[EShaderProgram::Fog] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_Fog]);
+			shader_program_map[EShaderProgram::Volumetric_Clouds] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VolumetricClouds]); AddDependency(EShaderProgram::Volumetric_Clouds, {VS_ScreenQuad, PS_VolumetricClouds});
+			shader_program_map[EShaderProgram::VelocityBuffer] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VelocityBuffer]); AddDependency(EShaderProgram::VelocityBuffer, {VS_ScreenQuad, PS_VelocityBuffer});
+			shader_program_map[EShaderProgram::MotionBlur] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_MotionBlur]); AddDependency(EShaderProgram::MotionBlur, {VS_ScreenQuad, PS_MotionBlur});
+			shader_program_map[EShaderProgram::Fog] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_Fog]); AddDependency(EShaderProgram::Fog, {VS_ScreenQuad, PS_Fog});
 
-			shader_program_map[EShaderProgram::DepthMap] = std::make_unique<StandardProgram>(device, shader_map[VS_DepthMap], shader_map[PS_DepthMap]);
-			shader_program_map[EShaderProgram::DepthMap_Transparent] = std::make_unique<StandardProgram>(device, shader_map[VS_DepthMapTransparent], shader_map[PS_DepthMapTransparent]);
+			shader_program_map[EShaderProgram::DepthMap] = std::make_unique<StandardProgram>(device, shader_map[VS_DepthMap], shader_map[PS_DepthMap]); AddDependency(EShaderProgram::DepthMap, {VS_DepthMap, PS_DepthMap});
+			shader_program_map[EShaderProgram::DepthMap_Transparent] = std::make_unique<StandardProgram>(device, shader_map[VS_DepthMapTransparent], shader_map[PS_DepthMapTransparent]); AddDependency(EShaderProgram::DepthMap_Transparent, {VS_DepthMapTransparent, PS_DepthMapTransparent});
 
-			shader_program_map[EShaderProgram::Volumetric_Directional] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VolumetricLight_Directional]);
-			shader_program_map[EShaderProgram::Volumetric_DirectionalCascades] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VolumetricLight_DirectionalWithCascades]);
-			shader_program_map[EShaderProgram::Volumetric_Spot] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VolumetricLight_Spot]);
-			shader_program_map[EShaderProgram::Volumetric_Point] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VolumetricLight_Point]);
+			shader_program_map[EShaderProgram::Volumetric_Directional] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VolumetricLight_Directional]); AddDependency(EShaderProgram::Volumetric_Directional, {VS_ScreenQuad, PS_VolumetricLight_Directional});
+			shader_program_map[EShaderProgram::Volumetric_DirectionalCascades] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VolumetricLight_DirectionalWithCascades]); AddDependency(EShaderProgram::Volumetric_DirectionalCascades, {VS_ScreenQuad, PS_VolumetricLight_DirectionalWithCascades});
+			shader_program_map[EShaderProgram::Volumetric_Spot] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VolumetricLight_Spot]); AddDependency(EShaderProgram::Volumetric_Spot, {VS_ScreenQuad, PS_VolumetricLight_Spot});
+			shader_program_map[EShaderProgram::Volumetric_Point] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VolumetricLight_Point]); AddDependency(EShaderProgram::Volumetric_Point, {VS_ScreenQuad, PS_VolumetricLight_Point});
 
-			shader_program_map[EShaderProgram::Blur_Horizontal] = std::make_unique<ComputeProgram>(device, shader_map[CS_BlurHorizontal]);
-			shader_program_map[EShaderProgram::Blur_Vertical] = std::make_unique<ComputeProgram>(device, shader_map[CS_BlurVertical]);
-			shader_program_map[EShaderProgram::BokehGenerate] = std::make_unique<ComputeProgram>(device, shader_map[CS_BokehGenerate]);
-			shader_program_map[EShaderProgram::BloomExtract] = std::make_unique<ComputeProgram>(device, shader_map[CS_BloomExtract]);
-			shader_program_map[EShaderProgram::BloomCombine] = std::make_unique<ComputeProgram>(device, shader_map[CS_BloomCombine]);
+			shader_program_map[EShaderProgram::Blur_Horizontal] = std::make_unique<ComputeProgram>(device, shader_map[CS_BlurHorizontal]); AddDependency(EShaderProgram::Blur_Horizontal, {CS_BlurHorizontal});
+			shader_program_map[EShaderProgram::Blur_Vertical] = std::make_unique<ComputeProgram>(device, shader_map[CS_BlurVertical]); AddDependency(EShaderProgram::Blur_Vertical, {CS_BlurVertical});
+			shader_program_map[EShaderProgram::BokehGenerate] = std::make_unique<ComputeProgram>(device, shader_map[CS_BokehGenerate]); AddDependency(EShaderProgram::BokehGenerate, {CS_BokehGenerate});
+			shader_program_map[EShaderProgram::BloomExtract] = std::make_unique<ComputeProgram>(device, shader_map[CS_BloomExtract]); AddDependency(EShaderProgram::BloomExtract, {CS_BloomExtract});
+			shader_program_map[EShaderProgram::BloomCombine] = std::make_unique<ComputeProgram>(device, shader_map[CS_BloomCombine]); AddDependency(EShaderProgram::BloomCombine, {CS_BloomCombine});
 
-			shader_program_map[EShaderProgram::OceanInitialSpectrum] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanInitialSpectrum]);
-			shader_program_map[EShaderProgram::OceanPhase] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanPhase]);
-			shader_program_map[EShaderProgram::OceanSpectrum] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanSpectrum]);
-			shader_program_map[EShaderProgram::OceanNormalMap] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanNormalMap]);
-			shader_program_map[EShaderProgram::OceanFFT_Horizontal] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanFFT_Horizontal]);
-			shader_program_map[EShaderProgram::OceanFFT_Vertical] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanFFT_Vertical]);
+			shader_program_map[EShaderProgram::OceanInitialSpectrum] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanInitialSpectrum]); AddDependency(EShaderProgram::OceanInitialSpectrum, {CS_OceanInitialSpectrum});
+			shader_program_map[EShaderProgram::OceanPhase] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanPhase]); AddDependency(EShaderProgram::OceanPhase, {CS_OceanPhase});
+			shader_program_map[EShaderProgram::OceanSpectrum] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanSpectrum]); AddDependency(EShaderProgram::OceanSpectrum, {CS_OceanSpectrum});
+			shader_program_map[EShaderProgram::OceanNormalMap] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanNormalMap]); AddDependency(EShaderProgram::OceanNormalMap, {CS_OceanNormalMap});
+			shader_program_map[EShaderProgram::OceanFFT_Horizontal] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanFFT_Horizontal]); AddDependency(EShaderProgram::OceanFFT_Horizontal, {CS_OceanFFT_Horizontal});
+			shader_program_map[EShaderProgram::OceanFFT_Vertical] = std::make_unique<ComputeProgram>(device, shader_map[CS_OceanFFT_Vertical]); AddDependency(EShaderProgram::OceanFFT_Vertical, {CS_OceanFFT_Vertical});
 
-			shader_program_map[EShaderProgram::TiledLighting] = std::make_unique<ComputeProgram>(device, shader_map[CS_TiledLighting]);
-			shader_program_map[EShaderProgram::ClusterBuilding] = std::make_unique<ComputeProgram>(device, shader_map[CS_ClusterBuilding]);
-			shader_program_map[EShaderProgram::ClusterCulling] = std::make_unique<ComputeProgram>(device, shader_map[CS_ClusterCulling]);
-			shader_program_map[EShaderProgram::VoxelCopy] = std::make_unique<ComputeProgram>(device, shader_map[CS_VoxelCopy]);
-			shader_program_map[EShaderProgram::VoxelSecondBounce] = std::make_unique<ComputeProgram>(device, shader_map[CS_VoxelSecondBounce]);
+			shader_program_map[EShaderProgram::TiledLighting] = std::make_unique<ComputeProgram>(device, shader_map[CS_TiledLighting]); AddDependency(EShaderProgram::TiledLighting, {CS_TiledLighting});
+			shader_program_map[EShaderProgram::ClusterBuilding] = std::make_unique<ComputeProgram>(device, shader_map[CS_ClusterBuilding]); AddDependency(EShaderProgram::ClusterBuilding, {CS_ClusterBuilding});
+			shader_program_map[EShaderProgram::ClusterCulling] = std::make_unique<ComputeProgram>(device, shader_map[CS_ClusterCulling]); AddDependency(EShaderProgram::ClusterCulling, {CS_ClusterCulling});
+			shader_program_map[EShaderProgram::VoxelCopy] = std::make_unique<ComputeProgram>(device, shader_map[CS_VoxelCopy]); AddDependency(EShaderProgram::VoxelCopy, {CS_VoxelCopy});
+			shader_program_map[EShaderProgram::VoxelSecondBounce] = std::make_unique<ComputeProgram>(device, shader_map[CS_VoxelSecondBounce]); AddDependency(EShaderProgram::VoxelSecondBounce, {CS_VoxelSecondBounce});
 
-			shader_program_map[EShaderProgram::Ocean] = std::make_unique<StandardProgram>(device, shader_map[VS_Ocean], shader_map[PS_Ocean]);
+			shader_program_map[EShaderProgram::Ocean] = std::make_unique<StandardProgram>(device, shader_map[VS_Ocean], shader_map[PS_Ocean]); AddDependency(EShaderProgram::Ocean, {VS_Ocean, PS_Ocean});
 			shader_program_map[EShaderProgram::OceanLOD] = std::make_unique<TessellationProgram>(device, shader_map[VS_OceanLOD], 
-				shader_map[HS_OceanLOD], shader_map[DS_OceanLOD], shader_map[PS_OceanLOD]);
+				shader_map[HS_OceanLOD], shader_map[DS_OceanLOD], shader_map[PS_OceanLOD]); AddDependency(EShaderProgram::OceanLOD, { VS_OceanLOD, HS_OceanLOD, DS_OceanLOD, PS_OceanLOD });
 
-			shader_program_map[EShaderProgram::Voxelize] = std::make_unique<GeometryProgram>(device, shader_map[VS_Voxelize], shader_map[GS_Voxelize], shader_map[PS_Voxelize]);
-			shader_program_map[EShaderProgram::VoxelizeDebug] = std::make_unique<GeometryProgram>(device, shader_map[VS_VoxelizeDebug], shader_map[GS_VoxelizeDebug], shader_map[PS_VoxelizeDebug]);
-			shader_program_map[EShaderProgram::VoxelGI] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VoxelGI]);
+			shader_program_map[EShaderProgram::Voxelize] = std::make_unique<GeometryProgram>(device, shader_map[VS_Voxelize], shader_map[GS_Voxelize], shader_map[PS_Voxelize]); AddDependency(EShaderProgram::Voxelize, {VS_Voxelize, GS_Voxelize, PS_Voxelize});
+			shader_program_map[EShaderProgram::VoxelizeDebug] = std::make_unique<GeometryProgram>(device, shader_map[VS_VoxelizeDebug], shader_map[GS_VoxelizeDebug], shader_map[PS_VoxelizeDebug]); AddDependency(EShaderProgram::VoxelizeDebug, {VS_VoxelizeDebug, GS_VoxelizeDebug, PS_VoxelizeDebug});
+			shader_program_map[EShaderProgram::VoxelGI] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VoxelGI]); AddDependency(EShaderProgram::VoxelGI, {VS_ScreenQuad, PS_VoxelGI});
 
-			shader_program_map[EShaderProgram::Picker] = std::make_unique<ComputeProgram>(device, shader_map[CS_Picker]);
+			shader_program_map[EShaderProgram::Picker] = std::make_unique<ComputeProgram>(device, shader_map[CS_Picker]); AddDependency(EShaderProgram::Picker, {CS_Picker});
 
-			shader_program_map[EShaderProgram::ParticleInitDeadList] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleInitDeadList]);
-			shader_program_map[EShaderProgram::ParticleReset] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleReset]);
-			shader_program_map[EShaderProgram::ParticleEmit] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleEmit]);
-			shader_program_map[EShaderProgram::ParticleSimulate] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleSimulate]);
-			shader_program_map[EShaderProgram::ParticleBitonicSortStep] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleBitonicSortStep]);
-			shader_program_map[EShaderProgram::ParticleSort512] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleSort512]);
-			shader_program_map[EShaderProgram::ParticleSortInner512] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleSortInner512]);
-			shader_program_map[EShaderProgram::ParticleSortInitArgs] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleSortInitArgs]);
-			shader_program_map[EShaderProgram::Particles] = std::make_unique<StandardProgram>(device, shader_map[VS_Particles], shader_map[PS_Particles]);
+			shader_program_map[EShaderProgram::ParticleInitDeadList] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleInitDeadList]); AddDependency(EShaderProgram::ParticleInitDeadList, {CS_ParticleInitDeadList});
+			shader_program_map[EShaderProgram::ParticleReset] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleReset]); AddDependency(EShaderProgram::ParticleReset, {CS_ParticleReset});
+			shader_program_map[EShaderProgram::ParticleEmit] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleEmit]); AddDependency(EShaderProgram::ParticleEmit, {CS_ParticleEmit});
+			shader_program_map[EShaderProgram::ParticleSimulate] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleSimulate]); AddDependency(EShaderProgram::ParticleSimulate, {CS_ParticleSimulate});
+			shader_program_map[EShaderProgram::ParticleBitonicSortStep] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleBitonicSortStep]); AddDependency(EShaderProgram::ParticleBitonicSortStep, {CS_ParticleBitonicSortStep});
+			shader_program_map[EShaderProgram::ParticleSort512] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleSort512]); AddDependency(EShaderProgram::ParticleSort512, {CS_ParticleSort512});
+			shader_program_map[EShaderProgram::ParticleSortInner512] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleSortInner512]); AddDependency(EShaderProgram::ParticleSortInner512, {CS_ParticleSortInner512});
+			shader_program_map[EShaderProgram::ParticleSortInitArgs] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleSortInitArgs]); AddDependency(EShaderProgram::ParticleSortInitArgs, {CS_ParticleSortInitArgs});
+			shader_program_map[EShaderProgram::Particles] = std::make_unique<StandardProgram>(device, shader_map[VS_Particles], shader_map[PS_Particles]); AddDependency(EShaderProgram::Particles, {VS_Particles, PS_Particles});
 
 			std::unique_ptr<StandardProgram> foliage_program = std::make_unique<StandardProgram>(device, shader_map[VS_Foliage], shader_map[PS_Foliage], false);
 			std::vector<D3D11_INPUT_ELEMENT_DESC> foliage_input_desc = {
@@ -123,6 +123,7 @@ namespace adria
 			device->CreateInputLayout(foliage_input_desc.data(), (UINT)foliage_input_desc.size(), shader_map[VS_Foliage].GetPointer(), shader_map[VS_Foliage].GetLength(),
 				foliage_program->il.GetAddressOf());
 			shader_program_map[EShaderProgram::GBuffer_Foliage] = std::move(foliage_program);
+			AddDependency(EShaderProgram::GBuffer_Foliage, { VS_Foliage, PS_Foliage });
 		}
 		void CompileAllShaders()
 		{
@@ -291,6 +292,45 @@ namespace adria
 			CreateAllPrograms();
 		}
 
+		void RecreateDependentPrograms(EShader shader)
+		{
+			if (shader == VS_Foliage || shader == PS_Foliage)
+			{
+				std::unique_ptr<StandardProgram> foliage_program = std::make_unique<StandardProgram>(device, shader_map[VS_Foliage], shader_map[PS_Foliage], false);
+				std::vector<D3D11_INPUT_ELEMENT_DESC> foliage_input_desc = {
+					{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+					{ "INSTANCE_OFFSET", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
+					{ "INSTANCE_ROTATION", 0, DXGI_FORMAT_R32_FLOAT, 1, 12, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
+				};
+				device->CreateInputLayout(foliage_input_desc.data(), (UINT)foliage_input_desc.size(), shader_map[VS_Foliage].GetPointer(), shader_map[VS_Foliage].GetLength(),
+					foliage_program->il.GetAddressOf());
+				shader_program_map[EShaderProgram::GBuffer_Foliage] = std::move(foliage_program);
+				return;
+			}
+			for (auto const& [program, shaders] : dependency_map)
+			{
+				if (auto it = std::find(std::begin(shaders), std::end(shaders), shader); it != std::end(shaders))
+				{
+					switch (shaders.size())
+					{
+					case 1:
+						shader_program_map[program] = std::make_unique<ComputeProgram>(device, shader_map[shaders[0]]);
+						break;
+					case 2:
+						shader_program_map[program] = std::make_unique<StandardProgram>(device, shader_map[shaders[0]], shader_map[shaders[1]]);
+						break;
+					case 3:
+						shader_program_map[program] = std::make_unique<GeometryProgram>(device, shader_map[shaders[0]], shader_map[shaders[1]], shader_map[shaders[2]]);
+						break;
+					case 4:
+						shader_program_map[program] = std::make_unique<TessellationProgram>(device, shader_map[shaders[0]], shader_map[shaders[1]], shader_map[shaders[2]], shader_map[shaders[3]]);
+						break;
+					}
+				}
+			}
+		}
 		constexpr EShaderStage GetStage(EShader shader)
 		{
 			switch (shader)
@@ -634,8 +674,6 @@ namespace adria
 		device = _device;
 		CompileAllShaders();
 	}
-
-	
 	void ShaderCache::RecompileShader(EShader shader)
 	{
 		ShaderInfo shader_info{ .entrypoint = "main" };
@@ -650,6 +688,7 @@ namespace adria
 		shader_info.macros = GetShaderMacros(shader);
 
 		ShaderCompiler::CompileShader(shader_info, shader_map[shader]);
+		RecreateDependentPrograms(shader);
 	}
 
 	ShaderProgram* ShaderCache::GetShaderProgram(EShaderProgram shader_program)

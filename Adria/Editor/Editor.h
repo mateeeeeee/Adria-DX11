@@ -59,6 +59,7 @@ namespace adria
         void Scene();
         void Log();
         void RendererSettings();
+        void ShaderHotReload();
         void StatsAndProfiling();
 
         void OpenMaterialFileDialog(Material* mat, EMaterialTextureType type);
