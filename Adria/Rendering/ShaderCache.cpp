@@ -94,6 +94,7 @@ namespace adria
 
 			shader_program_map[EShaderProgram::Voxelize] = std::make_unique<GeometryProgram>(device, shader_map[VS_Voxelize], shader_map[GS_Voxelize], shader_map[PS_Voxelize]);
 			shader_program_map[EShaderProgram::VoxelizeDebug] = std::make_unique<GeometryProgram>(device, shader_map[VS_VoxelizeDebug], shader_map[GS_VoxelizeDebug], shader_map[PS_VoxelizeDebug]);
+			shader_program_map[EShaderProgram::VoxelGI] = std::make_unique<StandardProgram>(device, shader_map[VS_ScreenQuad], shader_map[PS_VoxelGI]);
 
 			shader_program_map[EShaderProgram::Picker] = std::make_unique<ComputeProgram>(device, shader_map[CS_Picker]);
 
@@ -207,6 +208,8 @@ namespace adria
 				ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelDebugVS.cso", shader_map[VS_VoxelizeDebug]);
 				ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelDebugGS.cso", shader_map[GS_VoxelizeDebug]);
 				ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelDebugPS.cso", shader_map[PS_VoxelizeDebug]);
+				ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/VoxelGI_PS.cso", shader_map[PS_VoxelGI]);
+
 				ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/FoliageVS.cso", shader_map[VS_Foliage]);
 				ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/FoliagePS.cso", shader_map[PS_Foliage]);
 
@@ -295,6 +298,121 @@ namespace adria
 
 			CreateAllPrograms();
 		}
+
+		constexpr EShaderStage GetStage(EShader shader)
+		{
+			switch (shader)
+			{
+			case VS_Sky:
+			case VS_Texture:
+			case VS_Solid:
+			case VS_Billboard:
+			case VS_Sun:
+			case VS_Decals:
+			case VS_GBufferTerrain:
+			case VS_GBufferPBR:
+			case VS_ScreenQuad:
+			case VS_LensFlare:
+			case VS_Bokeh:
+			case VS_DepthMap:
+			case VS_DepthMapTransparent:
+			case VS_Ocean:
+			case VS_OceanLOD:
+			case VS_Voxelize:
+			case VS_VoxelizeDebug:
+			case VS_Foliage:
+			case VS_Particles:
+				return EShaderStage::VS;
+			case PS_Skybox:
+			case PS_HosekWilkieSky:
+			case PS_UniformColorSky:
+			case PS_Texture:
+			case PS_Solid:
+			case PS_Sun:
+			case PS_Billboard:
+			case PS_Decals:
+			case PS_DecalsModifyNormals:
+			case PS_GBufferPBR:
+			case PS_GBufferTerrain:
+			case PS_AmbientPBR:
+			case PS_AmbientPBR_AO:
+			case PS_AmbientPBR_IBL:
+			case PS_AmbientPBR_AO_IBL:
+			case PS_LightingPBR:
+			case PS_ClusterLightingPBR:
+			case PS_ToneMap_Reinhard:
+			case PS_ToneMap_Linear:
+			case PS_ToneMap_Hable:
+			case PS_FXAA:
+			case PS_TAA:
+			case PS_Copy:
+			case PS_Add:
+			case PS_SSAO:
+			case PS_HBAO:
+			case PS_SSR:
+			case PS_LensFlare:
+			case PS_GodRays:
+			case PS_DepthOfField:
+			case PS_Bokeh:
+			case PS_VolumetricClouds:
+			case PS_VelocityBuffer:
+			case PS_MotionBlur:
+			case PS_Fog:
+			case PS_DepthMap:
+			case PS_DepthMapTransparent:
+			case PS_VolumetricLight_Directional:
+			case PS_VolumetricLight_Spot:
+			case PS_VolumetricLight_Point:
+			case PS_VolumetricLight_DirectionalWithCascades:
+			case PS_Ocean:
+			case PS_OceanLOD:
+			case PS_VoxelGI:
+			case PS_Voxelize:
+			case PS_VoxelizeDebug:
+			case PS_Foliage:
+			case PS_Particles:
+				return EShaderStage::PS;
+			case GS_LensFlare:
+			case GS_Bokeh:
+			case GS_Voxelize:
+			case GS_VoxelizeDebug:
+				return EShaderStage::GS;
+			case CS_BlurHorizontal:
+			case CS_BlurVertical:
+			case CS_BokehGenerate:
+			case CS_BloomExtract:
+			case CS_BloomCombine:
+			case CS_OceanInitialSpectrum:
+			case CS_OceanPhase:	
+			case CS_OceanSpectrum:
+			case CS_OceanFFT_Horizontal:
+			case CS_OceanFFT_Vertical:
+			case CS_OceanNormalMap:
+			case CS_TiledLighting:
+			case CS_ClusterBuilding:
+			case CS_ClusterCulling:
+			case CS_VoxelCopy:
+			case CS_VoxelSecondBounce:
+			case CS_ParticleInitDeadList:
+			case CS_ParticleReset:
+			case CS_ParticleEmit:
+			case CS_ParticleSimulate:
+			case CS_ParticleBitonicSortStep:
+			case CS_ParticleSort512:
+			case CS_ParticleSortInner512:
+			case CS_ParticleSortInitArgs:
+			case CS_Picker:
+				return EShaderStage::CS;
+			case HS_OceanLOD:
+				return EShaderStage::HS;
+			case DS_OceanLOD:
+				return EShaderStage::DS;
+			case EShader_Count:
+			default:
+				return EShaderStage::STAGE_COUNT;
+			}
+		}
+
 	}
 
 	void ShaderCache::Initialize(ID3D11Device* _device)
@@ -306,7 +424,21 @@ namespace adria
 	
 	void ShaderCache::RecompileShader(EShader shader)
 	{
+		ShaderInfo shader_info{ .entrypoint = "main" };
+		shader_info.flags =
+#if _DEBUG
+			ShaderInfo::FLAG_DEBUG | ShaderInfo::FLAG_DISABLE_OPTIMIZATION;
+#else
+			ShaderInfo::FLAG_NONE;
+#endif
+		//compiled runtime
+		{
 
+			shader_info.shadersource = "";
+			shader_info.stage = GetStage(shader);
+			shader_info.defines = {};
+
+			ShaderCompiler::CompileShader(shader_info, shader_map[PS_DecalsModifyNormals]);
 	}
 
 	ShaderProgram* ShaderCache::GetShaderProgram(EShaderProgram shader_program)
