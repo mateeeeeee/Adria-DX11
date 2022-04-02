@@ -14,13 +14,17 @@ namespace adria
 		ID3D11Device* device;
 		std::unordered_map<EShader, ShaderBlob> shader_map;
 		std::unordered_map<EShaderProgram, std::unique_ptr<ShaderProgram>> shader_program_map;
-		std::unordered_map<EShader, std::vector<ShaderProgram*>> dependent_programs;
+		std::unordered_map<EShader, std::vector<EShaderProgram>> dependent_programs;
 
 		//use std::filesystem?
 		constexpr std::string_view compiled_shaders_directory = "Resources/Compiled Shaders/";
 		constexpr std::string_view shaders_directory = "Resources/Shaders/";
 		constexpr std::string_view shaders_headers_directories[] = { "Resources/Shaders/Globals", "Resources/Shaders/Util/" };
 
+		void AddDependency(EShaderProgram program, std::vector<EShader> const& shaders)
+		{
+			for (auto shader : shaders) dependent_programs[shader].push_back(program);
+		}
 		void CreateAllPrograms()
 		{
 			shader_program_map[EShaderProgram::Skybox] = std::make_unique<StandardProgram>(device, shader_map[VS_Sky], shader_map[PS_Skybox]);
@@ -98,17 +102,6 @@ namespace adria
 
 			shader_program_map[EShaderProgram::Picker] = std::make_unique<ComputeProgram>(device, shader_map[CS_Picker]);
 
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/InitDeadListCS.cso", shader_map[CS_ParticleInitDeadList]);
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleResetCS.cso", shader_map[CS_ParticleReset]);
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleEmitCS.cso", shader_map[CS_ParticleEmit]);
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleSimulateCS.cso", shader_map[CS_ParticleSimulate]);
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/BitonicSortStepCS.cso", shader_map[CS_ParticleBitonicSortStep]);
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/Sort512CS.cso", shader_map[CS_ParticleSort512]);
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/SortInner512CS.cso", shader_map[CS_ParticleSortInner512]);
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/InitSortDispatchArgsCS.cso", shader_map[CS_ParticleSortInitArgs]);
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticleVS.cso", shader_map[VS_Particles]);
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticlePS.cso", shader_map[PS_Particles]);
-
 			shader_program_map[EShaderProgram::ParticleInitDeadList] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleInitDeadList]);
 			shader_program_map[EShaderProgram::ParticleReset] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleReset]);
 			shader_program_map[EShaderProgram::ParticleEmit] = std::make_unique<ComputeProgram>(device, shader_map[CS_ParticleEmit]);
@@ -131,7 +124,6 @@ namespace adria
 				foliage_program->il.GetAddressOf());
 			shader_program_map[EShaderProgram::GBuffer_Foliage] = std::move(foliage_program);
 		}
-
 		void CompileAllShaders()
 		{
 			//compiled offline
@@ -239,13 +231,13 @@ namespace adria
 
 				shader_info.shadersource = "Resources/Shaders/Misc/DecalPS.hlsl";
 				shader_info.stage = EShaderStage::PS;
-				shader_info.defines = { {"DECAL_MODIFY_NORMALS", ""} };
+				shader_info.macros = { {"DECAL_MODIFY_NORMALS", ""} };
 
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_DecalsModifyNormals]);
 
 				shader_info.shadersource = "Resources/Shaders/Deferred/GeometryPassPBR_VS.hlsl";
 				shader_info.stage = EShaderStage::VS;
-				shader_info.defines = {};
+				shader_info.macros = {};
 				ShaderCompiler::CompileShader(shader_info, shader_map[VS_GBufferPBR]);
 
 				shader_info.shadersource = "Resources/Shaders/Deferred/GeometryPassPBR_PS.hlsl";
@@ -256,43 +248,43 @@ namespace adria
 				shader_info.stage = EShaderStage::PS;
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR]);
 
-				shader_info.defines = { {"SSAO", "1"} };
+				shader_info.macros = { {"SSAO", "1"} };
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR_AO]);
 
-				shader_info.defines = { {"IBL", "1"} };
+				shader_info.macros = { {"IBL", "1"} };
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR_IBL]);
 
-				shader_info.defines = { {"SSAO", "1"}, {"IBL", "1"} };
+				shader_info.macros = { {"SSAO", "1"}, {"IBL", "1"} };
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR_AO_IBL]);
 
 				shader_info.shadersource = "Resources/Shaders/Postprocess/ToneMapPS.hlsl";
 				shader_info.stage = EShaderStage::PS;
-				shader_info.defines = { {"REINHARD", "1" } };
+				shader_info.macros = { {"REINHARD", "1" } };
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_ToneMap_Reinhard]);
-				shader_info.defines = { {"LINEAR", "1" } };
+				shader_info.macros = { {"LINEAR", "1" } };
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_ToneMap_Linear]);
-				shader_info.defines = { {"HABLE", "1" } };
+				shader_info.macros = { {"HABLE", "1" } };
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_ToneMap_Hable]);
 
 				shader_info.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
 				shader_info.stage = EShaderStage::VS;
-				shader_info.defines = {};
+				shader_info.macros = {};
 				ShaderCompiler::CompileShader(shader_info, shader_map[VS_DepthMap]);
-				shader_info.defines = { {"TRANSPARENT", "1"} };
+				shader_info.macros = { {"TRANSPARENT", "1"} };
 				ShaderCompiler::CompileShader(shader_info, shader_map[VS_DepthMapTransparent]);
 
 				shader_info.shadersource = "Resources/Shaders/Shadows/DepthMapPS.hlsl";
 				shader_info.stage = EShaderStage::PS;
-				shader_info.defines = {};
+				shader_info.macros = {};
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_DepthMap]);
-				shader_info.defines = { {"TRANSPARENT", "1"} };
+				shader_info.macros = { {"TRANSPARENT", "1"} };
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_DepthMapTransparent]);
 
 				shader_info.shadersource = "Resources/Shaders/Postprocess/BlurCS.hlsl";
 				shader_info.stage = EShaderStage::CS;
-				shader_info.defines = {};
+				shader_info.macros = {};
 				ShaderCompiler::CompileShader(shader_info, shader_map[CS_BlurHorizontal]);
-				shader_info.defines = { { "VERTICAL", "1" } };
+				shader_info.macros = { { "VERTICAL", "1" } };
 				ShaderCompiler::CompileShader(shader_info, shader_map[CS_BlurVertical]);
 			}
 
@@ -412,7 +404,229 @@ namespace adria
 				return EShaderStage::STAGE_COUNT;
 			}
 		}
-
+		constexpr std::string GetShaderSource(EShader shader)
+		{
+			switch (shader)
+			{
+			case VS_Sky:
+				return "Misc/SkyboxVS.hlsl";
+			case PS_Skybox:
+				return "Misc/SkyboxPS.hlsl";
+			case PS_HosekWilkieSky:
+				return "Misc/HosekWilkieSkyPS.hlsl";
+			case PS_UniformColorSky:
+				return "Misc/UniformColorSkyPS.hlsl";
+			case VS_Texture:
+				return "Misc/TextureVS.hlsl";
+			case PS_Texture:
+				return "Misc/TexturePS.hlsl";
+			case VS_Solid:
+				return "Misc/SolidVS.hlsl";
+			case PS_Solid:
+				return "Misc/SolidPS.hlsl";
+			case VS_Sun:
+				return "Misc/SunVS.hlsl";
+			case PS_Sun:
+				return "Misc/SunPS.hlsl";
+			case VS_Billboard:
+				return "Misc/BillboardVS.hlsl";
+			case PS_Billboard:
+				return "Misc/BillboardPS.hlsl";
+			case VS_Decals:
+				return "Misc/DecalVS.hlsl";
+			case PS_Decals:
+			case PS_DecalsModifyNormals:
+				return "Misc/DecalPS.hlsl";
+			case VS_GBufferPBR:
+				return "Deferred/GeometryPassPBR_VS.hlsl";
+			case PS_GBufferPBR:
+				return "Deferred/GeometryPassPBR_PS.hlsl";
+			case VS_GBufferTerrain:
+				return "Deferred/GeometryPassTerrain_VS.hlsl";
+			case PS_GBufferTerrain:
+				return "Deferred/GeometryPassTerrain_PS.hlsl";
+			case VS_ScreenQuad:
+				return "Postprocess/ScreenQuadVS.hlsl";
+			case PS_AmbientPBR:
+			case PS_AmbientPBR_AO:
+			case PS_AmbientPBR_IBL:
+			case PS_AmbientPBR_AO_IBL:
+				return "Deferred/AmbientPBR_PS.hlsl";
+			case PS_LightingPBR:
+				return "Deferred/LightingPBR_PS.hlsl";
+			case PS_ClusterLightingPBR:
+				return "Deferred/ClusterLightingPBR_PS.hlsl";
+			case PS_ToneMap_Reinhard:
+			case PS_ToneMap_Linear:
+			case PS_ToneMap_Hable:
+				return "Postprocess/ToneMapPS.hlsl";
+			case PS_FXAA:
+				return "Postprocess/FXAA.hlsl";
+			case PS_TAA:
+				return "Postprocess/TAA_PS.hlsl";
+			case PS_Copy:
+				return "Postprocess/CopyPS.hlsl";
+			case PS_Add:
+				return "Postprocess/AddPS.hlsl";
+			case PS_SSAO:
+				return "Postprocess/SSAO_PS.hlsl";
+			case PS_HBAO:
+				return "Postprocess/HBAO_PS.hlsl";
+			case PS_SSR:
+				return "Postprocess/SSR_PS.hlsl";
+			case VS_LensFlare:
+				return "Postprocess/LensFlareVS.hlsl";
+			case GS_LensFlare:
+				return "Postprocess/LensFlareGS.hlsl";
+			case PS_LensFlare:
+				return "Postprocess/LensFlarePS.hlsl";
+			case PS_GodRays:
+				return "Postprocess/GodRaysPS.hlsl";
+			case PS_DepthOfField:
+				return "Postprocess/DOF_PS.hlsl";
+			case VS_Bokeh:
+				return "Postprocess/BokehVS.hlsl";
+			case GS_Bokeh:
+				return "Postprocess/BokehGS.hlsl";
+			case PS_Bokeh:
+				return "Postprocess/BokehPS.hlsl";
+			case PS_VolumetricClouds:
+				return "Postprocess/CloudsPS.hlsl";
+			case PS_VelocityBuffer:
+				return "Postprocess/VelocityBufferPS.hlsl";
+			case PS_MotionBlur:
+				return "Postprocess/MotionBlurPS.hlsl";
+			case PS_Fog:
+				return "Postprocess/FogPS.hlsl";
+			case VS_DepthMap:
+			case VS_DepthMapTransparent:
+				return "Shadows/DepthMapVS.hlsl";
+			case PS_DepthMap:
+			case PS_DepthMapTransparent:
+				return "Shadows/DepthMapPS.hlsl";
+			case PS_VolumetricLight_Directional:
+				return "Postprocess/VolumetricLightDirectionalPS.hlsl";
+			case PS_VolumetricLight_DirectionalWithCascades:
+				return "Postprocess/VolumetricLightDirectionalCascadesPS.hlsl";
+			case PS_VolumetricLight_Spot:
+				return "Postprocess/VolumetricLightSpotPS.hlsl";
+			case PS_VolumetricLight_Point:
+				return "Postprocess/VolumetricLightPointPS.hlsl";
+			case CS_BlurHorizontal:
+			case CS_BlurVertical:
+				return "Postprocess/BlurCS.hlsl";
+			case CS_BokehGenerate:
+				return "Postprocess/BokehCS.hlsl";
+			case CS_BloomExtract:
+				return "Postprocess/BloomExtractCS.hlsl";
+			case CS_BloomCombine:
+				return "Postprocess/BloomCombineCS.hlsl";
+			case CS_OceanInitialSpectrum:
+				return "Ocean/InitialSpectrumCS.hlsl";
+			case CS_OceanPhase:
+				return "Ocean/PhaseCS.hlsl";
+			case CS_OceanSpectrum:
+				return "Ocean/SpectrumCS.hlsl";
+			case CS_OceanFFT_Horizontal:
+				return "Ocean/FFT_horizontalCS.hlsl";
+			case CS_OceanFFT_Vertical:
+				return "Ocean/FFT_verticalCS.hlsl";
+			case CS_OceanNormalMap:
+				return "Ocean/NormalMapCS.hlsl";
+			case CS_TiledLighting:
+				return "Deferred/TiledLightingCS.hlsl";
+			case CS_ClusterBuilding:
+				return "Deferred/ClusterBuildingCS.hlsl";
+			case CS_ClusterCulling:
+				return "Deferred/ClusterCullingCS.hlsl";
+			case CS_VoxelCopy:
+				return "GI/VoxelCopyCS.hlsl";
+			case CS_VoxelSecondBounce:
+				return "GI/VoxelSecondBounceCS.hlsl";
+			case VS_Ocean:
+				return "Ocean/OceanVS.hlsl";
+			case PS_Ocean:
+				return "Ocean/OceanPS.hlsl";
+			case VS_OceanLOD:
+				return "Ocean/OceanLodVS.hlsl";
+			case HS_OceanLOD:
+				return "Ocean/OceanLodHS.hlsl";
+			case DS_OceanLOD:
+				return "Ocean/OceanLodDS.hlsl";
+			case PS_OceanLOD:
+				return "Ocean/OceanLodPS.hlsl";
+			case VS_Voxelize:
+				return "GI/VoxelizeVS.hlsl";
+			case GS_Voxelize:
+				return "GI/VoxelizeGS.hlsl";
+			case PS_Voxelize:
+				return "GI/VoxelizePS.hlsl";
+			case VS_VoxelizeDebug:
+				return "GI/VoxelDebugVS.hlsl";
+			case GS_VoxelizeDebug:
+				return "GI/VoxelDebugGS.hlsl";
+			case PS_VoxelizeDebug:
+				return "GI/VoxelDebugPS.hlsl";
+			case PS_VoxelGI:
+				return "GI/VoxelGI_PS.hlsl";
+			case VS_Foliage:
+				return "Misc/FoliageVS.hlsl";
+			case PS_Foliage:
+				return "Misc/FoliagePS.hlsl";
+			case CS_Picker:
+				return "Misc/PickerCS.hlsl";
+			case VS_Particles:
+				return "Particles/ParticleVS.hlsl";
+			case PS_Particles:
+				return "Particles/ParticlePS.hlsl";
+			case CS_ParticleInitDeadList:
+				return "Particles/InitDeadListCS.hlsl";
+			case CS_ParticleReset:
+				return "Particles/ParticleResetCS.hlsl";
+			case CS_ParticleEmit:
+				return "Particles/ParticleEmitCS.hlsl";
+			case CS_ParticleSimulate:
+				return "Particles/ParticleSimulateCS.hlsl";
+			case CS_ParticleBitonicSortStep:
+				return "Particles/BitonicSortStepCS.hlsl";
+			case CS_ParticleSort512:
+				return "Particles/Sort512CS.hlsl";
+			case CS_ParticleSortInner512:
+				return "Particles/SortInner512CS.hlsl";
+			case CS_ParticleSortInitArgs:
+				return "Particles/InitSortDispatchArgsCS.hlsl";
+			case EShader_Count:
+			default:
+				return "";
+			}
+		}
+		constexpr std::vector<ShaderMacro> GetShaderMacros(EShader shader)
+		{
+			switch (shader)
+			{
+			case PS_DecalsModifyNormals:
+				return { {"DECAL_MODIFY_NORMALS", ""} };
+			case PS_AmbientPBR_AO:
+				return { {"SSAO", "1"} };
+			case PS_AmbientPBR_IBL:
+				return { {"IBL", "1"} };
+			case PS_AmbientPBR_AO_IBL:
+				return { {"SSAO", "1"}, {"IBL", "1"} };
+			case PS_ToneMap_Reinhard:
+				return { {"REINHARD", "1" } };
+			case PS_ToneMap_Linear:
+				return { {"LINEAR", "1" } };
+			case PS_ToneMap_Hable:
+				return { {"HABLE", "1" } };
+			case VS_DepthMapTransparent:
+			case PS_DepthMapTransparent:
+				return { {"TRANSPARENT", "1"} };
+			case CS_BlurVertical:
+				return { { "VERTICAL", "1" } };
+			default:
+				return {};
+			}
+		}
 	}
 
 	void ShaderCache::Initialize(ID3D11Device* _device)
@@ -431,14 +645,11 @@ namespace adria
 #else
 			ShaderInfo::FLAG_NONE;
 #endif
-		//compiled runtime
-		{
+		shader_info.shadersource = std::string(shaders_directory) + GetShaderSource(shader);
+		shader_info.stage = GetStage(shader);
+		shader_info.macros = GetShaderMacros(shader);
 
-			shader_info.shadersource = "";
-			shader_info.stage = GetStage(shader);
-			shader_info.defines = {};
-
-			ShaderCompiler::CompileShader(shader_info, shader_map[PS_DecalsModifyNormals]);
+		ShaderCompiler::CompileShader(shader_info, shader_map[shader]);
 	}
 
 	ShaderProgram* ShaderCache::GetShaderProgram(EShaderProgram shader_program)

@@ -72,15 +72,15 @@ namespace adria
 			}
 
 			std::vector<D3D_SHADER_MACRO> defines{};
-			defines.resize(input.defines.size());
+			defines.resize(input.macros.size());
 			
-			for (uint32_t i = 0; i < input.defines.size(); ++i)
+			for (uint32_t i = 0; i < input.macros.size(); ++i)
 			{
-				defines[i].Name = (char*)malloc(sizeof(input.defines[i].name));
-				defines[i].Definition = (char*)malloc(sizeof(input.defines[i].definition));
+				defines[i].Name = (char*)malloc(sizeof(input.macros[i].name));
+				defines[i].Definition = (char*)malloc(sizeof(input.macros[i].definition));
 
-				strcpy(const_cast<char*>(defines[i].Name), input.defines[i].name.c_str());
-				strcpy(const_cast<char*>(defines[i].Definition), input.defines[i].definition.c_str());
+				strcpy(const_cast<char*>(defines[i].Name), input.macros[i].name.c_str());
+				strcpy(const_cast<char*>(defines[i].Definition), input.macros[i].definition.c_str());
 			}
 			defines.push_back({ NULL,NULL });
 
