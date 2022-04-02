@@ -10,7 +10,7 @@ RWTexture2D<float4> NormalMap : register(u0);
 
 
 [numthreads(WORK_GROUP_DIM, WORK_GROUP_DIM, 1)]
-void cs_main(uint3 DTid : SV_DispatchThreadID)
+void main(uint3 DTid : SV_DispatchThreadID)
 {
 
     uint2 pixel_coord = DTid.xy;

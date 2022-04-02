@@ -2187,6 +2187,7 @@ namespace adria
 			}
 			ComboFilter("Shader", buf, IM_ARRAYSIZE(buf), ShaderNames, IM_ARRAYSIZE(ShaderNames), s, NULL);
 			if (ImGui::Button("Compile Shader")) ShaderCache::RecompileShader((EShader)s.activeIdx);
+			if (ImGui::Button("Compile All Shaders")) ShaderCache::RecompileAllShaders();
 		}
 		ImGui::End();
 	}

@@ -1,11 +1,13 @@
 
 #include <unordered_map>
-#include <set>
 #include <memory>
 #include <string_view>
+#include <execution>
 #include "ShaderCache.h"
 #include "../Graphics/ShaderProgram.h"
 #include "../Graphics/ShaderCompiler.h"
+#include "../Logging/Logger.h"
+#include "../Utilities/Timer.h"
 
 namespace adria
 {
@@ -674,7 +676,7 @@ namespace adria
 		device = _device;
 		CompileAllShaders();
 	}
-	void ShaderCache::RecompileShader(EShader shader)
+	void ShaderCache::RecompileShader(EShader shader, bool recreate_programs)
 	{
 		ShaderInfo shader_info{ .entrypoint = "main" };
 		shader_info.flags =
@@ -688,7 +690,7 @@ namespace adria
 		shader_info.macros = GetShaderMacros(shader);
 
 		ShaderCompiler::CompileShader(shader_info, shader_map[shader]);
-		RecreateDependentPrograms(shader);
+		if(recreate_programs) RecreateDependentPrograms(shader);
 	}
 
 	ShaderProgram* ShaderCache::GetShaderProgram(EShaderProgram shader_program)
@@ -696,9 +698,26 @@ namespace adria
 		return shader_program_map[shader_program].get();
 	}
 
-	void ShaderCache::RecompileChangedShaders()
+	void ShaderCache::RecompileAllShaders()
 	{
+		static EngineTimer timer;
+		ADRIA_LOG(INFO, "Recompiling all shaders...");
+		float32 const dt = timer.MarkInSeconds();
 
+		using UnderlyingType = std::underlying_type_t<EShader>;
+		
+		std::vector<UnderlyingType> shaders(EShader_Count);
+		std::iota(std::begin(shaders), std::begin(shaders), 0);
+		std::for_each(
+			std::execution::par,
+			std::begin(shaders),
+			std::end(shaders),
+			[](UnderlyingType s)
+			{
+				RecompileShader((EShader)s, false);
+			});
+		CreateAllPrograms();
+		ADRIA_LOG(INFO, "Compilation done in %f s", timer.ElapsedInSeconds());
 	}
 
 }
