@@ -42,6 +42,7 @@ Graphics engine written in C++/DirectX11. For successful build you will need tex
 * ImGui Editor
 * Model Loading with tinygltf
 * Profiler
+* Shader Hot Reloading
 * Camera and Light Frustum Culling
 
 
