@@ -3,25 +3,371 @@
 #include <memory>
 #include <string_view>
 #include <execution>
+#include <filesystem>
 #include "ShaderCache.h"
 #include "../Graphics/ShaderProgram.h"
 #include "../Graphics/ShaderCompiler.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/Timer.h"
 
+namespace fs = std::filesystem;
+
 namespace adria
 {
 
 	namespace
 	{
+		struct ShaderFileData
+		{
+			fs::file_time_type last_changed_timestamp;
+		};
+
 		ID3D11Device* device;
 		std::unordered_map<EShader, ShaderBlob> shader_map;
+		std::unordered_map<EShader, ShaderFileData> shader_file_data_map;
 		std::unordered_map<EShaderProgram, std::unique_ptr<ShaderProgram>> shader_program_map;
 		std::unordered_map<EShaderProgram, std::vector<EShader>> dependency_map;
 
-		constexpr std::string_view compiled_shaders_directory = "Resources/Compiled Shaders/";
-		constexpr std::string_view shaders_directory = "Resources/Shaders/";
-		constexpr std::string_view shaders_headers_directories[] = { "Resources/Shaders/Globals", "Resources/Shaders/Util/" };
+		std::string const compiled_shaders_directory = "Resources/Compiled Shaders/";
+		std::string const shaders_directory = "Resources/Shaders/";
+		std::string const shaders_headers_directories[] = { "Resources/Shaders/Globals", "Resources/Shaders/Util/" };
+
+		constexpr EShaderStage GetStage(EShader shader)
+		{
+			switch (shader)
+			{
+			case VS_Sky:
+			case VS_Texture:
+			case VS_Solid:
+			case VS_Billboard:
+			case VS_Sun:
+			case VS_Decals:
+			case VS_GBufferTerrain:
+			case VS_GBufferPBR:
+			case VS_ScreenQuad:
+			case VS_LensFlare:
+			case VS_Bokeh:
+			case VS_DepthMap:
+			case VS_DepthMapTransparent:
+			case VS_Ocean:
+			case VS_OceanLOD:
+			case VS_Voxelize:
+			case VS_VoxelizeDebug:
+			case VS_Foliage:
+			case VS_Particles:
+				return EShaderStage::VS;
+			case PS_Skybox:
+			case PS_HosekWilkieSky:
+			case PS_UniformColorSky:
+			case PS_Texture:
+			case PS_Solid:
+			case PS_Sun:
+			case PS_Billboard:
+			case PS_Decals:
+			case PS_DecalsModifyNormals:
+			case PS_GBufferPBR:
+			case PS_GBufferTerrain:
+			case PS_AmbientPBR:
+			case PS_AmbientPBR_AO:
+			case PS_AmbientPBR_IBL:
+			case PS_AmbientPBR_AO_IBL:
+			case PS_LightingPBR:
+			case PS_ClusterLightingPBR:
+			case PS_ToneMap_Reinhard:
+			case PS_ToneMap_Linear:
+			case PS_ToneMap_Hable:
+			case PS_FXAA:
+			case PS_TAA:
+			case PS_Copy:
+			case PS_Add:
+			case PS_SSAO:
+			case PS_HBAO:
+			case PS_SSR:
+			case PS_LensFlare:
+			case PS_GodRays:
+			case PS_DepthOfField:
+			case PS_Bokeh:
+			case PS_VolumetricClouds:
+			case PS_VelocityBuffer:
+			case PS_MotionBlur:
+			case PS_Fog:
+			case PS_DepthMap:
+			case PS_DepthMapTransparent:
+			case PS_VolumetricLight_Directional:
+			case PS_VolumetricLight_Spot:
+			case PS_VolumetricLight_Point:
+			case PS_VolumetricLight_DirectionalWithCascades:
+			case PS_Ocean:
+			case PS_OceanLOD:
+			case PS_VoxelGI:
+			case PS_Voxelize:
+			case PS_VoxelizeDebug:
+			case PS_Foliage:
+			case PS_Particles:
+				return EShaderStage::PS;
+			case GS_LensFlare:
+			case GS_Bokeh:
+			case GS_Voxelize:
+			case GS_VoxelizeDebug:
+				return EShaderStage::GS;
+			case CS_BlurHorizontal:
+			case CS_BlurVertical:
+			case CS_BokehGenerate:
+			case CS_BloomExtract:
+			case CS_BloomCombine:
+			case CS_OceanInitialSpectrum:
+			case CS_OceanPhase:
+			case CS_OceanSpectrum:
+			case CS_OceanFFT_Horizontal:
+			case CS_OceanFFT_Vertical:
+			case CS_OceanNormalMap:
+			case CS_TiledLighting:
+			case CS_ClusterBuilding:
+			case CS_ClusterCulling:
+			case CS_VoxelCopy:
+			case CS_VoxelSecondBounce:
+			case CS_ParticleInitDeadList:
+			case CS_ParticleReset:
+			case CS_ParticleEmit:
+			case CS_ParticleSimulate:
+			case CS_ParticleBitonicSortStep:
+			case CS_ParticleSort512:
+			case CS_ParticleSortInner512:
+			case CS_ParticleSortInitArgs:
+			case CS_Picker:
+				return EShaderStage::CS;
+			case HS_OceanLOD:
+				return EShaderStage::HS;
+			case DS_OceanLOD:
+				return EShaderStage::DS;
+			case EShader_Count:
+			default:
+				return EShaderStage::STAGE_COUNT;
+			}
+		}
+		constexpr std::string GetShaderSource(EShader shader)
+		{
+			switch (shader)
+			{
+			case VS_Sky:
+				return "Misc/SkyboxVS.hlsl";
+			case PS_Skybox:
+				return "Misc/SkyboxPS.hlsl";
+			case PS_HosekWilkieSky:
+				return "Misc/HosekWilkieSkyPS.hlsl";
+			case PS_UniformColorSky:
+				return "Misc/UniformColorSkyPS.hlsl";
+			case VS_Texture:
+				return "Misc/TextureVS.hlsl";
+			case PS_Texture:
+				return "Misc/TexturePS.hlsl";
+			case VS_Solid:
+				return "Misc/SolidVS.hlsl";
+			case PS_Solid:
+				return "Misc/SolidPS.hlsl";
+			case VS_Sun:
+				return "Misc/SunVS.hlsl";
+			case PS_Sun:
+				return "Misc/SunPS.hlsl";
+			case VS_Billboard:
+				return "Misc/BillboardVS.hlsl";
+			case PS_Billboard:
+				return "Misc/BillboardPS.hlsl";
+			case VS_Decals:
+				return "Misc/DecalVS.hlsl";
+			case PS_Decals:
+			case PS_DecalsModifyNormals:
+				return "Misc/DecalPS.hlsl";
+			case VS_GBufferPBR:
+				return "Deferred/GeometryPassPBR_VS.hlsl";
+			case PS_GBufferPBR:
+				return "Deferred/GeometryPassPBR_PS.hlsl";
+			case VS_GBufferTerrain:
+				return "Deferred/GeometryPassTerrain_VS.hlsl";
+			case PS_GBufferTerrain:
+				return "Deferred/GeometryPassTerrain_PS.hlsl";
+			case VS_ScreenQuad:
+				return "Postprocess/ScreenQuadVS.hlsl";
+			case PS_AmbientPBR:
+			case PS_AmbientPBR_AO:
+			case PS_AmbientPBR_IBL:
+			case PS_AmbientPBR_AO_IBL:
+				return "Deferred/AmbientPBR_PS.hlsl";
+			case PS_LightingPBR:
+				return "Deferred/LightingPBR_PS.hlsl";
+			case PS_ClusterLightingPBR:
+				return "Deferred/ClusterLightingPBR_PS.hlsl";
+			case PS_ToneMap_Reinhard:
+			case PS_ToneMap_Linear:
+			case PS_ToneMap_Hable:
+				return "Postprocess/ToneMapPS.hlsl";
+			case PS_FXAA:
+				return "Postprocess/FXAA.hlsl";
+			case PS_TAA:
+				return "Postprocess/TAA_PS.hlsl";
+			case PS_Copy:
+				return "Postprocess/CopyPS.hlsl";
+			case PS_Add:
+				return "Postprocess/AddPS.hlsl";
+			case PS_SSAO:
+				return "Postprocess/SSAO_PS.hlsl";
+			case PS_HBAO:
+				return "Postprocess/HBAO_PS.hlsl";
+			case PS_SSR:
+				return "Postprocess/SSR_PS.hlsl";
+			case VS_LensFlare:
+				return "Postprocess/LensFlareVS.hlsl";
+			case GS_LensFlare:
+				return "Postprocess/LensFlareGS.hlsl";
+			case PS_LensFlare:
+				return "Postprocess/LensFlarePS.hlsl";
+			case PS_GodRays:
+				return "Postprocess/GodRaysPS.hlsl";
+			case PS_DepthOfField:
+				return "Postprocess/DOF_PS.hlsl";
+			case VS_Bokeh:
+				return "Postprocess/BokehVS.hlsl";
+			case GS_Bokeh:
+				return "Postprocess/BokehGS.hlsl";
+			case PS_Bokeh:
+				return "Postprocess/BokehPS.hlsl";
+			case PS_VolumetricClouds:
+				return "Postprocess/CloudsPS.hlsl";
+			case PS_VelocityBuffer:
+				return "Postprocess/VelocityBufferPS.hlsl";
+			case PS_MotionBlur:
+				return "Postprocess/MotionBlurPS.hlsl";
+			case PS_Fog:
+				return "Postprocess/FogPS.hlsl";
+			case VS_DepthMap:
+			case VS_DepthMapTransparent:
+				return "Shadows/DepthMapVS.hlsl";
+			case PS_DepthMap:
+			case PS_DepthMapTransparent:
+				return "Shadows/DepthMapPS.hlsl";
+			case PS_VolumetricLight_Directional:
+				return "Postprocess/VolumetricLightDirectionalPS.hlsl";
+			case PS_VolumetricLight_DirectionalWithCascades:
+				return "Postprocess/VolumetricLightDirectionalCascadesPS.hlsl";
+			case PS_VolumetricLight_Spot:
+				return "Postprocess/VolumetricLightSpotPS.hlsl";
+			case PS_VolumetricLight_Point:
+				return "Postprocess/VolumetricLightPointPS.hlsl";
+			case CS_BlurHorizontal:
+			case CS_BlurVertical:
+				return "Postprocess/BlurCS.hlsl";
+			case CS_BokehGenerate:
+				return "Postprocess/BokehCS.hlsl";
+			case CS_BloomExtract:
+				return "Postprocess/BloomExtractCS.hlsl";
+			case CS_BloomCombine:
+				return "Postprocess/BloomCombineCS.hlsl";
+			case CS_OceanInitialSpectrum:
+				return "Ocean/InitialSpectrumCS.hlsl";
+			case CS_OceanPhase:
+				return "Ocean/PhaseCS.hlsl";
+			case CS_OceanSpectrum:
+				return "Ocean/SpectrumCS.hlsl";
+			case CS_OceanFFT_Horizontal:
+				return "Ocean/FFT_horizontalCS.hlsl";
+			case CS_OceanFFT_Vertical:
+				return "Ocean/FFT_verticalCS.hlsl";
+			case CS_OceanNormalMap:
+				return "Ocean/NormalMapCS.hlsl";
+			case CS_TiledLighting:
+				return "Deferred/TiledLightingCS.hlsl";
+			case CS_ClusterBuilding:
+				return "Deferred/ClusterBuildingCS.hlsl";
+			case CS_ClusterCulling:
+				return "Deferred/ClusterCullingCS.hlsl";
+			case CS_VoxelCopy:
+				return "GI/VoxelCopyCS.hlsl";
+			case CS_VoxelSecondBounce:
+				return "GI/VoxelSecondBounceCS.hlsl";
+			case VS_Ocean:
+				return "Ocean/OceanVS.hlsl";
+			case PS_Ocean:
+				return "Ocean/OceanPS.hlsl";
+			case VS_OceanLOD:
+				return "Ocean/OceanLodVS.hlsl";
+			case HS_OceanLOD:
+				return "Ocean/OceanLodHS.hlsl";
+			case DS_OceanLOD:
+				return "Ocean/OceanLodDS.hlsl";
+			case PS_OceanLOD:
+				return "Ocean/OceanLodPS.hlsl";
+			case VS_Voxelize:
+				return "GI/VoxelizeVS.hlsl";
+			case GS_Voxelize:
+				return "GI/VoxelizeGS.hlsl";
+			case PS_Voxelize:
+				return "GI/VoxelizePS.hlsl";
+			case VS_VoxelizeDebug:
+				return "GI/VoxelDebugVS.hlsl";
+			case GS_VoxelizeDebug:
+				return "GI/VoxelDebugGS.hlsl";
+			case PS_VoxelizeDebug:
+				return "GI/VoxelDebugPS.hlsl";
+			case PS_VoxelGI:
+				return "GI/VoxelGI_PS.hlsl";
+			case VS_Foliage:
+				return "Misc/FoliageVS.hlsl";
+			case PS_Foliage:
+				return "Misc/FoliagePS.hlsl";
+			case CS_Picker:
+				return "Misc/PickerCS.hlsl";
+			case VS_Particles:
+				return "Particles/ParticleVS.hlsl";
+			case PS_Particles:
+				return "Particles/ParticlePS.hlsl";
+			case CS_ParticleInitDeadList:
+				return "Particles/InitDeadListCS.hlsl";
+			case CS_ParticleReset:
+				return "Particles/ParticleResetCS.hlsl";
+			case CS_ParticleEmit:
+				return "Particles/ParticleEmitCS.hlsl";
+			case CS_ParticleSimulate:
+				return "Particles/ParticleSimulateCS.hlsl";
+			case CS_ParticleBitonicSortStep:
+				return "Particles/BitonicSortStepCS.hlsl";
+			case CS_ParticleSort512:
+				return "Particles/Sort512CS.hlsl";
+			case CS_ParticleSortInner512:
+				return "Particles/SortInner512CS.hlsl";
+			case CS_ParticleSortInitArgs:
+				return "Particles/InitSortDispatchArgsCS.hlsl";
+			case EShader_Count:
+			default:
+				return "";
+			}
+		}
+		constexpr std::vector<ShaderMacro> GetShaderMacros(EShader shader)
+		{
+			switch (shader)
+			{
+			case PS_DecalsModifyNormals:
+				return { {"DECAL_MODIFY_NORMALS", ""} };
+			case PS_AmbientPBR_AO:
+				return { {"SSAO", "1"} };
+			case PS_AmbientPBR_IBL:
+				return { {"IBL", "1"} };
+			case PS_AmbientPBR_AO_IBL:
+				return { {"SSAO", "1"}, {"IBL", "1"} };
+			case PS_ToneMap_Reinhard:
+				return { {"REINHARD", "1" } };
+			case PS_ToneMap_Linear:
+				return { {"LINEAR", "1" } };
+			case PS_ToneMap_Hable:
+				return { {"HABLE", "1" } };
+			case VS_DepthMapTransparent:
+			case PS_DepthMapTransparent:
+				return { {"TRANSPARENT", "1"} };
+			case CS_BlurVertical:
+				return { { "VERTICAL", "1" } };
+			default:
+				return {};
+			}
+		}
 
 		void AddDependency(EShaderProgram program, std::vector<EShader> const& shaders)
 		{
@@ -293,6 +639,17 @@ namespace adria
 
 			CreateAllPrograms();
 		}
+		void FillShaderFileDataMap()
+		{
+			using UnderlyingType = std::underlying_type_t<EShader>;
+			for (UnderlyingType i = 0; i < EShader_Count; ++i)
+			{
+				ShaderFileData file_data{
+					.last_changed_timestamp = std::filesystem::last_write_time(fs::path(shaders_directory + GetShaderSource((EShader)i)))
+				};
+				shader_file_data_map[(EShader)i] = file_data;
+			}
+		}
 
 		void RecreateDependentPrograms(EShader shader)
 		{
@@ -333,341 +690,13 @@ namespace adria
 				}
 			}
 		}
-		constexpr EShaderStage GetStage(EShader shader)
+		bool HasShaderChanged(EShader shader)
 		{
-			switch (shader)
-			{
-			case VS_Sky:
-			case VS_Texture:
-			case VS_Solid:
-			case VS_Billboard:
-			case VS_Sun:
-			case VS_Decals:
-			case VS_GBufferTerrain:
-			case VS_GBufferPBR:
-			case VS_ScreenQuad:
-			case VS_LensFlare:
-			case VS_Bokeh:
-			case VS_DepthMap:
-			case VS_DepthMapTransparent:
-			case VS_Ocean:
-			case VS_OceanLOD:
-			case VS_Voxelize:
-			case VS_VoxelizeDebug:
-			case VS_Foliage:
-			case VS_Particles:
-				return EShaderStage::VS;
-			case PS_Skybox:
-			case PS_HosekWilkieSky:
-			case PS_UniformColorSky:
-			case PS_Texture:
-			case PS_Solid:
-			case PS_Sun:
-			case PS_Billboard:
-			case PS_Decals:
-			case PS_DecalsModifyNormals:
-			case PS_GBufferPBR:
-			case PS_GBufferTerrain:
-			case PS_AmbientPBR:
-			case PS_AmbientPBR_AO:
-			case PS_AmbientPBR_IBL:
-			case PS_AmbientPBR_AO_IBL:
-			case PS_LightingPBR:
-			case PS_ClusterLightingPBR:
-			case PS_ToneMap_Reinhard:
-			case PS_ToneMap_Linear:
-			case PS_ToneMap_Hable:
-			case PS_FXAA:
-			case PS_TAA:
-			case PS_Copy:
-			case PS_Add:
-			case PS_SSAO:
-			case PS_HBAO:
-			case PS_SSR:
-			case PS_LensFlare:
-			case PS_GodRays:
-			case PS_DepthOfField:
-			case PS_Bokeh:
-			case PS_VolumetricClouds:
-			case PS_VelocityBuffer:
-			case PS_MotionBlur:
-			case PS_Fog:
-			case PS_DepthMap:
-			case PS_DepthMapTransparent:
-			case PS_VolumetricLight_Directional:
-			case PS_VolumetricLight_Spot:
-			case PS_VolumetricLight_Point:
-			case PS_VolumetricLight_DirectionalWithCascades:
-			case PS_Ocean:
-			case PS_OceanLOD:
-			case PS_VoxelGI:
-			case PS_Voxelize:
-			case PS_VoxelizeDebug:
-			case PS_Foliage:
-			case PS_Particles:
-				return EShaderStage::PS;
-			case GS_LensFlare:
-			case GS_Bokeh:
-			case GS_Voxelize:
-			case GS_VoxelizeDebug:
-				return EShaderStage::GS;
-			case CS_BlurHorizontal:
-			case CS_BlurVertical:
-			case CS_BokehGenerate:
-			case CS_BloomExtract:
-			case CS_BloomCombine:
-			case CS_OceanInitialSpectrum:
-			case CS_OceanPhase:	
-			case CS_OceanSpectrum:
-			case CS_OceanFFT_Horizontal:
-			case CS_OceanFFT_Vertical:
-			case CS_OceanNormalMap:
-			case CS_TiledLighting:
-			case CS_ClusterBuilding:
-			case CS_ClusterCulling:
-			case CS_VoxelCopy:
-			case CS_VoxelSecondBounce:
-			case CS_ParticleInitDeadList:
-			case CS_ParticleReset:
-			case CS_ParticleEmit:
-			case CS_ParticleSimulate:
-			case CS_ParticleBitonicSortStep:
-			case CS_ParticleSort512:
-			case CS_ParticleSortInner512:
-			case CS_ParticleSortInitArgs:
-			case CS_Picker:
-				return EShaderStage::CS;
-			case HS_OceanLOD:
-				return EShaderStage::HS;
-			case DS_OceanLOD:
-				return EShaderStage::DS;
-			case EShader_Count:
-			default:
-				return EShaderStage::STAGE_COUNT;
-			}
-		}
-		constexpr std::string GetShaderSource(EShader shader)
-		{
-			switch (shader)
-			{
-			case VS_Sky:
-				return "Misc/SkyboxVS.hlsl";
-			case PS_Skybox:
-				return "Misc/SkyboxPS.hlsl";
-			case PS_HosekWilkieSky:
-				return "Misc/HosekWilkieSkyPS.hlsl";
-			case PS_UniformColorSky:
-				return "Misc/UniformColorSkyPS.hlsl";
-			case VS_Texture:
-				return "Misc/TextureVS.hlsl";
-			case PS_Texture:
-				return "Misc/TexturePS.hlsl";
-			case VS_Solid:
-				return "Misc/SolidVS.hlsl";
-			case PS_Solid:
-				return "Misc/SolidPS.hlsl";
-			case VS_Sun:
-				return "Misc/SunVS.hlsl";
-			case PS_Sun:
-				return "Misc/SunPS.hlsl";
-			case VS_Billboard:
-				return "Misc/BillboardVS.hlsl";
-			case PS_Billboard:
-				return "Misc/BillboardPS.hlsl";
-			case VS_Decals:
-				return "Misc/DecalVS.hlsl";
-			case PS_Decals:
-			case PS_DecalsModifyNormals:
-				return "Misc/DecalPS.hlsl";
-			case VS_GBufferPBR:
-				return "Deferred/GeometryPassPBR_VS.hlsl";
-			case PS_GBufferPBR:
-				return "Deferred/GeometryPassPBR_PS.hlsl";
-			case VS_GBufferTerrain:
-				return "Deferred/GeometryPassTerrain_VS.hlsl";
-			case PS_GBufferTerrain:
-				return "Deferred/GeometryPassTerrain_PS.hlsl";
-			case VS_ScreenQuad:
-				return "Postprocess/ScreenQuadVS.hlsl";
-			case PS_AmbientPBR:
-			case PS_AmbientPBR_AO:
-			case PS_AmbientPBR_IBL:
-			case PS_AmbientPBR_AO_IBL:
-				return "Deferred/AmbientPBR_PS.hlsl";
-			case PS_LightingPBR:
-				return "Deferred/LightingPBR_PS.hlsl";
-			case PS_ClusterLightingPBR:
-				return "Deferred/ClusterLightingPBR_PS.hlsl";
-			case PS_ToneMap_Reinhard:
-			case PS_ToneMap_Linear:
-			case PS_ToneMap_Hable:
-				return "Postprocess/ToneMapPS.hlsl";
-			case PS_FXAA:
-				return "Postprocess/FXAA.hlsl";
-			case PS_TAA:
-				return "Postprocess/TAA_PS.hlsl";
-			case PS_Copy:
-				return "Postprocess/CopyPS.hlsl";
-			case PS_Add:
-				return "Postprocess/AddPS.hlsl";
-			case PS_SSAO:
-				return "Postprocess/SSAO_PS.hlsl";
-			case PS_HBAO:
-				return "Postprocess/HBAO_PS.hlsl";
-			case PS_SSR:
-				return "Postprocess/SSR_PS.hlsl";
-			case VS_LensFlare:
-				return "Postprocess/LensFlareVS.hlsl";
-			case GS_LensFlare:
-				return "Postprocess/LensFlareGS.hlsl";
-			case PS_LensFlare:
-				return "Postprocess/LensFlarePS.hlsl";
-			case PS_GodRays:
-				return "Postprocess/GodRaysPS.hlsl";
-			case PS_DepthOfField:
-				return "Postprocess/DOF_PS.hlsl";
-			case VS_Bokeh:
-				return "Postprocess/BokehVS.hlsl";
-			case GS_Bokeh:
-				return "Postprocess/BokehGS.hlsl";
-			case PS_Bokeh:
-				return "Postprocess/BokehPS.hlsl";
-			case PS_VolumetricClouds:
-				return "Postprocess/CloudsPS.hlsl";
-			case PS_VelocityBuffer:
-				return "Postprocess/VelocityBufferPS.hlsl";
-			case PS_MotionBlur:
-				return "Postprocess/MotionBlurPS.hlsl";
-			case PS_Fog:
-				return "Postprocess/FogPS.hlsl";
-			case VS_DepthMap:
-			case VS_DepthMapTransparent:
-				return "Shadows/DepthMapVS.hlsl";
-			case PS_DepthMap:
-			case PS_DepthMapTransparent:
-				return "Shadows/DepthMapPS.hlsl";
-			case PS_VolumetricLight_Directional:
-				return "Postprocess/VolumetricLightDirectionalPS.hlsl";
-			case PS_VolumetricLight_DirectionalWithCascades:
-				return "Postprocess/VolumetricLightDirectionalCascadesPS.hlsl";
-			case PS_VolumetricLight_Spot:
-				return "Postprocess/VolumetricLightSpotPS.hlsl";
-			case PS_VolumetricLight_Point:
-				return "Postprocess/VolumetricLightPointPS.hlsl";
-			case CS_BlurHorizontal:
-			case CS_BlurVertical:
-				return "Postprocess/BlurCS.hlsl";
-			case CS_BokehGenerate:
-				return "Postprocess/BokehCS.hlsl";
-			case CS_BloomExtract:
-				return "Postprocess/BloomExtractCS.hlsl";
-			case CS_BloomCombine:
-				return "Postprocess/BloomCombineCS.hlsl";
-			case CS_OceanInitialSpectrum:
-				return "Ocean/InitialSpectrumCS.hlsl";
-			case CS_OceanPhase:
-				return "Ocean/PhaseCS.hlsl";
-			case CS_OceanSpectrum:
-				return "Ocean/SpectrumCS.hlsl";
-			case CS_OceanFFT_Horizontal:
-				return "Ocean/FFT_horizontalCS.hlsl";
-			case CS_OceanFFT_Vertical:
-				return "Ocean/FFT_verticalCS.hlsl";
-			case CS_OceanNormalMap:
-				return "Ocean/NormalMapCS.hlsl";
-			case CS_TiledLighting:
-				return "Deferred/TiledLightingCS.hlsl";
-			case CS_ClusterBuilding:
-				return "Deferred/ClusterBuildingCS.hlsl";
-			case CS_ClusterCulling:
-				return "Deferred/ClusterCullingCS.hlsl";
-			case CS_VoxelCopy:
-				return "GI/VoxelCopyCS.hlsl";
-			case CS_VoxelSecondBounce:
-				return "GI/VoxelSecondBounceCS.hlsl";
-			case VS_Ocean:
-				return "Ocean/OceanVS.hlsl";
-			case PS_Ocean:
-				return "Ocean/OceanPS.hlsl";
-			case VS_OceanLOD:
-				return "Ocean/OceanLodVS.hlsl";
-			case HS_OceanLOD:
-				return "Ocean/OceanLodHS.hlsl";
-			case DS_OceanLOD:
-				return "Ocean/OceanLodDS.hlsl";
-			case PS_OceanLOD:
-				return "Ocean/OceanLodPS.hlsl";
-			case VS_Voxelize:
-				return "GI/VoxelizeVS.hlsl";
-			case GS_Voxelize:
-				return "GI/VoxelizeGS.hlsl";
-			case PS_Voxelize:
-				return "GI/VoxelizePS.hlsl";
-			case VS_VoxelizeDebug:
-				return "GI/VoxelDebugVS.hlsl";
-			case GS_VoxelizeDebug:
-				return "GI/VoxelDebugGS.hlsl";
-			case PS_VoxelizeDebug:
-				return "GI/VoxelDebugPS.hlsl";
-			case PS_VoxelGI:
-				return "GI/VoxelGI_PS.hlsl";
-			case VS_Foliage:
-				return "Misc/FoliageVS.hlsl";
-			case PS_Foliage:
-				return "Misc/FoliagePS.hlsl";
-			case CS_Picker:
-				return "Misc/PickerCS.hlsl";
-			case VS_Particles:
-				return "Particles/ParticleVS.hlsl";
-			case PS_Particles:
-				return "Particles/ParticlePS.hlsl";
-			case CS_ParticleInitDeadList:
-				return "Particles/InitDeadListCS.hlsl";
-			case CS_ParticleReset:
-				return "Particles/ParticleResetCS.hlsl";
-			case CS_ParticleEmit:
-				return "Particles/ParticleEmitCS.hlsl";
-			case CS_ParticleSimulate:
-				return "Particles/ParticleSimulateCS.hlsl";
-			case CS_ParticleBitonicSortStep:
-				return "Particles/BitonicSortStepCS.hlsl";
-			case CS_ParticleSort512:
-				return "Particles/Sort512CS.hlsl";
-			case CS_ParticleSortInner512:
-				return "Particles/SortInner512CS.hlsl";
-			case CS_ParticleSortInitArgs:
-				return "Particles/InitSortDispatchArgsCS.hlsl";
-			case EShader_Count:
-			default:
-				return "";
-			}
-		}
-		constexpr std::vector<ShaderMacro> GetShaderMacros(EShader shader)
-		{
-			switch (shader)
-			{
-			case PS_DecalsModifyNormals:
-				return { {"DECAL_MODIFY_NORMALS", ""} };
-			case PS_AmbientPBR_AO:
-				return { {"SSAO", "1"} };
-			case PS_AmbientPBR_IBL:
-				return { {"IBL", "1"} };
-			case PS_AmbientPBR_AO_IBL:
-				return { {"SSAO", "1"}, {"IBL", "1"} };
-			case PS_ToneMap_Reinhard:
-				return { {"REINHARD", "1" } };
-			case PS_ToneMap_Linear:
-				return { {"LINEAR", "1" } };
-			case PS_ToneMap_Hable:
-				return { {"HABLE", "1" } };
-			case VS_DepthMapTransparent:
-			case PS_DepthMapTransparent:
-				return { {"TRANSPARENT", "1"} };
-			case CS_BlurVertical:
-				return { { "VERTICAL", "1" } };
-			default:
-				return {};
-			}
+			std::string shader_source = GetShaderSource(shader);
+			fs::file_time_type curr_timestamp = std::filesystem::last_write_time(fs::path(shaders_directory + GetShaderSource(shader)));
+			bool has_changed = shader_file_data_map[shader].last_changed_timestamp != curr_timestamp;
+			if (has_changed) shader_file_data_map[shader].last_changed_timestamp = curr_timestamp;
+			return has_changed;
 		}
 	}
 
@@ -675,6 +704,7 @@ namespace adria
 	{
 		device = _device;
 		CompileAllShaders();
+		FillShaderFileDataMap();
 	}
 	void ShaderCache::RecompileShader(EShader shader, bool recreate_programs)
 	{
@@ -698,18 +728,39 @@ namespace adria
 		return shader_program_map[shader_program].get();
 	}
 
+	void ShaderCache::RecompileChangedShaders()
+	{
+		ADRIA_LOG(INFO, "Recompiling changed shaders...");
+		using UnderlyingType = std::underlying_type_t<EShader>;
+		static EngineTimer timer;
+
+		timer.Mark();
+		std::vector<UnderlyingType> shaders(EShader_Count);
+		std::iota(std::begin(shaders), std::end(shaders), 0);
+		std::for_each(
+			std::execution::seq,
+			std::begin(shaders),
+			std::end(shaders),
+			[](UnderlyingType s)
+			{
+				if (HasShaderChanged((EShader)s))
+				{
+					RecompileShader((EShader)s, false);
+					RecreateDependentPrograms((EShader)s);
+				}
+			});
+		ADRIA_LOG(INFO, "Compilation done in %f s!", timer.MarkInSeconds());
+	}
+
 	void ShaderCache::RecompileAllShaders()
 	{
-		static EngineTimer timer;
 		ADRIA_LOG(INFO, "Recompiling all shaders...");
-		float32 const dt = timer.MarkInSeconds();
-
 		using UnderlyingType = std::underlying_type_t<EShader>;
-		
+
 		std::vector<UnderlyingType> shaders(EShader_Count);
-		std::iota(std::begin(shaders), std::begin(shaders), 0);
+		std::iota(std::begin(shaders), std::end(shaders), 0);
 		std::for_each(
-			std::execution::par,
+			std::execution::par_unseq,
 			std::begin(shaders),
 			std::end(shaders),
 			[](UnderlyingType s)
@@ -717,7 +768,7 @@ namespace adria
 				RecompileShader((EShader)s, false);
 			});
 		CreateAllPrograms();
-		ADRIA_LOG(INFO, "Compilation done in %f s", timer.ElapsedInSeconds());
+		ADRIA_LOG(INFO, "Compilation done!");
 	}
 
 }

@@ -188,7 +188,9 @@
     <ClCompile Include="Rendering\ParticleRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ShaderCache.cpp" />
+    <ClCompile Include="Rendering\ShaderCache.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">

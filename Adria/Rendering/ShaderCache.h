@@ -15,6 +15,8 @@ namespace adria
 
 		ShaderProgram* GetShaderProgram(EShaderProgram shader_program);
 
+		void RecompileChangedShaders();
+
 		void RecompileAllShaders();
 	};
 
