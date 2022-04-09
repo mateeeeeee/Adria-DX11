@@ -131,7 +131,7 @@
     <ClCompile Include="Graphics\Profiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Utilities\AppException.cpp">
+    <ClCompile Include="Utilities\AdriaException.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGui\imgui.cpp">
@@ -364,7 +364,7 @@
     <ClInclude Include="Utilities\Timer.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\AppException.h">
+    <ClInclude Include="Utilities\AdriaException.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\StructuredBuffer.h">
