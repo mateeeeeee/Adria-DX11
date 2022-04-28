@@ -529,6 +529,7 @@
     <None Include="Resources\Shaders\Particles\ParticleGlobals.hlsli">
       <Filter>Shaders\Particles</Filter>
     </None>
+    <None Include="scene.json" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\Misc\SkyboxPS.hlsl">
