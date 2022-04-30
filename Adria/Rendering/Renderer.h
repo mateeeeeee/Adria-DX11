@@ -15,7 +15,7 @@
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/ShaderProgram.h"
 #include "../Graphics/RenderPass.h"
-#include "../Graphics/Profiler.h"
+#include "../Graphics/GPUProfiler.h"
 #include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/VertexBuffer.h"
 #include "../Graphics/IndexBuffer.h"
@@ -72,7 +72,7 @@ namespace adria
 		TextureManager texture_manager;
 		Camera const* camera;
 		RendererSettings renderer_settings;
-		Profiler profiler;
+		GPUProfiler profiler;
 		ProfilerSettings profiler_settings;
 		ParticleRenderer particle_renderer;
 

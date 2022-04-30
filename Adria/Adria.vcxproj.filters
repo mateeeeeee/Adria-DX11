@@ -128,7 +128,7 @@
     <ClCompile Include="Rendering\Camera.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\Profiler.cpp">
+    <ClCompile Include="Graphics\GPUProfiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\AdriaException.cpp">
@@ -190,6 +190,9 @@
     </ClCompile>
     <ClCompile Include="Rendering\ShaderCache.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Utilities\CPUProfiler.cpp">
+      <Filter>Utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -325,7 +328,7 @@
     <ClInclude Include="Rendering\Camera.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Profiler.h">
+    <ClInclude Include="Graphics\GPUProfiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\TextureCube.h">
@@ -474,6 +477,9 @@
     </ClInclude>
     <ClInclude Include="Rendering\ShaderCache.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\CPUProfiler.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

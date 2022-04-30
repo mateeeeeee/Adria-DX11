@@ -1,4 +1,4 @@
-#include "Profiler.h"
+#include "GPUProfiler.h"
 #include "../Core/Macros.h"
 #include "../Logging/Logger.h"
 
@@ -6,7 +6,7 @@
 
 namespace adria
 {
-	Profiler::Profiler(ID3D11Device* device) : device(device), queries{}
+	GPUProfiler::GPUProfiler(ID3D11Device* device) : device(device), queries{}
 	{
 
 		D3D11_QUERY_DESC query_desc{};
@@ -24,7 +24,7 @@ namespace adria
 		}
 	}
 
-	void Profiler::BeginBlockProfiling(ID3D11DeviceContext* context, EProfilerBlock block)
+	void GPUProfiler::BeginProfileBlock(ID3D11DeviceContext* context, EProfilerBlock block)
 	{
 		UINT64 i = current_frame % FRAME_COUNT;
 		QueryData& query_data = queries[i][static_cast<size_t>(block)];
@@ -35,7 +35,7 @@ namespace adria
 		query_data.begin_called = true;
 	}
 
-	void Profiler::EndBlockProfiling(ID3D11DeviceContext* context, EProfilerBlock block)
+	void GPUProfiler::EndProfileBlock(ID3D11DeviceContext* context, EProfilerBlock block)
 	{
 		UINT64 i = current_frame % FRAME_COUNT;
 		QueryData& query_data = queries[i][static_cast<size_t>(block)];
@@ -46,7 +46,7 @@ namespace adria
 		query_data.end_called = true;
 	}
 
-	std::vector<std::string> Profiler::GetProfilingResults(ID3D11DeviceContext* context, bool log_results)
+	std::vector<std::string> GPUProfiler::GetProfilingResults(ID3D11DeviceContext* context, bool log_results)
 	{
 		if (current_frame < FRAME_COUNT - 1)
 		{

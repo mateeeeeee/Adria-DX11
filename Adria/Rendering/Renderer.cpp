@@ -1963,7 +1963,7 @@ namespace adria
 	void Renderer::PassGBuffer()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::GBufferPass, profiler_settings.profile_gbuffer_pass);
 		SCOPED_ANNOTATION(gfx->Annotation(), L"GBuffer Pass");
 
 		std::vector<ID3D11ShaderResourceView*> nullSRVs(gbuffer.size() + 1, nullptr);
@@ -2118,7 +2118,7 @@ namespace adria
 	{
 		if (reg.size<Decal>() == 0) return;
 		ID3D11DeviceContext* context = gfx->Context();
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::DecalPass, profiler_settings.profile_decal_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::DecalPass, profiler_settings.profile_decal_pass);
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Decal Pass");
 
 		struct DecalCBuffer
@@ -2266,7 +2266,7 @@ namespace adria
 	void Renderer::PassDeferredLighting()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::DeferredPass, profiler_settings.profile_deferred_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::DeferredPass, profiler_settings.profile_deferred_pass);
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Deferred Lighting Pass");
 
 		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
@@ -2532,7 +2532,7 @@ namespace adria
 	void Renderer::PassForward()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::ForwardPass, profiler_settings.profile_forward_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::ForwardPass, profiler_settings.profile_forward_pass);
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Forward Pass");
 
 		forward_pass.Begin(context); 
@@ -2696,7 +2696,7 @@ namespace adria
 	void Renderer::PassPostprocessing()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::Postprocessing, profiler_settings.profile_postprocessing);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::Postprocessing, profiler_settings.profile_postprocessing);
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Postprocessing Pass");
 
 		PassVelocityBuffer();
@@ -3156,7 +3156,7 @@ namespace adria
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 		if (reg.size<Emitter>() == 0) return;
-		SCOPED_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
+		SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, context, EProfilerBlock::ParticlesPass, profiler_settings.profile_particles_pass);
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Pass");
 
 		particle_pass.Begin(context);
