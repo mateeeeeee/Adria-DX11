@@ -8,7 +8,11 @@ namespace adria
 	namespace
 	{
 		Timer<> cpu_profiler_timer;
+	}
 
+	CPUProfiler::CPUProfiler(size_t max_blocks /*= 16*/)
+	{
+		cpu_time_map.reserve(max_blocks);
 	}
 
 	void CPUProfiler::BeginProfileBlock(char const* name)
@@ -39,12 +43,5 @@ namespace adria
 		}
 		return results;
 	}
-
-	CPUProfiler::CPUProfiler(size_t max_blocks /*= 16*/)
-	{
-		cpu_time_map.reserve(max_blocks);
-	}
-
-
 }
 
