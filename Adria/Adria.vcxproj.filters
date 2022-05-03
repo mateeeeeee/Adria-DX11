@@ -244,9 +244,6 @@
     <ClInclude Include="Math\Constants.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Events.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Input\Input.h">
       <Filter>Input</Filter>
     </ClInclude>
@@ -480,6 +477,9 @@
     </ClInclude>
     <ClInclude Include="Utilities\CPUProfiler.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Events\Delegate.h">
+      <Filter>Events</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

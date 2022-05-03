@@ -1,6 +1,7 @@
 #pragma once
 #include "../Core/Definitions.h"
 #include "../Core/Windows.h"
+#include "../Events/Delegate.h"
 #include <array>
 #include <unordered_map>
 
@@ -30,18 +31,28 @@ namespace adria
         Home,
         End,
         Insert,
-        ClickLeft,
-        ClickMiddle,
-        ClickRight
+        MouseLeft,
+        MouseMiddle,
+        MouseRight
     };
 
     struct window_message_t;
-    class EventQueue;
+
+    DECLARE_EVENT(WindowResizedEvent, Input, uint32, uint32);
+    DECLARE_EVENT(LeftMouseClickedEvent, Input, int32, int32);
+	DECLARE_EVENT(MiddleMouseScrolledEvent, Input, int32);
+
+    struct InputEvents
+    {
+        MiddleMouseScrolledEvent scroll_mouse_event;
+		LeftMouseClickedEvent left_mouse_clicked;
+		WindowResizedEvent window_resized_event;
+    };
 
     class Input
     {
     public:
-        Input(EventQueue& event_queue);
+        explicit Input();
 
         void NewFrame();
 
@@ -62,10 +73,10 @@ namespace adria
         float32 GetMouseDeltaY()     const { return mouse_position_y - prev_mouse_position_y;/*return mouse_delta_y;*/ }
         float32 GetMouseWheelDelta() const { return m_mouse_wheel_delta; }
 
+		InputEvents& GetInputEvents() { return input_events; }
 
     private:
-        EventQueue& event_queue;
-
+        InputEvents input_events;
         std::unordered_map<EKeyCode, bool> keys;
         std::unordered_map<EKeyCode, bool> prev_keys;
         // Mouse

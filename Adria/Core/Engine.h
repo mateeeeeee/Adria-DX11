@@ -43,17 +43,16 @@ namespace adria
 
 	private:
 		bool vsync;
-		EventQueue event_queue; 
-		Input input;
 		tecs::registry reg;
 		CameraManager camera_manager;
-
+		Input input;
 		std::unique_ptr<GraphicsCoreDX11> gfx;
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<EntityLoader> entity_loader;
 
 		SceneViewport scene_viewport_data;
 		bool editor_active = true;
+
 	private:
 
 		virtual void InitializeScene(SceneConfig const& config);

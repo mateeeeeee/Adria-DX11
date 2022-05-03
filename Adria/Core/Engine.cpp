@@ -1,7 +1,6 @@
 #include "../Tasks/TaskSystem.h"
 #include "Engine.h"
 #include "Window.h"
-#include "Events.h"
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
 #include "../Editor/GUI.h"
@@ -201,7 +200,7 @@ namespace adria
 
 	using namespace tecs;
 
-	Engine::Engine(engine_init_t const& init)  : vsync{ init.vsync }, event_queue {}, input{ event_queue }, camera_manager{ input },
+	Engine::Engine(engine_init_t const& init) : vsync{ init.vsync }, input{}, camera_manager{ input },
 		scene_viewport_data{}
 	{
 		TaskSystem::Initialize();
@@ -211,20 +210,13 @@ namespace adria
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx->Device(), renderer->GetTextureManager());
 
-		event_queue.Subscribe<ResizeEvent>([this](ResizeEvent const& e)
-			{
-				camera_manager.OnResize(e.width, e.height);
-				gfx->ResizeBackbuffer(e.width, e.height);
-				renderer->OnResize(e.width, e.height);
-			});
-		event_queue.Subscribe<ScrollEvent>([this](ScrollEvent const& e)
-			{
-				camera_manager.OnScroll(e.scroll);
-			});
-		event_queue.Subscribe<LeftMouseClickedEvent>([this](LeftMouseClickedEvent const& e)
-			{
-				renderer->OnLeftMouseClicked();
-			});
+		InputEvents& input_events = input.GetInputEvents();
+
+		input_events.window_resized_event.AddMember(&CameraManager::OnResize, camera_manager);
+		input_events.window_resized_event.AddMember(&GraphicsCoreDX11::ResizeBackbuffer, *gfx);
+		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
+		input_events.scroll_mouse_event.AddMember(&CameraManager::OnScroll, camera_manager);
+		input_events.left_mouse_clicked.Add([this](int32 mx, int32 my) { renderer->OnLeftMouseClicked(); });
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value())
@@ -254,15 +246,13 @@ namespace adria
 		if (Window::IsActive())
 		{
 			input.NewFrame();
-			event_queue.ProcessEvents();
-
+			
 			Update(dt);
 			Render(settings);
 		}
 		else
 		{
 			input.NewFrame();
-			event_queue.ProcessEvents();
 		}
 	}
 

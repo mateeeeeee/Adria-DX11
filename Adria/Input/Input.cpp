@@ -2,8 +2,6 @@
 #include "Input.h"
 #include "../Core/Window.h"
 #include "../Logging/Logger.h"
-#include "../Events/EventQueue.h"
-#include "../Core/Events.h"
 
 namespace adria
 {
@@ -14,7 +12,7 @@ namespace adria
     }
 
 
-    Input::Input(EventQueue& event_queue) : keys{}, prev_keys{}, event_queue{ event_queue }
+    Input::Input() : keys{}, prev_keys{}, input_events{}
     {
         HWND handle = static_cast<HWND>(Window::Handle());
         if (!handle)
@@ -49,9 +47,9 @@ namespace adria
             //mouse 
             {
                 // Keys
-                keys[EKeyCode::ClickLeft] = (::GetKeyState(VK_LBUTTON) & 0x8000) != 0; // Left button pressed
-                keys[EKeyCode::ClickMiddle] = (::GetKeyState(VK_MBUTTON) & 0x8000) != 0; // Middle button pressed
-                keys[EKeyCode::ClickRight] = (::GetKeyState(VK_RBUTTON) & 0x8000) != 0; // Right button pressed
+                keys[EKeyCode::MouseLeft] = (::GetKeyState(VK_LBUTTON) & 0x8000) != 0; // Left button pressed
+                keys[EKeyCode::MouseMiddle] = (::GetKeyState(VK_MBUTTON) & 0x8000) != 0; // Middle button pressed
+                keys[EKeyCode::MouseRight] = (::GetKeyState(VK_RBUTTON) & 0x8000) != 0; // Right button pressed
             }
 
             //keyboard
@@ -154,23 +152,22 @@ namespace adria
                 break;
             case WM_EXITSIZEMOVE:
                 resizing = false;
-                event_queue.ConstructAndPushEvent<ResizeEvent>((uint32)data.width, (uint32)data.height);
+                input_events.window_resized_event.Broadcast((uint32)data.width, (uint32)data.height);
                 break;
             case WM_SIZE:
-                if (!resizing) event_queue.ConstructAndPushEvent<ResizeEvent>((uint32)data.width, (uint32)data.height);
+                if (!resizing) input_events.window_resized_event.Broadcast((uint32)data.width, (uint32)data.height);
                 break;
             case WM_MOUSEWHEEL:
-                event_queue.ConstructAndPushEvent<ScrollEvent>((int32)GET_WHEEL_DELTA_WPARAM(data.wparam) / WHEEL_DELTA);
+                input_events.scroll_mouse_event.Broadcast((int32)GET_WHEEL_DELTA_WPARAM(data.wparam) / WHEEL_DELTA);
                 break;
 			case WM_LBUTTONDOWN:
 			    {
-			    	auto mx = GET_X_LPARAM(data.lparam);
-			    	auto my = GET_Y_LPARAM(data.lparam);
-			    	event_queue.ConstructAndPushEvent<LeftMouseClickedEvent>(mx, my);
+				    int32 mx = GET_X_LPARAM(data.lparam);
+				    int32 my = GET_Y_LPARAM(data.lparam);
+                    input_events.left_mouse_clicked.Broadcast(mx, my);
 			    }
                 break;
             }
-
         }
 
         m_mouse_wheel_delta = (float32)GET_WHEEL_DELTA_WPARAM(data.wparam) / (float32)WHEEL_DELTA;
