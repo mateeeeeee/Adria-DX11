@@ -52,7 +52,7 @@ namespace adria
     class Input
     {
     public:
-        explicit Input();
+        Input();
 
         void NewFrame();
 
