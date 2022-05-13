@@ -4,7 +4,7 @@
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
 #include "../Editor/GUI.h"
-#include "../Graphics/GraphicsCoreDX11.h"
+#include "../Graphics/GraphicsDeviceDX11.h"
 #include "../Rendering/Renderer.h"
 #include "../Rendering/EntityLoader.h"
 #include "../Rendering/ShaderCache.h"
@@ -205,7 +205,7 @@ namespace adria
 	{
 		TaskSystem::Initialize();
 
-		gfx = std::make_unique<GraphicsCoreDX11>(Window::Handle());
+		gfx = std::make_unique<GraphicsDeviceDX11>(Window::Handle());
 		ShaderCache::Initialize(gfx->Device());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		entity_loader = std::make_unique<EntityLoader>(reg, gfx->Device(), renderer->GetTextureManager());
@@ -213,7 +213,7 @@ namespace adria
 		InputEvents& input_events = input.GetInputEvents();
 
 		input_events.window_resized_event.AddMember(&CameraManager::OnResize, camera_manager);
-		input_events.window_resized_event.AddMember(&GraphicsCoreDX11::ResizeBackbuffer, *gfx);
+		input_events.window_resized_event.AddMember(&GraphicsDeviceDX11::ResizeBackbuffer, *gfx);
 		input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		input_events.scroll_mouse_event.AddMember(&CameraManager::OnScroll, camera_manager);
 		input_events.left_mouse_clicked.Add([this](int32 mx, int32 my) { renderer->OnLeftMouseClicked(); });

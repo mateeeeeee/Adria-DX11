@@ -10,7 +10,7 @@
 #include "../Editor/GUI.h"
 #include "../Logging/Logger.h"
 #include "../Core/Window.h"
-#include "../Graphics/GraphicsCoreDX11.h"
+#include "../Graphics/GraphicsDeviceDX11.h"
 #include "../Graphics/CommonStates.h"
 #include "../Graphics/ScopedAnnotation.h"
 #include "../Math/Constants.h"
@@ -342,7 +342,7 @@ namespace adria
 		}
 	}
 
-	Renderer::Renderer(registry& reg, GraphicsCoreDX11* gfx, uint32 width, uint32 height)
+	Renderer::Renderer(registry& reg, GraphicsDeviceDX11* gfx, uint32 width, uint32 height)
 		: width(width), height(height), reg(reg), gfx(gfx), texture_manager(gfx->Device(), gfx->Context()),
 		profiler(gfx->Device()), particle_renderer(gfx), picker(gfx)
 	{

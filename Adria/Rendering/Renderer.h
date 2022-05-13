@@ -25,7 +25,7 @@ namespace adria
 {
 
 	class Camera;
-	class GraphicsCoreDX11;
+	class GraphicsDeviceDX11;
 	class Input;
 	struct Light;
 	struct RenderState;
@@ -45,7 +45,7 @@ namespace adria
 
 	public:
 
-		Renderer(tecs::registry& reg, GraphicsCoreDX11* gfx, uint32 width, uint32 height); 
+		Renderer(tecs::registry& reg, GraphicsDeviceDX11* gfx, uint32 width, uint32 height); 
 
 		void NewFrame(Camera const*);
 		void Update(float32 dt);
@@ -68,7 +68,7 @@ namespace adria
 	private:
 		uint32 width, height;
 		tecs::registry& reg;
-		GraphicsCoreDX11* gfx;
+		GraphicsDeviceDX11* gfx;
 		TextureManager texture_manager;
 		Camera const* camera;
 		RendererSettings renderer_settings;

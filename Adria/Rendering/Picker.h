@@ -3,7 +3,7 @@
 #include <DirectXMath.h>
 #include "ShaderCache.h"
 #include "../Graphics/StructuredBuffer.h"
-#include "../Graphics/GraphicsCoreDX11.h" 
+#include "../Graphics/GraphicsDeviceDX11.h" 
 #include "../Graphics/ShaderProgram.h" 
 #include "../Logging/Logger.h"
 
@@ -22,7 +22,7 @@ namespace adria
 		
 	private:
 
-		Picker(GraphicsCoreDX11* gfx) : gfx(gfx), picking_buffer(nullptr)
+		Picker(GraphicsDeviceDX11* gfx) : gfx(gfx), picking_buffer(nullptr)
 		{
 			picking_buffer = std::make_unique<StructuredBuffer<PickingData>>(gfx->Device(), 1, false, false, true);
 		}
@@ -51,7 +51,7 @@ namespace adria
 
 	private:
 
-		GraphicsCoreDX11* gfx;
+		GraphicsDeviceDX11* gfx;
 		std::unique_ptr<StructuredBuffer<PickingData>> picking_buffer;
 	};
 }

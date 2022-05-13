@@ -167,7 +167,7 @@
     <ClCompile Include="Events\EventQueue.cpp" />
     <ClCompile Include="Graphics\CommonStates.cpp" />
     <ClCompile Include="Graphics\DDSTextureLoader.cpp" />
-    <ClCompile Include="Graphics\GraphicsCoreDX11.cpp" />
+    <ClCompile Include="Graphics\GraphicsDeviceDX11.cpp" />
     <ClCompile Include="Graphics\GPUProfiler.cpp" />
     <ClCompile Include="Graphics\RenderPass.cpp" />
     <ClCompile Include="Graphics\ShaderProgram.cpp" />
@@ -218,7 +218,7 @@
     <ClInclude Include="Graphics\CommonStates.h" />
     <ClInclude Include="Graphics\ConstantBuffer.h" />
     <ClInclude Include="Graphics\DDSTextureLoader.h" />
-    <ClInclude Include="Graphics\GraphicsCoreDX11.h" />
+    <ClInclude Include="Graphics\GraphicsDeviceDX11.h" />
     <ClInclude Include="Graphics\IndexBuffer.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\ProfilerSettings.h" />

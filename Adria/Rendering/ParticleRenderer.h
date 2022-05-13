@@ -11,7 +11,7 @@
 #include "../Graphics/StructuredBuffer.h"
 #include "../Graphics/AppendBuffer.h"
 #include "../Graphics/Texture2D.h"
-#include "../Graphics/GraphicsCoreDX11.h"
+#include "../Graphics/GraphicsDeviceDX11.h"
 
 namespace adria
 {
@@ -73,7 +73,7 @@ namespace adria
 			int32 x, y, z, w;
 		};
 	public:
-		ParticleRenderer(GraphicsCoreDX11* gfx);
+		ParticleRenderer(GraphicsDeviceDX11* gfx);
 
 		void Update(float32 dt, Emitter& emitter_params);
 
@@ -82,7 +82,7 @@ namespace adria
 					ID3D11ShaderResourceView* particle_srv);
 
 	private:
-		GraphicsCoreDX11* gfx;
+		GraphicsDeviceDX11* gfx;
 
 		Texture2D random_texture;
 		AppendBuffer<uint32> dead_list_buffer;

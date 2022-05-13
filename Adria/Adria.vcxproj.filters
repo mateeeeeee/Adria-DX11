@@ -98,7 +98,7 @@
     <ClCompile Include="Input\Input.cpp">
       <Filter>Input</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GraphicsCoreDX11.cpp">
+    <ClCompile Include="Graphics\GraphicsDeviceDX11.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\DDSTextureLoader.cpp">
@@ -247,7 +247,7 @@
     <ClInclude Include="Input\Input.h">
       <Filter>Input</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GraphicsCoreDX11.h">
+    <ClInclude Include="Graphics\GraphicsDeviceDX11.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\DDSTextureLoader.h">

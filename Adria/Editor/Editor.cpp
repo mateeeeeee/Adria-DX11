@@ -1,6 +1,6 @@
 #include "Editor.h"
 #include "../Rendering/Renderer.h"
-#include "../Graphics/GraphicsCoreDX11.h"
+#include "../Graphics/GraphicsDeviceDX11.h"
 #include "../Rendering/EntityLoader.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/FilesUtil.h"

@@ -5,7 +5,7 @@
 
 namespace adria
 {
-	ParticleRenderer::ParticleRenderer(GraphicsCoreDX11* gfx) : gfx{ gfx },
+	ParticleRenderer::ParticleRenderer(GraphicsDeviceDX11* gfx) : gfx{ gfx },
 		dead_list_buffer(gfx->Device(), MAX_PARTICLES),
 		particle_bufferA(gfx->Device(), MAX_PARTICLES),
 		particle_bufferB(gfx->Device(), MAX_PARTICLES),

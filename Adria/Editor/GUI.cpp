@@ -1,13 +1,13 @@
 #include "GUI.h"
 #include "../Core/Window.h"
-#include "../Graphics/GraphicsCoreDX11.h"
+#include "../Graphics/GraphicsDeviceDX11.h"
 #include "../ImGui/ImGuizmo.h"
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace adria
 {
-	GUI::GUI(GraphicsCoreDX11* gfx)
+	GUI::GUI(GraphicsDeviceDX11* gfx)
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();

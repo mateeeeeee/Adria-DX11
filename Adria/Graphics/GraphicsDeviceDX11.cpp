@@ -1,11 +1,11 @@
-#include "GraphicsCoreDX11.h"
+#include "GraphicsDeviceDX11.h"
 #include "../Core/Macros.h"
 
 
 
 namespace adria
 {
-	GraphicsCoreDX11::GraphicsCoreDX11(void* handle)
+	GraphicsDeviceDX11::GraphicsDeviceDX11(void* handle)
 	{
 		HWND w_handle = static_cast<HWND>(handle);
 		RECT rect;
@@ -77,11 +77,11 @@ namespace adria
 		CreateBackBufferResources(width, height);
 
 	}
-	GraphicsCoreDX11::~GraphicsCoreDX11()
+	GraphicsDeviceDX11::~GraphicsDeviceDX11()
 	{
 		WaitForGPU();
 	}
-	void GraphicsCoreDX11::ResizeBackbuffer(uint32 w, uint32 h)
+	void GraphicsDeviceDX11::ResizeBackbuffer(uint32 w, uint32 h)
 	{
 		if ((width != w || height != h) && w > 0 && h > 0)
 		{
@@ -90,17 +90,17 @@ namespace adria
 			CreateBackBufferResources(w, h);
 		}
 	}
-	void GraphicsCoreDX11::ClearBackbuffer()
+	void GraphicsDeviceDX11::ClearBackbuffer()
 	{
 		float32 clear_color[] = { 0.0f,0.0f, 0.0f,0.0f };
 		immediate_context->ClearRenderTargetView(backbuffer_rtv.Get(), clear_color);
 	}
-	void GraphicsCoreDX11::SwapBuffers(bool vsync)
+	void GraphicsDeviceDX11::SwapBuffers(bool vsync)
 	{
 		HRESULT hr = swapchain->Present(vsync, 0);
 		BREAK_IF_FAILED(hr);
 	}
-	void GraphicsCoreDX11::SetBackbuffer()
+	void GraphicsDeviceDX11::SetBackbuffer()
 	{
 		D3D11_VIEWPORT vp = {};
 		vp.Width = static_cast<float32>(width);
@@ -112,21 +112,21 @@ namespace adria
 		immediate_context->RSSetViewports(1, &vp);
 		immediate_context->OMSetRenderTargets(1, backbuffer_rtv.GetAddressOf(), nullptr);
 	}
-	ID3D11Device* GraphicsCoreDX11::Device() const
+	ID3D11Device* GraphicsDeviceDX11::Device() const
 	{
 		return device.Get();
 	}
-	ID3D11DeviceContext* GraphicsCoreDX11::Context() const
+	ID3D11DeviceContext* GraphicsDeviceDX11::Context() const
 	{
 		return immediate_context.Get();
 	}
 
-	ID3DUserDefinedAnnotation* GraphicsCoreDX11::Annotation() const
+	ID3DUserDefinedAnnotation* GraphicsDeviceDX11::Annotation() const
 	{
 		return annot;
 	}
 
-	void GraphicsCoreDX11::WaitForGPU()
+	void GraphicsDeviceDX11::WaitForGPU()
 	{
 		immediate_context->Flush();
 		D3D11_QUERY_DESC desc{};
@@ -140,7 +140,7 @@ namespace adria
 		while (immediate_context->GetData(query.Get(), &result, sizeof(result), 0) == S_FALSE);
 		ADRIA_ASSERT(result == TRUE);
 	}
-	void GraphicsCoreDX11::CreateBackBufferResources(uint32 w, uint32 h)
+	void GraphicsDeviceDX11::CreateBackBufferResources(uint32 w, uint32 h)
 	{
 		immediate_context->OMSetRenderTargets(0, 0, 0);
 
