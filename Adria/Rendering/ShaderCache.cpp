@@ -14,7 +14,6 @@ namespace fs = std::filesystem;
 
 namespace adria
 {
-
 	namespace
 	{
 		struct ShaderFileData
@@ -738,7 +737,7 @@ namespace adria
 		std::vector<UnderlyingType> shaders(EShader_Count);
 		std::iota(std::begin(shaders), std::end(shaders), 0);
 		std::for_each(
-			std::execution::seq,
+			std::execution::par_unseq,
 			std::begin(shaders),
 			std::end(shaders),
 			[](UnderlyingType s)
