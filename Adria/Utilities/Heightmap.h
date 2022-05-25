@@ -21,7 +21,7 @@ namespace adria
 		Ridged,
 		PingPong
 	};
-	struct noise_desc_t
+	struct NoiseDesc
 	{
 		uint32 width;
 		uint32 depth;
@@ -37,7 +37,7 @@ namespace adria
 	};
 
 
-	struct thermal_erosion_desc_t
+	struct ThermalErosionDesc
 	{
 		int32 iterations;
 		float32 c;
@@ -45,7 +45,7 @@ namespace adria
 	};
 
 	
-	struct hydraulic_erosion_desc_t
+	struct HydraulicErosionDesc
 	{
 		int32 iterations;
 		int32 drops;
@@ -57,7 +57,7 @@ namespace adria
 	{
 	public:
 		
-		Heightmap(noise_desc_t const& desc);
+		Heightmap(NoiseDesc const& desc);
 
 		Heightmap(std::string_view heightmap_path, uint32 max_height);
 
@@ -67,9 +67,9 @@ namespace adria
 
 		uint64 Depth() const;
 
-		void ApplyThermalErosion(thermal_erosion_desc_t const& desc);
+		void ApplyThermalErosion(ThermalErosionDesc const& desc);
 
-		void ApplyHydraulicErosion(hydraulic_erosion_desc_t const& desc);
+		void ApplyHydraulicErosion(HydraulicErosionDesc const& desc);
 
 	private:
 		std::vector<std::vector<float32>> hm;

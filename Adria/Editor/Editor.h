@@ -15,19 +15,19 @@ namespace adria
     enum class EMaterialTextureType;
     struct ImGuiLogger;
 
-	struct editor_init_t
+	struct EditorInit
 	{
-		engine_init_t engine_init;
+		EngineInit engine_init;
 	};
 	class Editor
 	{
 	public:
 
-        explicit Editor(editor_init_t const& init);
+        explicit Editor(EditorInit const& init);
 
         ~Editor();
 
-        void HandleWindowMessage(window_message_t const& msg_data);
+        void HandleWindowMessage(WindowMessage const& msg_data);
 
         void Run();
 

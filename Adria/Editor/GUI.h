@@ -6,7 +6,7 @@
 namespace adria
 {
 	class GraphicsDeviceDX11;
-	struct window_message_t;
+	struct WindowMessage;
 
 	class GUI
 	{
@@ -20,7 +20,7 @@ namespace adria
 
 		void End() const;
 
-		void HandleWindowMessage(window_message_t const&) const;
+		void HandleWindowMessage(WindowMessage const&) const;
 
 		void ToggleVisibility();
 

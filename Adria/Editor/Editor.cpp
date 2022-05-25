@@ -436,7 +436,7 @@ namespace adria
     };
 
 
-    Editor::Editor(editor_init_t const& init) : engine(), editor_log(new ImGuiLogger{})
+    Editor::Editor(EditorInit const& init) : engine(), editor_log(new ImGuiLogger{})
     {
         engine = std::make_unique<Engine>(init.engine_init);
         gui = std::make_unique<GUI>(engine->gfx.get());
@@ -449,7 +449,7 @@ namespace adria
     {
     }
 
-	void Editor::HandleWindowMessage(window_message_t const& msg_data)
+	void Editor::HandleWindowMessage(WindowMessage const& msg_data)
     {
         engine->HandleWindowMessage(msg_data);
         gui->HandleWindowMessage(msg_data);
@@ -573,7 +573,7 @@ namespace adria
                 {
                     std::string model_path = ImGuiFileDialog::Instance()->GetFilePathName();
 
-                    model_parameters_t params{};
+                    ModelParameters params{};
                     params.model_path = model_path;
                     std::string texture_path = ImGuiFileDialog::Instance()->GetCurrentPath();
                     if (!texture_path.empty()) texture_path.append("/");
@@ -613,7 +613,7 @@ namespace adria
 		{
             if (ImGui::TreeNodeEx("Terrain Generation", 0))
             {
-				static grid_parameters_t terrain_params{};
+				static GridParameters terrain_params{};
 				static int32 tile_count[2] = { 600, 600 };
 				static float32 tile_size[2] = { 2.0f, 2.0f };
 				static float32 texture_scale[2] = { 200.0f, 200.0f };
@@ -635,7 +635,7 @@ namespace adria
 				ImGui::SliderFloat("Max Height", &max_height, 10.0f, 2000.0f);
 				ImGui::Checkbox("Procedural Generation", &procedural_generation);
 
-				static noise_desc_t noise_desc
+				static NoiseDesc noise_desc
 				{
 				 .fractal_type = EFractalType::FBM,
 				 .noise_type = ENoiseType::Perlin,
@@ -695,7 +695,7 @@ namespace adria
 				}
 
                 static bool thermal_erosion = false;
-                static thermal_erosion_desc_t thermal_erosion_desc{.iterations = 3, .c = 0.5f, .talus = 0.025f};
+                static ThermalErosionDesc thermal_erosion_desc{.iterations = 3, .c = 0.5f, .talus = 0.025f};
 				ImGui::Checkbox("Thermal Erosion", &thermal_erosion);
                 if (thermal_erosion && ImGui::TreeNodeEx("Thermal Erosion Settings", 0))
                 {
@@ -708,7 +708,7 @@ namespace adria
                 }
 
 				static bool hydraulic_erosion = false;
-				static hydraulic_erosion_desc_t hydraulic_erosion_desc{ .iterations = 3, .drops = 1000000, .carrying_capacity = 1.5f, .deposition_speed = 0.03f };
+				static HydraulicErosionDesc hydraulic_erosion_desc{ .iterations = 3, .drops = 1000000, .carrying_capacity = 1.5f, .deposition_speed = 0.03f };
 				ImGui::Checkbox("Hydraulic Erosion", &hydraulic_erosion);
 				if (hydraulic_erosion && ImGui::TreeNodeEx("Hydraulic Erosion Settings", 0))
 				{
@@ -721,7 +721,7 @@ namespace adria
 					ImGui::Separator();
 				}
 
-                static terrain_texture_layer_parameters_t layer_params{};
+                static TerrainTextureLayerParameters layer_params{};
 				if (ImGui::TreeNodeEx("Layer Texture Settings", 0))
 				{
 					ImGui::SliderFloat("Sand Start", &layer_params.terrain_sand_start, -1000.0f, 10.0f);
@@ -744,7 +744,7 @@ namespace adria
 				{
 					engine->reg.destroy<TerrainComponent>();
 
-					terrain_parameters_t params{};
+					TerrainParameters params{};
 					terrain_params.tile_size_x = tile_size[0];
 					terrain_params.tile_size_z = tile_size[1];
 					terrain_params.tile_count_x = tile_count[0];
@@ -777,8 +777,8 @@ namespace adria
 
             if (ImGui::TreeNodeEx("Foliage Generation", 0))
             {
-				static std::vector<foliage_parameters_t> foliages{};
-				static foliage_parameters_t foliage_params{
+				static std::vector<FoliageParameters> foliages{};
+				static FoliageParameters foliage_params{
 					.foliage_count = 3000,
 					.foliage_scale = 10,
                     .foliage_height_start = 0.0f,
@@ -859,8 +859,8 @@ namespace adria
 
 			if (ImGui::TreeNodeEx("Tree Generation", 0))
 			{
-				static std::vector<tree_parameters_t> trees{};
-				static tree_parameters_t tree_params{
+				static std::vector<TreeParameters> trees{};
+				static TreeParameters tree_params{
 					.tree_count = 5,
 					.tree_scale = 50,
 					.tree_height_start = 0.0f,
@@ -942,7 +942,7 @@ namespace adria
     {
         ImGui::Begin("Ocean");
         {
-			static grid_parameters_t ocean_params{};
+			static GridParameters ocean_params{};
 			static int32 tile_count[2] = { 512, 512 };
 			static float32 tile_size[2] = { 40.0f, 40.0f };
 			static float32 texture_scale[2] = { 20.0f, 20.0f };
@@ -960,7 +960,7 @@ namespace adria
 
 			if (ImGui::Button("Load Ocean"))
 			{
-				ocean_parameters_t params{};
+				OceanParameters params{};
 				params.ocean_grid = std::move(ocean_params);
 				engine->entity_loader->LoadOcean(params);
 			}
@@ -1049,7 +1049,7 @@ namespace adria
 	{
 		ImGui::Begin("Particles");
         {
-            static emitter_parameters_t params{};
+            static EmitterParameters params{};
             static char NAME_BUFFER[128];
             ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
             params.name = std::string(NAME_BUFFER);
@@ -1095,7 +1095,7 @@ namespace adria
 	{
 		ImGui::Begin("Decals");
 		{
-			static decal_parameters_t params{};
+			static DecalParameters params{};
 			static char NAME_BUFFER[128];
 			ImGui::InputText("Name", NAME_BUFFER, sizeof(NAME_BUFFER));
 			params.name = std::string(NAME_BUFFER);
@@ -1565,7 +1565,7 @@ namespace adria
                     EMITTER
                 };
 
-                static model_parameters_t params{};
+                static ModelParameters params{};
                 if (current_component == MESH)
                 {
                     
@@ -2149,7 +2149,7 @@ namespace adria
 
                         for (int32 i = 0; i < light_count_to_add; ++i)
                         {
-                            light_parameters_t light_params{};
+                            LightParameters light_params{};
                             light_params.light_data.casts_shadows = false;
                             light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
                             light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);

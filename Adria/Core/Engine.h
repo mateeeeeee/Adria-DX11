@@ -10,13 +10,13 @@
 
 namespace adria
 {
-	struct window_message_t;
+	struct WindowMessage;
 	class GraphicsDeviceDX11;
 	class Renderer;
 	class EntityLoader;
 	class GUI;
 
-	struct engine_init_t
+	struct EngineInit
 	{
 		bool vsync = false;
 		char const* scene_file = "scene.json";
@@ -29,14 +29,14 @@ namespace adria
 		friend class Editor;
 
 	public:
-		explicit Engine(engine_init_t const&);
+		explicit Engine(EngineInit const&);
 		Engine(Engine const&) = delete;
 		Engine(Engine&&) = delete;
 		Engine& operator=(Engine const&) = delete;
 		Engine& operator=(Engine&&) = delete;
 		~Engine();
 
-		void HandleWindowMessage(window_message_t const& msg_data);
+		void HandleWindowMessage(WindowMessage const& msg_data);
 
 		void Run(RendererSettings const& settings);
 		void Present();

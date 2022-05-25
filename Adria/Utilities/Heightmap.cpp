@@ -51,7 +51,7 @@ namespace adria
 		return (distance > talus) ? (c * (max_diff - talus) * (distance / total_diff)) : 0.0f;
 	}
 
-	Heightmap::Heightmap(noise_desc_t const& desc)
+	Heightmap::Heightmap(NoiseDesc const& desc)
 	{
 		FastNoiseLite noise{};
 		noise.SetFractalType(GetFractalType(desc.fractal_type));
@@ -124,7 +124,7 @@ namespace adria
 		return hm.size();
 	}
 
-	void Heightmap::ApplyThermalErosion(thermal_erosion_desc_t const& desc)
+	void Heightmap::ApplyThermalErosion(ThermalErosionDesc const& desc)
 	{
 		float32 v1, v2, v3, v4, v5, v6, v7, v8, v9;	
 		float32 d1, d2, d3, d4, d5, d6, d7, d8;		
@@ -351,7 +351,7 @@ namespace adria
 		}
 	}
 
-	void Heightmap::ApplyHydraulicErosion(hydraulic_erosion_desc_t const& desc)
+	void Heightmap::ApplyHydraulicErosion(HydraulicErosionDesc const& desc)
 	{
 		uint64 drops = (uint64)desc.drops;
 

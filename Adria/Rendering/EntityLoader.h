@@ -35,25 +35,25 @@ namespace adria
         Tree02
     };
 
-    struct light_parameters_t
+    struct LightParameters
     {
         Light light_data;
         ELightMesh mesh_type = ELightMesh::NoMesh;
         uint32 mesh_size = 0u;
         std::optional<std::string> light_texture = std::nullopt;
     };
-	struct model_parameters_t
+	struct ModelParameters
 	{
         std::string model_path = "";
         std::string textures_path = "";
         DirectX::XMMATRIX model_matrix = DirectX::XMMatrixIdentity();
 	};
-    struct skybox_parameters_t
+    struct SkyboxParameters
     {
         std::optional<std::wstring> cubemap;
         std::array<std::string, 6> cubemap_textures;
     };
-    struct grid_parameters_t
+    struct GridParameters
     {
         uint64 tile_count_x;
         uint64 tile_count_z;
@@ -68,11 +68,11 @@ namespace adria
         std::unique_ptr<Heightmap> heightmap = nullptr;
         DirectX::XMFLOAT3 grid_offset = DirectX::XMFLOAT3(0,0,0);
     };
-    struct ocean_parameters_t
+    struct OceanParameters
     {
-        grid_parameters_t ocean_grid;
+        GridParameters ocean_grid;
     };
-    struct foliage_parameters_t
+    struct FoliageParameters
     {
         std::pair<EFoliageMesh, std::string> mesh_texture_pair;
         int32 foliage_count;
@@ -83,7 +83,7 @@ namespace adria
 		float32 foliage_height_end;
 		float32 foliage_slope_start;
     };
-    struct tree_parameters_t
+    struct TreeParameters
     {
         ETreeType tree_type;
 		int32 tree_count;
@@ -94,7 +94,7 @@ namespace adria
 		float32 tree_height_end;
 		float32 tree_slope_start;
     };
-	struct terrain_texture_layer_parameters_t
+	struct TerrainTextureLayerParameters
 	{
 		float32 terrain_sand_start = -100.0f;
 		float32 terrain_sand_end = 0.0f;
@@ -106,17 +106,17 @@ namespace adria
         float32 height_mix_zone = 50.0f;
         float32 slope_mix_zone = 0.025f;
 	};
-	struct terrain_parameters_t
+	struct TerrainParameters
 	{
-		grid_parameters_t terrain_grid;
-        terrain_texture_layer_parameters_t layer_params;
+		GridParameters terrain_grid;
+        TerrainTextureLayerParameters layer_params;
 		std::string grass_texture;
 		std::string base_texture;
 		std::string rock_texture;
 		std::string sand_texture;
         std::string layer_texture;
 	};
-    struct emitter_parameters_t
+    struct EmitterParameters
     {
         std::string name = "Emitter";
         float32 position[3] = { 50.0f, 10.0f, 0.0f};
@@ -135,7 +135,7 @@ namespace adria
         bool sort = false;
     };
 
-    struct decal_parameters_t
+    struct DecalParameters
     {
         std::string name = "Decal";
         std::string albedo_texture_path = "Resources/Textures/Decals/Decal_00_Albedo.tga";
@@ -157,23 +157,23 @@ namespace adria
         
         EntityLoader(tecs::registry& reg, ID3D11Device* device, TextureManager& texture_manager);
 
-        [[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(model_parameters_t const&);
+        [[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(ModelParameters const&);
 
-        [[maybe_unused]] tecs::entity LoadSkybox(skybox_parameters_t const&);
+        [[maybe_unused]] tecs::entity LoadSkybox(SkyboxParameters const&);
 
-        [[maybe_unused]] tecs::entity LoadLight(light_parameters_t const&);
+        [[maybe_unused]] tecs::entity LoadLight(LightParameters const&);
 
-        [[maybe_unused]] std::vector<tecs::entity> LoadOcean(ocean_parameters_t const&);
+        [[maybe_unused]] std::vector<tecs::entity> LoadOcean(OceanParameters const&);
 
-		[[maybe_unused]] std::vector<tecs::entity> LoadTerrain(terrain_parameters_t&);
+		[[maybe_unused]] std::vector<tecs::entity> LoadTerrain(TerrainParameters&);
 
-		[[maybe_unused]] tecs::entity LoadFoliage(foliage_parameters_t const&);
+		[[maybe_unused]] tecs::entity LoadFoliage(FoliageParameters const&);
 
-        [[maybe_unused]] std::vector<tecs::entity> LoadTrees(tree_parameters_t const&);
+        [[maybe_unused]] std::vector<tecs::entity> LoadTrees(TreeParameters const&);
 
-        [[maybe_unused]] tecs::entity LoadEmitter(emitter_parameters_t const&);
+        [[maybe_unused]] tecs::entity LoadEmitter(EmitterParameters const&);
 
-        [[maybe_unused]] tecs::entity LoadDecal(decal_parameters_t const&);
+        [[maybe_unused]] tecs::entity LoadDecal(DecalParameters const&);
 
 	private:
         tecs::registry& reg;
@@ -186,7 +186,7 @@ namespace adria
 		std::vector<tecs::entity> LoadObjMesh(std::string const& model_path, std::vector<std::string>* diffuse_textures_out = nullptr);
 
 		[[nodiscard]]
-		std::vector<tecs::entity> LoadGrid(grid_parameters_t const& args, std::vector<TexturedNormalVertex>* vertices = nullptr);
+		std::vector<tecs::entity> LoadGrid(GridParameters const& args, std::vector<TexturedNormalVertex>* vertices = nullptr);
 
 	};
 }

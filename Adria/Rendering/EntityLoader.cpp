@@ -26,7 +26,7 @@ namespace adria
 {
     namespace
     {
-		void GenerateTerrainLayerTexture(char const* texture_name, Terrain* terrain, terrain_texture_layer_parameters_t const& params)
+		void GenerateTerrainLayerTexture(char const* texture_name, Terrain* terrain, TerrainTextureLayerParameters const& params)
 		{
 			auto [width, depth] = terrain->TileCounts();
 			auto [tile_size_x, tile_size_z] = terrain->TileSizes();
@@ -113,7 +113,7 @@ namespace adria
     using namespace tecs;
 
     [[nodiscard]]
-    std::vector<entity> EntityLoader::LoadGrid(grid_parameters_t const& params, std::vector<TexturedNormalVertex>* vertices_out)
+    std::vector<entity> EntityLoader::LoadGrid(GridParameters const& params, std::vector<TexturedNormalVertex>* vertices_out)
     {
         if (params.heightmap)
         {
@@ -379,7 +379,7 @@ namespace adria
     {}
 
     [[maybe_unused]]
-    std::vector<entity> EntityLoader::LoadGLTFModel(model_parameters_t const& params)
+    std::vector<entity> EntityLoader::LoadGLTFModel(ModelParameters const& params)
     {
         tinygltf::TinyGLTF loader;
         tinygltf::Model model;
@@ -666,7 +666,7 @@ namespace adria
 	}
 
     [[maybe_unused]]
-    entity EntityLoader::LoadSkybox(skybox_parameters_t const& params)
+    entity EntityLoader::LoadSkybox(SkyboxParameters const& params)
     {
         entity skybox = reg.create();
 
@@ -683,12 +683,12 @@ namespace adria
     }
 
     [[maybe_unused]] 
-    entity EntityLoader::LoadLight(light_parameters_t const& params)
+    entity EntityLoader::LoadLight(LightParameters const& params)
     {
         entity light = reg.create();
 
         if (params.light_data.type == ELightType::Directional)
-            const_cast<light_parameters_t&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
+            const_cast<LightParameters&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
   
         reg.emplace<Light>(light, params.light_data);
 
@@ -826,7 +826,7 @@ namespace adria
 	}
 
     [[maybe_unused]]
-    std::vector<entity> EntityLoader::LoadOcean(ocean_parameters_t const& params)
+    std::vector<entity> EntityLoader::LoadOcean(OceanParameters const& params)
     {
         std::vector<entity> ocean_chunks = EntityLoader::LoadGrid(params.ocean_grid);
 
@@ -846,7 +846,7 @@ namespace adria
 	}
 
     [[maybe_unused]]
-	std::vector<entity> EntityLoader::LoadTerrain(terrain_parameters_t& params)
+	std::vector<entity> EntityLoader::LoadTerrain(TerrainParameters& params)
 	{
         std::vector<TexturedNormalVertex> vertices;
 		std::vector<entity> terrain_chunks = LoadGrid(params.terrain_grid, &vertices);
@@ -879,7 +879,7 @@ namespace adria
 	}
 
 	[[maybe_unused]]
-	entity EntityLoader::LoadFoliage(foliage_parameters_t const& params)
+	entity EntityLoader::LoadFoliage(FoliageParameters const& params)
 	{
 		const float32 size = params.foliage_scale;
 		
@@ -961,7 +961,7 @@ namespace adria
 	}
 
     [[maybe_unused]]
-	std::vector<entity> EntityLoader::LoadTrees(tree_parameters_t const& params)
+	std::vector<entity> EntityLoader::LoadTrees(TreeParameters const& params)
 	{
 		const float32 size = params.tree_scale;
 
@@ -1045,7 +1045,7 @@ namespace adria
 	}
 
     [[maybe_unused]]
-	entity EntityLoader::LoadEmitter(emitter_parameters_t const& params)
+	entity EntityLoader::LoadEmitter(EmitterParameters const& params)
 	{
 		Emitter emitter{};
 		emitter.position = DirectX::XMFLOAT4(params.position[0], params.position[1], params.position[2], 1);
@@ -1072,7 +1072,7 @@ namespace adria
 	}
 
     [[maybe_unused]]
-	entity EntityLoader::LoadDecal(decal_parameters_t const& params)
+	entity EntityLoader::LoadDecal(DecalParameters const& params)
 	{
         Decal decal{};
         if(!params.albedo_texture_path.empty()) decal.albedo_decal_texture = texture_manager.LoadTexture(params.albedo_texture_path);

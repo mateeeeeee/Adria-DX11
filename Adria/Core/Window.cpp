@@ -5,7 +5,7 @@
 
 namespace adria
 {
-    void Window::Initialize(window_init_t const& init)
+    void Window::Initialize(WindowInit const& init)
     {
         _instance = init.instance;
         const std::wstring window_title = ConvertToWide(init.title);
@@ -74,7 +74,7 @@ namespace adria
 
         return { rect.left, rect.top };
     }
-    void Window::SetCallback(std::function<void(window_message_t const& window_data)> callback)
+    void Window::SetCallback(std::function<void(WindowMessage const& window_data)> callback)
     {
         _msg_callback = callback;
     }
@@ -82,7 +82,7 @@ namespace adria
     {
         LRESULT result = 0ll;
 
-        window_message_t window_data = {};
+        WindowMessage window_data = {};
         window_data.handle = static_cast<void*>(_handle);
         window_data.instance = static_cast<void*>(_instance);
         window_data.msg = static_cast<uint32>(msg);

@@ -7,7 +7,7 @@
 namespace adria
 {
 
-	struct window_message_t
+	struct WindowMessage
 	{
 		void* handle	= nullptr;
         void* instance  = nullptr;
@@ -18,7 +18,7 @@ namespace adria
 		float32 height		= 0;
 	};
 
-    struct window_init_t
+    struct WindowInit
     {
         HINSTANCE instance;
         std::string title;
@@ -29,7 +29,7 @@ namespace adria
     class Window
 	{
 	public:
-        static void Initialize(window_init_t const& init);
+        static void Initialize(WindowInit const& init);
 
         static uint32 Width();
 
@@ -37,7 +37,7 @@ namespace adria
 
         static std::pair<uint32, uint32> Position();
 
-        static void SetCallback(std::function<void(window_message_t const& window_data)> callback);
+        static void SetCallback(std::function<void(WindowMessage const& window_data)> callback);
 
         static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -54,6 +54,6 @@ namespace adria
 	private:
         inline static HINSTANCE _instance = nullptr;
         inline static HWND _handle = nullptr;
-		inline static std::function<void(window_message_t const& window_data)> _msg_callback = nullptr;
+		inline static std::function<void(WindowMessage const& window_data)> _msg_callback = nullptr;
 	};
 }
