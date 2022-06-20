@@ -277,9 +277,6 @@
     <ClInclude Include="Graphics\TextureManager.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Textures.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\VertexBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -480,6 +477,15 @@
     </ClInclude>
     <ClInclude Include="Events\Delegate.h">
       <Filter>Events</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Buffer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\ResourceCommon.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\Texture.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

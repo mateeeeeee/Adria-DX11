@@ -7,7 +7,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARA
 
 namespace adria
 {
-	GUI::GUI(GraphicsDeviceDX11* gfx)
+	GUI::GUI(GraphicsDevice* gfx)
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();

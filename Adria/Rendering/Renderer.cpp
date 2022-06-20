@@ -342,7 +342,7 @@ namespace adria
 		}
 	}
 
-	Renderer::Renderer(registry& reg, GraphicsDeviceDX11* gfx, uint32 width, uint32 height)
+	Renderer::Renderer(registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height)
 		: width(width), height(height), reg(reg), gfx(gfx), texture_manager(gfx->Device(), gfx->Context()),
 		profiler(gfx->Device()), particle_renderer(gfx), picker(gfx)
 	{

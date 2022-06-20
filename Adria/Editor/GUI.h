@@ -5,14 +5,14 @@
 
 namespace adria
 {
-	class GraphicsDeviceDX11;
+	class GraphicsDevice;
 	struct WindowMessage;
 
 	class GUI
 	{
 	public:
 
-		GUI(GraphicsDeviceDX11* gfx);
+		GUI(GraphicsDevice* gfx);
 
 		~GUI();
 

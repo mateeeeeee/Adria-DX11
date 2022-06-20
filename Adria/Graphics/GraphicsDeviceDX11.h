@@ -12,15 +12,15 @@
 
 namespace adria
 {
-	class GraphicsDeviceDX11
+	class GraphicsDevice
 	{
 	public:
-		GraphicsDeviceDX11(void* handle);
-		GraphicsDeviceDX11(GraphicsDeviceDX11 const&) = delete;
-		GraphicsDeviceDX11(GraphicsDeviceDX11&&) = default;
-		GraphicsDeviceDX11& operator=(GraphicsDeviceDX11 const&) = delete;
-		GraphicsDeviceDX11& operator=(GraphicsDeviceDX11&&) = default;
-		~GraphicsDeviceDX11();
+		GraphicsDevice(void* handle);
+		GraphicsDevice(GraphicsDevice const&) = delete;
+		GraphicsDevice(GraphicsDevice&&) = default;
+		GraphicsDevice& operator=(GraphicsDevice const&) = delete;
+		GraphicsDevice& operator=(GraphicsDevice&&) = default;
+		~GraphicsDevice();
 
 		void ResizeBackbuffer(uint32 w, uint32 h);
 		void ClearBackbuffer();

@@ -22,7 +22,7 @@ namespace adria
 		
 	private:
 
-		Picker(GraphicsDeviceDX11* gfx) : gfx(gfx), picking_buffer(nullptr)
+		Picker(GraphicsDevice* gfx) : gfx(gfx), picking_buffer(nullptr)
 		{
 			picking_buffer = std::make_unique<StructuredBuffer<PickingData>>(gfx->Device(), 1, false, false, true);
 		}
@@ -51,7 +51,7 @@ namespace adria
 
 	private:
 
-		GraphicsDeviceDX11* gfx;
+		GraphicsDevice* gfx;
 		std::unique_ptr<StructuredBuffer<PickingData>> picking_buffer;
 	};
 }

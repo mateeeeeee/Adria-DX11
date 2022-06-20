@@ -73,7 +73,7 @@ namespace adria
 			int32 x, y, z, w;
 		};
 	public:
-		ParticleRenderer(GraphicsDeviceDX11* gfx);
+		ParticleRenderer(GraphicsDevice* gfx);
 
 		void Update(float32 dt, Emitter& emitter_params);
 
@@ -82,7 +82,7 @@ namespace adria
 					ID3D11ShaderResourceView* particle_srv);
 
 	private:
-		GraphicsDeviceDX11* gfx;
+		GraphicsDevice* gfx;
 
 		Texture2D random_texture;
 		AppendBuffer<uint32> dead_list_buffer;
