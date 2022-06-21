@@ -669,10 +669,9 @@ namespace adria
                     0, 2, 1, 2, 0, 3
             };
 
-
 			Mesh mesh{};
-			mesh.vertex_buffer = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(CompleteVertex)), vertices.data());
-			mesh.index_buffer = std::make_shared<Buffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
+			mesh.vertex_buffer = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedVertex)), vertices.data());
+			mesh.index_buffer = std::make_shared<Buffer>(gfx, IndexBufferDesc(indices.size(), true), indices.data());
             mesh.indices_count = static_cast<uint32>(indices.size());
 
             reg.emplace<Mesh>(light, mesh);

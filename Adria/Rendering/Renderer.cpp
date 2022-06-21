@@ -3595,18 +3595,14 @@ namespace adria
 			object_cbuffer->Update(context, object_cbuf_data);
 			material_cbuf_data.diffuse = material.diffuse;
 			material_cbuf_data.albedo_factor = material.albedo_factor;
-
 			material_cbuffer->Update(context, material_cbuf_data);
 
 			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{
 				auto view = texture_manager.GetTextureView(material.albedo_texture);
-
 				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 			}
-
 			mesh.Draw(context);
-
 		}
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 		context->OMSetRenderTargets(0, nullptr, nullptr);
