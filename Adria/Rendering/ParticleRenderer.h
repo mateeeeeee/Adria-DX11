@@ -8,7 +8,7 @@
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/VertexBuffer.h"
 #include "../Graphics/IndexBuffer.h"
-#include "../Graphics/StructuredBuffer.h"
+
 #include "../Graphics/Buffer.h"
 #include "../Graphics/Texture.h"
 #include "../Graphics/GraphicsDeviceDX11.h"
@@ -96,15 +96,12 @@ namespace adria
 		ConstantBuffer<EmitterCBuffer> emitter_cbuffer;
 		ConstantBuffer<SortDispatchInfo> sort_dispatch_info_cbuffer;
 
-		Microsoft::WRL::ComPtr<ID3D11Buffer> indirect_render_args_buffer;
-		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> indirect_render_args_uav;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> indirect_sort_args_buffer;
-		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> indirect_sort_args_uav;
-		IndexBuffer index_buffer;
+		Buffer indirect_render_args_buffer;
+		Buffer indirect_sort_args_buffer;
+		std::unique_ptr<Buffer> index_buffer;
 
 	private:
 		void CreateViews();
-		void CreateIndirectArgsBuffers();
 		void CreateIndexBuffer();
 		void CreateRandomTexture();
 

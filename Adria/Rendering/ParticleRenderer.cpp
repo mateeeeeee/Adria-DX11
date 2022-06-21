@@ -11,6 +11,8 @@ namespace adria
 		particle_bufferB(gfx, StructuredBufferDesc<GPUParticleB>(MAX_PARTICLES)),
 		view_space_positions_buffer(gfx, StructuredBufferDesc<ViewSpacePositionRadius>(MAX_PARTICLES)),
 		alive_index_buffer(gfx, StructuredBufferDesc<IndexBufferElement>(MAX_PARTICLES)),
+		indirect_render_args_buffer(gfx, IndirectArgsBufferDesc(5 * sizeof(UINT))),
+		indirect_sort_args_buffer(gfx, IndirectArgsBufferDesc(4 * sizeof(UINT))),
 		dead_list_count_cbuffer(gfx->Device(), false),
 		active_list_count_cbuffer(gfx->Device(), false),
 		emitter_cbuffer(gfx->Device(), true),
@@ -19,7 +21,6 @@ namespace adria
 		CreateViews();
 		CreateRandomTexture();
 		CreateIndexBuffer();
-		CreateIndirectArgsBuffers();
 	}
 
 	void ParticleRenderer::Update(float32 dt, Emitter& emitter_params)
@@ -70,53 +71,13 @@ namespace adria
 		particle_bufferB.CreateSubresource_UAV();
 		view_space_positions_buffer.CreateSubresource_SRV();
 		view_space_positions_buffer.CreateSubresource_UAV();
-	}
 
-	void ParticleRenderer::CreateIndirectArgsBuffers()
-	{
-		ID3D11Device* device = gfx->Device();
-
-		//rendering particles
-		{
-			D3D11_BUFFER_DESC desc{};
-			desc.Usage = D3D11_USAGE_DEFAULT;
-			desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
-			desc.ByteWidth = 5 * sizeof(UINT);
-			desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
-			device->CreateBuffer(&desc, nullptr, &indirect_render_args_buffer);
-
-			D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-			uav_desc.Format = DXGI_FORMAT_R32_UINT;
-			uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-			uav_desc.Buffer.FirstElement = 0;
-			uav_desc.Buffer.NumElements = 5;
-			uav_desc.Buffer.Flags = 0;
-			device->CreateUnorderedAccessView(indirect_render_args_buffer.Get(), &uav_desc, &indirect_render_args_uav);
-		}
-
-		//sorting particles
-		{
-			D3D11_BUFFER_DESC desc{};
-			desc.Usage = D3D11_USAGE_DEFAULT;
-			desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS;
-			desc.ByteWidth = 4 * sizeof(UINT);
-			desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
-			device->CreateBuffer(&desc, nullptr, &indirect_sort_args_buffer);
-
-			D3D11_UNORDERED_ACCESS_VIEW_DESC uav{};
-			uav.Format = DXGI_FORMAT_R32_UINT;
-			uav.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-			uav.Buffer.FirstElement = 0;
-			uav.Buffer.NumElements = 4;
-			uav.Buffer.Flags = 0;
-			device->CreateUnorderedAccessView(indirect_sort_args_buffer.Get(), &uav, &indirect_sort_args_uav);
-		}
+		indirect_render_args_buffer.CreateSubresource_UAV();
+		indirect_sort_args_buffer.CreateSubresource_UAV();
 	}
 
 	void ParticleRenderer::CreateIndexBuffer()
 	{
-		ID3D11Device* device = gfx->Device();
-
 		std::vector<UINT> indices(MAX_PARTICLES * 6);
 		UINT base = 0;
 		size_t offset = 0;
@@ -133,8 +94,7 @@ namespace adria
 			base += 4;
 			offset += 6;
 		}
-
-		index_buffer.Create(device, indices);
+		index_buffer = std::make_unique<Buffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
 	}
 
 	void ParticleRenderer::CreateRandomTexture()
@@ -251,7 +211,7 @@ namespace adria
 		ID3D11UnorderedAccessView* uavs[] = {
 			particle_bufferA.GetSubresource_UAV(), particle_bufferB.GetSubresource_UAV(),
 			dead_list_buffer.GetSubresource_UAV(), alive_index_buffer.GetSubresource_UAV(),
-			view_space_positions_buffer.GetSubresource_UAV(), indirect_render_args_uav.Get() };
+			view_space_positions_buffer.GetSubresource_UAV(), indirect_render_args_buffer.GetSubresource_UAV() };
 		uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1, 0, (uint32)-1, (uint32)-1 };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
@@ -277,11 +237,8 @@ namespace adria
 
 		active_list_count_cbuffer.Bind(context, EShaderStage::VS, 12);
 
-		ID3D11Buffer* vb = nullptr;
-		UINT stride = 0;
-		UINT offset = 0;
-		context->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
-		index_buffer.Bind(context);
+		BindNullVertexBuffer(context);
+		BindIndexBuffer(context, index_buffer.get());
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 		ID3D11ShaderResourceView* vs_srvs[] = { particle_bufferA.GetSubresource_SRV(), view_space_positions_buffer.GetSubresource_SRV(), alive_index_buffer.GetSubresource_SRV() };
@@ -290,7 +247,7 @@ namespace adria
 		context->PSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
 
 		ShaderCache::GetShaderProgram(EShaderProgram::Particles)->Bind(context);
-		context->DrawIndexedInstancedIndirect(indirect_render_args_buffer.Get(), 0);
+		context->DrawIndexedInstancedIndirect(indirect_render_args_buffer.GetNative(), 0);
 
 		ZeroMemory(vs_srvs, sizeof(vs_srvs));
 		context->VSSetShaderResources(0, ARRAYSIZE(vs_srvs), vs_srvs);
@@ -307,7 +264,8 @@ namespace adria
 		sort_dispatch_info_cbuffer.Bind(context, EShaderStage::CS, 12);
 
 		// Write the indirect args to a UAV
-		context->CSSetUnorderedAccessViews(0, 1, indirect_sort_args_uav.GetAddressOf(), nullptr);
+		ID3D11UnorderedAccessView* indirect_sort_args_uav = indirect_sort_args_buffer.GetSubresource_UAV();
+		context->CSSetUnorderedAccessViews(0, 1, &indirect_sort_args_uav, nullptr);
 		ShaderCache::GetShaderProgram(EShaderProgram::ParticleSortInitArgs)->Bind(context);
 		context->Dispatch(1, 1, 1);
 
@@ -333,7 +291,7 @@ namespace adria
 		UINT numThreadGroups = ((MAX_PARTICLES - 1) >> 9) + 1;
 		if (numThreadGroups > 1) done = false;
 		ShaderCache::GetShaderProgram(EShaderProgram::ParticleSort512)->Bind(context);
-		context->DispatchIndirect(indirect_sort_args_buffer.Get(), 0);
+		context->DispatchIndirect(indirect_sort_args_buffer.GetNative(), 0);
 		return done;
 	}
 

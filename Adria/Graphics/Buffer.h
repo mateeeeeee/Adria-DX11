@@ -53,7 +53,6 @@ namespace adria
 		return desc;
 	}
 
-
 	static BufferDesc AppendBufferDesc(uint64 count, uint32 stride)
 	{
 		BufferDesc desc{};
@@ -64,24 +63,17 @@ namespace adria
 		desc.size = count * stride;
 		return desc;
 	}
-	/*
-	CD3D11_BUFFER_DESC desc(sizeof(T) * element_count, D3D11_BIND_UNORDERED_ACCESS,
-				D3D11_USAGE_DEFAULT,
-				0,
-				D3D11_RESOURCE_MISC_BUFFER_STRUCTURED,
-				sizeof(T));
 
-			device->CreateBuffer(&desc, nullptr, &buffer);
-
-			D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-			uav_desc.Format = DXGI_FORMAT_UNKNOWN;
-			uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-			uav_desc.Buffer.FirstElement = 0;
-			uav_desc.Buffer.NumElements = element_count;
-			uav_desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_APPEND;
-
-			device->CreateUnorderedAccessView(buffer.Get(), &uav_desc, &uav);
-	*/
+	static BufferDesc IndirectArgsBufferDesc(uint64 size)
+	{
+		BufferDesc desc{};
+		desc.bind_flags = EBindFlag::UnorderedAccess;
+		desc.resource_usage = EResourceUsage::Default;
+		desc.size = size;
+		desc.resource_usage = EResourceUsage::Default;
+		desc.misc_flags = EBufferMiscFlag::IndirectArgs;
+		return desc;
+	}
 
 	enum EFlagsUAV : uint8
 	{
@@ -282,6 +274,13 @@ namespace adria
 					uav_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / desc.stride;
 					uav_desc.Buffer.NumElements = std::min(subresource_desc.size, desc.size - subresource_desc.offset) / desc.stride;
 				}
+				else if (HasAnyFlag(desc.misc_flags, EBufferMiscFlag::IndirectArgs))
+				{
+					// This is a Indirect Args Buffer
+					uav_desc.Format = DXGI_FORMAT_R32_UINT;
+					uav_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / sizeof(uint32);
+					uav_desc.Buffer.NumElements = std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(uint32);
+				}
 				else
 				{
 					// This is a Typed Buffer
@@ -308,4 +307,22 @@ namespace adria
 			return -1;
 		}
 	};
+
+	static void BindIndexBuffer(ID3D11DeviceContext* ctx,Buffer* ib, uint32 offset = 0)
+	{
+		ctx->IASetIndexBuffer(ib->GetNative(), ib->GetDesc().format, offset);
+	}
+	static void BindVertexBuffer(ID3D11DeviceContext* ctx, Buffer* vb, uint32 slot = 0, uint32 offset = 0)
+	{
+		ID3D11Buffer* const vbs[] = { vb->GetNative() };
+		uint32 strides[] = { vb->GetDesc().stride };
+		ctx->IASetVertexBuffers(slot, 1u, vbs, strides, &offset);
+	}
+	static void BindNullVertexBuffer(ID3D11DeviceContext* ctx)
+	{
+		static ID3D11Buffer* vb = nullptr;
+		static const UINT stride = 0;
+		static const UINT offset = 0;
+		ctx->IASetVertexBuffers(0, 1, &vb, &stride, &offset);
+	}
 }
