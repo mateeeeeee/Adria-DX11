@@ -13,21 +13,14 @@ namespace adria
 	public:
 
 		GUI(GraphicsDevice* gfx);
-
 		~GUI();
-
 		void Begin() const;
-
 		void End() const;
-
 		void HandleWindowMessage(WindowMessage const&) const;
-
 		void ToggleVisibility();
-
 		bool IsVisible() const;
 
 	private:
-
 		bool visible = true;
 	};
 }

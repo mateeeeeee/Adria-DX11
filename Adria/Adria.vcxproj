@@ -227,9 +227,6 @@
     <ClInclude Include="Graphics\ShaderProgram.h" />
     <ClInclude Include="Graphics\ShaderCompiler.h" />
     <ClInclude Include="Graphics\Texture.h" />
-    <ClInclude Include="Graphics\Texture2DArray.h" />
-    <ClInclude Include="Graphics\Texture3D.h" />
-    <ClInclude Include="Graphics\TextureCube.h" />
     <ClInclude Include="Graphics\TextureManager.h" />
     <ClInclude Include="Graphics\VertexTypes.h" />
     <ClInclude Include="Graphics\WICTextureLoader.h" />

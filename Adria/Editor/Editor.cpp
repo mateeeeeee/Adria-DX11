@@ -470,6 +470,7 @@ namespace adria
 				ImGuiID dockspace_id = ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
                 MenuBar();
                 ListEntities();
+				AddEntities();
 				Properties();
                 TerrainSettings();
                 OceanSettings();
@@ -1209,7 +1210,38 @@ namespace adria
         ImGui::End();
     }
 
-    void Editor::Properties()
+	void Editor::AddEntities()
+	{
+		ImGui::Begin("Add Entities");
+		{
+			ImGui::Text("For Easy Demonstration of Tiled/Clustered Deferred Rendering");
+			static int light_count_to_add = 1;
+			ImGui::SliderInt("Light Count", &light_count_to_add, 1, 128);
+			if (ImGui::Button("Create Random Lights"))
+			{
+				static RealRandomGenerator real(0.0f, 1.0f);
+
+				for (int32 i = 0; i < light_count_to_add; ++i)
+				{
+					LightParameters light_params{};
+					light_params.light_data.casts_shadows = false;
+					light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
+					light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
+					light_params.light_data.position = DirectX::XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
+					light_params.light_data.type = ELightType::Point;
+					light_params.mesh_type = ELightMesh::NoMesh;
+					light_params.light_data.range = real() * 100.0f + 40.0f;
+					light_params.light_data.active = true;
+					light_params.light_data.volumetric = false;
+					light_params.light_data.volumetric_strength = 1.0f;
+					engine->entity_loader->LoadLight(light_params);
+				}
+			}
+		}
+		ImGui::End();
+	}
+
+	void Editor::Properties()
     {
         ImGui::Begin("Properties");
         {

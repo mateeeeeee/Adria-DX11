@@ -316,12 +316,6 @@
     <ClInclude Include="Graphics\GPUProfiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\TextureCube.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Texture2DArray.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="tecs\component_pool.h">
       <Filter>tecs</Filter>
     </ClInclude>
@@ -354,9 +348,6 @@
     </ClInclude>
     <ClInclude Include="Utilities\AdriaException.h">
       <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Texture3D.h">
-      <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\imconfig.h">
       <Filter>ImGui</Filter>

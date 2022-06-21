@@ -3,7 +3,7 @@
 namespace adria
 {
 
-	RenderPass::RenderPass(render_pass_desc_t const& desc) : width(desc.width), height(desc.height)
+	RenderPass::RenderPass(RenderPassDesc const& desc) : width(desc.width), height(desc.height)
 	{
 		for (uint32 i = 0; i < desc.rtv_attachments.size(); ++i)
 		{

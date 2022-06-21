@@ -838,18 +838,40 @@ namespace adria
 			depth_map_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
 			shadow_depth_map = std::make_unique<Texture>(gfx, depth_map_desc);
 
-			texturecube_desc_t depth_cubemap_desc{};
+			TextureDesc depth_cubemap_desc{};
 			depth_cubemap_desc.width = SHADOW_CUBE_SIZE;
 			depth_cubemap_desc.height = SHADOW_CUBE_SIZE;
-			depth_cubemap_desc.bind_flags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-			shadow_depth_cubemap = TextureCube(device, depth_cubemap_desc);
+			depth_cubemap_desc.array_size = 6;
+			depth_cubemap_desc.format = DXGI_FORMAT_R32_TYPELESS;
+			depth_cubemap_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
+			depth_cubemap_desc.misc_flags = ETextureMiscFlag::TextureCube;
+			shadow_depth_cubemap = std::make_unique<Texture>(gfx, depth_cubemap_desc);
+			for (size_t i = 0; i < 6; ++i)
+			{
+				TextureSubresourceDesc dsv_desc{};
+				dsv_desc.first_mip = 0;
+				dsv_desc.slice_count = 1;
+				dsv_desc.first_slice = i;
+				size_t j = shadow_depth_cubemap->CreateSubresource_DSV(&dsv_desc);
+				ADRIA_ASSERT(j == i + 1);
+			}
 
-			texture2darray_desc_t depth_cascade_maps_desc{};
+			TextureDesc depth_cascade_maps_desc{};
 			depth_cascade_maps_desc.width = SHADOW_CASCADE_SIZE;
 			depth_cascade_maps_desc.height = SHADOW_CASCADE_SIZE;
 			depth_cascade_maps_desc.array_size = CASCADE_COUNT;
-			depth_cascade_maps_desc.bind_flags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
-			shadow_cascade_maps = Texture2DArray(device, depth_cascade_maps_desc);
+			depth_cascade_maps_desc.format = DXGI_FORMAT_R32_TYPELESS;
+			depth_cascade_maps_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
+			shadow_cascade_maps = std::make_unique<Texture>(gfx, depth_cascade_maps_desc);
+			for (size_t i = 0; i < CASCADE_COUNT; ++i)
+			{
+				TextureSubresourceDesc dsv_desc{};
+				dsv_desc.first_mip = 0;
+				dsv_desc.slice_count = 1;
+				dsv_desc.first_slice = i;
+				size_t j = shadow_cascade_maps->CreateSubresource_DSV(&dsv_desc);
+				ADRIA_ASSERT(j == i + 1);
+			}
 		}
 
 		//ao random
@@ -1061,83 +1083,83 @@ namespace adria
 	{
 		static constexpr std::array<float32, 4> clear_black = { 0.0f,0.0f,0.0f,0.0f };
 
-		rtv_attachment_desc_t gbuffer_normal_attachment{};
+		RtvAttachmentDesc gbuffer_normal_attachment{};
 		gbuffer_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_RTV();
 		gbuffer_normal_attachment.clear_color = clear_black;
 		gbuffer_normal_attachment.load_op = ELoadOp::Clear;
 
-		rtv_attachment_desc_t gbuffer_albedo_attachment{};
+		RtvAttachmentDesc gbuffer_albedo_attachment{};
 		gbuffer_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness]->GetSubresource_RTV();
 		gbuffer_albedo_attachment.clear_color = clear_black;
 		gbuffer_albedo_attachment.load_op = ELoadOp::Clear;
 
-		rtv_attachment_desc_t gbuffer_emissive_attachment{};
+		RtvAttachmentDesc gbuffer_emissive_attachment{};
 		gbuffer_emissive_attachment.view = gbuffer[EGBufferSlot_Emissive]->GetSubresource_RTV();
 		gbuffer_emissive_attachment.clear_color = clear_black;
 		gbuffer_emissive_attachment.load_op = ELoadOp::Clear;
 
-		rtv_attachment_desc_t decal_normal_attachment{};
+		RtvAttachmentDesc decal_normal_attachment{};
 		decal_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_RTV();
 		decal_normal_attachment.load_op = ELoadOp::Load;
 
-		rtv_attachment_desc_t decal_albedo_attachment{};
+		RtvAttachmentDesc decal_albedo_attachment{};
 		decal_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness]->GetSubresource_RTV();
 		decal_albedo_attachment.load_op = ELoadOp::Load;
 
-		dsv_attachment_desc_t depth_clear_attachment{};
+		DsvAttachmentDesc depth_clear_attachment{};
 		depth_clear_attachment.view = depth_target->GetSubresource_DSV();
 		depth_clear_attachment.clear_depth = 1.0f;
 		depth_clear_attachment.load_op = ELoadOp::Clear;
 
-		rtv_attachment_desc_t hdr_color_clear_attachment{};
+		RtvAttachmentDesc hdr_color_clear_attachment{};
 		hdr_color_clear_attachment.view = hdr_render_target->GetSubresource_RTV();
 		hdr_color_clear_attachment.clear_color = clear_black;
 		hdr_color_clear_attachment.load_op = ELoadOp::Clear;
 
-		rtv_attachment_desc_t hdr_color_load_attachment{};
+		RtvAttachmentDesc hdr_color_load_attachment{};
 		hdr_color_load_attachment.view = hdr_render_target->GetSubresource_RTV();
 		hdr_color_load_attachment.load_op = ELoadOp::Load;
 
 		
-		dsv_attachment_desc_t depth_load_attachment{};
+		DsvAttachmentDesc depth_load_attachment{};
 		depth_load_attachment.view = depth_target->GetSubresource_DSV();
 		depth_load_attachment.clear_depth = 1.0f;
 		depth_load_attachment.load_op = ELoadOp::Load;
 
-		rtv_attachment_desc_t fxaa_source_attachment{};
+		RtvAttachmentDesc fxaa_source_attachment{};
 		fxaa_source_attachment.view = fxaa_texture->GetSubresource_RTV();
 		fxaa_source_attachment.load_op = ELoadOp::DontCare;
 
-		dsv_attachment_desc_t shadow_map_attachment{};
+		DsvAttachmentDesc shadow_map_attachment{};
 		shadow_map_attachment.view = shadow_depth_map->GetSubresource_DSV();
 		shadow_map_attachment.clear_depth = 1.0f;
 		shadow_map_attachment.load_op = ELoadOp::Clear;
 
-		rtv_attachment_desc_t ssao_attachment{};
+		RtvAttachmentDesc ssao_attachment{};
 		ssao_attachment.view = ao_texture->GetSubresource_RTV();
 		ssao_attachment.load_op = ELoadOp::DontCare;
 
-		rtv_attachment_desc_t ping_color_load_attachment{};
+		RtvAttachmentDesc ping_color_load_attachment{};
 		ping_color_load_attachment.view = postprocess_textures[0]->GetSubresource_RTV();
 		ping_color_load_attachment.load_op = ELoadOp::Load;
 
-		rtv_attachment_desc_t pong_color_load_attachment{};
+		RtvAttachmentDesc pong_color_load_attachment{};
 		pong_color_load_attachment.view = postprocess_textures[1]->GetSubresource_RTV();
 		pong_color_load_attachment.load_op = ELoadOp::Load;
 
-		rtv_attachment_desc_t offscreen_clear_attachment{};
+		RtvAttachmentDesc offscreen_clear_attachment{};
 		offscreen_clear_attachment.view = offscreen_ldr_render_target->GetSubresource_RTV();
 		offscreen_clear_attachment.clear_color = clear_black;
 		offscreen_clear_attachment.load_op = ELoadOp::Clear;
 
-		rtv_attachment_desc_t velocity_clear_attachment{};
+		RtvAttachmentDesc velocity_clear_attachment{};
 		velocity_clear_attachment.view = velocity_buffer->GetSubresource_RTV();
 		velocity_clear_attachment.clear_color = clear_black;
 		velocity_clear_attachment.load_op = ELoadOp::Clear;
 
 		//gbuffer pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(gbuffer_normal_attachment);
@@ -1149,7 +1171,7 @@ namespace adria
 
 		//ambient pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_clear_attachment);
@@ -1158,7 +1180,7 @@ namespace adria
 
 		//lighting pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
@@ -1168,7 +1190,7 @@ namespace adria
 
 		//forward pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
@@ -1178,7 +1200,7 @@ namespace adria
 
 		//particle pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
@@ -1187,7 +1209,7 @@ namespace adria
 
 		//decal pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(decal_albedo_attachment);
@@ -1197,7 +1219,7 @@ namespace adria
 
 		//fxaa pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(fxaa_source_attachment);
@@ -1206,7 +1228,7 @@ namespace adria
 
 		//shadow map pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = SHADOW_MAP_SIZE;
 			render_pass_desc.height = SHADOW_MAP_SIZE;
 			render_pass_desc.dsv_attachment = shadow_map_attachment;
@@ -1217,12 +1239,12 @@ namespace adria
 		{
 			for (uint32 i = 0; i < 6; ++i)
 			{
-				dsv_attachment_desc_t shadow_cubemap_attachment{};
-				shadow_cubemap_attachment.view = shadow_depth_cubemap.DSV(i);
+				DsvAttachmentDesc shadow_cubemap_attachment{};
+				shadow_cubemap_attachment.view = shadow_depth_cubemap->GetSubresource_DSV(i + 1);
 				shadow_cubemap_attachment.clear_depth = 1.0f;
 				shadow_cubemap_attachment.load_op = ELoadOp::Clear;
 
-				render_pass_desc_t render_pass_desc{};
+				RenderPassDesc render_pass_desc{};
 				render_pass_desc.width = SHADOW_CUBE_SIZE;
 				render_pass_desc.height = SHADOW_CUBE_SIZE;
 				render_pass_desc.dsv_attachment = shadow_cubemap_attachment;
@@ -1235,12 +1257,12 @@ namespace adria
 			cascade_shadow_pass.clear();
 			for (uint32 i = 0; i < CASCADE_COUNT; ++i)
 			{
-				dsv_attachment_desc_t cascade_shadow_map_attachment{};
-				cascade_shadow_map_attachment.view = shadow_cascade_maps.DSV(i);
+				DsvAttachmentDesc cascade_shadow_map_attachment{};
+				cascade_shadow_map_attachment.view = shadow_cascade_maps->GetSubresource_DSV(i + 1);
 				cascade_shadow_map_attachment.clear_depth = 1.0f;
 				cascade_shadow_map_attachment.load_op = ELoadOp::Clear;
 
-				render_pass_desc_t render_pass_desc{};
+				RenderPassDesc render_pass_desc{};
 				render_pass_desc.width = SHADOW_CASCADE_SIZE;
 				render_pass_desc.height = SHADOW_CASCADE_SIZE;
 				render_pass_desc.dsv_attachment = cascade_shadow_map_attachment;
@@ -1251,7 +1273,7 @@ namespace adria
 		//ssao pass
 		{
 
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(ssao_attachment);
@@ -1262,13 +1284,13 @@ namespace adria
 		//ping pong passes
 		{
 			
-			render_pass_desc_t ping_render_pass_desc{};
+			RenderPassDesc ping_render_pass_desc{};
 			ping_render_pass_desc.width = width;
 			ping_render_pass_desc.height = height;
 			ping_render_pass_desc.rtv_attachments.push_back(ping_color_load_attachment);
 			postprocess_passes[0] = RenderPass(ping_render_pass_desc);
 
-			render_pass_desc_t pong_render_pass_desc{};
+			RenderPassDesc pong_render_pass_desc{};
 			pong_render_pass_desc.width = width;
 			pong_render_pass_desc.height = height;
 			pong_render_pass_desc.rtv_attachments.push_back(pong_color_load_attachment);
@@ -1278,7 +1300,7 @@ namespace adria
 
 		//voxel debug pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_clear_attachment);
@@ -1288,7 +1310,7 @@ namespace adria
 
 		//offscreen_resolve_pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(offscreen_clear_attachment);
@@ -1297,7 +1319,7 @@ namespace adria
 
 		//velocity buffer pass
 		{
-			render_pass_desc_t render_pass_desc{};
+			RenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(velocity_clear_attachment);
@@ -2845,7 +2867,7 @@ namespace adria
 			shadow_cubemap_pass[i].End(context);
 		}
 
-		ID3D11ShaderResourceView* srv[] = { shadow_depth_cubemap.SRV() };
+		ID3D11ShaderResourceView* srv[] = { shadow_depth_cubemap->GetSubresource_SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWCUBE, 1, srv);
 	}
 	void Renderer::PassShadowMapCascades(Light const& light)
@@ -2879,7 +2901,7 @@ namespace adria
 		}
 
 		context->RSSetState(nullptr);
-		ID3D11ShaderResourceView* srv[] = { shadow_cascade_maps.SRV() };
+		ID3D11ShaderResourceView* srv[] = { shadow_cascade_maps->GetSubresource_SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWARRAY, 1, srv);
 
 		shadow_cbuf_data.shadow_map_size = SHADOW_CASCADE_SIZE;

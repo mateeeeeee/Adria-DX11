@@ -54,6 +54,7 @@ namespace adria
         void ParticleSettings();
         void DecalSettings();
         void ListEntities();
+        void AddEntities();
         void Properties();
         void Camera();
         void Scene();

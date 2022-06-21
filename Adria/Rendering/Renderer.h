@@ -16,9 +16,6 @@
 #include "../Graphics/GPUProfiler.h"
 #include "../Graphics/Buffer.h"
 
-#include "../Graphics/TextureCube.h"
-#include "../Graphics/Texture2DArray.h"
-
 
 namespace adria
 {
@@ -91,8 +88,8 @@ namespace adria
 		std::unique_ptr<Texture> offscreen_ldr_render_target;
 		
 		std::unique_ptr<Texture> shadow_depth_map;
-		TextureCube shadow_depth_cubemap;
-		Texture2DArray shadow_cascade_maps;
+		std::unique_ptr<Texture> shadow_depth_cubemap;
+		std::unique_ptr<Texture> shadow_cascade_maps;
 		std::unique_ptr<Texture> ao_texture;
 		std::unique_ptr<Texture> debug_tiled_texture;
 		std::unique_ptr<Texture> ssao_random_texture;
