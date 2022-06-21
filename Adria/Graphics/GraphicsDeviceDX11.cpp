@@ -1,7 +1,16 @@
 #include "GraphicsDeviceDX11.h"
+#include <dxgidebug.h>
+#include <cstdlib>
 #include "../Core/Macros.h"
 
-
+static inline void ReportLiveObjects()
+{
+	Microsoft::WRL::ComPtr<IDXGIDebug1> dxgi_debug;
+	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgi_debug.GetAddressOf()))))
+	{
+		dxgi_debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_DETAIL | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
+	}
+}
 
 namespace adria
 {
@@ -73,9 +82,8 @@ namespace adria
 			}
 		}
 #endif
-
 		CreateBackBufferResources(width, height);
-
+		std::atexit(ReportLiveObjects);
 	}
 	GraphicsDevice::~GraphicsDevice()
 	{

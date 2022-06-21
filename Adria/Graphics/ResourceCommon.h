@@ -189,7 +189,8 @@ namespace adria
 	enum class ETextureMiscFlag : uint32
 	{
 		None = 0,
-		TextureCube = 1 << 0
+		TextureCube = 1 << 0,
+		GenerateMips = 1 << 1
 	};
 	DEFINE_ENUM_BIT_OPERATORS(ETextureMiscFlag);
 

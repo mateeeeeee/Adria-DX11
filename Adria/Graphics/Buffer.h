@@ -92,7 +92,6 @@ namespace adria
 		return _flags;
 	}
 
-
 	struct BufferSubresourceDesc
 	{
 		uint64 offset = 0;
