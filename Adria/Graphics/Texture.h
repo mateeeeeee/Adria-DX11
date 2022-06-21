@@ -25,7 +25,6 @@ namespace adria
 		ETextureMiscFlag misc_flags = ETextureMiscFlag::None;
 		ECpuAccess cpu_access = ECpuAccess::None;
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
-
 		std::strong_ordering operator<=>(TextureDesc const& other) const = default;
 	};
 
@@ -98,6 +97,7 @@ namespace adria
 		{
 			HRESULT hr = S_OK;
 			ID3D11Device* device = gfx->Device();
+
 			switch (desc.type)
 			{
 			case TextureType_1D:
@@ -127,6 +127,11 @@ namespace adria
 			{
 				const_cast<TextureDesc&>(desc).mip_levels = (uint32)log2(std::max(desc.width, desc.height)) + 1;
 			}
+
+			if (HasAnyFlag(desc.bind_flags, EBindFlag::RenderTarget)) CreateSubresource_RTV();
+			if (HasAnyFlag(desc.bind_flags, EBindFlag::ShaderResource)) CreateSubresource_SRV();
+			if (HasAnyFlag(desc.bind_flags, EBindFlag::DepthStencil)) CreateSubresource_DSV();
+			if (HasAnyFlag(desc.bind_flags, EBindFlag::UnorderedAccess)) CreateSubresource_UAV();
 		}
 
 		Texture(Texture const&) = delete;

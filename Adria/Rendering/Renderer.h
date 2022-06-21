@@ -16,8 +16,6 @@
 #include "../Graphics/GPUProfiler.h"
 #include "../Graphics/Buffer.h"
 
-#include "../Graphics/Texture3D.h"
-#include "../Graphics/Texture2D.h"
 #include "../Graphics/TextureCube.h"
 #include "../Graphics/Texture2DArray.h"
 
@@ -61,7 +59,7 @@ namespace adria
 		void OnResize(uint32 width, uint32 height);
 		void OnLeftMouseClicked();
 
-		Texture2D GetOffscreenTexture() const;
+		Texture const* GetOffscreenTexture() const;
 		TextureManager& GetTextureManager();
 		PickingData GetLastPickingData() const;
 		std::vector<std::string> GetProfilerResults(bool log = false);
@@ -83,39 +81,45 @@ namespace adria
 		PickingData last_picking_data;
 
 		//textures
-		std::vector<Texture2D> gbuffer; 
-		Texture2D depth_target;
+		std::vector<std::unique_ptr<Texture>> gbuffer;
+		std::unique_ptr<Texture> depth_target;
 
-		Texture2D hdr_render_target;
-		Texture2D prev_hdr_render_target;
-		Texture2D uav_target;
-		Texture2D fxaa_texture;
-		Texture2D offscreen_ldr_render_target;
+		std::unique_ptr<Texture> hdr_render_target;
+		std::unique_ptr<Texture> prev_hdr_render_target;
+		std::unique_ptr<Texture> uav_target;
+		std::unique_ptr<Texture> fxaa_texture;
+		std::unique_ptr<Texture> offscreen_ldr_render_target;
 		
-		Texture2D shadow_depth_map;
+		std::unique_ptr<Texture> shadow_depth_map;
 		TextureCube shadow_depth_cubemap;
 		Texture2DArray shadow_cascade_maps;
-		Texture2D ao_texture;
-		Texture2D debug_tiled_texture;
-		Texture2D ssao_random_texture;
-		Texture2D hbao_random_texture;
-		Texture2D blur_texture_intermediate;
-		Texture2D blur_texture_final;
-		Texture2D bloom_extract_texture;
-		std::array<Texture2D, 2> postprocess_textures;
+		std::unique_ptr<Texture> ao_texture;
+		std::unique_ptr<Texture> debug_tiled_texture;
+		std::unique_ptr<Texture> ssao_random_texture;
+		std::unique_ptr<Texture> hbao_random_texture;
+		std::unique_ptr<Texture> blur_texture_intermediate;
+		std::unique_ptr<Texture> blur_texture_final;
+		std::unique_ptr<Texture> bloom_extract_texture;
+		std::array<std::unique_ptr<Texture>, 2> postprocess_textures;
 		bool postprocess_index = false;
 
-		std::array<Texture2D, 2> ping_pong_phase_textures;
+		std::array<std::unique_ptr<Texture>, 2> ping_pong_phase_textures;
 		bool pong_phase = false;
-		std::array<Texture2D, 2> ping_pong_spectrum_textures;
+		std::array<std::unique_ptr<Texture>, 2> ping_pong_spectrum_textures;
 		bool pong_spectrum = false;
-		Texture2D ocean_normal_map;
-		Texture2D ocean_initial_spectrum;
+		std::unique_ptr<Texture> ocean_normal_map;
+		std::unique_ptr<Texture> ocean_initial_spectrum;
 
-		Texture3D voxel_texture;
-		Texture3D voxel_texture_second_bounce;
-		Texture2D sun_target;
-		Texture2D velocity_buffer;
+		std::unique_ptr<Texture> voxel_texture;
+		std::unique_ptr<Texture> voxel_texture_second_bounce;
+		std::unique_ptr<Texture> sun_target;
+		std::unique_ptr<Texture> velocity_buffer;
+
+		//move to Buffer
+		Microsoft::WRL::ComPtr<ID3D11Buffer> bokeh_buffer;
+		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> bokeh_uav;
+		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bokeh_srv;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> bokeh_indirect_draw_buffer;
 
 		//render passes
 		RenderPass gbuffer_pass;
@@ -150,10 +154,6 @@ namespace adria
 		std::array<DirectX::XMVECTOR, SSAO_KERNEL_SIZE> ssao_kernel{};
 		std::vector<ID3D11ShaderResourceView*> lens_flare_textures;
 		std::vector<ID3D11ShaderResourceView*> clouds_textures;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> bokeh_buffer;
-		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> bokeh_uav;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bokeh_srv;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> bokeh_indirect_draw_buffer;
 		TextureHandle hex_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle oct_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle circle_bokeh_handle = INVALID_TEXTURE_HANDLE;
@@ -291,11 +291,11 @@ namespace adria
 		//result is in sun texture
 		void DrawSun(tecs::entity sun);
 		//result is in final compute texture
-		void BlurTexture(Texture2D const& src);
+		void BlurTexture(Texture const* src);
 		//result is in currently set render target
-		void CopyTexture(Texture2D const& src);
+		void CopyTexture(Texture const* src);
 		//result is in currently set render target
-		void AddTextures(Texture2D const& src1, Texture2D const& src2);
+		void AddTextures(Texture const* src1, Texture const* src2);
 
 		void ResolveCustomRenderState(RenderState const&, bool);
 	};

@@ -199,6 +199,8 @@ namespace adria
 		uint32 result = 0;
 		if (HasAnyFlag(value, ETextureMiscFlag::TextureCube))
 			result |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+		if (HasAnyFlag(value, ETextureMiscFlag::GenerateMips))
+			result |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
 		return result;
 	}
 

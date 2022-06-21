@@ -219,7 +219,6 @@
     <ClInclude Include="Graphics\ConstantBuffer.h" />
     <ClInclude Include="Graphics\DDSTextureLoader.h" />
     <ClInclude Include="Graphics\GraphicsDeviceDX11.h" />
-    <ClInclude Include="Graphics\IndexBuffer.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\ProfilerSettings.h" />
     <ClInclude Include="Graphics\RenderPass.h" />
@@ -228,12 +227,10 @@
     <ClInclude Include="Graphics\ShaderProgram.h" />
     <ClInclude Include="Graphics\ShaderCompiler.h" />
     <ClInclude Include="Graphics\Texture.h" />
-    <ClInclude Include="Graphics\Texture2D.h" />
     <ClInclude Include="Graphics\Texture2DArray.h" />
     <ClInclude Include="Graphics\Texture3D.h" />
     <ClInclude Include="Graphics\TextureCube.h" />
     <ClInclude Include="Graphics\TextureManager.h" />
-    <ClInclude Include="Graphics\VertexBuffer.h" />
     <ClInclude Include="Graphics\VertexTypes.h" />
     <ClInclude Include="Graphics\WICTextureLoader.h" />
     <ClInclude Include="Input\Input.h" />
@@ -281,7 +278,7 @@
     <ClInclude Include="Utilities\AdriaException.h" />
     <ClInclude Include="Utilities\HashUtil.h" />
     <ClInclude Include="Utilities\Image.h" />
-    <ClInclude Include="Utilities\MemoryLeak.h" />
+    <ClInclude Include="Utilities\MemoryDebugger.h" />
     <ClInclude Include="Utilities\Random.h" />
     <ClInclude Include="Utilities\StringUtil.h" />
     <ClInclude Include="Utilities\TemplatesUtil.h" />

@@ -1832,7 +1832,7 @@ namespace adria
             ImVec2 size(v_max.x - v_min.x, v_max.y - v_min.y);
 
             scene_focused = ImGui::IsWindowFocused();
-            ImGui::Image(engine->renderer->GetOffscreenTexture().SRV(), size);
+            ImGui::Image(engine->renderer->GetOffscreenTexture()->GetSubresource_SRV(), size);
             //ImGui::GetForegroundDrawList()->AddRect(v_min, v_max, IM_COL32(255, 0, 0, 255));
 
             ImVec2 mouse_pos = ImGui::GetMousePos();

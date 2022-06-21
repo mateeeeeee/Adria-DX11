@@ -235,7 +235,7 @@
     <ClInclude Include="Core\Window.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\MemoryLeak.h">
+    <ClInclude Include="Utilities\MemoryDebugger.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Core\Engine.h">
@@ -262,9 +262,6 @@
     <ClInclude Include="Graphics\ConstantBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\IndexBuffer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\RenderPass.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -275,9 +272,6 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\TextureManager.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\VertexBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\VertexTypes.h">
@@ -294,9 +288,6 @@
     </ClInclude>
     <ClInclude Include="Utilities\Image.h">
       <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\Texture2D.h">
-      <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Math\BoundingVolumeHelpers.h">
       <Filter>Math</Filter>
