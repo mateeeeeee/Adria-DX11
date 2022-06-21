@@ -83,7 +83,7 @@ TextureManager::TextureManager(ID3D11Device* _device, ID3D11DeviceContext* _cont
 	mipmaps = true;
 }
 
-TEXTURE_HANDLE TextureManager::LoadTexture(std::wstring const& name)
+TextureHandle TextureManager::LoadTexture(std::wstring const& name)
 {
 	ETextureFormat format = GetTextureFormat(name);
 
@@ -110,12 +110,12 @@ TEXTURE_HANDLE TextureManager::LoadTexture(std::wstring const& name)
 	return INVALID_TEXTURE_HANDLE;
 }
 
-TEXTURE_HANDLE TextureManager::LoadTexture(std::string const& name)
+TextureHandle TextureManager::LoadTexture(std::string const& name)
 {
 	return LoadTexture(ConvertToWide(name));
 }
 
-TEXTURE_HANDLE TextureManager::LoadCubeMap(std::wstring const& name)
+TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 {
 	ETextureFormat format = GetTextureFormat(name);
 
@@ -239,7 +239,7 @@ TEXTURE_HANDLE TextureManager::LoadCubeMap(std::wstring const& name)
 	else return it->second;
 }
 
-TEXTURE_HANDLE TextureManager::LoadCubeMap(std::array<std::string, 6> const& cubemap_textures)
+TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cubemap_textures)
 {
 	ETextureFormat format = GetTextureFormat(cubemap_textures[0]);
 	ADRIA_ASSERT(format == ETextureFormat::JPG || format == ETextureFormat::PNG || format == ETextureFormat::TGA ||
@@ -308,7 +308,7 @@ TEXTURE_HANDLE TextureManager::LoadCubeMap(std::array<std::string, 6> const& cub
 	return handle;
 }
 
-ID3D11ShaderResourceView* TextureManager::GetTextureView(TEXTURE_HANDLE tex_handle) const
+ID3D11ShaderResourceView* TextureManager::GetTextureView(TextureHandle tex_handle) const
 {
 	if (auto it = texture_map.find(tex_handle); it != texture_map.end())
 		return it->second.Get();
@@ -320,7 +320,7 @@ void TextureManager::SetMipMaps(bool mipmaps)
 	this->mipmaps = mipmaps;
 }
 
-TEXTURE_HANDLE TextureManager::LoadDDSTexture(std::wstring const& name)
+TextureHandle TextureManager::LoadDDSTexture(std::wstring const& name)
 {
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
@@ -349,7 +349,7 @@ TEXTURE_HANDLE TextureManager::LoadDDSTexture(std::wstring const& name)
 	else return it->second;
 }
 
-TEXTURE_HANDLE TextureManager::LoadWICTexture(std::wstring const& name)
+TextureHandle TextureManager::LoadWICTexture(std::wstring const& name)
 {
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
@@ -378,7 +378,7 @@ TEXTURE_HANDLE TextureManager::LoadWICTexture(std::wstring const& name)
 	else return it->second;
 }
 
-TEXTURE_HANDLE TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
+TextureHandle TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
 {
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{

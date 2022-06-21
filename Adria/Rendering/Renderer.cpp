@@ -535,7 +535,7 @@ namespace adria
 	void Renderer::LoadTextures()
 	{
 		//make for loop
-		TEXTURE_HANDLE tex_handle{};
+		TextureHandle tex_handle{};
 		tex_handle = texture_manager.LoadTexture("Resources/Textures/lensflare/flare0.jpg");
 		lens_flare_textures.push_back(texture_manager.GetTextureView(tex_handle));
 

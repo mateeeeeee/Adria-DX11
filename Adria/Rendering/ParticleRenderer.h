@@ -9,8 +9,8 @@
 #include "../Graphics/VertexBuffer.h"
 #include "../Graphics/IndexBuffer.h"
 #include "../Graphics/StructuredBuffer.h"
-#include "../Graphics/AppendBuffer.h"
-#include "../Graphics/Texture2D.h"
+#include "../Graphics/Buffer.h"
+#include "../Graphics/Texture.h"
 #include "../Graphics/GraphicsDeviceDX11.h"
 
 namespace adria
@@ -84,12 +84,12 @@ namespace adria
 	private:
 		GraphicsDevice* gfx;
 
-		Texture2D random_texture;
-		AppendBuffer<uint32> dead_list_buffer;
-		StructuredBuffer<GPUParticleA> particle_bufferA;
-		StructuredBuffer<GPUParticleB> particle_bufferB;
-		StructuredBuffer<ViewSpacePositionRadius> view_space_positions_buffer;
-		StructuredBuffer<IndexBufferElement> alive_index_buffer;
+		std::unique_ptr<Texture> random_texture;
+		Buffer dead_list_buffer;
+		Buffer particle_bufferA;
+		Buffer particle_bufferB;
+		Buffer view_space_positions_buffer;
+		Buffer alive_index_buffer;
 
 		ConstantBuffer<uint32> dead_list_count_cbuffer;
 		ConstantBuffer<uint32> active_list_count_cbuffer;
@@ -102,7 +102,8 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> indirect_sort_args_uav;
 		IndexBuffer index_buffer;
 
-private:
+	private:
+		void CreateViews();
 		void CreateIndirectArgsBuffers();
 		void CreateIndexBuffer();
 		void CreateRandomTexture();

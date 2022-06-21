@@ -19,7 +19,8 @@ namespace adria
 	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride)
 	{
 		BufferDesc desc{};
-		desc.bind_flags = EBindFlag::None;
+		desc.bind_flags = EBindFlag::VertexBuffer;
+		desc.cpu_access = ECpuAccess::None;
 		desc.resource_usage = EResourceUsage::Default;
 		desc.size = vertex_count * stride;
 		desc.stride = stride;
@@ -29,7 +30,8 @@ namespace adria
 	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices)
 	{
 		BufferDesc desc{};
-		desc.bind_flags = EBindFlag::None;
+		desc.bind_flags = EBindFlag::IndexBuffer;
+		desc.cpu_access = ECpuAccess::None;
 		desc.resource_usage = EResourceUsage::Default;
 		desc.stride = small_indices ? 2 : 4;
 		desc.size = index_count * desc.stride;
@@ -45,22 +47,66 @@ namespace adria
 		desc.bind_flags = EBindFlag::ShaderResource;
 		if (uav) desc.bind_flags |= EBindFlag::UnorderedAccess;
 		desc.misc_flags = EBufferMiscFlag::BufferStructured;
+		desc.cpu_access = !dynamic ? ECpuAccess::None : ECpuAccess::Write;
 		desc.stride = sizeof(T);
 		desc.size = desc.stride * count;
 		return desc;
 	}
-	static BufferDesc CounterBufferDesc()
+
+
+	static BufferDesc AppendBufferDesc(uint64 count, uint32 stride)
 	{
 		BufferDesc desc{};
-		desc.size = sizeof(uint32);
 		desc.bind_flags = EBindFlag::UnorderedAccess;
+		desc.resource_usage = EResourceUsage::Default;
+		desc.misc_flags = EBufferMiscFlag::BufferStructured;
+		desc.stride = stride;
+		desc.size = count * stride;
 		return desc;
 	}
+	/*
+	CD3D11_BUFFER_DESC desc(sizeof(T) * element_count, D3D11_BIND_UNORDERED_ACCESS,
+				D3D11_USAGE_DEFAULT,
+				0,
+				D3D11_RESOURCE_MISC_BUFFER_STRUCTURED,
+				sizeof(T));
+
+			device->CreateBuffer(&desc, nullptr, &buffer);
+
+			D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
+			uav_desc.Format = DXGI_FORMAT_UNKNOWN;
+			uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+			uav_desc.Buffer.FirstElement = 0;
+			uav_desc.Buffer.NumElements = element_count;
+			uav_desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_APPEND;
+
+			device->CreateUnorderedAccessView(buffer.Get(), &uav_desc, &uav);
+	*/
+
+	enum EFlagsUAV : uint8
+	{
+		UAV_None = 0x0,
+		UAV_Raw = 0x1,
+		UAV_Append = 0x2,
+		UAV_Counter = 0x4
+	};
+	DEFINE_ENUM_BIT_OPERATORS(EFlagsUAV);
+
+	inline constexpr uint32 ParseBufferUAVFlags(EFlagsUAV flags)
+	{
+		uint32 _flags = 0;
+		if (HasAnyFlag(flags, UAV_Raw)) _flags |= D3D11_BUFFER_UAV_FLAG_RAW;
+		if (HasAnyFlag(flags, UAV_Append)) _flags |= D3D11_BUFFER_UAV_FLAG_APPEND;
+		if (HasAnyFlag(flags, UAV_Counter)) _flags |= D3D11_BUFFER_UAV_FLAG_COUNTER;
+		return _flags;
+	}
+
 
 	struct BufferSubresourceDesc
 	{
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
+		EFlagsUAV uav_flags = UAV_None;
 		std::strong_ordering operator<=>(BufferSubresourceDesc const& other) const = default;
 	};
 
@@ -218,8 +264,9 @@ namespace adria
 			break;
 			case SubresourceType_UAV:
 			{
-				D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc = {};
+				D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+				uav_desc.Buffer.Flags = ParseBufferUAVFlags(subresource_desc.uav_flags);
 				if (HasAnyFlag(desc.misc_flags, EBufferMiscFlag::BufferRaw))
 				{
 					// This is a Raw Buffer

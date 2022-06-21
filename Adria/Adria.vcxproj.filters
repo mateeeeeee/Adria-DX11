@@ -442,9 +442,6 @@
     <ClInclude Include="Rendering\ParticleRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\AppendBuffer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\ScopedAnnotation.h">
       <Filter>Graphics</Filter>
     </ClInclude>

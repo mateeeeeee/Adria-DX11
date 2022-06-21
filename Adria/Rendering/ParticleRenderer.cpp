@@ -6,16 +6,17 @@
 namespace adria
 {
 	ParticleRenderer::ParticleRenderer(GraphicsDevice* gfx) : gfx{ gfx },
-		dead_list_buffer(gfx->Device(), MAX_PARTICLES),
-		particle_bufferA(gfx->Device(), MAX_PARTICLES),
-		particle_bufferB(gfx->Device(), MAX_PARTICLES),
-		view_space_positions_buffer(gfx->Device(), MAX_PARTICLES),
+		dead_list_buffer(gfx, AppendBufferDesc(MAX_PARTICLES, sizeof(uint32))),
+		particle_bufferA(gfx, StructuredBufferDesc<GPUParticleA>(MAX_PARTICLES)),
+		particle_bufferB(gfx, StructuredBufferDesc<GPUParticleB>(MAX_PARTICLES)),
+		view_space_positions_buffer(gfx, StructuredBufferDesc<ViewSpacePositionRadius>(MAX_PARTICLES)),
+		alive_index_buffer(gfx, StructuredBufferDesc<IndexBufferElement>(MAX_PARTICLES)),
 		dead_list_count_cbuffer(gfx->Device(), false),
 		active_list_count_cbuffer(gfx->Device(), false),
 		emitter_cbuffer(gfx->Device(), true),
-		sort_dispatch_info_cbuffer(gfx->Device(), true),
-		alive_index_buffer(gfx->Device(), MAX_PARTICLES, false, true)
+		sort_dispatch_info_cbuffer(gfx->Device(), true)
 	{
+		CreateViews();
 		CreateRandomTexture();
 		CreateIndexBuffer();
 		CreateIndirectArgsBuffers();
@@ -53,6 +54,22 @@ namespace adria
 			Sort();
 		}
 		Rasterize(emitter_params, depth_srv, particle_srv);
+	}
+
+	void ParticleRenderer::CreateViews()
+	{
+		BufferSubresourceDesc uav_desc{ .uav_flags = UAV_Append };
+		dead_list_buffer.CreateSubresource_UAV(&uav_desc);
+
+		uav_desc.uav_flags = UAV_Counter;
+		alive_index_buffer.CreateSubresource_UAV(&uav_desc);
+		alive_index_buffer.CreateSubresource_SRV();
+
+		particle_bufferA.CreateSubresource_UAV();
+		particle_bufferA.CreateSubresource_SRV();
+		particle_bufferB.CreateSubresource_UAV();
+		view_space_positions_buffer.CreateSubresource_SRV();
+		view_space_positions_buffer.CreateSubresource_UAV();
 	}
 
 	void ParticleRenderer::CreateIndirectArgsBuffers()
@@ -122,18 +139,12 @@ namespace adria
 
 	void ParticleRenderer::CreateRandomTexture()
 	{
-		ID3D11Device* device = gfx->Device();
-
-		texture2d_desc_t desc{};
+		TextureDesc desc{};
 		desc.width = 1024;
 		desc.height = 1024;
 		desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		desc.usage = D3D11_USAGE_IMMUTABLE;
-		desc.bind_flags = D3D11_BIND_SHADER_RESOURCE;
-
-		desc.srv_desc.format = desc.format;
-		desc.srv_desc.most_detailed_mip = 0;
-		desc.srv_desc.mip_levels = 1;
+		desc.usage = EResourceUsage::Immutable;
+		desc.bind_flags = EBindFlag::ShaderResource;
 
 		std::vector<float32> random_texture_data;
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
@@ -144,11 +155,12 @@ namespace adria
 			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
 			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
 		}
+		TextureInitialData init_data{};
+		init_data.pSysMem = (void*)random_texture_data.data();
+		init_data.SysMemPitch = desc.width * 4 * sizeof(float32);
 
-		desc.init_data.data = (void*)random_texture_data.data();
-		desc.init_data.pitch = desc.width * 4 * sizeof(float32);
-
-		random_texture = Texture2D(device, desc);
+		random_texture = std::make_unique<Texture>(gfx, desc, &init_data);
+		random_texture->CreateSubresource_SRV();
 	}
 
 	void ParticleRenderer::InitializeDeadList() 
@@ -156,7 +168,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 
 		uint32 initial_count[] = { 0 };
-		ID3D11UnorderedAccessView* dead_list_uavs[] = { dead_list_buffer.UAV() };
+		ID3D11UnorderedAccessView* dead_list_uavs[] = { dead_list_buffer.GetSubresource_UAV() };
 		context->CSSetUnorderedAccessViews(0, 1, dead_list_uavs, initial_count);
 
 		ShaderCache::GetShaderProgram(EShaderProgram::ParticleInitDeadList)->Bind(context);
@@ -171,7 +183,7 @@ namespace adria
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
-		ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV() };
+		ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.GetSubresource_UAV(), particle_bufferB.GetSubresource_UAV() };
 		uint32 initial_counts[] = { (uint32)-1, (uint32)-1 };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
@@ -192,11 +204,11 @@ namespace adria
 		{
 			ShaderCache::GetShaderProgram(EShaderProgram::ParticleEmit)->Bind(context);
 
-			ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV(), dead_list_buffer.UAV() };
+			ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.GetSubresource_UAV(), particle_bufferB.GetSubresource_UAV(), dead_list_buffer.GetSubresource_UAV() };
 			uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1 };
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
-			ID3D11ShaderResourceView* srvs[] = { random_texture.SRV() };
+			ID3D11ShaderResourceView* srvs[] = { random_texture->GetSubresource_SRV() };
 			context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
 			EmitterCBuffer emitter_cbuffer_data{};
@@ -217,7 +229,7 @@ namespace adria
 			dead_list_count_cbuffer.Bind(context, EShaderStage::CS, 11);
 			emitter_cbuffer.Bind(context, EShaderStage::CS, 13);
 
-			context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.UAV());
+			context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.GetSubresource_UAV());
 			uint32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
 			context->Dispatch(thread_groups_x, 1, 1);
 
@@ -237,9 +249,9 @@ namespace adria
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Simulate Pass");
 
 		ID3D11UnorderedAccessView* uavs[] = {
-			particle_bufferA.UAV(), particle_bufferB.UAV(),
-			dead_list_buffer.UAV(), alive_index_buffer.UAV(),
-			view_space_positions_buffer.UAV(), indirect_render_args_uav.Get() };
+			particle_bufferA.GetSubresource_UAV(), particle_bufferB.GetSubresource_UAV(),
+			dead_list_buffer.GetSubresource_UAV(), alive_index_buffer.GetSubresource_UAV(),
+			view_space_positions_buffer.GetSubresource_UAV(), indirect_render_args_uav.Get() };
 		uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1, 0, (uint32)-1, (uint32)-1 };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
@@ -255,7 +267,7 @@ namespace adria
 		ZeroMemory(srvs, sizeof(srvs));
 		context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
-		context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.UAV());
+		context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.GetSubresource_UAV());
 	}
 
 	void ParticleRenderer::Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* particle_srv)
@@ -272,7 +284,7 @@ namespace adria
 		index_buffer.Bind(context);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		ID3D11ShaderResourceView* vs_srvs[] = { particle_bufferA.SRV(), view_space_positions_buffer.SRV(), alive_index_buffer.SRV() };
+		ID3D11ShaderResourceView* vs_srvs[] = { particle_bufferA.GetSubresource_SRV(), view_space_positions_buffer.GetSubresource_SRV(), alive_index_buffer.GetSubresource_SRV() };
 		ID3D11ShaderResourceView* ps_srvs[] = { particle_srv, depth_srv };
 		context->VSSetShaderResources(0, ARRAYSIZE(vs_srvs), vs_srvs);
 		context->PSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
@@ -299,7 +311,7 @@ namespace adria
 		ShaderCache::GetShaderProgram(EShaderProgram::ParticleSortInitArgs)->Bind(context);
 		context->Dispatch(1, 1, 1);
 
-		ID3D11UnorderedAccessView* uav = alive_index_buffer.UAV();
+		ID3D11UnorderedAccessView* uav = alive_index_buffer.GetSubresource_UAV();
 		context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
 
 		bool done = SortInitial();
@@ -317,7 +329,6 @@ namespace adria
 	bool ParticleRenderer::SortInitial()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-
 		bool done = true;
 		UINT numThreadGroups = ((MAX_PARTICLES - 1) >> 9) + 1;
 		if (numThreadGroups > 1) done = false;

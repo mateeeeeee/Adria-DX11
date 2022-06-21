@@ -153,12 +153,12 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> bokeh_uav;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bokeh_srv;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> bokeh_indirect_draw_buffer;
-		TEXTURE_HANDLE hex_bokeh_handle = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE oct_bokeh_handle = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE circle_bokeh_handle = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE cross_bokeh_handle = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE foam_handle = INVALID_TEXTURE_HANDLE;
-		TEXTURE_HANDLE perlin_handle = INVALID_TEXTURE_HANDLE;
+		TextureHandle hex_bokeh_handle = INVALID_TEXTURE_HANDLE;
+		TextureHandle oct_bokeh_handle = INVALID_TEXTURE_HANDLE;
+		TextureHandle circle_bokeh_handle = INVALID_TEXTURE_HANDLE;
+		TextureHandle cross_bokeh_handle = INVALID_TEXTURE_HANDLE;
+		TextureHandle foam_handle = INVALID_TEXTURE_HANDLE;
+		TextureHandle perlin_handle = INVALID_TEXTURE_HANDLE;
 
 		//////////////////////////////////////////////////////////////////
 
