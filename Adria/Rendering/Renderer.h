@@ -9,17 +9,21 @@
 #include "ConstantBuffers.h"
 #include "../tecs/Registry.h"
 #include "../Graphics/TextureManager.h"
-#include "../Graphics/Texture2D.h"
-#include "../Graphics/TextureCube.h"
-#include "../Graphics/Texture2DArray.h"
+
 #include "../Graphics/ConstantBuffer.h"
 #include "../Graphics/ShaderProgram.h"
 #include "../Graphics/RenderPass.h"
 #include "../Graphics/GPUProfiler.h"
-#include "../Graphics/StructuredBuffer.h"
+#include "../Graphics/Buffer.h"
+
 #include "../Graphics/VertexBuffer.h"
 #include "../Graphics/IndexBuffer.h"
+
 #include "../Graphics/Texture3D.h"
+#include "../Graphics/Texture2D.h"
+#include "../Graphics/TextureCube.h"
+#include "../Graphics/Texture2DArray.h"
+
 
 namespace adria
 {
@@ -184,13 +188,12 @@ namespace adria
 		TerrainCBuffer terrain_cbuf_data{};
 		std::unique_ptr<ConstantBuffer<TerrainCBuffer>> terrain_cbuffer = nullptr;
 
-		//Structured Buffers
-		std::unique_ptr<StructuredBuffer<LightSBuffer>> lights = nullptr;
-		std::unique_ptr<StructuredBuffer<VoxelType>>	voxels = nullptr;
-		std::unique_ptr<StructuredBuffer<ClusterAABB>>	clusters = nullptr;
-		std::unique_ptr<StructuredBuffer<uint32>>			light_counter = nullptr;
-		std::unique_ptr<StructuredBuffer<uint32>>			light_list = nullptr;
-		std::unique_ptr<StructuredBuffer<LightGrid>>	light_grid = nullptr;
+		std::unique_ptr<Buffer> lights = nullptr;
+		std::unique_ptr<Buffer>	voxels = nullptr;
+		std::unique_ptr<Buffer> clusters = nullptr;
+		std::unique_ptr<Buffer>	light_counter = nullptr;
+		std::unique_ptr<Buffer>	light_list = nullptr;
+		std::unique_ptr<Buffer>	light_grid = nullptr;
 
 		VertexBuffer cube_vb;
 		IndexBuffer cube_ib;

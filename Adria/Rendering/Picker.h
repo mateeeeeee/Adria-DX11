@@ -2,7 +2,7 @@
 #include <memory>
 #include <DirectXMath.h>
 #include "ShaderCache.h"
-#include "../Graphics/StructuredBuffer.h"
+#include "../Graphics/Buffer.h"
 #include "../Graphics/GraphicsDeviceDX11.h" 
 #include "../Graphics/ShaderProgram.h" 
 #include "../Logging/Logger.h"
@@ -24,7 +24,15 @@ namespace adria
 
 		Picker(GraphicsDevice* gfx) : gfx(gfx), picking_buffer(nullptr)
 		{
-			picking_buffer = std::make_unique<StructuredBuffer<PickingData>>(gfx->Device(), 1, false, false, true);
+			BufferDesc desc{};
+			desc.size = sizeof(PickingData);
+			desc.stride = desc.size;
+			desc.cpu_access = ECpuAccess::Read;
+			desc.misc_flags = EBufferMiscFlag::BufferStructured;
+			desc.resource_usage = EResourceUsage::Default;
+			desc.bind_flags = EBindFlag::UnorderedAccess;
+			picking_buffer = std::make_unique<Buffer>(gfx, desc);
+			picking_buffer->CreateSubresource_UAV();
 		}
 
 		PickingData Pick(ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* normal_srv)
@@ -32,7 +40,7 @@ namespace adria
 			ID3D11DeviceContext* context = gfx->Context();
 			ID3D11ShaderResourceView* shader_views[2] = { depth_srv, normal_srv };
 			context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
-			ID3D11UnorderedAccessView* lights_uav = picking_buffer->UAV();
+			ID3D11UnorderedAccessView* lights_uav = picking_buffer->GetSubresource_UAV();
 			context->CSSetUnorderedAccessViews(0, 1, &lights_uav, nullptr);
 
 			ShaderCache::GetShaderProgram(EShaderProgram::Picker)->Bind(context);
@@ -43,15 +51,15 @@ namespace adria
 			ID3D11UnorderedAccessView* null_uav = nullptr;
 			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 
-			PickingData const* data = picking_buffer->MapForRead(context);
+			PickingData const* data = (PickingData const*)picking_buffer->MapForRead();
 			PickingData picking_data = *data;
-			picking_buffer->Unmap(context);
+			picking_buffer->Unmap();
 			return picking_data;
 		}
 
 	private:
 
 		GraphicsDevice* gfx;
-		std::unique_ptr<StructuredBuffer<PickingData>> picking_buffer;
+		std::unique_ptr<Buffer> picking_buffer;
 	};
 }

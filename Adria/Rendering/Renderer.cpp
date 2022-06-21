@@ -418,7 +418,6 @@ namespace adria
 	}
 	void Renderer::ResolveToBackbuffer()
 	{
-		
 		ID3D11DeviceContext* context = gfx->Context();
 		if (renderer_settings.anti_aliasing & EAntiAliasing_FXAA)
 		{
@@ -463,7 +462,6 @@ namespace adria
 		{
 			CreateResolutionDependentResources(width, height);
 		}
-
 	}
 	void Renderer::OnLeftMouseClicked()
 	{
@@ -605,16 +603,23 @@ namespace adria
 		HRESULT hr = gfx->Device()->CreateBuffer(&buffer_desc, &initData, &bokeh_indirect_draw_buffer);
 		BREAK_IF_FAILED(hr);
 
-		//for voxelization
-		voxels = std::make_unique<StructuredBuffer<VoxelType>>(device, VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION);
-
-		//for clustered shading
 		static constexpr uint32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
-		clusters = std::make_unique<StructuredBuffer<ClusterAABB>>(device, CLUSTER_COUNT);
-		light_counter = std::make_unique<StructuredBuffer<uint32>>(device, 1);
-		light_list = std::make_unique<StructuredBuffer<uint32>>(device, CLUSTER_COUNT * CLUSTER_MAX_LIGHTS);
-		light_grid = std::make_unique<StructuredBuffer<LightGrid>>(device, CLUSTER_COUNT);
+		voxels = std::make_unique<Buffer>(gfx, StructuredBufferDesc<VoxelType>(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION));
+		clusters = std::make_unique<Buffer>(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT));
+		light_counter = std::make_unique<Buffer>(gfx, StructuredBufferDesc<uint32>(1));
+		light_list = std::make_unique<Buffer>(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS));
+		light_grid = std::make_unique<Buffer>(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT));
 
+		voxels->CreateSubresource_SRV();
+		voxels->CreateSubresource_UAV();
+		clusters->CreateSubresource_SRV();
+		clusters->CreateSubresource_UAV();
+		light_counter->CreateSubresource_SRV();
+		light_counter->CreateSubresource_UAV();
+		light_list->CreateSubresource_SRV();
+		light_list->CreateSubresource_UAV();
+		light_grid->CreateSubresource_SRV();
+		light_grid->CreateSubresource_UAV();
 		//for sky
 		const SimpleVertex cube_vertices[8] = 
 		{
@@ -1849,7 +1854,8 @@ namespace adria
 		{
 			light_count = current_light_count;
 			if (light_count == 0) return;
-			lights = std::make_unique<StructuredBuffer<LightSBuffer>>(gfx->Device(), light_count, true);
+			lights = std::make_unique<Buffer>(gfx, StructuredBufferDesc<LightSBuffer>(light_count, false, true));
+			lights->CreateSubresource_SRV();
 		}
 
 		std::vector<LightSBuffer> lights_data{};
@@ -1872,8 +1878,7 @@ namespace adria
 			
 			lights_data.push_back(light_data);
 		}
-
-		lights->Update(gfx->Context(), lights_data);
+		lights->Update(lights_data);
 
 	}
 	void Renderer::UpdateTerrainData()
@@ -1914,15 +1919,11 @@ namespace adria
 	void Renderer::CameraFrustumCulling()
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();
-
 		auto visibility_view = reg.view<Visibility>();
-
 		for (auto e : visibility_view)
 		{
 			auto& visibility = visibility_view.get(e);
-
 			if (visibility.skip_culling) continue;
-
 			visibility.camera_visible = camera_frustum.Intersects(visibility.aabb) || reg.has<Light>(e); //dont cull lights for now
 		}
 	}
@@ -1994,14 +1995,12 @@ namespace adria
 				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = texture_manager.GetTextureView(material.albedo_texture);
-
 					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 				}
 
 				if (material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = texture_manager.GetTextureView(material.metallic_roughness_texture);
-
 					context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS_METALLIC, 1, &view);
 				}
 				else
@@ -2012,7 +2011,6 @@ namespace adria
 				if (material.normal_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = texture_manager.GetTextureView(material.normal_texture);
-
 					context->PSSetShaderResources(TEXTURE_SLOT_NORMAL, 1, &view);
 				}
 				else
@@ -2023,7 +2021,6 @@ namespace adria
 				if (material.emissive_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = texture_manager.GetTextureView(material.emissive_texture);
-
 					context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &view);
 				}
 				else
@@ -2034,11 +2031,8 @@ namespace adria
 				if (reg.has<RenderState>(e))
 				{
 					auto const& states = reg.get<RenderState>(e);
-
 					ResolveCustomRenderState(states, false);
-
 					mesh.Draw(context);
-
 					ResolveCustomRenderState(states, true);
 				}
 				else mesh.Draw(context);
@@ -2059,35 +2053,29 @@ namespace adria
 				if (terrain.grass_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = texture_manager.GetTextureView(terrain.grass_texture);
-
 					context->PSSetShaderResources(TEXTURE_SLOT_GRASS, 1, &view);
 				}
 				if (terrain.base_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = texture_manager.GetTextureView(terrain.base_texture);
-
 					context->PSSetShaderResources(TEXTURE_SLOT_BASE, 1, &view);
 				}
 				if (terrain.rock_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = texture_manager.GetTextureView(terrain.rock_texture);
-
 					context->PSSetShaderResources(TEXTURE_SLOT_ROCK, 1, &view);
 				}
 				if (terrain.sand_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = texture_manager.GetTextureView(terrain.sand_texture);
-
 					context->PSSetShaderResources(TEXTURE_SLOT_SAND, 1, &view);
 				}
 
 				if (terrain.layer_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = texture_manager.GetTextureView(terrain.layer_texture);
-
 					context->PSSetShaderResources(TEXTURE_SLOT_LAYER, 1, &view);
 				}
-
 				mesh.Draw(context);
 			}
 
@@ -2096,7 +2084,6 @@ namespace adria
 			for (auto e : foliage_view)
 			{
 				auto [mesh, transform, visibility, material] = foliage_view.get<Mesh, Transform, Visibility, Material>(e);
-
 				if (!visibility.camera_visible) continue;
 
 				object_cbuf_data.model = transform.current_transform;
@@ -2106,7 +2093,6 @@ namespace adria
 				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = texture_manager.GetTextureView(material.albedo_texture);
-
 					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 				}
 				mesh.Draw(context);
@@ -2363,7 +2349,7 @@ namespace adria
 		shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness].SRV();
 		shader_views[2] = depth_target.SRV();
 		context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
-		ID3D11ShaderResourceView* lights_srv = lights->SRV();
+		ID3D11ShaderResourceView* lights_srv = lights->GetSubresource_SRV();
 		context->CSSetShaderResources(3, 1, &lights_srv);
 		ID3D11UnorderedAccessView* texture_uav = uav_target.UAV();
 		context->CSSetUnorderedAccessViews(0, 1, &texture_uav, nullptr);
@@ -2446,7 +2432,7 @@ namespace adria
 
 		if (recreate_clusters)
 		{
-			ID3D11UnorderedAccessView* clusters_uav = clusters->UAV();
+			ID3D11UnorderedAccessView* clusters_uav = clusters->GetSubresource_UAV();
 			context->CSSetUnorderedAccessViews(0, 1, &clusters_uav, nullptr);
 
 			ShaderCache::GetShaderProgram(EShaderProgram::ClusterBuilding)->Bind(context);
@@ -2459,9 +2445,9 @@ namespace adria
 			recreate_clusters = false;
 		}
 
-		ID3D11ShaderResourceView* srvs[] = { clusters->SRV(), lights->SRV() };
+		ID3D11ShaderResourceView* srvs[] = { clusters->GetSubresource_SRV(), lights->GetSubresource_SRV() };
 		context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
-		ID3D11UnorderedAccessView* uavs[] = { light_counter->UAV(), light_list->UAV(), light_grid->UAV() };
+		ID3D11UnorderedAccessView* uavs[] = { light_counter->GetSubresource_UAV(), light_list->GetSubresource_UAV(), light_grid->GetSubresource_UAV() };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
 
 		ShaderCache::GetShaderProgram(EShaderProgram::ClusterCulling)->Bind(context);
@@ -2481,9 +2467,9 @@ namespace adria
 			shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic].SRV();
 			shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness].SRV();
 			shader_views[2] = depth_target.SRV();
-			shader_views[3] = lights->SRV();
-			shader_views[4] = light_list->SRV();
-			shader_views[5] = light_grid->SRV();
+			shader_views[3] = lights->GetSubresource_SRV();
+			shader_views[4] = light_list->GetSubresource_SRV();
+			shader_views[5] = light_grid->GetSubresource_SRV();
 
 			context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 
@@ -2569,7 +2555,7 @@ namespace adria
 			if (light.type == ELightType::Directional && light.casts_shadows && renderer_settings.voxel_debug)
 				PassShadowMapDirectional(light);
 		}
-		lights->Update(gfx->Context(), _lights.data(), (std::min<uint64>)(_lights.size(), VOXELIZE_MAX_LIGHTS) * sizeof(LightSBuffer));
+		lights->Update(_lights.data(), std::min<uint64>(_lights.size(), VOXELIZE_MAX_LIGHTS) * sizeof(LightSBuffer));
 
 		auto voxel_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
 
@@ -2583,11 +2569,11 @@ namespace adria
 		context->RSSetViewports(1, &vp);
 
 
-		ID3D11UnorderedAccessView* voxels_uav = voxels->UAV();
+		ID3D11UnorderedAccessView* voxels_uav = voxels->GetSubresource_UAV();
 		context->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr,
 			0, 1, &voxels_uav, nullptr);
 
-		ID3D11ShaderResourceView* lights_srv = lights->SRV();
+		ID3D11ShaderResourceView* lights_srv = lights->GetSubresource_SRV();
 		context->PSSetShaderResources(10, 1, &lights_srv);
 
 		for (auto e : voxel_view)
@@ -2630,7 +2616,7 @@ namespace adria
 			ID3D11UnorderedAccessView* uavs[] = { voxel_texture_second_bounce.UAV() };
 			context->CSSetUnorderedAccessViews(0, 1, uavs, nullptr);
 
-			ID3D11ShaderResourceView* srvs[] = { voxels->SRV(), voxel_texture.SRV() };
+			ID3D11ShaderResourceView* srvs[] = { voxels->GetSubresource_SRV(), voxel_texture.SRV() };
 			context->CSSetShaderResources(0, 2, srvs);
 			ShaderCache::GetShaderProgram(EShaderProgram::VoxelSecondBounce)->Bind(context);
 			context->Dispatch(VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8);

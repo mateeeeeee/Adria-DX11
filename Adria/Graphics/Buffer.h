@@ -21,7 +21,7 @@ namespace adria
 		BufferDesc desc{};
 		desc.bind_flags = EBindFlag::VertexBuffer;
 		desc.cpu_access = ECpuAccess::None;
-		desc.resource_usage = EResourceUsage::Default;
+		desc.resource_usage = EResourceUsage::Immutable;
 		desc.size = vertex_count * stride;
 		desc.stride = stride;
 		desc.misc_flags = EBufferMiscFlag::None;
@@ -32,7 +32,7 @@ namespace adria
 		BufferDesc desc{};
 		desc.bind_flags = EBindFlag::IndexBuffer;
 		desc.cpu_access = ECpuAccess::None;
-		desc.resource_usage = EResourceUsage::Default;
+		desc.resource_usage = EResourceUsage::Immutable;
 		desc.stride = small_indices ? 2 : 4;
 		desc.size = index_count * desc.stride;
 		desc.misc_flags = EBufferMiscFlag::None;
@@ -52,7 +52,6 @@ namespace adria
 		desc.size = desc.stride * count;
 		return desc;
 	}
-
 	static BufferDesc AppendBufferDesc(uint64 count, uint32 stride)
 	{
 		BufferDesc desc{};
@@ -63,7 +62,6 @@ namespace adria
 		desc.size = count * stride;
 		return desc;
 	}
-
 	static BufferDesc IndirectArgsBufferDesc(uint64 size)
 	{
 		BufferDesc desc{};
@@ -101,7 +99,6 @@ namespace adria
 		EFlagsUAV uav_flags = UAV_None;
 		std::strong_ordering operator<=>(BufferSubresourceDesc const& other) const = default;
 	};
-
 	using BufferInitialData = void const*;
 
 	class Buffer
@@ -164,11 +161,22 @@ namespace adria
 		[[maybe_unused]] void* Map()
 		{
 			ID3D11DeviceContext* ctx = gfx->Context();
-			if (desc.resource_usage == EResourceUsage::Dynamic)
+			if (desc.resource_usage == EResourceUsage::Dynamic && desc.cpu_access == ECpuAccess::Write)
 			{
 				D3D11_MAPPED_SUBRESOURCE mapped_buffer{};
-				ZeroMemory(&mapped_buffer, sizeof(D3D11_MAPPED_SUBRESOURCE));
 				HRESULT hr = ctx->Map(resource.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mapped_buffer);
+				BREAK_IF_FAILED(hr);
+				return mapped_buffer.pData;
+			}
+			ADRIA_ASSERT(false);
+		}
+		[[maybe_unused]] void* MapForRead()
+		{
+			ID3D11DeviceContext* ctx = gfx->Context();
+			if (desc.cpu_access == ECpuAccess::Read)
+			{
+				D3D11_MAPPED_SUBRESOURCE mapped_buffer{};
+				HRESULT hr = ctx->Map(resource.Get(), 0u, D3D11_MAP_READ, 0u, &mapped_buffer);
 				BREAK_IF_FAILED(hr);
 				return mapped_buffer.pData;
 			}

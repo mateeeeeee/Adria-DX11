@@ -6,9 +6,6 @@
 #include "../tecs/registry.h"
 #include "../Graphics/ShaderProgram.h"
 #include "../Graphics/ConstantBuffer.h"
-#include "../Graphics/VertexBuffer.h"
-#include "../Graphics/IndexBuffer.h"
-
 #include "../Graphics/Buffer.h"
 #include "../Graphics/Texture.h"
 #include "../Graphics/GraphicsDeviceDX11.h"
