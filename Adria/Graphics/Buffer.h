@@ -36,6 +36,7 @@ namespace adria
 		desc.stride = small_indices ? 2 : 4;
 		desc.size = index_count * desc.stride;
 		desc.misc_flags = EBufferMiscFlag::None;
+		desc.format = small_indices ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT;
 		return desc;
 	}
 
@@ -108,7 +109,7 @@ namespace adria
 			: gfx(gfx), desc(desc)
 		{
 			D3D11_BUFFER_DESC buffer_desc{};
-			buffer_desc.ByteWidth = desc.size;
+			buffer_desc.ByteWidth = (UINT)desc.size;
 			buffer_desc.Usage = ConvertUsage(desc.resource_usage);
 			buffer_desc.BindFlags = ParseBindFlags(desc.bind_flags);
 			buffer_desc.CPUAccessFlags = ParseCPUAccessFlags(desc.cpu_access);
@@ -119,7 +120,7 @@ namespace adria
 			if (initial_data != nullptr)
 			{
 				data.pSysMem = initial_data;
-				data.SysMemPitch = desc.size;
+				data.SysMemPitch = (UINT)desc.size;
 				data.SysMemSlicePitch = 0;
 			}
 			ID3D11Device* device = gfx->Device();
@@ -169,6 +170,7 @@ namespace adria
 				return mapped_buffer.pData;
 			}
 			ADRIA_ASSERT(false);
+			return nullptr;
 		}
 		[[maybe_unused]] void* MapForRead()
 		{
@@ -181,6 +183,7 @@ namespace adria
 				return mapped_buffer.pData;
 			}
 			ADRIA_ASSERT(false);
+			return nullptr;
 		}
 		void Unmap()
 		{
@@ -231,7 +234,7 @@ namespace adria
 					srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
 					srv_desc.BufferEx.Flags = D3D11_BUFFEREX_SRV_FLAG_RAW;
 					srv_desc.BufferEx.FirstElement = (UINT)subresource_desc.offset / sizeof(uint32_t);
-					srv_desc.BufferEx.NumElements = std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(uint32);
+					srv_desc.BufferEx.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(uint32);
 				}
 				else if (HasAnyFlag(desc.misc_flags, EBufferMiscFlag::BufferStructured))
 				{
@@ -239,7 +242,7 @@ namespace adria
 					srv_desc.Format = DXGI_FORMAT_UNKNOWN;
 					srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
 					srv_desc.BufferEx.FirstElement = (UINT)subresource_desc.offset / desc.stride;
-					srv_desc.BufferEx.NumElements = std::min(subresource_desc.size, desc.size - subresource_desc.offset) / desc.stride;
+					srv_desc.BufferEx.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / desc.stride;
 				}
 				else
 				{
@@ -248,7 +251,7 @@ namespace adria
 					srv_desc.Format = desc.format;
 					srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 					srv_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / stride;
-					srv_desc.Buffer.NumElements = std::min(subresource_desc.size, desc.size - subresource_desc.offset) / stride;
+					srv_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / stride;
 				}
 
 				Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
@@ -273,21 +276,21 @@ namespace adria
 					uav_desc.Format = DXGI_FORMAT_R32_TYPELESS; 
 					uav_desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
 					uav_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / sizeof(uint32);
-					uav_desc.Buffer.NumElements = std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(uint32);
+					uav_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(uint32);
 				}
 				else if (HasAnyFlag(desc.misc_flags, EBufferMiscFlag::BufferStructured))
 				{
 					// This is a Structured Buffer
 					uav_desc.Format = DXGI_FORMAT_UNKNOWN;      
 					uav_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / desc.stride;
-					uav_desc.Buffer.NumElements = std::min(subresource_desc.size, desc.size - subresource_desc.offset) / desc.stride;
+					uav_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / desc.stride;
 				}
 				else if (HasAnyFlag(desc.misc_flags, EBufferMiscFlag::IndirectArgs))
 				{
 					// This is a Indirect Args Buffer
 					uav_desc.Format = DXGI_FORMAT_R32_UINT;
 					uav_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / sizeof(uint32);
-					uav_desc.Buffer.NumElements = std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(uint32);
+					uav_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(uint32);
 				}
 				else
 				{
@@ -295,7 +298,7 @@ namespace adria
 					uint32_t stride = GetFormatStride(desc.format);
 					uav_desc.Format = desc.format;
 					uav_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / stride;
-					uav_desc.Buffer.NumElements = std::min(subresource_desc.size, desc.size - subresource_desc.offset) / stride;
+					uav_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / stride;
 				}
 
 				Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> uav;

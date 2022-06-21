@@ -227,7 +227,6 @@
     <ClInclude Include="Graphics\ScopedAnnotation.h" />
     <ClInclude Include="Graphics\ShaderProgram.h" />
     <ClInclude Include="Graphics\ShaderCompiler.h" />
-    <ClInclude Include="Graphics\StructuredBuffer.h" />
     <ClInclude Include="Graphics\Texture.h" />
     <ClInclude Include="Graphics\Texture2D.h" />
     <ClInclude Include="Graphics\Texture2DArray.h" />

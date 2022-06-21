@@ -655,8 +655,8 @@ namespace adria
 			6, 7, 3
 		};
 
-		cube_vb.Create(device, cube_vertices, ARRAYSIZE(cube_vertices));
-		cube_ib.Create(device, cube_indices, ARRAYSIZE(cube_indices));
+		cube_vb = std::make_unique<Buffer>(gfx, VertexBufferDesc(ARRAYSIZE(cube_vertices), sizeof(SimpleVertex)), cube_vertices);
+		cube_ib = std::make_unique<Buffer>(gfx, IndexBufferDesc(ARRAYSIZE(cube_indices), true), cube_indices);
 	}
 	void Renderer::CreateSamplers()
 	{
@@ -2120,8 +2120,8 @@ namespace adria
 		decal_pass.Begin(context);
 		{
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			cube_vb.Bind(context, 0, 0);
-			cube_ib.Bind(context, 0);
+			BindVertexBuffer(context, cube_vb.get());
+			BindIndexBuffer(context, cube_ib.get());
 			auto decal_view = reg.view<Decal>();
 
 			context->RSSetState(cull_none.Get());
@@ -2141,8 +2141,7 @@ namespace adria
 													 texture_manager.GetTextureView(decal.normal_decal_texture),
 													 depth_target.SRV() };
 				context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
-
-				context->DrawIndexed(cube_ib.Count(), 0, 0);
+				context->DrawIndexed(cube_ib->GetCount(), 0, 0);
 			}
 			context->RSSetState(nullptr);
 		}
@@ -3071,10 +3070,9 @@ namespace adria
 		}
 
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		cube_vb.Bind(context, 0, 0);
-		cube_ib.Bind(context, 0);
-		context->DrawIndexed(cube_ib.Count(), 0, 0);
-
+		BindVertexBuffer(context, cube_vb.get());
+		BindIndexBuffer(context, cube_ib.get());
+		context->DrawIndexed(cube_ib->GetCount(), 0, 0);
 		context->OMSetDepthStencilState(nullptr, 0);
 		context->RSSetState(nullptr);
 	}

@@ -16,9 +16,6 @@
 #include "../Graphics/GPUProfiler.h"
 #include "../Graphics/Buffer.h"
 
-#include "../Graphics/VertexBuffer.h"
-#include "../Graphics/IndexBuffer.h"
-
 #include "../Graphics/Texture3D.h"
 #include "../Graphics/Texture2D.h"
 #include "../Graphics/TextureCube.h"
@@ -195,8 +192,8 @@ namespace adria
 		std::unique_ptr<Buffer>	light_list = nullptr;
 		std::unique_ptr<Buffer>	light_grid = nullptr;
 
-		VertexBuffer cube_vb;
-		IndexBuffer cube_ib;
+		std::unique_ptr<Buffer> cube_vb;
+		std::unique_ptr<Buffer> cube_ib;
 
 		//samplers
 		Microsoft::WRL::ComPtr<ID3D11SamplerState>			linear_wrap_sampler;

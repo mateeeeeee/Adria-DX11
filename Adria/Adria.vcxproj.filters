@@ -364,9 +364,6 @@
     <ClInclude Include="Utilities\AdriaException.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\StructuredBuffer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\Texture3D.h">
       <Filter>Graphics</Filter>
     </ClInclude>

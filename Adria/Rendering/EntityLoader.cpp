@@ -9,6 +9,8 @@
 #include "tiny_obj_loader.h"
 
 #include "EntityLoader.h"
+#include "../tecs/registry.h"
+#include "../Graphics/GraphicsDeviceDX11.h"
 #include "../Graphics/VertexTypes.h"
 #include "../Graphics/TextureManager.h"
 #include "../Logging/Logger.h"
@@ -18,8 +20,6 @@
 #include "../Utilities/Random.h"
 #include "../Utilities/Heightmap.h"
 #include "../Utilities/Image.h"
-
-
 
 using namespace DirectX;
 namespace adria 
@@ -109,7 +109,6 @@ namespace adria
 		}
     }
 
-
     using namespace tecs;
 
     [[nodiscard]]
@@ -170,18 +169,14 @@ namespace adria
                     ++i4;
                 }
             }
-
             ComputeNormals(params.normal_type, vertices, indices);
 
             entity grid = reg.create();
-
             Mesh mesh{};
+			mesh.vertex_buffer = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedNormalVertex)), vertices.data());
+			mesh.index_buffer = std::make_shared<Buffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
             mesh.indices_count = (uint32)indices.size();
-            mesh.vertex_buffer = std::make_shared<VertexBuffer>();
-            mesh.index_buffer = std::make_shared<IndexBuffer>();
-            mesh.vertex_buffer->Create(device, vertices);
-            mesh.index_buffer->Create(device, indices);
-
+ 
             reg.emplace<Mesh>(grid, mesh);
             reg.emplace<Transform>(grid);
 
@@ -198,17 +193,13 @@ namespace adria
                 for (size_t i = 0; i < params.tile_count_x; i += params.chunk_count_x)
                 {
                     entity chunk = reg.create();
-
                     uint32 const indices_count = static_cast<uint32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
                     uint32 const indices_offset = static_cast<uint32>(indices.size());
-
-
                     std::vector<TexturedNormalVertex> chunk_vertices_aabb{};
                     for (size_t k = j; k < j + params.chunk_count_z; ++k)
                     {
                         for (size_t m = i; m < i + params.chunk_count_x; ++m)
                         {
-
                             uint32 i1 = static_cast<uint32>(k * (params.tile_count_x + 1) + m);
                             uint32 i2 = static_cast<uint32>(i1 + 1);
                             uint32 i3 = static_cast<uint32>((k + 1) * (params.tile_count_x + 1) + m);
@@ -228,31 +219,20 @@ namespace adria
                             chunk_vertices_aabb.push_back(vertices[i4]);
                         }
                     }
-
                     Mesh mesh{};
                     mesh.indices_count = indices_count;
                     mesh.start_index_location = indices_offset;
 
                     reg.emplace<Mesh>(chunk, mesh);
-
                     reg.emplace<Transform>(chunk);
-
                     BoundingBox aabb = AABBFromRange(chunk_vertices_aabb.begin(), chunk_vertices_aabb.end());
-
                     reg.emplace<Visibility>(chunk, aabb, true, true);
-
                     chunks.push_back(chunk);
-
                 }
             }
-
             ComputeNormals(params.normal_type, vertices, indices);
-
-            std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>();
-            std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>();
-            vb->Create(device, vertices);
-            ib->Create(device, indices);
-
+			std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedNormalVertex)), vertices.data());
+			std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
             for (entity chunk : chunks)
             {
                 auto& mesh = reg.get<Mesh>(chunk);
@@ -262,11 +242,7 @@ namespace adria
             }
         }
 
-        if (vertices_out)
-        {
-            *vertices_out = vertices;
-        }
-
+        if (vertices_out) *vertices_out = vertices;
         return chunks;
     }
 
@@ -290,10 +266,7 @@ namespace adria
 		tinyobj::attrib_t const& attrib = reader.GetAttrib();
 		std::vector<tinyobj::shape_t> const& shapes = reader.GetShapes();
         std::vector<tinyobj::material_t> const& materials = reader.GetMaterials();
-		
-		
 		std::vector<entity> entities{};
-
         std::vector<std::string> diffuse_textures;
 		for (size_t s = 0; s < shapes.size(); s++)
 		{
@@ -349,8 +322,7 @@ namespace adria
                 index_offset += fv;
 			}
 
-			std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>();
-			vb->Create(device, vertices);
+			std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedNormalVertex)), vertices.data());
 
 			Mesh mesh_component{};
 			mesh_component.base_vertex_location = 0;
@@ -374,8 +346,8 @@ namespace adria
 		return entities;
 	}
 
-	EntityLoader::EntityLoader(registry& reg, ID3D11Device* device, TextureManager& texture_manager) : reg(reg),
-        texture_manager(texture_manager), device(device)
+	EntityLoader::EntityLoader(registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager) : reg(reg),
+        texture_manager(texture_manager), gfx(gfx)
     {}
 
     [[maybe_unused]]
@@ -388,18 +360,10 @@ namespace adria
         bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, params.model_path);
 
         std::string model_name = GetFilename(params.model_path);
-        if (!warn.empty())
-        {
-            ADRIA_LOG(WARNING, warn.c_str());
-        }
-        if (!err.empty())
-        {
-            ADRIA_LOG(ERROR, err.c_str());
-        }
-		if (!ret) 
-        {
-			ADRIA_LOG(ERROR, "Failed to load model %s", model_name.c_str());
-		} 
+        if (!warn.empty()) ADRIA_LOG(WARNING, warn.c_str());
+        if (!err.empty()) ADRIA_LOG(ERROR, err.c_str());
+		if (!ret) ADRIA_LOG(ERROR, "Failed to load model %s", model_name.c_str());
+
 		std::vector<CompleteVertex> vertices{};
 		std::vector<uint32> indices{};
 		std::vector<entity> entities{};
@@ -648,10 +612,8 @@ namespace adria
 			load_node(i, XMMatrixIdentity());
 		}
 
-		std::shared_ptr<VertexBuffer> vb = std::make_shared<VertexBuffer>();
-		std::shared_ptr<IndexBuffer> ib = std::make_shared<IndexBuffer>();
-		vb->Create(device, vertices);
-		ib->Create(device, indices);
+		std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(CompleteVertex)), vertices.data());
+		std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
 
 		for (entity e : entities)
 		{
@@ -707,11 +669,10 @@ namespace adria
                     0, 2, 1, 2, 0, 3
             };
 
-            Mesh mesh{};
-            mesh.vertex_buffer = std::make_shared<VertexBuffer>();
-            mesh.index_buffer = std::make_shared<IndexBuffer>();
-            mesh.vertex_buffer->Create(device, vertices);
-            mesh.index_buffer->Create(device, indices);
+
+			Mesh mesh{};
+			mesh.vertex_buffer = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(CompleteVertex)), vertices.data());
+			mesh.index_buffer = std::make_shared<Buffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
             mesh.indices_count = static_cast<uint32>(indices.size());
 
             reg.emplace<Mesh>(light, mesh);
@@ -935,10 +896,8 @@ namespace adria
 		}
 
 		auto& mesh_component = reg.get<Mesh>(foliage);
-
+		mesh_component.instance_buffer = std::make_shared<Buffer>(gfx, VertexBufferDesc(instance_data.size(), sizeof(FoliageInstance)), instance_data.data());
 		mesh_component.start_instance_location = 0;
-		mesh_component.instance_buffer = std::make_shared<VertexBuffer>();
-		mesh_component.instance_buffer->Create(device, instance_data);
 		mesh_component.instance_count = (uint32)instance_data.size();
 
 		Material material{};
@@ -1019,11 +978,10 @@ namespace adria
             auto tree = trees[i];
 			auto& mesh_component = reg.get<Mesh>(tree);
 
+			mesh_component.instance_buffer = std::make_shared<Buffer>(gfx, VertexBufferDesc(instance_data.size(), sizeof(TreeInstance)), instance_data.data());
 			mesh_component.start_instance_location = 0;
-			mesh_component.instance_buffer = std::make_shared<VertexBuffer>();
-			mesh_component.instance_buffer->Create(device, instance_data);
 			mesh_component.instance_count = (uint32)instance_data.size();
-
+			
 			Material material{};
 			material.albedo_texture = texture_manager.LoadTexture(texture_path + diffuse_textures[i]);
 			material.albedo_factor = 1.0f;

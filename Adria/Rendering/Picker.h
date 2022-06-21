@@ -26,7 +26,7 @@ namespace adria
 		{
 			BufferDesc desc{};
 			desc.size = sizeof(PickingData);
-			desc.stride = desc.size;
+			desc.stride = sizeof(PickingData);
 			desc.cpu_access = ECpuAccess::Read;
 			desc.misc_flags = EBufferMiscFlag::BufferStructured;
 			desc.resource_usage = EResourceUsage::Default;

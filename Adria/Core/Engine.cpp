@@ -208,7 +208,7 @@ namespace adria
 		gfx = std::make_unique<GraphicsDevice>(Window::Handle());
 		ShaderCache::Initialize(gfx->Device());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
-		entity_loader = std::make_unique<EntityLoader>(reg, gfx->Device(), renderer->GetTextureManager());
+		entity_loader = std::make_unique<EntityLoader>(reg, gfx.get(), renderer->GetTextureManager());
 
 		InputEvents& input_events = input.GetInputEvents();
 

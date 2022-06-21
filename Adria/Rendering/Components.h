@@ -5,8 +5,7 @@
 #include "../Math/Constants.h"
 #include <DirectXCollision.h>
 #include "../Graphics/VertexTypes.h"
-#include "../Graphics/VertexBuffer.h"
-#include "../Graphics/IndexBuffer.h"
+#include "../Graphics/Buffer.h"
 #include "../Graphics/TextureManager.h"
 #include "Terrain.h"
 
@@ -22,9 +21,9 @@ namespace adria
 
 	struct COMPONENT Mesh
 	{
-		std::shared_ptr<VertexBuffer>	vertex_buffer = nullptr;
-		std::shared_ptr<IndexBuffer>	index_buffer = nullptr;
-		std::shared_ptr<VertexBuffer>   instance_buffer = nullptr;
+		std::shared_ptr<Buffer>	vertex_buffer = nullptr;
+		std::shared_ptr<Buffer>	index_buffer = nullptr;
+		std::shared_ptr<Buffer>   instance_buffer = nullptr;
 
 		//only vb
 		uint32 vertex_count = 0;
@@ -44,15 +43,13 @@ namespace adria
 		void Draw(ID3D11DeviceContext* context) const
 		{
 			context->IASetPrimitiveTopology(topology);
-
-			vertex_buffer->Bind(context, 0, 0);
-
+			BindVertexBuffer(context, vertex_buffer.get());
 			if (index_buffer)
 			{
-				index_buffer->Bind(context, 0);
+				BindIndexBuffer(context, index_buffer.get());
 				if (instance_buffer)
 				{
-					instance_buffer->Bind(context, 1);
+					BindVertexBuffer(context, instance_buffer.get(), 1);
 					context->DrawIndexedInstanced(indices_count, instance_count, 
 						start_index_location, base_vertex_location, start_instance_location);
 				}
@@ -62,7 +59,7 @@ namespace adria
 			{
 				if (instance_buffer)
 				{
-					instance_buffer->Bind(context, 1);
+					BindVertexBuffer(context, instance_buffer.get(), 1);
 					context->DrawInstanced(vertex_count, instance_count,
 						start_vertex_location, start_instance_location);
 				}
@@ -72,15 +69,13 @@ namespace adria
 		void Draw(ID3D11DeviceContext* context, D3D11_PRIMITIVE_TOPOLOGY override_topology) const
 		{
 			context->IASetPrimitiveTopology(override_topology);
-
-			vertex_buffer->Bind(context, 0, 0);
-
+			BindVertexBuffer(context, vertex_buffer.get());
 			if (index_buffer)
 			{
-				index_buffer->Bind(context, 0);
+				BindIndexBuffer(context, index_buffer.get());
 				if (instance_buffer)
 				{
-					instance_buffer->Bind(context, 1);
+					BindVertexBuffer(context, instance_buffer.get(), 1);
 					context->DrawIndexedInstanced(indices_count, instance_count,
 						start_index_location, base_vertex_location, start_instance_location);
 				}
@@ -90,7 +85,7 @@ namespace adria
 			{
 				if (instance_buffer)
 				{
-					instance_buffer->Bind(context, 1);
+					BindVertexBuffer(context, instance_buffer.get(), 1);
 					context->DrawInstanced(vertex_count, instance_count,
 						start_vertex_location, start_instance_location);
 				}

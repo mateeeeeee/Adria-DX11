@@ -1,5 +1,4 @@
 #pragma once
-
 #include <DirectXMath.h>
 #include <optional>
 #include <functional>
@@ -7,15 +6,13 @@
 #include <vector>
 #include "Components.h"
 #include "../Core/Definitions.h"
-#include "../tecs/registry.h"
 #include "../Math/ComputeNormals.h"
 #include "../Utilities/Heightmap.h"
-
-struct ID3D11Device;
+#include "../tecs/entity.h"
 
 namespace adria
 {
-
+    
     enum class ELightMesh
     {
         
@@ -134,7 +131,6 @@ namespace adria
         int32 collision_thickness = 40;
         bool sort = false;
     };
-
     struct DecalParameters
     {
         std::string name = "Decal";
@@ -147,15 +143,20 @@ namespace adria
         DirectX::XMFLOAT4 position;
         DirectX::XMFLOAT4 normal;
     };
-   
+
+    namespace tecs
+    {
+        class registry;
+    }
     class TextureManager;
+	class GraphicsDevice;
 
 	class EntityLoader
 	{
 
 	public:
         
-        EntityLoader(tecs::registry& reg, ID3D11Device* device, TextureManager& texture_manager);
+        EntityLoader(tecs::registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager);
 
         [[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(ModelParameters const&);
 
@@ -178,7 +179,7 @@ namespace adria
 	private:
         tecs::registry& reg;
 		TextureManager& texture_manager;
-        ID3D11Device* device;
+        GraphicsDevice* gfx;
 
     private:
 
