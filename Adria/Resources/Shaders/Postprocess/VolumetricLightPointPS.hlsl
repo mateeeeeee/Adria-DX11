@@ -68,16 +68,11 @@ float4 main(VertexOut input) : SV_TARGET
             float shadow_factor = depthCubeMap.SampleCmpLevelZero(shadow_sampler, normalize(light_to_pixelWS.xyz), fragment_depth);
             attenuation *= shadow_factor;
         }
-        
-        attenuation *= ExponentialFog(cameraDistance - marchedDistance);
-
+        //attenuation *= ExponentialFog(cameraDistance - marchedDistance);
         accumulation += attenuation;
-
         marchedDistance += stepSize;
         P = P + V * stepSize;
     }
-
     accumulation /= sampleCount;
-
     return max(0, float4(accumulation * current_light.color.rgb * current_light.volumetric_strength, 1));
 }

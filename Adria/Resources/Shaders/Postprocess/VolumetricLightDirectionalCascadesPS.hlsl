@@ -57,9 +57,7 @@ float4 main(VertexOut input) : SV_TARGET
 				if(IsSaturated(UVD.xy))
 				{
 					float attenuation = CSMCalcShadowFactor_PCF3x3(shadow_sampler, cascadeShadowMaps, cascade, UVD, shadow_map_size, softness);
-
-                    attenuation *= ExponentialFog(cameraDistance - marchedDistance);
-
+                    //attenuation *= ExponentialFog(cameraDistance - marchedDistance);
 					accumulation += attenuation;
 				}
 

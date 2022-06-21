@@ -56,20 +56,12 @@ float4 main(VertexOut input) : SV_TARGET
         if (IsSaturated(UVD.xy))
         {                          
             float attenuation = CalcShadowFactor_PCF3x3(shadow_sampler, shadowDepthMap, UVD, shadow_map_size, softness);
-
-            attenuation *= ExponentialFog(cameraDistance - marchedDistance);
-
+            //attenuation *= ExponentialFog(cameraDistance - marchedDistance);
             accumulation += attenuation;
-
         }
-
-		marchedDistance += stepSize;
-		
+        marchedDistance += stepSize;
 		P = P + V * stepSize;
-        
     }
-
     accumulation /= sampleCount;
-
     return max(0, float4(accumulation * current_light.color.rgb * current_light.volumetric_strength, 1));
 }
