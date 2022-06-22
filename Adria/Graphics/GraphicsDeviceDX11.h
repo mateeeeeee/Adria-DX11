@@ -38,7 +38,7 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11RenderTargetView> backbuffer_rtv = nullptr;
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> backbuffer = nullptr;
 		Microsoft::WRL::ComPtr<ID3D11DeviceContext> immediate_context = nullptr;
-		ID3DUserDefinedAnnotation* annot = nullptr;
+		Microsoft::WRL::ComPtr<ID3DUserDefinedAnnotation> annot = nullptr;
 		
 	private:
 

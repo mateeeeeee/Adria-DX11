@@ -1354,8 +1354,8 @@ namespace adria
 			if (unfiltered_env_srv) break;
 		}
 
-		ID3D11Texture2D* unfiltered_env_tex = nullptr;
-		unfiltered_env_srv->GetResource(reinterpret_cast<ID3D11Resource**>(&unfiltered_env_tex));
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> unfiltered_env_tex = nullptr;
+		unfiltered_env_srv->GetResource(reinterpret_cast<ID3D11Resource**>(unfiltered_env_tex.GetAddressOf()));
 
 		D3D11_TEXTURE2D_DESC tex_desc{};
 		unfiltered_env_tex->GetDesc(&tex_desc);
@@ -1389,7 +1389,7 @@ namespace adria
 			for (uint32 arraySlice = 0; arraySlice < 6; ++arraySlice)
 			{
 				const uint32 subresourceIndex = D3D11CalcSubresource(0, arraySlice, tex_desc.MipLevels);
-				context->CopySubresourceRegion(env_tex.Get(), subresourceIndex, 0, 0, 0, unfiltered_env_tex, subresourceIndex, nullptr);
+				context->CopySubresourceRegion(env_tex.Get(), subresourceIndex, 0, 0, 0, unfiltered_env_tex.Get(), subresourceIndex, nullptr);
 			}
 
 			DECLSPEC_ALIGN(16) struct RoughnessCBuffer

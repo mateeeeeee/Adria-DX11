@@ -59,7 +59,7 @@ namespace adria
 			&immediate_context
 		);
 		BREAK_IF_FAILED(hr);
-		immediate_context->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)&annot);
+		immediate_context->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)annot.GetAddressOf());
 
 #if defined(_DEBUG) || defined(FORCE_DEBUG_LAYER)
 		Microsoft::WRL::ComPtr<ID3D11Debug> d3dDebug;
@@ -131,7 +131,7 @@ namespace adria
 
 	ID3DUserDefinedAnnotation* GraphicsDevice::Annotation() const
 	{
-		return annot;
+		return annot.Get();
 	}
 
 	void GraphicsDevice::WaitForGPU()
@@ -150,9 +150,10 @@ namespace adria
 	}
 	void GraphicsDevice::CreateBackBufferResources(uint32 w, uint32 h)
 	{
-		immediate_context->OMSetRenderTargets(0, 0, 0);
-
-		if (backbuffer_rtv) backbuffer_rtv->Release();
+		ID3D11RenderTargetView* null_views[] = { nullptr };
+		immediate_context->OMSetRenderTargets(ARRAYSIZE(null_views), null_views, nullptr);
+		backbuffer_rtv.Reset();
+		immediate_context->Flush();
 
 		BREAK_IF_FAILED(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0));
 

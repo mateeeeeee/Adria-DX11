@@ -28,9 +28,9 @@ int APIENTRY wWinMain(
 {
     
     //MemoryDebugger::SetAllocHook(MemoryAllocHook);
-    //MemoryDebugger::SetBreak(127319);
+    //MemoryDebugger::SetBreak(275);
+	//MemoryDebugger::Checkpoint();
 	CommandLineConfigInfo cmd_line_info = ParseCommandLine(lpCmdLine);
-	MemoryDebugger::Checkpoint();
     {
 		ADRIA_REGISTER_LOGGER(new FileLogger(cmd_line_info.log_file.c_str(), static_cast<ELogLevel>(cmd_line_info.log_level)));
 		ADRIA_REGISTER_LOGGER(new OutputDebugStringLogger(static_cast<ELogLevel>(cmd_line_info.log_level)));
@@ -59,7 +59,7 @@ int APIENTRY wWinMain(
         }
         Window::Destroy();
     }
-    MemoryDebugger::CheckLeaks();
+    //MemoryDebugger::CheckLeaks();
 
 }
 
