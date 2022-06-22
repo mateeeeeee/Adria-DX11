@@ -3,7 +3,6 @@
 Graphics engine written in C++/DirectX11. For successful build you will need textures that you can find [here](https://github.com/mateeeeeee/Adria-DX11/releases/tag/1.0).
 
 ## Features
-* Entity-Component System
 * Deferred + Forward Rendering 
 * Tiled Deferred Rendering 
 * Clustered Deferred Rendering
@@ -43,6 +42,7 @@ Graphics engine written in C++/DirectX11. For successful build you will need tex
 * Model Loading with tinygltf
 * Profiler
 * Shader Hot Reloading
+* Entity-Component System
 * Camera and Light Frustum Culling
 
 
