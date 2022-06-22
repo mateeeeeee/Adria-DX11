@@ -117,10 +117,12 @@ namespace adria
 		std::unique_ptr<Texture> velocity_buffer;
 
 		//move to Buffer
-		Microsoft::WRL::ComPtr<ID3D11Buffer> bokeh_buffer;
+		std::unique_ptr<Buffer> bokeh_buffer;
+		std::unique_ptr<Buffer> bokeh_indirect_draw_buffer;
+		/*Microsoft::WRL::ComPtr<ID3D11Buffer> bokeh_buffer;
 		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> bokeh_uav;
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bokeh_srv;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> bokeh_indirect_draw_buffer;
+		Microsoft::WRL::ComPtr<ID3D11Buffer> bokeh_indirect_draw_buffer;*/
 
 		//render passes
 		RenderPass gbuffer_pass;

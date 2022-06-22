@@ -152,17 +152,15 @@ namespace adria
 	{
 		ID3D11RenderTargetView* null_views[] = { nullptr };
 		immediate_context->OMSetRenderTargets(ARRAYSIZE(null_views), null_views, nullptr);
-		backbuffer_rtv.Reset();
 		immediate_context->Flush();
+		if (backbuffer_rtv) backbuffer_rtv->Release();
 
 		BREAK_IF_FAILED(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0));
 
-		ID3D11Texture2D* pBuffer = nullptr;
-		BREAK_IF_FAILED(swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&pBuffer));
-		BREAK_IF_FAILED(device->CreateRenderTargetView(pBuffer, nullptr,
+		Microsoft::WRL::ComPtr<ID3D11Texture2D> pBuffer = nullptr;
+		BREAK_IF_FAILED(swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)pBuffer.GetAddressOf()));
+		BREAK_IF_FAILED(device->CreateRenderTargetView(pBuffer.Get(), nullptr,
 			backbuffer_rtv.GetAddressOf()));
-
-		pBuffer->Release();
 
 		immediate_context->OMSetRenderTargets(1, backbuffer_rtv.GetAddressOf(), nullptr);
 		D3D11_VIEWPORT vp{};

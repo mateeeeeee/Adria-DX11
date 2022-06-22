@@ -595,13 +595,12 @@ namespace adria
 		D3D11_BUFFER_DESC buffer_desc{};
 		buffer_desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
 		buffer_desc.ByteWidth = 16;
-		D3D11_SUBRESOURCE_DATA initData{};
-		uint32 bufferInit[4] = { 0, 1, 0, 0 };
-		initData.pSysMem = bufferInit;
-		initData.SysMemPitch = 0;
-		initData.SysMemSlicePitch = 0;
-		HRESULT hr = gfx->Device()->CreateBuffer(&buffer_desc, &initData, &bokeh_indirect_draw_buffer);
-		BREAK_IF_FAILED(hr);
+
+		BufferDesc bokeh_indirect_draw_buffer_desc{};
+		bokeh_indirect_draw_buffer_desc.size = 4 * sizeof(uint32);
+		bokeh_indirect_draw_buffer_desc.misc_flags = EBufferMiscFlag::IndirectArgs;
+		uint32 buffer_init[4] = { 0, 1, 0, 0 };
+		bokeh_indirect_draw_buffer = std::make_unique<Buffer>(gfx, bokeh_indirect_draw_buffer_desc, buffer_init);
 
 		static constexpr uint32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
 		voxels = std::make_unique<Buffer>(gfx, StructuredBufferDesc<VoxelType>(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION));
@@ -970,34 +969,19 @@ namespace adria
 
 		uint32 const max_bokeh = width * height;
 
-		D3D11_BUFFER_DESC bokeh_buffer_desc{};
-		bokeh_buffer_desc.StructureByteStride = sizeof(float32) * 8;
-		bokeh_buffer_desc.ByteWidth = bokeh_buffer_desc.StructureByteStride * max_bokeh;
-		bokeh_buffer_desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
-		bokeh_buffer_desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-		bokeh_buffer_desc.Usage = D3D11_USAGE_DEFAULT;
+		BufferDesc bokeh_buffer_desc{};
+		bokeh_buffer_desc.stride = 8 * sizeof(float32);
+		bokeh_buffer_desc.size = bokeh_buffer_desc.stride * max_bokeh;
+		bokeh_buffer_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
+		bokeh_buffer_desc.misc_flags = EBufferMiscFlag::BufferStructured;
+		bokeh_buffer_desc.resource_usage = EResourceUsage::Default;
 
-		HRESULT hr = device->CreateBuffer(&bokeh_buffer_desc, nullptr, bokeh_buffer.GetAddressOf());
-		BREAK_IF_FAILED(hr);
+		bokeh_buffer = std::make_unique<Buffer>(gfx, bokeh_buffer_desc);
 
-		D3D11_UNORDERED_ACCESS_VIEW_DESC bokeh_uav_desc{};
-		bokeh_uav_desc.Format = DXGI_FORMAT_UNKNOWN;
-		bokeh_uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-		bokeh_uav_desc.Buffer.FirstElement = 0;
-		bokeh_uav_desc.Buffer.NumElements = max_bokeh;
-		bokeh_uav_desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_APPEND;
-
-		hr = device->CreateUnorderedAccessView(bokeh_buffer.Get(), &bokeh_uav_desc, bokeh_uav.GetAddressOf());
-		BREAK_IF_FAILED(hr);
-
-		D3D11_SHADER_RESOURCE_VIEW_DESC bokeh_srv_desc{};
-		bokeh_srv_desc.Format = DXGI_FORMAT_UNKNOWN;
-		bokeh_srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
-		bokeh_srv_desc.Buffer.ElementOffset = 0;
-		bokeh_srv_desc.Buffer.NumElements = max_bokeh;
-
-		hr = device->CreateShaderResourceView(bokeh_buffer.Get(), &bokeh_srv_desc, bokeh_srv.GetAddressOf());
-		BREAK_IF_FAILED(hr);
+		BufferSubresourceDesc uav_desc{};
+		uav_desc.uav_flags = UAV_Append;
+		bokeh_buffer->CreateSubresource_UAV(&uav_desc);
+		bokeh_buffer->CreateSubresource_SRV();
 	}
 	void Renderer::CreateRenderTargets(uint32 width, uint32 height)
 	{
@@ -3341,7 +3325,8 @@ namespace adria
 			ShaderCache::GetShaderProgram(EShaderProgram::BokehGenerate)->Bind(context);
 			ID3D11ShaderResourceView* srv_array[2] = { postprocess_textures[!postprocess_index]->GetSubresource_SRV(), depth_target->GetSubresource_SRV() };
 			uint32 initial_count = 0;
-			context->CSSetUnorderedAccessViews(0, 1, bokeh_uav.GetAddressOf(), &initial_count);
+			ID3D11UnorderedAccessView* bokeh_uav = bokeh_buffer->GetSubresource_UAV();
+			context->CSSetUnorderedAccessViews(0, 1, &bokeh_uav, &initial_count);
 			context->CSSetShaderResources(0, 2, srv_array);
 			context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 
@@ -3369,10 +3354,8 @@ namespace adria
 
 		if (renderer_settings.bokeh)
 		{
-			context->CopyStructureCount(bokeh_indirect_draw_buffer.Get(), 0, bokeh_uav.Get());
-
+			context->CopyStructureCount(bokeh_indirect_draw_buffer->GetNative(), 0, bokeh_buffer->GetSubresource_UAV());
 			ID3D11ShaderResourceView* bokeh = nullptr;
-
 			switch (renderer_settings.bokeh_type)
 			{
 			case EBokehType::Hex:
@@ -3391,7 +3374,8 @@ namespace adria
 				ADRIA_ASSERT(false && "Invalid Bokeh Type");
 			}
 
-			context->VSSetShaderResources(0, 1, bokeh_srv.GetAddressOf());
+			ID3D11ShaderResourceView* bokeh_srv = bokeh_buffer->GetSubresource_SRV();
+			context->VSSetShaderResources(0, 1, &bokeh_srv);
 			context->PSSetShaderResources(0, 1, &bokeh);
 
 			ID3D11Buffer* vertexBuffers[1] = { nullptr };
@@ -3404,7 +3388,7 @@ namespace adria
 
 			ShaderCache::GetShaderProgram(EShaderProgram::BokehDraw)->Bind(context);
 			context->OMSetBlendState(additive_blend.Get(), nullptr, 0xfffffff);
-			context->DrawInstancedIndirect(bokeh_indirect_draw_buffer.Get(), 0);
+			context->DrawInstancedIndirect(bokeh_indirect_draw_buffer->GetNative(), 0);
 			context->OMSetBlendState(nullptr, nullptr, 0xfffffff);
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			context->VSSetShaderResources(0, 1, &null_srv);
