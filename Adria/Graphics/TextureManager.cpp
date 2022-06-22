@@ -246,9 +246,7 @@ TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cube
 		format == ETextureFormat::BMP || format == ETextureFormat::HDR || format == ETextureFormat::PIC);
 
 	++handle;
-
 	D3D11_TEXTURE2D_DESC desc{};
-
 	desc.ArraySize = 6;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Count = 1;
@@ -289,35 +287,31 @@ TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cube
 		BREAK_IF_FAILED(device->CreateTexture2D(&desc, subresource_data_array.data(), &tex_ptr));
 	}
 
-	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
-	srvDesc.Format = desc.Format;
-	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-	srvDesc.TextureCube.MostDetailedMip = 0;
-	srvDesc.TextureCube.MipLevels = -1;
+	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc{};
+	srv_desc.Format = desc.Format;
+	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+	srv_desc.TextureCube.MostDetailedMip = 0;
+	srv_desc.TextureCube.MipLevels = -1;
 
 	ID3D11ShaderResourceView* pSRV = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> view_ptr;
-	HRESULT hr = device->CreateShaderResourceView(tex_ptr.Get(), &srvDesc, &view_ptr);
+	HRESULT hr = device->CreateShaderResourceView(tex_ptr.Get(), &srv_desc, &view_ptr);
 	BREAK_IF_FAILED(hr);
 
-
 	if (mipmaps) context->GenerateMips(view_ptr.Get());
-
 	texture_map.insert({ handle, view_ptr });
-
 	return handle;
 }
 
 ID3D11ShaderResourceView* TextureManager::GetTextureView(TextureHandle tex_handle) const
 {
-	if (auto it = texture_map.find(tex_handle); it != texture_map.end())
-		return it->second.Get();
+	if (auto it = texture_map.find(tex_handle); it != texture_map.end()) return it->second.Get();
 	else return nullptr;
 }
 
-void TextureManager::SetMipMaps(bool mipmaps)
+void TextureManager::SetMipMaps(bool _mipmaps)
 {
-	this->mipmaps = mipmaps;
+	mipmaps = _mipmaps;
 }
 
 TextureHandle TextureManager::LoadDDSTexture(std::wstring const& name)
@@ -325,7 +319,6 @@ TextureHandle TextureManager::LoadDDSTexture(std::wstring const& name)
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
 		++handle;
-
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> view_ptr;
 		ID3D11Texture2D* tex_ptr = nullptr;
 		if (mipmaps)
@@ -341,9 +334,7 @@ TextureHandle TextureManager::LoadDDSTexture(std::wstring const& name)
 
 		loaded_textures.insert({ name, handle });
 		texture_map.insert({ handle, view_ptr });
-
 		tex_ptr->Release();
-
 		return handle;
 	}
 	else return it->second;
@@ -370,9 +361,7 @@ TextureHandle TextureManager::LoadWICTexture(std::wstring const& name)
 
 		loaded_textures.insert({ name, handle });
 		texture_map.insert({ handle, view_ptr });
-
 		tex_ptr->Release();
-
 		return handle;
 	}
 	else return it->second;
@@ -383,9 +372,7 @@ TextureHandle TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
 		++handle;
-
 		Image img(name, 4);
-
 		D3D11_TEXTURE2D_DESC desc{};
 		desc.Width = img.Width();
 		desc.Height = img.Height();
@@ -394,7 +381,7 @@ TextureHandle TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
 		desc.Format = img.IsHDR() ? DXGI_FORMAT_R32G32B32A32_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM;
 		desc.SampleDesc.Count = 1;
 		desc.Usage = D3D11_USAGE_DEFAULT;
-		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;// | D3D11_BIND_UNORDERED_ACCESS;
+		desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		if (mipmaps)
 		{
 			desc.BindFlags |= D3D11_BIND_RENDER_TARGET;
@@ -413,17 +400,13 @@ TextureHandle TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
 		srv_desc.Texture2D.MipLevels = -1;
 
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> view_ptr = nullptr;
-
 		hr = device->CreateShaderResourceView(tex_ptr.Get(), &srv_desc, view_ptr.GetAddressOf());
 		BREAK_IF_FAILED(hr);
-
 		context->UpdateSubresource(tex_ptr.Get(), 0, nullptr, img.Data<void>(), img.Pitch(), 0);
-
 		if (mipmaps)
 		{
 			context->GenerateMips(view_ptr.Get());
 		}
-
 		loaded_textures.insert({ name, handle });
 		texture_map.insert({ handle, view_ptr });
 

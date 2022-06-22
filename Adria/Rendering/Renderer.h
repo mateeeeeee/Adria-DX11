@@ -42,6 +42,10 @@ namespace adria
 	public:
 
 		Renderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height); 
+		~Renderer()
+		{
+			for (auto& clouds_texture : clouds_textures) clouds_texture->Release();
+		}
 
 		void NewFrame(Camera const*);
 		void Update(float32 dt);

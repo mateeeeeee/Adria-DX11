@@ -18,6 +18,7 @@ namespace adria
 		static void Destroy()
 		{
 			thread_pool->Destroy();
+			thread_pool = nullptr;
 		}
 
 		template<typename F, typename... Args>

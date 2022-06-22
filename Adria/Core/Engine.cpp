@@ -230,6 +230,7 @@ namespace adria
 
 	Engine::~Engine()
 	{
+		ShaderCache::Destroy();
 		TaskSystem::Destroy();
 	}
 

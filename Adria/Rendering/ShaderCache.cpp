@@ -16,6 +16,14 @@ namespace adria
 {
 	namespace
 	{
+		template<typename T>
+		inline void FreeContainer(T& container)
+		{
+			T empty;
+			using std::swap;
+			swap(container, empty);
+		}
+
 		struct ShaderFileData
 		{
 			fs::file_time_type last_changed_timestamp;
@@ -643,9 +651,8 @@ namespace adria
 			using UnderlyingType = std::underlying_type_t<EShader>;
 			for (UnderlyingType i = 0; i < EShader_Count; ++i)
 			{
-				ShaderFileData file_data{
-					.last_changed_timestamp = std::filesystem::last_write_time(fs::path(shaders_directory + GetShaderSource((EShader)i)))
-				};
+				ShaderFileData file_data{};
+				file_data.last_changed_timestamp = std::filesystem::last_write_time(fs::path(shaders_directory + GetShaderSource((EShader)i)));
 				shader_file_data_map[(EShader)i] = file_data;
 			}
 		}
@@ -705,6 +712,16 @@ namespace adria
 		CompileAllShaders();
 		FillShaderFileDataMap();
 	}
+
+	void ShaderCache::Destroy()
+	{
+		device = nullptr;
+		FreeContainer(shader_map);
+		FreeContainer(shader_file_data_map);
+		FreeContainer(shader_program_map);
+		FreeContainer(dependency_map);
+	}
+
 	void ShaderCache::RecompileShader(EShader shader, bool recreate_programs)
 	{
 		ShaderInfo shader_info{ .entrypoint = "main" };

@@ -12,11 +12,12 @@ namespace adria
 	namespace ShaderCompiler
 	{
 
-		void GetBlobFromCompiledShader(std::string_view filename, ShaderBlob& blob)
+		void GetBlobFromCompiledShader(char const* filename, ShaderBlob& blob)
 		{
 			Microsoft::WRL::ComPtr<ID3DBlob> pBytecodeBlob;
 
-			HRESULT hr = D3DReadFileToBlob(ConvertToWide(std::string(filename)).data(), &pBytecodeBlob);
+			std::wstring wide_filename = ConvertToWide(std::string(filename));
+			HRESULT hr = D3DReadFileToBlob(wide_filename.c_str(), &pBytecodeBlob);
 			BREAK_IF_FAILED(hr);
 
 			blob.bytecode.resize(pBytecodeBlob->GetBufferSize());
@@ -102,6 +103,7 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 			blob.bytecode.resize(pBytecodeBlob->GetBufferSize());
 			std::memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
+			pBytecodeBlob->Release();
 		}
 
 		void CreateInputLayoutWithReflection(ID3D11Device* device, ShaderBlob const& blob, ID3D11InputLayout** il)

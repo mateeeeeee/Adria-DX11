@@ -59,7 +59,7 @@ namespace adria
 	{
 		void CompileShader(ShaderInfo const& input, ShaderBlob& blob);
 
-		void GetBlobFromCompiledShader(std::string_view filename, ShaderBlob& blob);
+		void GetBlobFromCompiledShader(char const* filename, ShaderBlob& blob);
 
 		void CreateInputLayoutWithReflection(ID3D11Device* device, ShaderBlob const& blob, ID3D11InputLayout** il);
 	}
