@@ -42,10 +42,7 @@ namespace adria
 	public:
 
 		Renderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height); 
-		~Renderer()
-		{
-			for (auto& clouds_texture : clouds_textures) clouds_texture->Release();
-		}
+		~Renderer();
 
 		void NewFrame(Camera const*);
 		void Update(float32 dt);
@@ -116,13 +113,8 @@ namespace adria
 		std::unique_ptr<Texture> sun_target;
 		std::unique_ptr<Texture> velocity_buffer;
 
-		//move to Buffer
 		std::unique_ptr<Buffer> bokeh_buffer;
 		std::unique_ptr<Buffer> bokeh_indirect_draw_buffer;
-		/*Microsoft::WRL::ComPtr<ID3D11Buffer> bokeh_buffer;
-		Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> bokeh_uav;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bokeh_srv;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> bokeh_indirect_draw_buffer;*/
 
 		//render passes
 		RenderPass gbuffer_pass;

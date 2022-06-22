@@ -356,6 +356,12 @@ namespace adria
 		CreateOtherResources();
 		CreateResolutionDependentResources(w, h);
 	}
+
+	Renderer::~Renderer()
+	{
+		for (auto& clouds_texture : clouds_textures) clouds_texture->Release();
+	}
+
 	void Renderer::Update(float32 dt)
 	{
 		UpdateLights();
