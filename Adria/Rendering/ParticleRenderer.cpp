@@ -60,20 +60,20 @@ namespace adria
 	void ParticleRenderer::CreateViews()
 	{
 		BufferSubresourceDesc uav_desc{ .uav_flags = UAV_Append };
-		dead_list_buffer.CreateSubresource_UAV(&uav_desc);
+		dead_list_buffer.CreateUAV(&uav_desc);
 
 		uav_desc.uav_flags = UAV_Counter;
-		alive_index_buffer.CreateSubresource_UAV(&uav_desc);
-		alive_index_buffer.CreateSubresource_SRV();
+		alive_index_buffer.CreateUAV(&uav_desc);
+		alive_index_buffer.CreateSRV();
 
-		particle_bufferA.CreateSubresource_UAV();
-		particle_bufferA.CreateSubresource_SRV();
-		particle_bufferB.CreateSubresource_UAV();
-		view_space_positions_buffer.CreateSubresource_SRV();
-		view_space_positions_buffer.CreateSubresource_UAV();
+		particle_bufferA.CreateUAV();
+		particle_bufferA.CreateSRV();
+		particle_bufferB.CreateUAV();
+		view_space_positions_buffer.CreateSRV();
+		view_space_positions_buffer.CreateUAV();
 
-		indirect_render_args_buffer.CreateSubresource_UAV();
-		indirect_sort_args_buffer.CreateSubresource_UAV();
+		indirect_render_args_buffer.CreateUAV();
+		indirect_sort_args_buffer.CreateUAV();
 	}
 
 	void ParticleRenderer::CreateIndexBuffer()
@@ -120,7 +120,7 @@ namespace adria
 		init_data.SysMemPitch = desc.width * 4 * sizeof(float32);
 
 		random_texture = std::make_unique<Texture>(gfx, desc, &init_data);
-		random_texture->CreateSubresource_SRV();
+		random_texture->CreateSRV();
 	}
 
 	void ParticleRenderer::InitializeDeadList() 
@@ -128,7 +128,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 
 		uint32 initial_count[] = { 0 };
-		ID3D11UnorderedAccessView* dead_list_uavs[] = { dead_list_buffer.GetSubresource_UAV() };
+		ID3D11UnorderedAccessView* dead_list_uavs[] = { dead_list_buffer.UAV() };
 		context->CSSetUnorderedAccessViews(0, 1, dead_list_uavs, initial_count);
 
 		ShaderCache::GetShaderProgram(EShaderProgram::ParticleInitDeadList)->Bind(context);
@@ -143,7 +143,7 @@ namespace adria
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
-		ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.GetSubresource_UAV(), particle_bufferB.GetSubresource_UAV() };
+		ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV() };
 		uint32 initial_counts[] = { (uint32)-1, (uint32)-1 };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
@@ -164,11 +164,11 @@ namespace adria
 		{
 			ShaderCache::GetShaderProgram(EShaderProgram::ParticleEmit)->Bind(context);
 
-			ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.GetSubresource_UAV(), particle_bufferB.GetSubresource_UAV(), dead_list_buffer.GetSubresource_UAV() };
+			ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV(), dead_list_buffer.UAV() };
 			uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1 };
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
-			ID3D11ShaderResourceView* srvs[] = { random_texture->GetSubresource_SRV() };
+			ID3D11ShaderResourceView* srvs[] = { random_texture->SRV() };
 			context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
 			EmitterCBuffer emitter_cbuffer_data{};
@@ -189,7 +189,7 @@ namespace adria
 			dead_list_count_cbuffer.Bind(context, EShaderStage::CS, 11);
 			emitter_cbuffer.Bind(context, EShaderStage::CS, 13);
 
-			context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.GetSubresource_UAV());
+			context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.UAV());
 			uint32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
 			context->Dispatch(thread_groups_x, 1, 1);
 
@@ -209,9 +209,9 @@ namespace adria
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Simulate Pass");
 
 		ID3D11UnorderedAccessView* uavs[] = {
-			particle_bufferA.GetSubresource_UAV(), particle_bufferB.GetSubresource_UAV(),
-			dead_list_buffer.GetSubresource_UAV(), alive_index_buffer.GetSubresource_UAV(),
-			view_space_positions_buffer.GetSubresource_UAV(), indirect_render_args_buffer.GetSubresource_UAV() };
+			particle_bufferA.UAV(), particle_bufferB.UAV(),
+			dead_list_buffer.UAV(), alive_index_buffer.UAV(),
+			view_space_positions_buffer.UAV(), indirect_render_args_buffer.UAV() };
 		uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1, 0, (uint32)-1, (uint32)-1 };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
 
@@ -227,7 +227,7 @@ namespace adria
 		ZeroMemory(srvs, sizeof(srvs));
 		context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
-		context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.GetSubresource_UAV());
+		context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.UAV());
 	}
 
 	void ParticleRenderer::Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* particle_srv)
@@ -241,7 +241,7 @@ namespace adria
 		BindIndexBuffer(context, index_buffer.get());
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		ID3D11ShaderResourceView* vs_srvs[] = { particle_bufferA.GetSubresource_SRV(), view_space_positions_buffer.GetSubresource_SRV(), alive_index_buffer.GetSubresource_SRV() };
+		ID3D11ShaderResourceView* vs_srvs[] = { particle_bufferA.SRV(), view_space_positions_buffer.SRV(), alive_index_buffer.SRV() };
 		ID3D11ShaderResourceView* ps_srvs[] = { particle_srv, depth_srv };
 		context->VSSetShaderResources(0, ARRAYSIZE(vs_srvs), vs_srvs);
 		context->PSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
@@ -264,12 +264,12 @@ namespace adria
 		sort_dispatch_info_cbuffer.Bind(context, EShaderStage::CS, 12);
 
 		// Write the indirect args to a UAV
-		ID3D11UnorderedAccessView* indirect_sort_args_uav = indirect_sort_args_buffer.GetSubresource_UAV();
+		ID3D11UnorderedAccessView* indirect_sort_args_uav = indirect_sort_args_buffer.UAV();
 		context->CSSetUnorderedAccessViews(0, 1, &indirect_sort_args_uav, nullptr);
 		ShaderCache::GetShaderProgram(EShaderProgram::ParticleSortInitArgs)->Bind(context);
 		context->Dispatch(1, 1, 1);
 
-		ID3D11UnorderedAccessView* uav = alive_index_buffer.GetSubresource_UAV();
+		ID3D11UnorderedAccessView* uav = alive_index_buffer.UAV();
 		context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
 
 		bool done = SortInitial();

@@ -131,15 +131,15 @@ namespace adria
 		Buffer& operator=(Buffer const&) = delete;
 		~Buffer() = default;
 
-		ID3D11ShaderResourceView* GetSubresource_SRV(size_t i = 0) const { return srvs[i].Get(); }
-		ID3D11UnorderedAccessView* GetSubresource_UAV(size_t i = 0) const { return uavs[i].Get(); }
+		ID3D11ShaderResourceView* SRV(size_t i = 0) const { return srvs[i].Get(); }
+		ID3D11UnorderedAccessView* UAV(size_t i = 0) const { return uavs[i].Get(); }
 
-		[[maybe_unused]] size_t CreateSubresource_SRV(BufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSRV(BufferSubresourceDesc const* desc = nullptr)
 		{
 			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
 			return CreateSubresource(SubresourceType_SRV, _desc);
 		}
-		[[maybe_unused]] size_t CreateSubresource_UAV(BufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateUAV(BufferSubresourceDesc const* desc = nullptr)
 		{
 			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
 			return CreateSubresource(SubresourceType_UAV, _desc);

@@ -615,16 +615,16 @@ namespace adria
 		light_list = std::make_unique<Buffer>(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS));
 		light_grid = std::make_unique<Buffer>(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT));
 
-		voxels->CreateSubresource_SRV();
-		voxels->CreateSubresource_UAV();
-		clusters->CreateSubresource_SRV();
-		clusters->CreateSubresource_UAV();
-		light_counter->CreateSubresource_SRV();
-		light_counter->CreateSubresource_UAV();
-		light_list->CreateSubresource_SRV();
-		light_list->CreateSubresource_UAV();
-		light_grid->CreateSubresource_SRV();
-		light_grid->CreateSubresource_UAV();
+		voxels->CreateSRV();
+		voxels->CreateUAV();
+		clusters->CreateSRV();
+		clusters->CreateUAV();
+		light_counter->CreateSRV();
+		light_counter->CreateUAV();
+		light_list->CreateSRV();
+		light_list->CreateUAV();
+		light_grid->CreateSRV();
+		light_grid->CreateUAV();
 		//for sky
 		const SimpleVertex cube_vertices[8] = 
 		{
@@ -857,7 +857,7 @@ namespace adria
 				dsv_desc.first_mip = 0;
 				dsv_desc.slice_count = 1;
 				dsv_desc.first_slice = i;
-				size_t j = shadow_depth_cubemap->CreateSubresource_DSV(&dsv_desc);
+				size_t j = shadow_depth_cubemap->CreateDSV(&dsv_desc);
 				ADRIA_ASSERT(j == i + 1);
 			}
 
@@ -874,7 +874,7 @@ namespace adria
 				dsv_desc.first_mip = 0;
 				dsv_desc.slice_count = 1;
 				dsv_desc.first_slice = i;
-				size_t j = shadow_cascade_maps->CreateSubresource_DSV(&dsv_desc);
+				size_t j = shadow_cascade_maps->CreateDSV(&dsv_desc);
 				ADRIA_ASSERT(j == i + 1);
 			}
 		}
@@ -986,8 +986,8 @@ namespace adria
 
 		BufferSubresourceDesc uav_desc{};
 		uav_desc.uav_flags = UAV_Append;
-		bokeh_buffer->CreateSubresource_UAV(&uav_desc);
-		bokeh_buffer->CreateSubresource_SRV();
+		bokeh_buffer->CreateUAV(&uav_desc);
+		bokeh_buffer->CreateSRV();
 	}
 	void Renderer::CreateRenderTargets(uint32 width, uint32 height)
 	{
@@ -1074,76 +1074,76 @@ namespace adria
 		static constexpr std::array<float32, 4> clear_black = { 0.0f,0.0f,0.0f,0.0f };
 
 		RtvAttachmentDesc gbuffer_normal_attachment{};
-		gbuffer_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_RTV();
+		gbuffer_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic]->RTV();
 		gbuffer_normal_attachment.clear_color = clear_black;
 		gbuffer_normal_attachment.load_op = ELoadOp::Clear;
 
 		RtvAttachmentDesc gbuffer_albedo_attachment{};
-		gbuffer_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness]->GetSubresource_RTV();
+		gbuffer_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness]->RTV();
 		gbuffer_albedo_attachment.clear_color = clear_black;
 		gbuffer_albedo_attachment.load_op = ELoadOp::Clear;
 
 		RtvAttachmentDesc gbuffer_emissive_attachment{};
-		gbuffer_emissive_attachment.view = gbuffer[EGBufferSlot_Emissive]->GetSubresource_RTV();
+		gbuffer_emissive_attachment.view = gbuffer[EGBufferSlot_Emissive]->RTV();
 		gbuffer_emissive_attachment.clear_color = clear_black;
 		gbuffer_emissive_attachment.load_op = ELoadOp::Clear;
 
 		RtvAttachmentDesc decal_normal_attachment{};
-		decal_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_RTV();
+		decal_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic]->RTV();
 		decal_normal_attachment.load_op = ELoadOp::Load;
 
 		RtvAttachmentDesc decal_albedo_attachment{};
-		decal_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness]->GetSubresource_RTV();
+		decal_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness]->RTV();
 		decal_albedo_attachment.load_op = ELoadOp::Load;
 
 		DsvAttachmentDesc depth_clear_attachment{};
-		depth_clear_attachment.view = depth_target->GetSubresource_DSV();
+		depth_clear_attachment.view = depth_target->DSV();
 		depth_clear_attachment.clear_depth = 1.0f;
 		depth_clear_attachment.load_op = ELoadOp::Clear;
 
 		RtvAttachmentDesc hdr_color_clear_attachment{};
-		hdr_color_clear_attachment.view = hdr_render_target->GetSubresource_RTV();
+		hdr_color_clear_attachment.view = hdr_render_target->RTV();
 		hdr_color_clear_attachment.clear_color = clear_black;
 		hdr_color_clear_attachment.load_op = ELoadOp::Clear;
 
 		RtvAttachmentDesc hdr_color_load_attachment{};
-		hdr_color_load_attachment.view = hdr_render_target->GetSubresource_RTV();
+		hdr_color_load_attachment.view = hdr_render_target->RTV();
 		hdr_color_load_attachment.load_op = ELoadOp::Load;
 
 		
 		DsvAttachmentDesc depth_load_attachment{};
-		depth_load_attachment.view = depth_target->GetSubresource_DSV();
+		depth_load_attachment.view = depth_target->DSV();
 		depth_load_attachment.clear_depth = 1.0f;
 		depth_load_attachment.load_op = ELoadOp::Load;
 
 		RtvAttachmentDesc fxaa_source_attachment{};
-		fxaa_source_attachment.view = fxaa_texture->GetSubresource_RTV();
+		fxaa_source_attachment.view = fxaa_texture->RTV();
 		fxaa_source_attachment.load_op = ELoadOp::DontCare;
 
 		DsvAttachmentDesc shadow_map_attachment{};
-		shadow_map_attachment.view = shadow_depth_map->GetSubresource_DSV();
+		shadow_map_attachment.view = shadow_depth_map->DSV();
 		shadow_map_attachment.clear_depth = 1.0f;
 		shadow_map_attachment.load_op = ELoadOp::Clear;
 
 		RtvAttachmentDesc ssao_attachment{};
-		ssao_attachment.view = ao_texture->GetSubresource_RTV();
+		ssao_attachment.view = ao_texture->RTV();
 		ssao_attachment.load_op = ELoadOp::DontCare;
 
 		RtvAttachmentDesc ping_color_load_attachment{};
-		ping_color_load_attachment.view = postprocess_textures[0]->GetSubresource_RTV();
+		ping_color_load_attachment.view = postprocess_textures[0]->RTV();
 		ping_color_load_attachment.load_op = ELoadOp::Load;
 
 		RtvAttachmentDesc pong_color_load_attachment{};
-		pong_color_load_attachment.view = postprocess_textures[1]->GetSubresource_RTV();
+		pong_color_load_attachment.view = postprocess_textures[1]->RTV();
 		pong_color_load_attachment.load_op = ELoadOp::Load;
 
 		RtvAttachmentDesc offscreen_clear_attachment{};
-		offscreen_clear_attachment.view = offscreen_ldr_render_target->GetSubresource_RTV();
+		offscreen_clear_attachment.view = offscreen_ldr_render_target->RTV();
 		offscreen_clear_attachment.clear_color = clear_black;
 		offscreen_clear_attachment.load_op = ELoadOp::Clear;
 
 		RtvAttachmentDesc velocity_clear_attachment{};
-		velocity_clear_attachment.view = velocity_buffer->GetSubresource_RTV();
+		velocity_clear_attachment.view = velocity_buffer->RTV();
 		velocity_clear_attachment.clear_color = clear_black;
 		velocity_clear_attachment.load_op = ELoadOp::Clear;
 
@@ -1230,7 +1230,7 @@ namespace adria
 			for (uint32 i = 0; i < 6; ++i)
 			{
 				DsvAttachmentDesc shadow_cubemap_attachment{};
-				shadow_cubemap_attachment.view = shadow_depth_cubemap->GetSubresource_DSV(i + 1);
+				shadow_cubemap_attachment.view = shadow_depth_cubemap->DSV(i + 1);
 				shadow_cubemap_attachment.clear_depth = 1.0f;
 				shadow_cubemap_attachment.load_op = ELoadOp::Clear;
 
@@ -1248,7 +1248,7 @@ namespace adria
 			for (uint32 i = 0; i < CASCADE_COUNT; ++i)
 			{
 				DsvAttachmentDesc cascade_shadow_map_attachment{};
-				cascade_shadow_map_attachment.view = shadow_cascade_maps->GetSubresource_DSV(i + 1);
+				cascade_shadow_map_attachment.view = shadow_cascade_maps->DSV(i + 1);
 				cascade_shadow_map_attachment.clear_depth = 1.0f;
 				cascade_shadow_map_attachment.load_op = ELoadOp::Clear;
 
@@ -1638,7 +1638,7 @@ namespace adria
 
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
 
-			ID3D11UnorderedAccessView* uav[] = { ocean_initial_spectrum->GetSubresource_UAV() };
+			ID3D11UnorderedAccessView* uav[] = { ocean_initial_spectrum->UAV() };
 
 			context->CSSetUnorderedAccessViews(0, 1, uav, nullptr);
 
@@ -1654,8 +1654,8 @@ namespace adria
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
 
-			ID3D11ShaderResourceView*  srv[] = { ping_pong_phase_textures[pong_phase]->GetSubresource_SRV()};
-			ID3D11UnorderedAccessView* uav[] = { ping_pong_phase_textures[!pong_phase]->GetSubresource_UAV() };
+			ID3D11ShaderResourceView*  srv[] = { ping_pong_phase_textures[pong_phase]->SRV()};
+			ID3D11UnorderedAccessView* uav[] = { ping_pong_phase_textures[!pong_phase]->UAV() };
 
 			ShaderCache::GetShaderProgram(EShaderProgram::OceanPhase)->Bind(context);
 
@@ -1671,8 +1671,8 @@ namespace adria
 
 		//spectrum
 		{
-			ID3D11ShaderResourceView* srvs[]	= { ping_pong_phase_textures[pong_phase]->GetSubresource_SRV(), ocean_initial_spectrum->GetSubresource_SRV() };
-			ID3D11UnorderedAccessView* uav[]	= { ping_pong_spectrum_textures[pong_spectrum]->GetSubresource_UAV() };
+			ID3D11ShaderResourceView* srvs[]	= { ping_pong_phase_textures[pong_phase]->SRV(), ocean_initial_spectrum->SRV() };
+			ID3D11UnorderedAccessView* uav[]	= { ping_pong_spectrum_textures[pong_spectrum]->UAV() };
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
 
@@ -1707,8 +1707,8 @@ namespace adria
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 
-					ID3D11ShaderResourceView* srv[]	= { ping_pong_spectrum_textures[!pong_spectrum]->GetSubresource_SRV()};
-					ID3D11UnorderedAccessView* uav[]= { ping_pong_spectrum_textures[pong_spectrum]->GetSubresource_UAV() };
+					ID3D11ShaderResourceView* srv[]	= { ping_pong_spectrum_textures[!pong_spectrum]->SRV()};
+					ID3D11UnorderedAccessView* uav[]= { ping_pong_spectrum_textures[pong_spectrum]->UAV() };
 
 					static ID3D11ShaderResourceView* null_srv = nullptr;
 					static ID3D11UnorderedAccessView* null_uav = nullptr;
@@ -1731,8 +1731,8 @@ namespace adria
 				ShaderCache::GetShaderProgram(EShaderProgram::OceanFFT_Vertical)->Bind(context);
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
-					ID3D11ShaderResourceView* srv[] = { ping_pong_spectrum_textures[!pong_spectrum]->GetSubresource_SRV() };
-					ID3D11UnorderedAccessView* uav[] = { ping_pong_spectrum_textures[pong_spectrum]->GetSubresource_UAV() };
+					ID3D11ShaderResourceView* srv[] = { ping_pong_spectrum_textures[!pong_spectrum]->SRV() };
+					ID3D11UnorderedAccessView* uav[] = { ping_pong_spectrum_textures[pong_spectrum]->UAV() };
 
 					static ID3D11ShaderResourceView* null_srv = nullptr;
 					static ID3D11UnorderedAccessView* null_uav = nullptr;
@@ -1757,8 +1757,8 @@ namespace adria
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
 			ShaderCache::GetShaderProgram(EShaderProgram::OceanNormalMap)->Bind(context);
 
-			ID3D11ShaderResourceView* final_spectrum = ping_pong_spectrum_textures[!pong_spectrum]->GetSubresource_SRV();
-			ID3D11UnorderedAccessView* normal_map_uav = ocean_normal_map->GetSubresource_UAV();
+			ID3D11ShaderResourceView* final_spectrum = ping_pong_spectrum_textures[!pong_spectrum]->SRV();
+			ID3D11UnorderedAccessView* normal_map_uav = ocean_normal_map->UAV();
 
 			context->CSSetShaderResources(0, 1, &final_spectrum);
 			context->CSSetUnorderedAccessViews(0, 1, &normal_map_uav, nullptr);
@@ -1841,7 +1841,7 @@ namespace adria
 			light_count = current_light_count;
 			if (light_count == 0) return;
 			lights = std::make_unique<Buffer>(gfx, StructuredBufferDesc<LightSBuffer>(light_count, false, true));
-			lights->CreateSubresource_SRV();
+			lights->CreateSRV();
 		}
 
 		std::vector<LightSBuffer> lights_data{};
@@ -1945,7 +1945,7 @@ namespace adria
 		ADRIA_ASSERT(pick_in_current_frame);
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Picking Pass");
 		pick_in_current_frame = false;
-		last_picking_data = picker.Pick(depth_target->GetSubresource_SRV(), gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_SRV());
+		last_picking_data = picker.Pick(depth_target->SRV(), gbuffer[EGBufferSlot_NormalMetallic]->SRV());
 	}
 	void Renderer::PassGBuffer()
 	{
@@ -2125,7 +2125,7 @@ namespace adria
 
 				ID3D11ShaderResourceView* srvs[] = { texture_manager.GetTextureView(decal.albedo_decal_texture), 
 													 texture_manager.GetTextureView(decal.normal_decal_texture),
-													 depth_target->GetSubresource_SRV() };
+													 depth_target->SRV() };
 				context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 				context->DrawIndexed(cube_ib->GetCount(), 0, 0);
 			}
@@ -2154,7 +2154,7 @@ namespace adria
 
 		ssao_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_SRV(), depth_target->GetSubresource_SRV(), ssao_random_texture->GetSubresource_SRV() };
+			ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), ssao_random_texture->SRV() };
 			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2164,7 +2164,7 @@ namespace adria
 		}
 		ssao_pass.End(context);
 		BlurTexture(ao_texture.get());
-		ID3D11ShaderResourceView* blurred_ssao = blur_texture_final->GetSubresource_SRV();
+		ID3D11ShaderResourceView* blurred_ssao = blur_texture_final->SRV();
 		context->PSSetShaderResources(7, 1, &blurred_ssao);
 	}
 	void Renderer::PassHBAO()
@@ -2185,7 +2185,7 @@ namespace adria
 
 		hbao_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_SRV(), depth_target->GetSubresource_SRV(), hbao_random_texture->GetSubresource_SRV() };
+			ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), hbao_random_texture->SRV() };
 			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2196,7 +2196,7 @@ namespace adria
 		hbao_pass.End(context);
 		BlurTexture(ao_texture.get());
 
-		ID3D11ShaderResourceView* blurred_ssao = blur_texture_final->GetSubresource_SRV();
+		ID3D11ShaderResourceView* blurred_ssao = blur_texture_final->SRV();
 		context->PSSetShaderResources(7, 1, &blurred_ssao);
 	}
 	void Renderer::PassAmbient()
@@ -2204,7 +2204,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Ambient Pass");
 
-		ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_SRV(),gbuffer[EGBufferSlot_DiffuseRoughness]->GetSubresource_SRV(), depth_target->GetSubresource_SRV(), gbuffer[EGBufferSlot_Emissive]->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic]->SRV(),gbuffer[EGBufferSlot_DiffuseRoughness]->SRV(), depth_target->SRV(), gbuffer[EGBufferSlot_Emissive]->SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
 		ambient_pass.Begin(context);
@@ -2297,9 +2297,9 @@ namespace adria
 			lighting_pass.Begin(context);
 			{
 				ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-				shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_SRV();
-				shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness]->GetSubresource_SRV();
-				shader_views[2] = depth_target->GetSubresource_SRV();
+				shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->SRV();
+				shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness]->SRV();
+				shader_views[2] = depth_target->SRV();
 
 				context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 
@@ -2327,16 +2327,16 @@ namespace adria
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Deferred Tiled Lighting Pass");
 
 		ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-		shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_SRV();
-		shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness]->GetSubresource_SRV();
-		shader_views[2] = depth_target->GetSubresource_SRV();
+		shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->SRV();
+		shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness]->SRV();
+		shader_views[2] = depth_target->SRV();
 		context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
-		ID3D11ShaderResourceView* lights_srv = lights->GetSubresource_SRV();
+		ID3D11ShaderResourceView* lights_srv = lights->SRV();
 		context->CSSetShaderResources(3, 1, &lights_srv);
-		ID3D11UnorderedAccessView* texture_uav = uav_target->GetSubresource_UAV();
+		ID3D11UnorderedAccessView* texture_uav = uav_target->UAV();
 		context->CSSetUnorderedAccessViews(0, 1, &texture_uav, nullptr);
 
-		ID3D11UnorderedAccessView* debug_uav = debug_tiled_texture->GetSubresource_UAV();
+		ID3D11UnorderedAccessView* debug_uav = debug_tiled_texture->UAV();
 		if (renderer_settings.visualize_tiled)
 		{
 			context->CSSetUnorderedAccessViews(1, 1, &debug_uav, nullptr);
@@ -2350,7 +2350,7 @@ namespace adria
 		ID3D11UnorderedAccessView* null_uav = nullptr;
 		context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 
-		auto rtv = hdr_render_target->GetSubresource_RTV();
+		auto rtv = hdr_render_target->RTV();
 		context->OMSetRenderTargets(1, &rtv, nullptr);
 
 		if (renderer_settings.visualize_tiled)
@@ -2414,7 +2414,7 @@ namespace adria
 
 		if (recreate_clusters)
 		{
-			ID3D11UnorderedAccessView* clusters_uav = clusters->GetSubresource_UAV();
+			ID3D11UnorderedAccessView* clusters_uav = clusters->UAV();
 			context->CSSetUnorderedAccessViews(0, 1, &clusters_uav, nullptr);
 
 			ShaderCache::GetShaderProgram(EShaderProgram::ClusterBuilding)->Bind(context);
@@ -2427,9 +2427,9 @@ namespace adria
 			recreate_clusters = false;
 		}
 
-		ID3D11ShaderResourceView* srvs[] = { clusters->GetSubresource_SRV(), lights->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* srvs[] = { clusters->SRV(), lights->SRV() };
 		context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
-		ID3D11UnorderedAccessView* uavs[] = { light_counter->GetSubresource_UAV(), light_list->GetSubresource_UAV(), light_grid->GetSubresource_UAV() };
+		ID3D11UnorderedAccessView* uavs[] = { light_counter->UAV(), light_list->UAV(), light_grid->UAV() };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
 
 		ShaderCache::GetShaderProgram(EShaderProgram::ClusterCulling)->Bind(context);
@@ -2446,12 +2446,12 @@ namespace adria
 		lighting_pass.Begin(context);
 		{
 			ID3D11ShaderResourceView* shader_views[6] = { nullptr };
-			shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_SRV();
-			shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness]->GetSubresource_SRV();
-			shader_views[2] = depth_target->GetSubresource_SRV();
-			shader_views[3] = lights->GetSubresource_SRV();
-			shader_views[4] = light_list->GetSubresource_SRV();
-			shader_views[5] = light_grid->GetSubresource_SRV();
+			shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->SRV();
+			shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness]->SRV();
+			shader_views[2] = depth_target->SRV();
+			shader_views[3] = lights->SRV();
+			shader_views[4] = light_list->SRV();
+			shader_views[5] = light_grid->SRV();
 
 			context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 
@@ -2551,11 +2551,11 @@ namespace adria
 		context->RSSetViewports(1, &vp);
 
 
-		ID3D11UnorderedAccessView* voxels_uav = voxels->GetSubresource_UAV();
+		ID3D11UnorderedAccessView* voxels_uav = voxels->UAV();
 		context->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr,
 			0, 1, &voxels_uav, nullptr);
 
-		ID3D11ShaderResourceView* lights_srv = lights->GetSubresource_SRV();
+		ID3D11ShaderResourceView* lights_srv = lights->SRV();
 		context->PSSetShaderResources(10, 1, &lights_srv);
 
 		for (auto e : voxel_view)
@@ -2582,7 +2582,7 @@ namespace adria
 		context->RSSetState(nullptr);
 		ShaderCache::GetShaderProgram(EShaderProgram::Voxelize)->Unbind(context);
 
-		ID3D11UnorderedAccessView* uavs[] = { voxels_uav, voxel_texture->GetSubresource_UAV() };
+		ID3D11UnorderedAccessView* uavs[] = { voxels_uav, voxel_texture->UAV() };
 		context->CSSetUnorderedAccessViews(0, 2, uavs, nullptr);
 		ShaderCache::GetShaderProgram(EShaderProgram::VoxelCopy)->Bind(context);
 		context->Dispatch(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION / 256, 1, 1);
@@ -2591,14 +2591,14 @@ namespace adria
 		static ID3D11UnorderedAccessView* null_uavs[] = { nullptr, nullptr };
 		context->CSSetUnorderedAccessViews(0, 2, null_uavs, nullptr);
 
-		context->GenerateMips(voxel_texture->GetSubresource_SRV());
+		context->GenerateMips(voxel_texture->SRV());
 
 		if (renderer_settings.voxel_second_bounce)
 		{
-			ID3D11UnorderedAccessView* uavs[] = { voxel_texture_second_bounce->GetSubresource_UAV() };
+			ID3D11UnorderedAccessView* uavs[] = { voxel_texture_second_bounce->UAV() };
 			context->CSSetUnorderedAccessViews(0, 1, uavs, nullptr);
 
-			ID3D11ShaderResourceView* srvs[] = { voxels->GetSubresource_SRV(), voxel_texture->GetSubresource_SRV() };
+			ID3D11ShaderResourceView* srvs[] = { voxels->SRV(), voxel_texture->SRV() };
 			context->CSSetShaderResources(0, 2, srvs);
 			ShaderCache::GetShaderProgram(EShaderProgram::VoxelSecondBounce)->Bind(context);
 			context->Dispatch(VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8);
@@ -2610,7 +2610,7 @@ namespace adria
 			static ID3D11UnorderedAccessView* null_uavs[] = { nullptr};
 			context->CSSetUnorderedAccessViews(0, 1, null_uavs, nullptr);
 
-			context->GenerateMips(voxel_texture_second_bounce->GetSubresource_SRV());
+			context->GenerateMips(voxel_texture_second_bounce->SRV());
 		}
 	}
 	void Renderer::PassVoxelizeDebug()
@@ -2621,7 +2621,7 @@ namespace adria
 
 		voxel_debug_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* voxel_srv = voxel_texture->GetSubresource_SRV();
+			ID3D11ShaderResourceView* voxel_srv = voxel_texture->SRV();
 			context->VSSetShaderResources(9, 1, &voxel_srv);
 
 			ShaderCache::GetShaderProgram(EShaderProgram::VoxelizeDebug)->Bind(context);
@@ -2645,9 +2645,9 @@ namespace adria
 		lighting_pass.Begin(context);
 		{
 			ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-			shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_SRV();
-			shader_views[1] = depth_target->GetSubresource_SRV();
-			shader_views[2] = renderer_settings.voxel_second_bounce ? voxel_texture_second_bounce->GetSubresource_SRV() : voxel_texture->GetSubresource_SRV();
+			shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->SRV();
+			shader_views[1] = depth_target->SRV();
+			shader_views[2] = renderer_settings.voxel_second_bounce ? voxel_texture_second_bounce->SRV() : voxel_texture->SRV();
 			context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 
 			context->IASetInputLayout(nullptr);
@@ -2769,7 +2769,7 @@ namespace adria
 			postprocess_passes[postprocess_index].End(context);
 			postprocess_index = !postprocess_index;
 
-			auto rtv = prev_hdr_render_target->GetSubresource_RTV();
+			auto rtv = prev_hdr_render_target->RTV();
 			context->OMSetRenderTargets(1, &rtv, nullptr);
 			CopyTexture(postprocess_textures[!postprocess_index].get());
 			context->OMSetRenderTargets(0, nullptr, nullptr);
@@ -2801,7 +2801,7 @@ namespace adria
 			context->RSSetState(nullptr);
 		}
 		shadow_map_pass.End(context);
-		ID3D11ShaderResourceView* shadow_depth_srv[1] = { shadow_depth_map->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* shadow_depth_srv[1] = { shadow_depth_map->SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, shadow_depth_srv);
 	}
 	void Renderer::PassShadowMapSpot(Light const& light)
@@ -2828,7 +2828,7 @@ namespace adria
 			context->RSSetState(nullptr);
 		}
 		shadow_map_pass.End(context);
-		ID3D11ShaderResourceView* shadow_depth_srv[1] = { shadow_depth_map->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* shadow_depth_srv[1] = { shadow_depth_map->SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, shadow_depth_srv);
 	}
 	void Renderer::PassShadowMapPoint(Light const& light)
@@ -2857,7 +2857,7 @@ namespace adria
 			shadow_cubemap_pass[i].End(context);
 		}
 
-		ID3D11ShaderResourceView* srv[] = { shadow_depth_cubemap->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* srv[] = { shadow_depth_cubemap->SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWCUBE, 1, srv);
 	}
 	void Renderer::PassShadowMapCascades(Light const& light)
@@ -2891,7 +2891,7 @@ namespace adria
 		}
 
 		context->RSSetState(nullptr);
-		ID3D11ShaderResourceView* srv[] = { shadow_cascade_maps->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* srv[] = { shadow_cascade_maps->SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWARRAY, 1, srv);
 
 		shadow_cbuf_data.shadow_map_size = SHADOW_CASCADE_SIZE;
@@ -2990,7 +2990,7 @@ namespace adria
 		ADRIA_ASSERT(light.volumetric);
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Volumetric Lighting Pass");
 
-		ID3D11ShaderResourceView* srv[] = { depth_target->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* srv[] = { depth_target->SRV() };
 		context->PSSetShaderResources(2, 1, srv);
 
 		context->IASetInputLayout(nullptr);
@@ -3078,11 +3078,11 @@ namespace adria
 			if (skybox_srv) break;
 		}
 
-		ID3D11ShaderResourceView* displacement_map_srv = ping_pong_spectrum_textures[!pong_spectrum]->GetSubresource_SRV();
+		ID3D11ShaderResourceView* displacement_map_srv = ping_pong_spectrum_textures[!pong_spectrum]->SRV();
 		renderer_settings.ocean_tesselation ? context->DSSetShaderResources(0, 1, &displacement_map_srv) :
 							context->VSSetShaderResources(0, 1, &displacement_map_srv);
 
-		ID3D11ShaderResourceView* srvs[] = { ocean_normal_map->GetSubresource_SRV(), skybox_srv ,
+		ID3D11ShaderResourceView* srvs[] = { ocean_normal_map->SRV(), skybox_srv ,
 		 texture_manager.GetTextureView(foam_handle) };
 		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
@@ -3133,7 +3133,7 @@ namespace adria
 		for (auto emitter : emitters)
 		{
 			Emitter const& emitter_params = emitters.get(emitter);
-			particle_renderer.Render(emitter_params, depth_target->GetSubresource_SRV(), texture_manager.GetTextureView(emitter_params.particle_texture));
+			particle_renderer.Render(emitter_params, depth_target->SRV(), texture_manager.GetTextureView(emitter_params.particle_texture));
 		}
 
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
@@ -3204,7 +3204,7 @@ namespace adria
 		}
 
 		{
-			ID3D11ShaderResourceView* depth_srv_array[1] = { depth_target->GetSubresource_SRV() };
+			ID3D11ShaderResourceView* depth_srv_array[1] = { depth_target->SRV() };
 			context->GSSetShaderResources(7, ARRAYSIZE(depth_srv_array), depth_srv_array);
 			context->GSSetShaderResources(0, static_cast<uint32>(lens_flare_textures.size()), lens_flare_textures.data());
 			context->PSSetShaderResources(0, static_cast<uint32>(lens_flare_textures.size()), lens_flare_textures.data());
@@ -3228,7 +3228,7 @@ namespace adria
 		ADRIA_ASSERT(renderer_settings.clouds);
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Volumetric Clouds Pass");
 
-		ID3D11ShaderResourceView* const srv_array[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target->GetSubresource_SRV()};
+		ID3D11ShaderResourceView* const srv_array[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target->SRV()};
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 
@@ -3258,7 +3258,7 @@ namespace adria
 		postprocess_cbuf_data.ssr_ray_step = renderer_settings.ssr_ray_step;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* srv_array[] = { gbuffer[EGBufferSlot_NormalMetallic]->GetSubresource_SRV(), postprocess_textures[!postprocess_index]->GetSubresource_SRV(), depth_target->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* srv_array[] = { gbuffer[EGBufferSlot_NormalMetallic]->SRV(), postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 
@@ -3308,7 +3308,7 @@ namespace adria
 
 		context->OMSetBlendState(additive_blend.Get(), nullptr, 0xffffffff);
 		{
-			ID3D11ShaderResourceView* srv_array[1] = { sun_target->GetSubresource_SRV() };
+			ID3D11ShaderResourceView* srv_array[1] = { sun_target->SRV() };
 			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
@@ -3329,9 +3329,9 @@ namespace adria
 		if (renderer_settings.bokeh)
 		{
 			ShaderCache::GetShaderProgram(EShaderProgram::BokehGenerate)->Bind(context);
-			ID3D11ShaderResourceView* srv_array[2] = { postprocess_textures[!postprocess_index]->GetSubresource_SRV(), depth_target->GetSubresource_SRV() };
+			ID3D11ShaderResourceView* srv_array[2] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 			uint32 initial_count = 0;
-			ID3D11UnorderedAccessView* bokeh_uav = bokeh_buffer->GetSubresource_UAV();
+			ID3D11UnorderedAccessView* bokeh_uav = bokeh_buffer->UAV();
 			context->CSSetUnorderedAccessViews(0, 1, &bokeh_uav, &initial_count);
 			context->CSSetShaderResources(0, 2, srv_array);
 			context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
@@ -3345,7 +3345,7 @@ namespace adria
 
 		BlurTexture(hdr_render_target.get());
 
-		ID3D11ShaderResourceView* srv_array[3] = { postprocess_textures[!postprocess_index]->GetSubresource_SRV(), blur_texture_final->GetSubresource_SRV(), depth_target->GetSubresource_SRV()};
+		ID3D11ShaderResourceView* srv_array[3] = { postprocess_textures[!postprocess_index]->SRV(), blur_texture_final->SRV(), depth_target->SRV()};
 		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
 
 		postprocess_cbuf_data.dof_params = XMVectorSet(renderer_settings.dof_near_blur, renderer_settings.dof_near, renderer_settings.dof_far, renderer_settings.dof_far_blur);
@@ -3360,7 +3360,7 @@ namespace adria
 
 		if (renderer_settings.bokeh)
 		{
-			context->CopyStructureCount(bokeh_indirect_draw_buffer->GetNative(), 0, bokeh_buffer->GetSubresource_UAV());
+			context->CopyStructureCount(bokeh_indirect_draw_buffer->GetNative(), 0, bokeh_buffer->UAV());
 			ID3D11ShaderResourceView* bokeh = nullptr;
 			switch (renderer_settings.bokeh_type)
 			{
@@ -3380,7 +3380,7 @@ namespace adria
 				ADRIA_ASSERT(false && "Invalid Bokeh Type");
 			}
 
-			ID3D11ShaderResourceView* bokeh_srv = bokeh_buffer->GetSubresource_SRV();
+			ID3D11ShaderResourceView* bokeh_srv = bokeh_buffer->SRV();
 			context->VSSetShaderResources(0, 1, &bokeh_srv);
 			context->PSSetShaderResources(0, 1, &bokeh);
 
@@ -3411,8 +3411,8 @@ namespace adria
 		static ID3D11UnorderedAccessView* const null_uav[1] = { nullptr };
 		static ID3D11ShaderResourceView*  const null_srv[2] = { nullptr };
 
-		ID3D11UnorderedAccessView* const uav[1] = { bloom_extract_texture->GetSubresource_UAV() };
-		ID3D11ShaderResourceView* const srv[1] = { postprocess_textures[!postprocess_index]->GetSubresource_SRV() };
+		ID3D11UnorderedAccessView* const uav[1] = { bloom_extract_texture->UAV() };
+		ID3D11ShaderResourceView* const srv[1] = { postprocess_textures[!postprocess_index]->SRV() };
 		context->CSSetShaderResources(0, 1, srv); 
 
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav), uav, nullptr);
@@ -3420,10 +3420,10 @@ namespace adria
 		context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 		context->CSSetShaderResources(0, 1, null_srv);
 		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
-		context->GenerateMips(bloom_extract_texture->GetSubresource_SRV());
+		context->GenerateMips(bloom_extract_texture->SRV());
 
-		ID3D11UnorderedAccessView* const uav2[1] = { postprocess_textures[postprocess_index]->GetSubresource_UAV() };
-		ID3D11ShaderResourceView* const srv2[2] = { postprocess_textures[!postprocess_index]->GetSubresource_SRV(), bloom_extract_texture->GetSubresource_SRV() };
+		ID3D11UnorderedAccessView* const uav2[1] = { postprocess_textures[postprocess_index]->UAV() };
+		ID3D11ShaderResourceView* const srv2[2] = { postprocess_textures[!postprocess_index]->SRV(), bloom_extract_texture->SRV() };
 		context->CSSetShaderResources(0, 2, srv2);
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav2), uav2, nullptr);
 		ShaderCache::GetShaderProgram(EShaderProgram::BloomCombine)->Bind(context);
@@ -3443,7 +3443,7 @@ namespace adria
 
 		velocity_buffer_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* const srv_array[1] = { depth_target->GetSubresource_SRV() };
+			ID3D11ShaderResourceView* const srv_array[1] = { depth_target->SRV() };
 			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
@@ -3462,7 +3462,7 @@ namespace adria
 		ADRIA_ASSERT(renderer_settings.motion_blur);
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Motion Blur Pass");
 
-		ID3D11ShaderResourceView* const srv_array[2] = { postprocess_textures[!postprocess_index]->GetSubresource_SRV(), velocity_buffer->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* const srv_array[2] = { postprocess_textures[!postprocess_index]->SRV(), velocity_buffer->SRV() };
 		static ID3D11ShaderResourceView* const srv_null[2] = { nullptr, nullptr };
 
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
@@ -3486,7 +3486,7 @@ namespace adria
 		postprocess_cbuf_data.fog_color = XMVectorSet(renderer_settings.fog_color[0], renderer_settings.fog_color[1], renderer_settings.fog_color[2], 1);
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index]->GetSubresource_SRV(), depth_target->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
@@ -3506,7 +3506,7 @@ namespace adria
 		postprocess_cbuf_data.tone_map_exposure = renderer_settings.tone_map_exposure;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* const srv_array[1] = { postprocess_textures[!postprocess_index]->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* const srv_array[1] = { postprocess_textures[!postprocess_index]->SRV() };
 		static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
@@ -3538,7 +3538,7 @@ namespace adria
 		SCOPED_ANNOTATION(gfx->Annotation(), L"FXAA Pass");
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
-		ID3D11ShaderResourceView* srv_array[1] = { fxaa_texture->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* srv_array[1] = { fxaa_texture->SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -3553,7 +3553,7 @@ namespace adria
 		SCOPED_ANNOTATION(gfx->Annotation(), L"TAA Pass");
 		
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };
-		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index]->GetSubresource_SRV(), prev_hdr_render_target->GetSubresource_SRV(), velocity_buffer->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index]->SRV(), prev_hdr_render_target->SRV(), velocity_buffer->SRV() };
 		
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
@@ -3568,8 +3568,8 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Sun Pass");
 
-		ID3D11RenderTargetView* rtv = sun_target->GetSubresource_RTV();
-		ID3D11DepthStencilView* dsv = depth_target->GetSubresource_DSV();
+		ID3D11RenderTargetView* rtv = sun_target->RTV();
+		ID3D11DepthStencilView* dsv = depth_target->DSV();
 		
 		float32 black[4] = { 0.0f };
 		context->ClearRenderTargetView(rtv, black);
@@ -3604,10 +3604,10 @@ namespace adria
 		std::array<ID3D11UnorderedAccessView*, 2> uavs{};
 		std::array<ID3D11ShaderResourceView*, 2>  srvs{};
 		
-		uavs[0] = blur_texture_intermediate->GetSubresource_UAV();  
-		uavs[1] = blur_texture_final->GetSubresource_UAV();  
-		srvs[0] = blur_texture_intermediate->GetSubresource_SRV();  
-		srvs[1] = blur_texture_final->GetSubresource_SRV(); 
+		uavs[0] = blur_texture_intermediate->UAV();  
+		uavs[1] = blur_texture_final->UAV();  
+		srvs[0] = blur_texture_intermediate->SRV();  
+		srvs[1] = blur_texture_final->SRV(); 
 
 		static ID3D11UnorderedAccessView* const null_uav[1] = { nullptr };
 		static ID3D11ShaderResourceView* const  null_srv[1] = { nullptr };
@@ -3618,7 +3618,7 @@ namespace adria
 		uint32 width = src->GetDesc().width;
 		uint32 height = src->GetDesc().height;
 		
-		ID3D11ShaderResourceView* src_srv = src->GetSubresource_SRV();
+		ID3D11ShaderResourceView* src_srv = src->SRV();
 
 		context->CSSetShaderResources(0, 1, &src_srv);
 		context->CSSetUnorderedAccessViews(0, 1, &uavs[0], nullptr);
@@ -3644,7 +3644,7 @@ namespace adria
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
-		ID3D11ShaderResourceView* srv[] = { src->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* srv[] = { src->SRV() };
 		context->PSSetShaderResources(0, 1, srv);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -3656,7 +3656,7 @@ namespace adria
 	void Renderer::AddTextures(Texture const* src1, Texture const* src2)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		ID3D11ShaderResourceView* srv[] = { src1->GetSubresource_SRV(), src2->GetSubresource_SRV() };
+		ID3D11ShaderResourceView* srv[] = { src1->SRV(), src2->SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv), srv);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);

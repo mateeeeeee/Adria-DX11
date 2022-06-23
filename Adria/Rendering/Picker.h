@@ -32,7 +32,7 @@ namespace adria
 			desc.resource_usage = EResourceUsage::Default;
 			desc.bind_flags = EBindFlag::UnorderedAccess;
 			picking_buffer = std::make_unique<Buffer>(gfx, desc);
-			picking_buffer->CreateSubresource_UAV();
+			picking_buffer->CreateUAV();
 		}
 
 		PickingData Pick(ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* normal_srv)
@@ -40,7 +40,7 @@ namespace adria
 			ID3D11DeviceContext* context = gfx->Context();
 			ID3D11ShaderResourceView* shader_views[2] = { depth_srv, normal_srv };
 			context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
-			ID3D11UnorderedAccessView* lights_uav = picking_buffer->GetSubresource_UAV();
+			ID3D11UnorderedAccessView* lights_uav = picking_buffer->UAV();
 			context->CSSetUnorderedAccessViews(0, 1, &lights_uav, nullptr);
 
 			ShaderCache::GetShaderProgram(EShaderProgram::Picker)->Bind(context);

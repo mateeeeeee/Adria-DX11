@@ -128,10 +128,10 @@ namespace adria
 				const_cast<TextureDesc&>(desc).mip_levels = (uint32)log2(std::max(desc.width, desc.height)) + 1;
 			}
 
-			if (HasAnyFlag(desc.bind_flags, EBindFlag::RenderTarget)) CreateSubresource_RTV();
-			if (HasAnyFlag(desc.bind_flags, EBindFlag::ShaderResource)) CreateSubresource_SRV();
-			if (HasAnyFlag(desc.bind_flags, EBindFlag::DepthStencil)) CreateSubresource_DSV();
-			if (HasAnyFlag(desc.bind_flags, EBindFlag::UnorderedAccess)) CreateSubresource_UAV();
+			if (HasAnyFlag(desc.bind_flags, EBindFlag::RenderTarget)) CreateRTV();
+			if (HasAnyFlag(desc.bind_flags, EBindFlag::ShaderResource)) CreateSRV();
+			if (HasAnyFlag(desc.bind_flags, EBindFlag::DepthStencil)) CreateDSV();
+			if (HasAnyFlag(desc.bind_flags, EBindFlag::UnorderedAccess)) CreateUAV();
 		}
 
 		Texture(Texture const&) = delete;
@@ -140,31 +140,31 @@ namespace adria
 		Texture& operator=(Texture&&) = delete;
 		~Texture() = default;
 
-		[[maybe_unused]] size_t CreateSubresource_SRV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSRV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_SRV, _desc);
 		}
-		[[maybe_unused]] size_t CreateSubresource_UAV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateUAV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_UAV, _desc);
 		}
-		[[maybe_unused]] size_t CreateSubresource_RTV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateRTV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_RTV, _desc);
 		}
-		[[maybe_unused]] size_t CreateSubresource_DSV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateDSV(TextureSubresourceDesc const* desc = nullptr)
 		{
 			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_DSV, _desc);
 		}
 
-		ID3D11ShaderResourceView* GetSubresource_SRV(size_t i = 0) const { return srvs[i].Get(); }
-		ID3D11UnorderedAccessView* GetSubresource_UAV(size_t i = 0) const { return uavs[i].Get(); }
-		ID3D11RenderTargetView* GetSubresource_RTV(size_t i = 0) const { return rtvs[i].Get(); }
-		ID3D11DepthStencilView* GetSubresource_DSV(size_t i = 0) const { return dsvs[i].Get(); }
+		ID3D11ShaderResourceView* SRV(size_t i = 0) const { return srvs[i].Get(); }
+		ID3D11UnorderedAccessView* UAV(size_t i = 0) const { return uavs[i].Get(); }
+		ID3D11RenderTargetView* RTV(size_t i = 0) const { return rtvs[i].Get(); }
+		ID3D11DepthStencilView* DSV(size_t i = 0) const { return dsvs[i].Get(); }
 
 		ID3D11Resource* GetNative() const { return resource.Get(); }
 		ID3D11Resource* Detach() { return resource.Detach(); }
@@ -182,10 +182,10 @@ namespace adria
 	private:
 		[[maybe_unused]] size_t CreateSubresource(ESubresourceType type, TextureSubresourceDesc const& view_desc)
 		{
-			uint32 firstSlice = view_desc.first_slice;
-			uint32 sliceCount = view_desc.slice_count;
-			uint32 firstMip = view_desc.first_mip;
-			uint32 mipCount = view_desc.mip_count;
+			uint32 first_slice = view_desc.first_slice;
+			uint32 slice_count = view_desc.slice_count;
+			uint32 first_mip = view_desc.first_mip;
+			uint32 mip_count = view_desc.mip_count;
 
 			ID3D11Device* device = gfx->Device();
 			switch (type)
@@ -217,16 +217,16 @@ namespace adria
 					if (desc.array_size > 1)
 					{
 						srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1DARRAY;
-						srv_desc.Texture1DArray.FirstArraySlice = firstSlice;
-						srv_desc.Texture1DArray.ArraySize = sliceCount;
-						srv_desc.Texture1DArray.MostDetailedMip = firstMip;
-						srv_desc.Texture1DArray.MipLevels = mipCount;
+						srv_desc.Texture1DArray.FirstArraySlice = first_slice;
+						srv_desc.Texture1DArray.ArraySize = slice_count;
+						srv_desc.Texture1DArray.MostDetailedMip = first_mip;
+						srv_desc.Texture1DArray.MipLevels = mip_count;
 					}
 					else
 					{
 						srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
-						srv_desc.Texture1D.MostDetailedMip = firstMip;
-						srv_desc.Texture1D.MipLevels = mipCount;
+						srv_desc.Texture1D.MostDetailedMip = first_mip;
+						srv_desc.Texture1D.MipLevels = mip_count;
 					}
 				}
 				else if (desc.type == TextureType_2D)
@@ -238,16 +238,16 @@ namespace adria
 							if (desc.array_size > 6)
 							{
 								srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
-								srv_desc.TextureCubeArray.First2DArrayFace = firstSlice;
-								srv_desc.TextureCubeArray.NumCubes = std::min(desc.array_size, sliceCount) / 6;
-								srv_desc.TextureCubeArray.MostDetailedMip = firstMip;
-								srv_desc.TextureCubeArray.MipLevels = mipCount;
+								srv_desc.TextureCubeArray.First2DArrayFace = first_slice;
+								srv_desc.TextureCubeArray.NumCubes = std::min(desc.array_size, slice_count) / 6;
+								srv_desc.TextureCubeArray.MostDetailedMip = first_mip;
+								srv_desc.TextureCubeArray.MipLevels = mip_count;
 							}
 							else
 							{
 								srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-								srv_desc.TextureCube.MostDetailedMip = firstMip;
-								srv_desc.TextureCube.MipLevels = mipCount;
+								srv_desc.TextureCube.MostDetailedMip = first_mip;
+								srv_desc.TextureCube.MipLevels = mip_count;
 							}
 						}
 						else
@@ -255,16 +255,16 @@ namespace adria
 							if (desc.sample_count > 1)
 							{
 								srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
-								srv_desc.Texture2DMSArray.FirstArraySlice = firstSlice;
-								srv_desc.Texture2DMSArray.ArraySize = sliceCount;
+								srv_desc.Texture2DMSArray.FirstArraySlice = first_slice;
+								srv_desc.Texture2DMSArray.ArraySize = slice_count;
 							}
 							else
 							{
 								srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-								srv_desc.Texture2DArray.FirstArraySlice = firstSlice;
-								srv_desc.Texture2DArray.ArraySize = sliceCount;
-								srv_desc.Texture2DArray.MostDetailedMip = firstMip;
-								srv_desc.Texture2DArray.MipLevels = mipCount;
+								srv_desc.Texture2DArray.FirstArraySlice = first_slice;
+								srv_desc.Texture2DArray.ArraySize = slice_count;
+								srv_desc.Texture2DArray.MostDetailedMip = first_mip;
+								srv_desc.Texture2DArray.MipLevels = mip_count;
 							}
 						}
 					}
@@ -277,16 +277,16 @@ namespace adria
 						else
 						{
 							srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-							srv_desc.Texture2D.MostDetailedMip = firstMip;
-							srv_desc.Texture2D.MipLevels = mipCount;
+							srv_desc.Texture2D.MostDetailedMip = first_mip;
+							srv_desc.Texture2D.MipLevels = mip_count;
 						}
 					}
 				}
 				else if (desc.type == TextureType_3D)
 				{
 					srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
-					srv_desc.Texture3D.MostDetailedMip = firstMip;
-					srv_desc.Texture3D.MipLevels = mipCount;
+					srv_desc.Texture3D.MostDetailedMip = first_mip;
+					srv_desc.Texture3D.MipLevels = mip_count;
 				}
 
 				Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
@@ -327,14 +327,14 @@ namespace adria
 					if (desc.array_size > 1)
 					{
 						uav_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1DARRAY;
-						uav_desc.Texture1DArray.FirstArraySlice = firstSlice;
-						uav_desc.Texture1DArray.ArraySize = sliceCount;
-						uav_desc.Texture1DArray.MipSlice = firstMip;
+						uav_desc.Texture1DArray.FirstArraySlice = first_slice;
+						uav_desc.Texture1DArray.ArraySize = slice_count;
+						uav_desc.Texture1DArray.MipSlice = first_mip;
 					}
 					else
 					{
 						uav_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE1D;
-						uav_desc.Texture1D.MipSlice = firstMip;
+						uav_desc.Texture1D.MipSlice = first_mip;
 					}
 				}
 				else if (desc.type == TextureType_2D)
@@ -342,20 +342,20 @@ namespace adria
 					if (desc.array_size > 1)
 					{
 						uav_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-						uav_desc.Texture2DArray.FirstArraySlice = firstSlice;
-						uav_desc.Texture2DArray.ArraySize = sliceCount;
-						uav_desc.Texture2DArray.MipSlice = firstMip;
+						uav_desc.Texture2DArray.FirstArraySlice = first_slice;
+						uav_desc.Texture2DArray.ArraySize = slice_count;
+						uav_desc.Texture2DArray.MipSlice = first_mip;
 					}
 					else
 					{
 						uav_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-						uav_desc.Texture2D.MipSlice = firstMip;
+						uav_desc.Texture2D.MipSlice = first_mip;
 					}
 				}
 				else if (desc.type == TextureType_3D)
 				{
 					uav_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
-					uav_desc.Texture3D.MipSlice = firstMip;
+					uav_desc.Texture3D.MipSlice = first_mip;
 					uav_desc.Texture3D.FirstWSlice = 0;
 					uav_desc.Texture3D.WSize = -1;
 				}
@@ -397,14 +397,14 @@ namespace adria
 					if (desc.array_size > 1)
 					{
 						rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE1DARRAY;
-						rtv_desc.Texture1DArray.FirstArraySlice = firstSlice;
-						rtv_desc.Texture1DArray.ArraySize = sliceCount;
-						rtv_desc.Texture1DArray.MipSlice = firstMip;
+						rtv_desc.Texture1DArray.FirstArraySlice = first_slice;
+						rtv_desc.Texture1DArray.ArraySize = slice_count;
+						rtv_desc.Texture1DArray.MipSlice = first_mip;
 					}
 					else
 					{
 						rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE1D;
-						rtv_desc.Texture1D.MipSlice = firstMip;
+						rtv_desc.Texture1D.MipSlice = first_mip;
 					}
 				}
 				else if (desc.type == TextureType_2D)
@@ -414,15 +414,15 @@ namespace adria
 						if (desc.sample_count > 1)
 						{
 							rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY;
-							rtv_desc.Texture2DMSArray.FirstArraySlice = firstSlice;
-							rtv_desc.Texture2DMSArray.ArraySize = sliceCount;
+							rtv_desc.Texture2DMSArray.FirstArraySlice = first_slice;
+							rtv_desc.Texture2DMSArray.ArraySize = slice_count;
 						}
 						else
 						{
 							rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
-							rtv_desc.Texture2DArray.FirstArraySlice = firstSlice;
-							rtv_desc.Texture2DArray.ArraySize = sliceCount;
-							rtv_desc.Texture2DArray.MipSlice = firstMip;
+							rtv_desc.Texture2DArray.FirstArraySlice = first_slice;
+							rtv_desc.Texture2DArray.ArraySize = slice_count;
+							rtv_desc.Texture2DArray.MipSlice = first_mip;
 						}
 					}
 					else
@@ -434,14 +434,14 @@ namespace adria
 						else
 						{
 							rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-							rtv_desc.Texture2D.MipSlice = firstMip;
+							rtv_desc.Texture2D.MipSlice = first_mip;
 						}
 					}
 				}
 				else if (desc.type == TextureType_3D)
 				{
 					rtv_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE3D;
-					rtv_desc.Texture3D.MipSlice = firstMip;
+					rtv_desc.Texture3D.MipSlice = first_mip;
 					rtv_desc.Texture3D.FirstWSlice = 0;
 					rtv_desc.Texture3D.WSize = -1;
 				}
@@ -483,14 +483,14 @@ namespace adria
 					if (desc.array_size > 1)
 					{
 						dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1DARRAY;
-						dsv_desc.Texture1DArray.FirstArraySlice = firstSlice;
-						dsv_desc.Texture1DArray.ArraySize = sliceCount;
-						dsv_desc.Texture1DArray.MipSlice = firstMip;
+						dsv_desc.Texture1DArray.FirstArraySlice = first_slice;
+						dsv_desc.Texture1DArray.ArraySize = slice_count;
+						dsv_desc.Texture1DArray.MipSlice = first_mip;
 					}
 					else
 					{
 						dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE1D;
-						dsv_desc.Texture1D.MipSlice = firstMip;
+						dsv_desc.Texture1D.MipSlice = first_mip;
 					}
 				}
 				else if (desc.type == TextureType_2D)
@@ -500,15 +500,15 @@ namespace adria
 						if (desc.sample_count > 1)
 						{
 							dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY;
-							dsv_desc.Texture2DMSArray.FirstArraySlice = firstSlice;
-							dsv_desc.Texture2DMSArray.ArraySize = sliceCount;
+							dsv_desc.Texture2DMSArray.FirstArraySlice = first_slice;
+							dsv_desc.Texture2DMSArray.ArraySize = slice_count;
 						}
 						else
 						{
 							dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
-							dsv_desc.Texture2DArray.FirstArraySlice = firstSlice;
-							dsv_desc.Texture2DArray.ArraySize = sliceCount;
-							dsv_desc.Texture2DArray.MipSlice = firstMip;
+							dsv_desc.Texture2DArray.FirstArraySlice = first_slice;
+							dsv_desc.Texture2DArray.ArraySize = slice_count;
+							dsv_desc.Texture2DArray.MipSlice = first_mip;
 						}
 					}
 					else
@@ -520,7 +520,7 @@ namespace adria
 						else
 						{
 							dsv_desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-							dsv_desc.Texture2D.MipSlice = firstMip;
+							dsv_desc.Texture2D.MipSlice = first_mip;
 						}
 					}
 				}
