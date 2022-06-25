@@ -122,7 +122,7 @@
     <ClCompile Include="Rendering\Renderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\EntityLoader.cpp">
+    <ClCompile Include="Rendering\ModelImporter.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\Camera.cpp">
@@ -307,7 +307,7 @@
     <ClInclude Include="Rendering\Renderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\EntityLoader.h">
+    <ClInclude Include="Rendering\ModelImporter.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Camera.h">
@@ -462,6 +462,12 @@
     </ClInclude>
     <ClInclude Include="Graphics\Texture.h">
       <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\HashMap.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\HashSet.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

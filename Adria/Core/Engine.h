@@ -13,7 +13,7 @@ namespace adria
 	struct WindowMessage;
 	class GraphicsDevice;
 	class Renderer;
-	class EntityLoader;
+	class ModelImporter;
 	class GUI;
 
 	struct EngineInit
@@ -48,7 +48,7 @@ namespace adria
 		Input input;
 		std::unique_ptr<GraphicsDevice> gfx;
 		std::unique_ptr<Renderer> renderer;
-		std::unique_ptr<EntityLoader> entity_loader;
+		std::unique_ptr<ModelImporter> entity_loader;
 
 		SceneViewport scene_viewport_data;
 		bool editor_active = true;

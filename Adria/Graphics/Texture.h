@@ -133,7 +133,6 @@ namespace adria
 			if (HasAnyFlag(desc.bind_flags, EBindFlag::DepthStencil)) CreateDSV();
 			if (HasAnyFlag(desc.bind_flags, EBindFlag::UnorderedAccess)) CreateUAV();
 		}
-
 		Texture(Texture const&) = delete;
 		Texture& operator=(Texture const&) = delete;
 		Texture(Texture&&) = delete;

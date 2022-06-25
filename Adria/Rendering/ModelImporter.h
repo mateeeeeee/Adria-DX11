@@ -151,29 +151,22 @@ namespace adria
     class TextureManager;
 	class GraphicsDevice;
 
-	class EntityLoader
+	class ModelImporter
 	{
 
 	public:
         
-        EntityLoader(tecs::registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager);
+        ModelImporter(tecs::registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager);
 
-        [[maybe_unused]] std::vector<tecs::entity> LoadGLTFModel(ModelParameters const&);
+        [[maybe_unused]] std::vector<tecs::entity> ImportModel_GLTF(ModelParameters const&);
 
         [[maybe_unused]] tecs::entity LoadSkybox(SkyboxParameters const&);
-
         [[maybe_unused]] tecs::entity LoadLight(LightParameters const&);
-
         [[maybe_unused]] std::vector<tecs::entity> LoadOcean(OceanParameters const&);
-
 		[[maybe_unused]] std::vector<tecs::entity> LoadTerrain(TerrainParameters&);
-
 		[[maybe_unused]] tecs::entity LoadFoliage(FoliageParameters const&);
-
         [[maybe_unused]] std::vector<tecs::entity> LoadTrees(TreeParameters const&);
-
         [[maybe_unused]] tecs::entity LoadEmitter(EmitterParameters const&);
-
         [[maybe_unused]] tecs::entity LoadDecal(DecalParameters const&);
 
 	private:

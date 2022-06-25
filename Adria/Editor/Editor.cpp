@@ -1,7 +1,7 @@
 #include "Editor.h"
 #include "../Rendering/Renderer.h"
 #include "../Graphics/GraphicsDeviceDX11.h"
-#include "../Rendering/EntityLoader.h"
+#include "../Rendering/ModelImporter.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/FilesUtil.h"
 #include "../Utilities/StringUtil.h"

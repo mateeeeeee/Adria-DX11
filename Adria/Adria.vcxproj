@@ -118,7 +118,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D11\ThirdParty\robin-map\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
     </ClCompile>
     <Link>
@@ -137,7 +137,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;C:\Users\mateb\OneDrive\Desktop\Projekti\Adria D3D11\ThirdParty\robin-map\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
     </ClCompile>
     <Link>
@@ -179,7 +179,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
     <ClCompile Include="Rendering\CameraManager.cpp" />
-    <ClCompile Include="Rendering\EntityLoader.cpp" />
+    <ClCompile Include="Rendering\ModelImporter.cpp" />
     <ClCompile Include="Rendering\ParticleRenderer.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\ShaderCache.cpp" />
@@ -241,7 +241,7 @@
     <ClInclude Include="Rendering\Components.h" />
     <ClInclude Include="Rendering\ConstantBuffers.h" />
     <ClInclude Include="Rendering\Enums.h" />
-    <ClInclude Include="Rendering\EntityLoader.h" />
+    <ClInclude Include="Rendering\ModelImporter.h" />
     <ClInclude Include="Rendering\ParticleRenderer.h" />
     <ClInclude Include="Rendering\Picker.h" />
     <ClInclude Include="Rendering\Renderer.h" />
@@ -265,6 +265,8 @@
     <ClInclude Include="Utilities\CPUProfiler.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
+    <ClInclude Include="Utilities\HashMap.h" />
+    <ClInclude Include="Utilities\HashSet.h" />
     <ClInclude Include="Utilities\Heightmap.h" />
     <ClInclude Include="Utilities\JsonUtil.h" />
     <ClInclude Include="Utilities\LinearAllocator.h" />

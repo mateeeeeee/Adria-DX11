@@ -8,9 +8,7 @@ namespace adria
 {
 	GPUProfiler::GPUProfiler(ID3D11Device* device) : device(device), queries{}
 	{
-
 		D3D11_QUERY_DESC query_desc{};
-
 		for (auto& query : queries)
 		{
 			for (auto& block : query)
