@@ -175,8 +175,8 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 
 			ShaderBlob blob{};
 
-			ShaderInfo input{};
-			input.shadersource = "Resources\\Shaders\\Deferred\\Equirect2cubeCS.hlsl";
+			ShaderCompileInfo input{};
+			input.source_file = "Resources\\Shaders\\Deferred\\Equirect2cubeCS.hlsl";
 			input.stage = EShaderStage::CS;
 			input.entrypoint = "cs_main";
 			ShaderCompiler::CompileShader(input, blob);

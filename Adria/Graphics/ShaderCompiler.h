@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <span>
 #include <d3d11.h>
 #include "../Core/Definitions.h" 
 
@@ -21,13 +22,11 @@ namespace adria
 		}
 
 	};
-
 	struct ShaderMacro
 	{
 		std::string name;
 		std::string definition;
 	};
-
 	enum class EShaderStage
 	{
 		VS,
@@ -36,31 +35,28 @@ namespace adria
 		DS,
 		GS,
 		CS,
-		STAGE_COUNT
+		StageCount
 	};
 
-	struct ShaderInfo
+	struct ShaderCompileInfo
 	{
-		enum FLAGS
+		enum EShaderCompileFlags
 		{
-			FLAG_NONE = 0,
-			FLAG_DEBUG = 1 << 0,
-			FLAG_DISABLE_OPTIMIZATION = 1 << 1,
+			FlagNone = 0,
+			FlagDebug = 1 << 0,
+			FlagDisableOptimization = 1 << 1,
 		};
-
-		EShaderStage stage = EShaderStage::STAGE_COUNT;
-		std::string shadersource = "";
+		EShaderStage stage = EShaderStage::StageCount;
+		std::string source_file = "";
 		std::string entrypoint = "";
 		std::vector<ShaderMacro> macros;
-		uint64 flags = FLAG_NONE;
+		uint64 flags = FlagNone;
 	};
 	
 	namespace ShaderCompiler
 	{
-		void CompileShader(ShaderInfo const& input, ShaderBlob& blob);
-
+		void CompileShader(ShaderCompileInfo const& input, ShaderBlob& blob);
 		void GetBlobFromCompiledShader(char const* filename, ShaderBlob& blob);
-
 		void CreateInputLayoutWithReflection(ID3D11Device* device, ShaderBlob const& blob, ID3D11InputLayout** il);
 	}
 }

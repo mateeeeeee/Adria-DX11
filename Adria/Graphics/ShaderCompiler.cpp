@@ -24,10 +24,9 @@ namespace adria
 			std::memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
 		}
 
-		void CompileShader(ShaderInfo const& input,
+		void CompileShader(ShaderCompileInfo const& input,
 			ShaderBlob& blob)
 		{
-
 			std::string entrypoint, model;
 			switch (input.stage)
 			{
@@ -62,12 +61,12 @@ namespace adria
 			entrypoint = input.entrypoint.empty() ? entrypoint : input.entrypoint;
 
 			UINT shader_compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
-			if (input.flags & ShaderInfo::FLAG_DISABLE_OPTIMIZATION)
+			if (input.flags & ShaderCompileInfo::FlagDisableOptimization)
 			{
 				shader_compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 			}
 
-			if (input.flags & ShaderInfo::FLAG_DEBUG)
+			if (input.flags & ShaderCompileInfo::FlagDebug)
 			{
 				shader_compile_flags |= D3DCOMPILE_DEBUG;
 			}
@@ -88,7 +87,7 @@ namespace adria
 			Microsoft::WRL::ComPtr<ID3DBlob> pBytecodeBlob = nullptr;
 			Microsoft::WRL::ComPtr<ID3DBlob> pErrorBlob = nullptr;
 
-			HRESULT hr = D3DCompileFromFile(ConvertToWide(input.shadersource).c_str(), 
+			HRESULT hr = D3DCompileFromFile(ConvertToWide(input.source_file).c_str(), 
 				defines.data(),
 				D3D_COMPILE_STANDARD_FILE_INCLUDE, entrypoint.c_str(), model.c_str(),
 				shader_compile_flags, 0, &pBytecodeBlob, &pErrorBlob);

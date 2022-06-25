@@ -149,7 +149,7 @@ namespace adria
 				return EShaderStage::DS;
 			case EShader_Count:
 			default:
-				return EShaderStage::STAGE_COUNT;
+				return EShaderStage::StageCount;
 			}
 		}
 		constexpr std::string GetShaderSource(EShader shader)
@@ -575,32 +575,32 @@ namespace adria
 				ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticlePS.cso", shader_map[PS_Particles]);
 			}
 
-			ShaderInfo shader_info{ .entrypoint = "main" };
+			ShaderCompileInfo shader_info{ .entrypoint = "main" };
 			shader_info.flags =
 #if _DEBUG
-				ShaderInfo::FLAG_DEBUG | ShaderInfo::FLAG_DISABLE_OPTIMIZATION;
+				ShaderCompileInfo::FlagDebug | ShaderCompileInfo::FlagDisableOptimization;
 #else
-				ShaderInfo::FLAG_NONE;
+				ShaderCompileInfo::FlagNone;
 #endif
 			//compiled runtime
 			{
 
-				shader_info.shadersource = "Resources/Shaders/Misc/DecalPS.hlsl";
+				shader_info.source_file = "Resources/Shaders/Misc/DecalPS.hlsl";
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = { {"DECAL_MODIFY_NORMALS", ""} };
 
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_DecalsModifyNormals]);
 
-				shader_info.shadersource = "Resources/Shaders/Deferred/GeometryPassPBR_VS.hlsl";
+				shader_info.source_file = "Resources/Shaders/Deferred/GeometryPassPBR_VS.hlsl";
 				shader_info.stage = EShaderStage::VS;
 				shader_info.macros = {};
 				ShaderCompiler::CompileShader(shader_info, shader_map[VS_GBufferPBR]);
 
-				shader_info.shadersource = "Resources/Shaders/Deferred/GeometryPassPBR_PS.hlsl";
+				shader_info.source_file = "Resources/Shaders/Deferred/GeometryPassPBR_PS.hlsl";
 				shader_info.stage = EShaderStage::PS;
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_GBufferPBR]);
 
-				shader_info.shadersource = "Resources/Shaders/Deferred/AmbientPBR_PS.hlsl";
+				shader_info.source_file = "Resources/Shaders/Deferred/AmbientPBR_PS.hlsl";
 				shader_info.stage = EShaderStage::PS;
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR]);
 
@@ -613,7 +613,7 @@ namespace adria
 				shader_info.macros = { {"SSAO", "1"}, {"IBL", "1"} };
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_AmbientPBR_AO_IBL]);
 
-				shader_info.shadersource = "Resources/Shaders/Postprocess/ToneMapPS.hlsl";
+				shader_info.source_file = "Resources/Shaders/Postprocess/ToneMapPS.hlsl";
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = { {"REINHARD", "1" } };
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_ToneMap_Reinhard]);
@@ -622,21 +622,21 @@ namespace adria
 				shader_info.macros = { {"HABLE", "1" } };
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_ToneMap_Hable]);
 
-				shader_info.shadersource = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
+				shader_info.source_file = "Resources/Shaders/Shadows/DepthMapVS.hlsl";
 				shader_info.stage = EShaderStage::VS;
 				shader_info.macros = {};
 				ShaderCompiler::CompileShader(shader_info, shader_map[VS_DepthMap]);
 				shader_info.macros = { {"TRANSPARENT", "1"} };
 				ShaderCompiler::CompileShader(shader_info, shader_map[VS_DepthMapTransparent]);
 
-				shader_info.shadersource = "Resources/Shaders/Shadows/DepthMapPS.hlsl";
+				shader_info.source_file = "Resources/Shaders/Shadows/DepthMapPS.hlsl";
 				shader_info.stage = EShaderStage::PS;
 				shader_info.macros = {};
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_DepthMap]);
 				shader_info.macros = { {"TRANSPARENT", "1"} };
 				ShaderCompiler::CompileShader(shader_info, shader_map[PS_DepthMapTransparent]);
 
-				shader_info.shadersource = "Resources/Shaders/Postprocess/BlurCS.hlsl";
+				shader_info.source_file = "Resources/Shaders/Postprocess/BlurCS.hlsl";
 				shader_info.stage = EShaderStage::CS;
 				shader_info.macros = {};
 				ShaderCompiler::CompileShader(shader_info, shader_map[CS_BlurHorizontal]);
@@ -724,14 +724,14 @@ namespace adria
 
 	void ShaderCache::RecompileShader(EShader shader, bool recreate_programs)
 	{
-		ShaderInfo shader_info{ .entrypoint = "main" };
+		ShaderCompileInfo shader_info{ .entrypoint = "main" };
 		shader_info.flags =
 #if _DEBUG
-			ShaderInfo::FLAG_DEBUG | ShaderInfo::FLAG_DISABLE_OPTIMIZATION;
+			ShaderCompileInfo::FlagDebug | ShaderCompileInfo::FlagDisableOptimization;
 #else
-			ShaderInfo::FLAG_NONE;
+			ShaderCompileInfo::FlagNone;
 #endif
-		shader_info.shadersource = std::string(shaders_directory) + GetShaderSource(shader);
+		shader_info.source_file = std::string(shaders_directory) + GetShaderSource(shader);
 		shader_info.stage = GetStage(shader);
 		shader_info.macros = GetShaderMacros(shader);
 
