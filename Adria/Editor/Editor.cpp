@@ -580,7 +580,7 @@ namespace adria
                     if (!texture_path.empty()) texture_path.append("/");
 
                     params.textures_path = texture_path;
-                    engine->entity_loader->LoadGLTFModel(params);
+                    engine->entity_loader->ImportModel_GLTF(params);
                 }
 
                 ImGuiFileDialog::Instance()->Close();
