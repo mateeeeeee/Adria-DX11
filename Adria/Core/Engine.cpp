@@ -208,7 +208,7 @@ namespace adria
 		gfx = std::make_unique<GraphicsDevice>(Window::Handle());
 		ShaderCache::Initialize(gfx->Device());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
-		entity_loader = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
+		model_importer = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
 
 		InputEvents& input_events = input.GetInputEvents();
 
@@ -309,8 +309,8 @@ namespace adria
 
 	void Engine::InitializeScene(SceneConfig const& config)
 	{
-		entity_loader->LoadSkybox(config.skybox_params);
-		for (auto&& model : config.scene_models) entity_loader->ImportModel_GLTF(model);
-		for (auto&& light : config.scene_lights) entity_loader->LoadLight(light);
+		model_importer->LoadSkybox(config.skybox_params);
+		for (auto&& model : config.scene_models) model_importer->ImportModel_GLTF(model);
+		for (auto&& light : config.scene_lights) model_importer->LoadLight(light);
 	}
 }

@@ -580,7 +580,7 @@ namespace adria
                     if (!texture_path.empty()) texture_path.append("/");
 
                     params.textures_path = texture_path;
-                    engine->entity_loader->ImportModel_GLTF(params);
+                    engine->model_importer->ImportModel_GLTF(params);
                 }
 
                 ImGuiFileDialog::Instance()->Close();
@@ -769,7 +769,7 @@ namespace adria
 					static const char* layer_texture_name = "layer.tga";
 					params.layer_texture = layer_texture_name;
 
-					engine->entity_loader->LoadTerrain(params);
+					engine->model_importer->LoadTerrain(params);
 				}
 
 				ImGui::TreePop();
@@ -847,7 +847,7 @@ namespace adria
 							foliage_params.foliage_extents.x = tile_size_x * tile_count_x / 2;
 							foliage_params.foliage_extents.y = tile_size_z * tile_count_z / 2;
 
-							engine->entity_loader->LoadFoliage(foliage_params);
+							engine->model_importer->LoadFoliage(foliage_params);
 						}
 
 						foliages.clear();
@@ -912,7 +912,7 @@ namespace adria
 							tree_params.tree_extents.x = tile_size_x * tile_count_x / 2;
 							tree_params.tree_extents.y = tile_size_z * tile_count_z / 2;
 
-							engine->entity_loader->LoadTrees(tree_params);
+							engine->model_importer->LoadTrees(tree_params);
 						}
 
                         trees.clear();
@@ -963,7 +963,7 @@ namespace adria
 			{
 				OceanParameters params{};
 				params.ocean_grid = std::move(ocean_params);
-				engine->entity_loader->LoadOcean(params);
+				engine->model_importer->LoadOcean(params);
 			}
 
 			if (ImGui::Button("Clear"))
@@ -1082,7 +1082,7 @@ namespace adria
 
 			if (ImGui::Button("Load Emitter"))
 			{
-				engine->entity_loader->LoadEmitter(params);
+				engine->model_importer->LoadEmitter(params);
 			}
 			if (ImGui::Button("Clear Particle Emitters"))
 			{
@@ -1141,7 +1141,7 @@ namespace adria
 				params.normal = picking_data.normal;
 				params.rotation = XMConvertToRadians(params.rotation);
 
-				engine->entity_loader->LoadDecal(params);
+				engine->model_importer->LoadDecal(params);
 			}
 			if (ImGui::Button("Clear Decals"))
 			{
@@ -1234,7 +1234,7 @@ namespace adria
 					light_params.light_data.active = true;
 					light_params.light_data.volumetric = false;
 					light_params.light_data.volumetric_strength = 1.0f;
-					engine->entity_loader->LoadLight(light_params);
+					engine->model_importer->LoadLight(light_params);
 				}
 			}
 		}
@@ -2192,7 +2192,7 @@ namespace adria
                             light_params.light_data.active = true;
                             light_params.light_data.volumetric = false;
                             light_params.light_data.volumetric_strength = 1.0f;
-                            engine->entity_loader->LoadLight(light_params);
+                            engine->model_importer->LoadLight(light_params);
                         }
                     }
 

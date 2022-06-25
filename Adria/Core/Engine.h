@@ -48,7 +48,7 @@ namespace adria
 		Input input;
 		std::unique_ptr<GraphicsDevice> gfx;
 		std::unique_ptr<Renderer> renderer;
-		std::unique_ptr<ModelImporter> entity_loader;
+		std::unique_ptr<ModelImporter> model_importer;
 
 		SceneViewport scene_viewport_data;
 		bool editor_active = true;
