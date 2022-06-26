@@ -10,6 +10,7 @@
 #include "../Logging/Logger.h"
 #include "../Utilities/Timer.h"
 #include "../Utilities/HashMap.h"
+#include "../Utilities/HashSet.h"
 #include "../Utilities/FileWatcher.h"
 
 namespace fs = std::filesystem;
@@ -20,6 +21,7 @@ namespace adria
 	{
 		ID3D11Device* device;
 		std::unique_ptr<FileWatcher> file_watcher;
+		DelegateHandle file_modified_handle;
 
 		HashMap<EShader, std::unique_ptr<VertexShader>>		vs_shader_map;
 		HashMap<EShader, std::unique_ptr<PixelShader>>		ps_shader_map;
@@ -27,11 +29,10 @@ namespace adria
 		HashMap<EShader, std::unique_ptr<DomainShader>>		ds_shader_map;
 		HashMap<EShader, std::unique_ptr<GeometryShader>>	gs_shader_map;
 		HashMap<EShader, std::unique_ptr<ComputeShader>>	cs_shader_map;
-		HashMap<EShader, std::vector<std::string>>			dependent_files_map;
+		HashMap<EShader, HashSet<fs::path>>					dependent_files_map;
 		HashMap<EShader, InputLayout>						input_layout_map;
 
-		HashMap<EShaderProgram, GraphicsShaderProgram> gfx_shader_program_map;
-		
+		HashMap<EShaderProgram, GraphicsShaderProgram>		gfx_shader_program_map;
 		HashMap<EShaderProgram, ComputeShaderProgram> compute_shader_program_map;
 
 		constexpr EShaderStage GetStage(EShader shader)
@@ -371,7 +372,7 @@ namespace adria
 			}
 		}
 
-		void CompileShader(EShader shader)
+		void CompileShader(EShader shader, bool first_compile = false)
 		{
 			ShaderCompileInput input{ .entrypoint = "main" };
 #if _DEBUG
@@ -388,29 +389,35 @@ namespace adria
 			switch (input.stage)
 			{
 			case EShaderStage::VS:
-				vs_shader_map[shader] = std::make_unique<VertexShader>(device, output.blob);
+				if(first_compile) vs_shader_map[shader] = std::make_unique<VertexShader>(device, output.blob);
+				else vs_shader_map[shader]->Recreate(device, output.blob);
 				break;
 			case EShaderStage::PS:
-				ps_shader_map[shader] = std::make_unique<PixelShader>(device, output.blob);
+				if (first_compile) ps_shader_map[shader] = std::make_unique<PixelShader>(device, output.blob);
+				else ps_shader_map[shader]->Recreate(device, output.blob);
 				break;
 			case EShaderStage::HS:
-				hs_shader_map[shader] = std::make_unique<HullShader>(device, output.blob);
+				if (first_compile) hs_shader_map[shader] = std::make_unique<HullShader>(device, output.blob);
+				else hs_shader_map[shader]->Recreate(device, output.blob);
 				break;
 			case EShaderStage::DS:
-				ds_shader_map[shader] = std::make_unique<DomainShader>(device, output.blob);
+				if (first_compile) ds_shader_map[shader] = std::make_unique<DomainShader>(device, output.blob);
+				else ds_shader_map[shader]->Recreate(device, output.blob);
 				break;
 			case EShaderStage::GS:
-				gs_shader_map[shader] = std::make_unique<GeometryShader>(device, output.blob);
+				if (first_compile) gs_shader_map[shader] = std::make_unique<GeometryShader>(device, output.blob);
+				else gs_shader_map[shader]->Recreate(device, output.blob);
 				break;
 			case EShaderStage::CS:
-				cs_shader_map[shader] = std::make_unique<ComputeShader>(device, output.blob);
+				if (first_compile) cs_shader_map[shader] = std::make_unique<ComputeShader>(device, output.blob);
+				else cs_shader_map[shader]->Recreate(device, output.blob);
 				break;
 			default:
 				ADRIA_ASSERT(false);
 			}
-			dependent_files_map[shader] = output.dependent_files;
+			dependent_files_map[shader].clear();
+			dependent_files_map[shader].insert(output.dependent_files.begin(), output.dependent_files.end());
 		}
-
 		void CreateAllPrograms()
 		{
 			using UnderlyingType = std::underlying_type_t<EShader>;
@@ -531,10 +538,17 @@ namespace adria
 				std::end(shaders),
 				[](UnderlyingType s)
 				{
-					CompileShader((EShader)s);
+					CompileShader((EShader)s, true);
 				});
 			CreateAllPrograms();
 			ADRIA_LOG(INFO, "Compilation done!");
+		}
+		void OnShaderFileChanged(std::string const& filename)
+		{
+			for (auto const& [shader, files] : dependent_files_map)
+			{
+				if (files.contains(fs::path(filename))) CompileShader(shader);
+			}
 		}
 	}
 
@@ -543,7 +557,8 @@ namespace adria
 		device = _device;
 		file_watcher = std::make_unique<FileWatcher>();
 		CompileAllShaders();
-		//file_watcher->GetFileModifiedEvent().Add()
+		file_watcher->AddPathToWatch("Resources/Shaders/");
+		std::ignore = file_watcher->GetFileModifiedEvent().Add(OnShaderFileChanged);
 	}
 
 	void ShaderManager::Destroy()
@@ -556,6 +571,9 @@ namespace adria
 			using std::swap;
 			swap(container, empty);
 		};
+		FreeContainer(gfx_shader_program_map);
+		FreeContainer(compute_shader_program_map);
+		FreeContainer(dependent_files_map);
 		FreeContainer(vs_shader_map);
 		FreeContainer(ps_shader_map);
 		FreeContainer(hs_shader_map);
@@ -563,9 +581,7 @@ namespace adria
 		FreeContainer(gs_shader_map);
 		FreeContainer(cs_shader_map);
 		FreeContainer(input_layout_map);
-		FreeContainer(gfx_shader_program_map);
-		FreeContainer(compute_shader_program_map);
-		FreeContainer(dependent_files_map);
+
 	}
 
 	ShaderProgram* ShaderManager::GetShaderProgram(EShaderProgram shader_program)
@@ -575,24 +591,9 @@ namespace adria
 		else return &compute_shader_program_map[shader_program];
 	}
 
-	void ShaderManager::RecompileChangedShaders()
+	void ShaderManager::CheckIfShadersHaveChanged()
 	{
-		ADRIA_LOG(INFO, "Recompiling changed shaders...");
-		using UnderlyingType = std::underlying_type_t<EShader>;
-		static EngineTimer timer;
-
-		timer.Mark();
-		std::vector<UnderlyingType> shaders(EShader_Count);
-		std::iota(std::begin(shaders), std::end(shaders), 0);
-		std::for_each(
-			std::execution::par_unseq,
-			std::begin(shaders),
-			std::end(shaders),
-			[](UnderlyingType s)
-			{
-				//do recompilation
-			});
-		ADRIA_LOG(INFO, "Compilation done in %f s!", timer.MarkInSeconds());
+		file_watcher->CheckWatchedFiles();
 	}
 }
 

@@ -167,6 +167,12 @@ namespace adria
                     input_events.left_mouse_clicked.Broadcast(mx, my);
 			    }
                 break;
+            case WM_KEYDOWN:
+                if (data.wparam == VK_F5)
+                {
+                    input_events.f5_pressed_event.Broadcast();
+                }
+                break;
             }
         }
 

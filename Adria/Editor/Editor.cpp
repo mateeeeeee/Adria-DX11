@@ -1914,7 +1914,7 @@ namespace adria
 	{
 		if (ImGui::Begin("Shader Hot Reload"))
 		{
-			if (ImGui::Button("Compile Changed Shaders")) ShaderManager::RecompileChangedShaders();
+			if (ImGui::Button("Compile Changed Shaders")) ShaderManager::CheckIfShadersHaveChanged();
 		}
 		ImGui::End();
 	}

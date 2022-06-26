@@ -12,13 +12,13 @@ namespace adria
 			: blob(blob), stage(stage)
 		{}
 
-		ShaderBlob const& GetBlob() const { return blob; }
+		ShaderBlob& GetBlob() { return blob; }
 		EShaderStage GetStage() const { return stage; }
 
 		virtual ~Shader() = default;
 		virtual void Bind(ID3D11DeviceContext* context) = 0;
 		virtual void Unbind(ID3D11DeviceContext* context) = 0;
-
+		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) = 0;
 	private:
 		ShaderBlob blob;
 		EShaderStage stage;
@@ -30,9 +30,8 @@ namespace adria
 	public:
 		VertexShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::VS)
 		{
-			HRESULT hr;
 			ShaderBlob const& vs_blob = GetBlob();
-			hr = device->CreateVertexShader(vs_blob.GetPointer(), vs_blob.GetLength(), nullptr, vs.GetAddressOf());
+			HRESULT hr = device->CreateVertexShader(vs_blob.GetPointer(), vs_blob.GetLength(), nullptr, vs.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
 		virtual void Bind(ID3D11DeviceContext* context) override
@@ -42,6 +41,12 @@ namespace adria
 		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->VSSetShader(nullptr, nullptr, 0);
+		}
+		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		{
+			GetBlob() = blob;
+			HRESULT hr = device->CreateVertexShader(blob.GetPointer(), blob.GetLength(), nullptr, vs.ReleaseAndGetAddressOf());
+			BREAK_IF_FAILED(hr);
 		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> vs = nullptr;
@@ -53,9 +58,8 @@ namespace adria
 	public:
 		PixelShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::PS)
 		{
-			HRESULT hr;
 			ShaderBlob const& ps_blob = GetBlob();
-			hr = device->CreatePixelShader(ps_blob.GetPointer(), ps_blob.GetLength(), nullptr, ps.GetAddressOf());
+			HRESULT hr = device->CreatePixelShader(ps_blob.GetPointer(), ps_blob.GetLength(), nullptr, ps.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
 
@@ -63,12 +67,16 @@ namespace adria
 		{
 			context->PSSetShader(ps.Get(), nullptr, 0);
 		}
-
 		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->PSSetShader(nullptr, nullptr, 0);
 		}
-
+		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		{
+			GetBlob() = blob;
+			HRESULT hr = device->CreatePixelShader(blob.GetPointer(), blob.GetLength(), nullptr, ps.ReleaseAndGetAddressOf());
+			BREAK_IF_FAILED(hr);
+		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> ps = nullptr;
 	};
@@ -79,9 +87,8 @@ namespace adria
 	public:
 		GeometryShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::GS)
 		{
-			HRESULT hr;
 			ShaderBlob const& gs_blob = GetBlob();
-			hr = device->CreateGeometryShader(gs_blob.GetPointer(), gs_blob.GetLength(), nullptr, gs.GetAddressOf());
+			HRESULT hr = device->CreateGeometryShader(gs_blob.GetPointer(), gs_blob.GetLength(), nullptr, gs.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
 
@@ -89,12 +96,16 @@ namespace adria
 		{
 			context->GSSetShader(gs.Get(), nullptr, 0);
 		}
-
 		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->GSSetShader(nullptr, nullptr, 0);
 		}
-
+		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		{
+			GetBlob() = blob;
+			HRESULT hr = device->CreateGeometryShader(blob.GetPointer(), blob.GetLength(), nullptr, gs.ReleaseAndGetAddressOf());
+			BREAK_IF_FAILED(hr);
+		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11GeometryShader> gs = nullptr;
 	};
@@ -105,9 +116,8 @@ namespace adria
 	public:
 		DomainShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::DS)
 		{
-			HRESULT hr;
 			ShaderBlob const& ds_blob = GetBlob();
-			hr = device->CreateDomainShader(ds_blob.GetPointer(), ds_blob.GetLength(), nullptr, ds.GetAddressOf());
+			HRESULT hr = device->CreateDomainShader(ds_blob.GetPointer(), ds_blob.GetLength(), nullptr, ds.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
 		virtual void Bind(ID3D11DeviceContext* context) override
@@ -117,6 +127,12 @@ namespace adria
 		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->DSSetShader(nullptr, nullptr, 0);
+		}
+		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		{
+			GetBlob() = blob;
+			HRESULT hr = device->CreateDomainShader(blob.GetPointer(), blob.GetLength(), nullptr, ds.ReleaseAndGetAddressOf());
+			BREAK_IF_FAILED(hr);
 		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11DomainShader> ds = nullptr;
@@ -128,9 +144,8 @@ namespace adria
 	public:
 		HullShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::HS)
 		{
-			HRESULT hr;
 			ShaderBlob const& hs_blob = GetBlob();
-			hr = device->CreateHullShader(hs_blob.GetPointer(), hs_blob.GetLength(), nullptr, hs.GetAddressOf());
+			HRESULT hr = device->CreateHullShader(hs_blob.GetPointer(), hs_blob.GetLength(), nullptr, hs.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
 		virtual void Bind(ID3D11DeviceContext* context) override
@@ -140,6 +155,12 @@ namespace adria
 		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->HSSetShader(nullptr, nullptr, 0);
+		}
+		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		{
+			GetBlob() = blob;
+			HRESULT hr = device->CreateHullShader(blob.GetPointer(), blob.GetLength(), nullptr, hs.ReleaseAndGetAddressOf());
+			BREAK_IF_FAILED(hr);
 		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11HullShader> hs = nullptr;
@@ -151,9 +172,8 @@ namespace adria
 	public:
 		ComputeShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::CS)
 		{
-			HRESULT hr;
 			ShaderBlob const& cs_blob = GetBlob();
-			hr = device->CreateComputeShader(cs_blob.GetPointer(), cs_blob.GetLength(), nullptr, cs.GetAddressOf());
+			HRESULT hr = device->CreateComputeShader(cs_blob.GetPointer(), cs_blob.GetLength(), nullptr, cs.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
 		virtual void Bind(ID3D11DeviceContext* context) override
@@ -163,6 +183,12 @@ namespace adria
 		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->CSSetShader(nullptr, nullptr, 0);
+		}
+		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		{
+			GetBlob() = blob;
+			HRESULT hr = device->CreateComputeShader(blob.GetPointer(), blob.GetLength(), nullptr, cs.ReleaseAndGetAddressOf());
+			BREAK_IF_FAILED(hr);
 		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11ComputeShader> cs = nullptr;
@@ -258,12 +284,10 @@ namespace adria
 				if (shaders[i]) shaders[i]->Unbind(context);
 		}
 
-
 	private:
-		Shader* shaders[ShaderCount];
-		InputLayout* input_layout;
+		Shader* shaders[ShaderCount] = { nullptr };
+		InputLayout* input_layout = nullptr;
 	};
-
 	class ComputeShaderProgram final : public ShaderProgram
 	{
 	public:
@@ -282,6 +306,6 @@ namespace adria
 			if (shader) shader->Unbind(context);
 		}
 	private:
-		ComputeShader* shader;
+		ComputeShader* shader = nullptr;
 	};
 }

@@ -217,6 +217,7 @@ namespace adria
 		std::ignore = input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		std::ignore = input_events.scroll_mouse_event.AddMember(&CameraManager::OnScroll, camera_manager);
 		std::ignore = input_events.left_mouse_clicked.Add([this](int32 mx, int32 my) { renderer->OnLeftMouseClicked(); });
+		std::ignore = input_events.f5_pressed_event.Add(ShaderManager::CheckIfShadersHaveChanged);
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value())

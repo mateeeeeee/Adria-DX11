@@ -12,6 +12,6 @@ namespace adria
 		void Initialize(ID3D11Device* device);
 		void Destroy();
 		ShaderProgram* GetShaderProgram(EShaderProgram shader_program);
-		void RecompileChangedShaders();
+		void CheckIfShadersHaveChanged();
 	};
 }
