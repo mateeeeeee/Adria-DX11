@@ -1926,7 +1926,7 @@ namespace adria
 		{
 			auto& aabb = aabb_view.get(e);
 			if (aabb.skip_culling) continue;
-			aabb.camera_visible = camera_frustum.Intersects(aabb.aabb) || reg.has<Light>(e); //dont cull lights for now
+			aabb.camera_visible = camera_frustum.Intersects(aabb.bounding_box) || reg.has<Light>(e); //dont cull lights for now
 		}
 	}
 	void Renderer::LightFrustumCulling(ELightType type)
@@ -1941,11 +1941,11 @@ namespace adria
 			switch (type)
 			{
 			case ELightType::Directional:
-				aabb.light_visible = light_bounding_box.Intersects(aabb.aabb);
+				aabb.light_visible = light_bounding_box.Intersects(aabb.bounding_box);
 				break;
 			case ELightType::Spot:
 			case ELightType::Point:
-				aabb.light_visible = light_bounding_frustum.Intersects(aabb.aabb);
+				aabb.light_visible = light_bounding_frustum.Intersects(aabb.bounding_box);
 				break;
 			default:
 				ADRIA_ASSERT(false);
@@ -3205,21 +3205,6 @@ namespace adria
 			auto& aabb = aabb_view.get(e);
 			if (aabb.draw_aabb)
 			{
-				XMFLOAT3 corners[8];
-				aabb.aabb.GetCorners(corners);
-				SimpleVertex vertices[] =
-				{
-					SimpleVertex{corners[0]},
-					SimpleVertex{corners[1]},
-					SimpleVertex{corners[2]},
-					SimpleVertex{corners[3]},
-					SimpleVertex{corners[4]},
-					SimpleVertex{corners[5]},
-					SimpleVertex{corners[6]},
-					SimpleVertex{corners[7]}
-				}; //dont recreate every frame
-				auto aabb_vb = std::make_unique<Buffer>(gfx, VertexBufferDesc(ARRAYSIZE(vertices), sizeof(SimpleVertex)), vertices);
-				
 				object_cbuf_data.model = XMMatrixIdentity();
 				object_cbuf_data.transposed_inverse_model = XMMatrixIdentity();
 				object_cbuffer->Update(context, object_cbuf_data);
@@ -3230,8 +3215,8 @@ namespace adria
 				context->RSSetState(wireframe.Get());
 				context->OMSetDepthStencilState(no_depth_test.Get(), 0);
 				ShaderManager::GetShaderProgram(EShaderProgram::Solid)->Bind(context);
-				context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-				BindVertexBuffer(context, aabb_vb.get());
+				context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+				BindVertexBuffer(context, aabb.aabb_vb.get());
 				BindIndexBuffer(context, aabb_wireframe_ib.get());
 				context->DrawIndexed(aabb_wireframe_ib->GetCount(), 0, 0);
 				context->RSSetState(nullptr);

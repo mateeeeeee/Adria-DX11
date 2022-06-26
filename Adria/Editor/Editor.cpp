@@ -1155,10 +1155,11 @@ namespace adria
 						emitter->position = XMFLOAT4(translation[0], translation[1], translation[2], 1.0f);
 					}
 
-					if (AABB* vis = engine->reg.get_if<AABB>(selected_entity))
+					if (AABB* aabb = engine->reg.get_if<AABB>(selected_entity))
 					{
-						vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
-						vis->aabb.Transform(vis->aabb, DirectX::XMLoadFloat4x4(&tr));
+						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
+						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+						aabb->UpdateBuffer(engine->gfx.get());
 					}
 
 					if (Relationship* relationship = engine->reg.get_if<Relationship>(selected_entity))
@@ -1166,10 +1167,11 @@ namespace adria
 						for (size_t i = 0; i < relationship->children_count; ++i)
 						{
 							entity child = relationship->children[i];
-							if (AABB* vis = engine->reg.get_if<AABB>(child))
+							if (AABB* aabb = engine->reg.get_if<AABB>(child))
 							{
-								vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
-								vis->aabb.Transform(vis->aabb, DirectX::XMLoadFloat4x4(&tr));
+								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
+								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+								aabb->UpdateBuffer(engine->gfx.get());
 							}
 						}
 					}
@@ -1292,7 +1294,6 @@ namespace adria
 				{
 					aabb->draw_aabb = true;
 				}
-
             }
         }
         ImGui::End();
@@ -1380,11 +1381,12 @@ namespace adria
 
             if (ImGuizmo::IsUsing())
             {
-                AABB* vis = engine->reg.get_if<AABB>(selected_entity);
-                if (vis)
+                AABB* aabb = engine->reg.get_if<AABB>(selected_entity);
+                if (aabb)
                 {
-                    vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
-                    vis->aabb.Transform(vis->aabb, DirectX::XMLoadFloat4x4(&tr));
+                    aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
+                    aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+					aabb->UpdateBuffer(engine->gfx.get());
                 }
                
 				if (Relationship* relationship = engine->reg.get_if<Relationship>(selected_entity))
@@ -1392,10 +1394,11 @@ namespace adria
 					for (size_t i = 0; i < relationship->children_count; ++i)
 					{
 						entity child = relationship->children[i];
-						if (AABB* vis = engine->reg.get_if<AABB>(child))
+						if (AABB* aabb = engine->reg.get_if<AABB>(child))
 						{
-							vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
-							vis->aabb.Transform(vis->aabb, DirectX::XMLoadFloat4x4(&tr));
+							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
+							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+							aabb->UpdateBuffer(engine->gfx.get());
 						}
 					}
 				}
