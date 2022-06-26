@@ -1717,11 +1717,9 @@ namespace adria
 				ImGui::Checkbox("Profile Postprocessing", &profiler_settings.profile_postprocessing);
 				
                 engine->renderer->SetProfilerSettings(profiler_settings);
-
-				std::vector<std::string> results = engine->renderer->GetProfilerResults(log_results);
-				std::string concatenated_results;
-				for (auto const& result : results) concatenated_results += result;
-				ImGui::TextWrapped(concatenated_results.c_str());
+				std::vector<Timestamp> time_stamps = engine->renderer->GetProfilerResults();
+				
+				//TODO
 			}
 			else
 			{
@@ -1731,7 +1729,7 @@ namespace adria
         ImGui::End();
     }
 
-    void Editor::OpenMaterialFileDialog(Material* material, EMaterialTextureType type)
+	void Editor::OpenMaterialFileDialog(Material* material, EMaterialTextureType type)
     {
         if (ImGuiFileDialog::Instance()->Display("Choose Texture"))
         {

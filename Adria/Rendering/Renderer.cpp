@@ -532,9 +532,9 @@ namespace adria
 	{
 		return last_picking_data;
 	}
-	std::vector<std::string> Renderer::GetProfilerResults(bool log)
+	std::vector<Timestamp> Renderer::GetProfilerResults()
 	{
-		return profiler.GetProfilingResults(gfx->Context(), log);
+		return profiler.GetProfilingResults(gfx->Context());
 	}
 
 	void Renderer::LoadTextures()

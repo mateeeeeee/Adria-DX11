@@ -44,7 +44,7 @@ namespace adria
 		query_data.end_called = true;
 	}
 
-	std::vector<std::string> GPUProfiler::GetProfilingResults(ID3D11DeviceContext* context, bool log_results)
+	std::vector<Timestamp> GPUProfiler::GetProfilingResults(ID3D11DeviceContext* context)
 	{
 		if (current_frame < FRAME_COUNT - 1)
 		{
@@ -58,7 +58,7 @@ namespace adria
 		HRESULT hr = S_OK;
 		D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjoint_ts{};
 
-		std::vector<std::string> results{};
+		std::vector<Timestamp> results{};
 		for (size_t i = 0; i < old_queries.size(); ++i)
 		{
 			QueryData& query = old_queries[i];
@@ -95,11 +95,7 @@ namespace adria
 					std::string time_ms_string = std::to_string(time_ms);
 					std::string result = ToString(block) + " time: " + time_ms_string + "ms";
 
-					results.push_back(result);
-					if (log_results)
-					{
-						ADRIA_LOG(INFO, result.c_str());
-					}
+					results.push_back(Timestamp{.name = ToString(block), .time_in_ms = time_ms});
 				}
 			}
 			query.begin_called = false;

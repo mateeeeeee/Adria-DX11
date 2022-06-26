@@ -8,6 +8,11 @@
 
 namespace adria
 {
+	struct Timestamp
+	{
+		std::string name;
+		FLOAT time_in_ms;
+	};
 
 	class GPUProfiler
 	{
@@ -29,7 +34,7 @@ namespace adria
 		
 		void EndProfileBlock(ID3D11DeviceContext* context, EProfilerBlock block);
 
-		[[maybe_unused]] std::vector<std::string> GetProfilingResults(ID3D11DeviceContext* context, bool log_results = false);
+		[[maybe_unused]] std::vector<Timestamp> GetProfilingResults(ID3D11DeviceContext* context);
 
 	private:
 		ID3D11Device* device;

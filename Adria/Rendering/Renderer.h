@@ -60,7 +60,7 @@ namespace adria
 		Texture const* GetOffscreenTexture() const;
 		TextureManager& GetTextureManager();
 		PickingData GetLastPickingData() const;
-		std::vector<std::string> GetProfilerResults(bool log = false);
+		std::vector<Timestamp> GetProfilerResults();
 
 	private:
 		uint32 width, height;
