@@ -814,6 +814,9 @@ namespace adria
 		D3D11_DEPTH_STENCIL_DESC ds_desc = CommonStates::DepthDefault();
 		device->CreateDepthStencilState(&ds_desc, leq_depth.GetAddressOf());
 
+		ds_desc = CommonStates::DepthNone();
+		device->CreateDepthStencilState(&ds_desc, no_depth_test.GetAddressOf());
+
 		CD3D11_RASTERIZER_DESC rasterizer_state_desc(CD3D11_DEFAULT{});
 		rasterizer_state_desc.ScissorEnable = TRUE;
 		device->CreateRasterizerState(&rasterizer_state_desc, scissor_enabled.GetAddressOf());
@@ -3225,12 +3228,14 @@ namespace adria
 				material_cbuffer->Update(context, material_cbuf_data);
 
 				context->RSSetState(wireframe.Get());
+				context->OMSetDepthStencilState(no_depth_test.Get(), 0);
 				ShaderManager::GetShaderProgram(EShaderProgram::Solid)->Bind(context);
 				context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 				BindVertexBuffer(context, aabb_vb.get());
 				BindIndexBuffer(context, aabb_wireframe_ib.get());
 				context->DrawIndexed(aabb_wireframe_ib->GetCount(), 0, 0);
 				context->RSSetState(nullptr);
+				context->OMSetDepthStencilState(nullptr, 0);
 
 				aabb.draw_aabb = false;
 				break;

@@ -231,7 +231,10 @@ namespace adria
 
 	Engine::~Engine()
 	{
+		model_importer = nullptr;
+		renderer = nullptr;
 		ShaderManager::Destroy();
+		gfx = nullptr;
 		TaskSystem::Destroy();
 	}
 

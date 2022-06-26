@@ -204,6 +204,7 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11BlendState>			alpha_blend;
 		Microsoft::WRL::ComPtr<ID3D11BlendState>			alpha_to_coverage;
 		Microsoft::WRL::ComPtr<ID3D11DepthStencilState>		leq_depth;
+		Microsoft::WRL::ComPtr<ID3D11DepthStencilState>		no_depth_test;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState>		scissor_enabled;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState>		cull_none;
 		Microsoft::WRL::ComPtr<ID3D11RasterizerState>		shadow_depth_bias;
