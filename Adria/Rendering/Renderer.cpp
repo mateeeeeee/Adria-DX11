@@ -1353,7 +1353,7 @@ namespace adria
 		{
 			ShaderBlob cs_blob;
 			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpmapCS.cso", cs_blob);
-			ComputeProgram spmap_program{ device, cs_blob };
+			ComputeShader spmap_program{ device, cs_blob };
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> env_tex = nullptr;
 			D3D11_TEXTURE2D_DESC env_desc = {};
@@ -1430,7 +1430,7 @@ namespace adria
 		{
 			ShaderBlob cs_blob;
 			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/IrmapCS.cso", cs_blob);
-			ComputeProgram irmap_program(device, cs_blob);
+			ComputeShader irmap_program(device, cs_blob);
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> irmap_tex = nullptr;
 			D3D11_TEXTURE2D_DESC irmap_desc{};
@@ -1477,7 +1477,7 @@ namespace adria
 		{
 			ShaderBlob cs_blob;
 			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpbrdfCS.cso", cs_blob);
-			ComputeProgram BRDFprogram(device, cs_blob);
+			ComputeShader BRDFprogram(device, cs_blob);
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> brdf_tex = nullptr;
 			D3D11_TEXTURE2D_DESC brdf_desc = {};

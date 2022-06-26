@@ -7,7 +7,7 @@ namespace adria
 {
 	class Shader
 	{
-	protected:
+	public:
 		Shader(ShaderBlob const& blob, EShaderStage stage)
 			: blob(blob), stage(stage)
 		{}
@@ -15,11 +15,15 @@ namespace adria
 		ShaderBlob const& GetBlob() const { return blob; }
 		EShaderStage GetStage() const { return stage; }
 
+		virtual ~Shader() = default;
+		virtual void Bind(ID3D11DeviceContext* context) = 0;
+		virtual void Unbind(ID3D11DeviceContext* context) = 0;
+
 	private:
 		ShaderBlob blob;
 		EShaderStage stage;
 	};
-	class VertexShader : public Shader
+	class VertexShader final : public Shader
 	{
 		friend struct ShaderProgram;
 
@@ -31,20 +35,18 @@ namespace adria
 			hr = device->CreateVertexShader(vs_blob.GetPointer(), vs_blob.GetLength(), nullptr, vs.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
-
-		void Bind(ID3D11DeviceContext* context)
+		virtual void Bind(ID3D11DeviceContext* context) override
 		{
 			context->VSSetShader(vs.Get(), nullptr, 0);
 		}
-
-		void Unbind(ID3D11DeviceContext* context)
+		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->VSSetShader(nullptr, nullptr, 0);
 		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> vs = nullptr;
 	};
-	class PixelShader : public Shader
+	class PixelShader final : public Shader
 	{
 		friend struct ShaderProgram;
 
@@ -57,12 +59,12 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 		}
 
-		void Bind(ID3D11DeviceContext* context)
+		virtual void Bind(ID3D11DeviceContext* context) override
 		{
 			context->PSSetShader(ps.Get(), nullptr, 0);
 		}
 
-		void Unbind(ID3D11DeviceContext* context)
+		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->PSSetShader(nullptr, nullptr, 0);
 		}
@@ -70,7 +72,7 @@ namespace adria
 	private:
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> ps = nullptr;
 	};
-	class GeometryShader : public Shader
+	class GeometryShader final : public Shader
 	{
 		friend struct ShaderProgram;
 
@@ -83,12 +85,12 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 		}
 
-		void Bind(ID3D11DeviceContext* context)
+		virtual void Bind(ID3D11DeviceContext* context) override
 		{
 			context->GSSetShader(gs.Get(), nullptr, 0);
 		}
 
-		void Unbind(ID3D11DeviceContext* context)
+		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->GSSetShader(nullptr, nullptr, 0);
 		}
@@ -96,7 +98,7 @@ namespace adria
 	private:
 		Microsoft::WRL::ComPtr<ID3D11GeometryShader> gs = nullptr;
 	};
-	class DomainShader : public Shader
+	class DomainShader final : public Shader
 	{
 		friend struct ShaderProgram;
 
@@ -108,18 +110,18 @@ namespace adria
 			hr = device->CreateDomainShader(ds_blob.GetPointer(), ds_blob.GetLength(), nullptr, ds.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
-		void Bind(ID3D11DeviceContext* context)
+		virtual void Bind(ID3D11DeviceContext* context) override
 		{
 			context->DSSetShader(ds.Get(), nullptr, 0);
 		}
-		void Unbind(ID3D11DeviceContext* context)
+		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->DSSetShader(nullptr, nullptr, 0);
 		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11DomainShader> ds = nullptr;
 	};
-	class HullShader : public Shader
+	class HullShader final : public Shader
 	{
 		friend struct ShaderProgram;
 
@@ -131,18 +133,18 @@ namespace adria
 			hr = device->CreateHullShader(hs_blob.GetPointer(), hs_blob.GetLength(), nullptr, hs.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
-		void Bind(ID3D11DeviceContext* context)
+		virtual void Bind(ID3D11DeviceContext* context) override
 		{
 			context->HSSetShader(hs.Get(), nullptr, 0);
 		}
-		void Unbind(ID3D11DeviceContext* context)
+		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->HSSetShader(nullptr, nullptr, 0);
 		}
 	private:
 		Microsoft::WRL::ComPtr<ID3D11HullShader> hs = nullptr;
 	};
-	class ComputeShader : public Shader
+	class ComputeShader final : public Shader
 	{
 		friend struct ShaderProgram;
 
@@ -154,11 +156,11 @@ namespace adria
 			hr = device->CreateComputeShader(cs_blob.GetPointer(), cs_blob.GetLength(), nullptr, cs.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
-		void Bind(ID3D11DeviceContext* context)
+		virtual void Bind(ID3D11DeviceContext* context) override
 		{
 			context->CSSetShader(cs.Get(), nullptr, 0);
 		}
-		void Unbind(ID3D11DeviceContext* context)
+		virtual void Unbind(ID3D11DeviceContext* context) override
 		{
 			context->CSSetShader(nullptr, nullptr, 0);
 		}
@@ -166,58 +168,120 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11ComputeShader> cs = nullptr;
 	};
 
+	class InputLayout
+	{
+	public:
+		InputLayout() {}
+
+		InputLayout(ID3D11Device* device, ShaderBlob const& vs_blob, std::vector<D3D11_INPUT_ELEMENT_DESC> const& desc = {})
+		{
+			if (!desc.empty()) device->CreateInputLayout(desc.data(), (UINT)desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(),
+				layout.GetAddressOf());
+			else
+				ShaderCompiler::CreateInputLayoutWithReflection(device, vs_blob, layout.GetAddressOf());
+		}
+
+		void Bind(ID3D11DeviceContext* context)
+		{
+			context->IASetInputLayout(layout.Get());
+		}
+		void Unbind(ID3D11DeviceContext* context)
+		{
+			context->IASetInputLayout(nullptr);
+		}
+	private:
+		Microsoft::WRL::ComPtr<ID3D11InputLayout> layout;
+	};
+
 	struct ShaderProgram
 	{
 		virtual ~ShaderProgram() = default;
 		virtual void Bind(ID3D11DeviceContext* context) = 0;
-		virtual void Unbind(ID3D11DeviceContext* context) = 0; 
+		virtual void Unbind(ID3D11DeviceContext* context) = 0;
 	};
 
-	struct StandardProgram : ShaderProgram
+	class GraphicsShaderProgram final : public ShaderProgram
 	{
-		VertexShader vs;
-		PixelShader ps;
-		Microsoft::WRL::ComPtr<ID3D11InputLayout> il = nullptr;
+		enum ShaderSlot
+		{
+			VS = 0,
+			PS = 1,
+			DS = 2,
+			HS = 3,
+			GS = 4,
+			ShaderCount = 5
+		};
 
-		StandardProgram(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& ps_blob,
-			bool input_layout_from_reflection = true);
+	public:
+		GraphicsShaderProgram() = default;
+		GraphicsShaderProgram& SetVertexShader(VertexShader* vs)
+		{
+			shaders[VS] = vs;
+			return *this;
+		}
+		GraphicsShaderProgram& SetPixelShader(PixelShader* ps)
+		{
+			shaders[PS] = ps;
+			return *this;
+		}
+		GraphicsShaderProgram& SetDomainShader(DomainShader* ds)
+		{
+			shaders[DS] = ds;
+			return *this;
+		}
+		GraphicsShaderProgram& SetHullShader(HullShader* hs)
+		{
+			shaders[HS] = hs;
+			return *this;
+		}
+		GraphicsShaderProgram& SetGeometryShader(GeometryShader* gs)
+		{
+			shaders[GS] = gs;
+			return *this;
+		}
+		GraphicsShaderProgram& SetInputLayout(InputLayout* il)
+		{
+			input_layout = il;
+			return *this;
+		}
 
-		virtual void Bind(ID3D11DeviceContext* context) override;
-		virtual void Unbind(ID3D11DeviceContext* context) override;
+		virtual void Bind(ID3D11DeviceContext* context) override
+		{
+			if (input_layout) input_layout->Bind(context);
+			for (size_t i = 0; i < ShaderCount; ++i)
+				if (shaders[i]) shaders[i]->Bind(context);
+		}
+		virtual void Unbind(ID3D11DeviceContext* context) override
+		{
+			if (input_layout) input_layout->Unbind(context);
+			for (size_t i = 0; i < ShaderCount; ++i)
+				if (shaders[i]) shaders[i]->Unbind(context);
+		}
+
+
+	private:
+		Shader* shaders[ShaderCount];
+		InputLayout* input_layout;
 	};
-	struct TessellationProgram : ShaderProgram
+
+	class ComputeShaderProgram final : public ShaderProgram
 	{
-		VertexShader	vs;
-		HullShader		hs;
-		DomainShader 	ds;
-		PixelShader		ps;
-		Microsoft::WRL::ComPtr<ID3D11InputLayout>	il = nullptr;
-		
-		TessellationProgram(ID3D11Device* device, ShaderBlob const& vs_blob,
-			ShaderBlob const& hs_blob, ShaderBlob const& ds_blob, ShaderBlob const& ps_blob,
-			bool input_layout_from_reflection = true);
-		virtual void Bind(ID3D11DeviceContext* context) override;
-		virtual void Unbind(ID3D11DeviceContext* context) override;
-	};
-	struct GeometryProgram : ShaderProgram
-	{
-		VertexShader	vs;
-		GeometryShader	gs;
-		PixelShader		ps;
-		Microsoft::WRL::ComPtr<ID3D11InputLayout>		il = nullptr;
+	public:
+		ComputeShaderProgram() = default;
 
-		GeometryProgram(ID3D11Device* device, ShaderBlob const& vs_blob, ShaderBlob const& gs_blob, ShaderBlob const& ps_blob,
-			bool input_layout_from_reflection = true);
-		virtual void Bind(ID3D11DeviceContext* context) override;
-		virtual void Unbind(ID3D11DeviceContext* context) override;
+		void SetComputeShader(ComputeShader* cs)
+		{
+			shader = cs;
+		}
+		virtual void Bind(ID3D11DeviceContext* context) override
+		{
+			if (shader) shader->Bind(context);
+		}
+		virtual void Unbind(ID3D11DeviceContext* context) override
+		{
+			if (shader) shader->Unbind(context);
+		}
+	private:
+		ComputeShader* shader;
 	};
-	struct ComputeProgram : ShaderProgram
-	{
-		ComputeShader cs;
-
-		ComputeProgram(ID3D11Device* device, ShaderBlob const& cs_blob);
-		virtual void Bind(ID3D11DeviceContext* context) override;
-		virtual void Unbind(ID3D11DeviceContext* context) override;
-	};
-
 }

@@ -20,7 +20,6 @@ namespace adria
 		{
 			return bytecode.size();
 		}
-
 	};
 	struct ShaderMacro
 	{
@@ -56,12 +55,12 @@ namespace adria
 	struct ShaderCompileOutput
 	{
 		ShaderBlob blob;
-		std::vector<std::string> include_files;
+		std::vector<std::string> dependent_files;
 	};
 	
 	namespace ShaderCompiler
 	{
-		void CompileShader(ShaderCompileInput const& input, ShaderBlob& blob);
+		void CompileShader(ShaderCompileInput const& input, ShaderCompileOutput& output);
 		void GetBlobFromCompiledShader(char const* filename, ShaderBlob& blob);
 		void CreateInputLayoutWithReflection(ID3D11Device* device, ShaderBlob const& blob, ID3D11InputLayout** il);
 	}

@@ -107,9 +107,6 @@
     <ClCompile Include="Graphics\WICTextureLoader.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\ShaderProgram.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\ShaderCompiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>

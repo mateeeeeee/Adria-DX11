@@ -20,13 +20,8 @@ namespace adria
 	class FileWatcher
 	{
 	public:
-		explicit FileWatcher(long long _delay = 5000) : delay(_delay)
-		{}
-		~FileWatcher()
-		{
-			exit.store(true);
-			watcher_thread.join();
-		}
+		FileWatcher() = default;
+		~FileWatcher() = default;
 
 		void AddPathToWatch(std::string const& path, bool recursive = true)
 		{
@@ -57,30 +52,12 @@ namespace adria
 				}
 			}
 		}
-		void RunOnSeparateThread()
-		{
-			watcher_thread = std::thread(&FileWatcher::Run, this);
-		}
-
+		
 		FileModified& GetFileModifiedEvent() { return file_modified_event; }
 
 	private:
-		std::thread watcher_thread;
-		std::atomic_bool exit = false;
-
 		std::vector<std::string> paths_to_watch;
-		std::chrono::milliseconds delay;
 		HashMap<std::string, std::filesystem::file_time_type> paths_map;
-
 		FileModified file_modified_event;
-	private:
-
-		void Run()
-		{
-			while (!exit)
-			{
-
-			}
-		}
 	};
 }

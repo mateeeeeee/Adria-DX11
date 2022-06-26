@@ -1,13 +1,75 @@
 #include <wrl.h>
 #include <d3dcompiler.h> 
+#include <fstream> 
 #include "ShaderCompiler.h"
 #include "../Utilities/HashUtil.h"
-#include "../Core/Macros.h" 
 #include "../Utilities/StringUtil.h"
-
+#include "../Utilities/FilesUtil.h"
+#include "../Core/Macros.h" 
 
 namespace adria
 {
+
+	namespace 
+	{
+		class CShaderInclude : public ID3DInclude
+		{
+		public:
+			CShaderInclude(char const* shader_dir) : shader_dir(shader_dir)
+			{}
+
+			HRESULT __stdcall Open(
+				D3D_INCLUDE_TYPE IncludeType,
+				LPCSTR pFileName,
+				LPCVOID pParentData,
+				LPCVOID* ppData,
+				UINT* pBytes)
+			{
+				fs::path final_path;
+				switch (IncludeType)
+				{
+				case D3D_INCLUDE_LOCAL: 
+					final_path = fs::path(shader_dir) / fs::path(pFileName);
+					break;
+				case D3D_INCLUDE_SYSTEM: 
+				default:
+					ADRIA_ASSERT_MSG(false, "Includer supports only local includes!");
+				}
+				includes.push_back(final_path.string());
+				std::ifstream file_stream(final_path.string());
+				if (file_stream)
+				{
+					std::string contents;
+					contents.assign(std::istreambuf_iterator<char>(file_stream),
+									std::istreambuf_iterator<char>());
+
+					char* buf = new char[contents.size()];
+					contents.copy(buf, contents.size());
+					*ppData = buf;
+					*pBytes = contents.size();
+				}
+				else
+				{
+					*ppData = nullptr;
+					*pBytes = 0;
+				}
+				return S_OK;
+			}
+
+			HRESULT __stdcall Close(LPCVOID pData)
+			{
+				char* buf = (char*)pData;
+				delete[] buf;
+				return S_OK;
+			}
+
+			std::vector<std::string> const& GetIncludes() const { return includes; }
+
+		private:
+			std::string shader_dir;
+			std::vector<std::string> includes;
+		};
+	}
 
 	namespace ShaderCompiler
 	{
@@ -25,8 +87,9 @@ namespace adria
 		}
 
 		void CompileShader(ShaderCompileInput const& input,
-			ShaderBlob& blob)
+			ShaderCompileOutput& output)
 		{
+			output = ShaderCompileOutput{};
 			std::string entrypoint, model;
 			switch (input.stage)
 			{
@@ -87,10 +150,12 @@ namespace adria
 			Microsoft::WRL::ComPtr<ID3DBlob> pBytecodeBlob = nullptr;
 			Microsoft::WRL::ComPtr<ID3DBlob> pErrorBlob = nullptr;
 
+			CShaderInclude includer(GetParentPath(input.source_file).c_str());
 			HRESULT hr = D3DCompileFromFile(ConvertToWide(input.source_file).c_str(), 
 				defines.data(),
-				D3D_COMPILE_STANDARD_FILE_INCLUDE, entrypoint.c_str(), model.c_str(),
+				&includer, entrypoint.c_str(), model.c_str(),
 				shader_compile_flags, 0, &pBytecodeBlob, &pErrorBlob);
+			auto const& includes = includer.GetIncludes();
 
 			if (FAILED(hr) && pErrorBlob) OutputDebugStringA(reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer()));
 
@@ -100,9 +165,10 @@ namespace adria
 				if (define.Definition)  free((void*)define.Definition); //change malloc and free to new and delete
 			}
 			BREAK_IF_FAILED(hr);
-			blob.bytecode.resize(pBytecodeBlob->GetBufferSize());
-			std::memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
-			pBytecodeBlob->Release();
+			output.blob.bytecode.resize(pBytecodeBlob->GetBufferSize());
+			std::memcpy(output.blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), pBytecodeBlob->GetBufferSize());
+			output.dependent_files = includes;
+			output.dependent_files.push_back(input.source_file);
 		}
 
 		void CreateInputLayoutWithReflection(ID3D11Device* device, ShaderBlob const& blob, ID3D11InputLayout** il)
@@ -160,9 +226,8 @@ namespace adria
 				inputLayoutDesc.push_back(elementDesc);
 			}
 
-			// Try to create Input Layout
-			HRESULT hr = device->CreateInputLayout(inputLayoutDesc.data(), static_cast<UINT>(inputLayoutDesc.size()), blob.GetPointer(), blob.GetLength(), 
-				il);
+			if (inputLayoutDesc.empty()) return;
+			HRESULT hr = device->CreateInputLayout(inputLayoutDesc.data(), static_cast<UINT>(inputLayoutDesc.size()), blob.GetPointer(), blob.GetLength(), il);
 			BREAK_IF_FAILED(hr);
 		}
 

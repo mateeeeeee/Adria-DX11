@@ -177,10 +177,11 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 			input.source_file = "Resources\\Shaders\\Deferred\\Equirect2cubeCS.hlsl";
 			input.stage = EShaderStage::CS;
 			input.entrypoint = "cs_main";
-			ShaderCompiler::CompileShader(input, blob);
-			device->CreateComputeShader(blob.GetPointer(), blob.GetLength(), nullptr, &equirect_to_cube);
+			ShaderCompileOutput output{};
+			ShaderCompiler::CompileShader(input, output);
+			device->CreateComputeShader(output.blob.GetPointer(), output.blob.GetLength(), nullptr, &equirect_to_cube);
 
-			D3D11_SAMPLER_DESC samp_desc = {};
+			D3D11_SAMPLER_DESC samp_desc{};
 			samp_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
 			samp_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 			samp_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
