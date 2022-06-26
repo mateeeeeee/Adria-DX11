@@ -38,7 +38,7 @@ namespace adria
 		StageCount
 	};
 
-	struct ShaderCompileInfo
+	struct ShaderCompileInput
 	{
 		enum EShaderCompileFlags
 		{
@@ -52,10 +52,16 @@ namespace adria
 		std::vector<ShaderMacro> macros;
 		uint64 flags = FlagNone;
 	};
+
+	struct ShaderCompileOutput
+	{
+		ShaderBlob blob;
+		std::vector<std::string> include_files;
+	};
 	
 	namespace ShaderCompiler
 	{
-		void CompileShader(ShaderCompileInfo const& input, ShaderBlob& blob);
+		void CompileShader(ShaderCompileInput const& input, ShaderBlob& blob);
 		void GetBlobFromCompiledShader(char const* filename, ShaderBlob& blob);
 		void CreateInputLayoutWithReflection(ID3D11Device* device, ShaderBlob const& blob, ID3D11InputLayout** il);
 	}

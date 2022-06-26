@@ -7,7 +7,7 @@ namespace adria
 {
 	struct ShaderProgram;
 
-	namespace ShaderCache
+	namespace ShaderManager
 	{
 		void Initialize(ID3D11Device* device);
 		void Destroy();

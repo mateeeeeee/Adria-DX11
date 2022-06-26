@@ -24,7 +24,7 @@ namespace adria
 			std::memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
 		}
 
-		void CompileShader(ShaderCompileInfo const& input,
+		void CompileShader(ShaderCompileInput const& input,
 			ShaderBlob& blob)
 		{
 			std::string entrypoint, model;
@@ -61,12 +61,12 @@ namespace adria
 			entrypoint = input.entrypoint.empty() ? entrypoint : input.entrypoint;
 
 			UINT shader_compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
-			if (input.flags & ShaderCompileInfo::FlagDisableOptimization)
+			if (input.flags & ShaderCompileInput::FlagDisableOptimization)
 			{
 				shader_compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 			}
 
-			if (input.flags & ShaderCompileInfo::FlagDebug)
+			if (input.flags & ShaderCompileInput::FlagDebug)
 			{
 				shader_compile_flags |= D3DCOMPILE_DEBUG;
 			}

@@ -170,18 +170,15 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 			uavDesc.Texture2DArray.ArraySize = desc.ArraySize;
 
 			BREAK_IF_FAILED(device->CreateUnorderedAccessView(cubemap_tex.Get(), &uavDesc, &cubemap_uav));
-
 			Microsoft::WRL::ComPtr<ID3D11ComputeShader> equirect_to_cube{};
 
 			ShaderBlob blob{};
-
-			ShaderCompileInfo input{};
+			ShaderCompileInput input{};
 			input.source_file = "Resources\\Shaders\\Deferred\\Equirect2cubeCS.hlsl";
 			input.stage = EShaderStage::CS;
 			input.entrypoint = "cs_main";
 			ShaderCompiler::CompileShader(input, blob);
 			device->CreateComputeShader(blob.GetPointer(), blob.GetLength(), nullptr, &equirect_to_cube);
-
 
 			D3D11_SAMPLER_DESC samp_desc = {};
 			samp_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;

@@ -182,7 +182,7 @@
     <ClCompile Include="Rendering\ModelImporter.cpp" />
     <ClCompile Include="Rendering\ParticleRenderer.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
-    <ClCompile Include="Rendering\ShaderCache.cpp" />
+    <ClCompile Include="Rendering\ShaderManager.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Rendering\Terrain.cpp" />
     <ClCompile Include="Utilities\AdriaException.cpp" />
@@ -247,7 +247,7 @@
     <ClInclude Include="Rendering\Renderer.h" />
     <ClInclude Include="Rendering\RendererSettings.h" />
     <ClInclude Include="Rendering\SceneViewport.h" />
-    <ClInclude Include="Rendering\ShaderCache.h" />
+    <ClInclude Include="Rendering\ShaderManager.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
     <ClInclude Include="Rendering\Terrain.h" />
     <ClInclude Include="resource.h" />
@@ -265,6 +265,7 @@
     <ClInclude Include="Utilities\CPUProfiler.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
+    <ClInclude Include="Utilities\FileWatcher.h" />
     <ClInclude Include="Utilities\HashMap.h" />
     <ClInclude Include="Utilities\HashSet.h" />
     <ClInclude Include="Utilities\Heightmap.h" />

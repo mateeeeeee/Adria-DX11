@@ -4,11 +4,13 @@
 #include <string_view>
 #include <execution>
 #include <filesystem>
-#include "ShaderCache.h"
+#include "ShaderManager.h"
 #include "../Graphics/ShaderProgram.h"
 #include "../Graphics/ShaderCompiler.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/Timer.h"
+#include "../Utilities/HashMap.h"
+#include "../Utilities/FileWatcher.h"
 
 namespace fs = std::filesystem;
 
@@ -16,13 +18,9 @@ namespace adria
 {
 	namespace
 	{
-		template<typename T>
-		inline void FreeContainer(T& container)
-		{
-			T empty;
-			using std::swap;
-			swap(container, empty);
-		}
+		std::string const compiled_shaders_directory = "Resources/Compiled Shaders/";
+		std::string const shaders_directory = "Resources/Shaders/";
+		std::string const shaders_headers_directories[] = { "Resources/Shaders/Globals", "Resources/Shaders/Util/" };
 
 		struct ShaderFileData
 		{
@@ -30,14 +28,12 @@ namespace adria
 		};
 
 		ID3D11Device* device;
-		std::unordered_map<EShader, ShaderBlob> shader_map;
-		std::unordered_map<EShader, ShaderFileData> shader_file_data_map;
-		std::unordered_map<EShaderProgram, std::unique_ptr<ShaderProgram>> shader_program_map;
-		std::unordered_map<EShaderProgram, std::vector<EShader>> dependency_map;
+		std::unique_ptr<FileWatcher> file_watcher;
 
-		std::string const compiled_shaders_directory = "Resources/Compiled Shaders/";
-		std::string const shaders_directory = "Resources/Shaders/";
-		std::string const shaders_headers_directories[] = { "Resources/Shaders/Globals", "Resources/Shaders/Util/" };
+		HashMap<EShader, ShaderBlob> shader_map;
+		HashMap<EShader, ShaderFileData> shader_file_data_map;
+		HashMap<EShaderProgram, std::unique_ptr<ShaderProgram>> shader_program_map;
+		HashMap<EShaderProgram, std::vector<EShader>> dependency_map;
 
 		constexpr EShaderStage GetStage(EShader shader)
 		{
@@ -575,12 +571,12 @@ namespace adria
 				ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/ParticlePS.cso", shader_map[PS_Particles]);
 			}
 
-			ShaderCompileInfo shader_info{ .entrypoint = "main" };
+			ShaderCompileInput shader_info{ .entrypoint = "main" };
 			shader_info.flags =
 #if _DEBUG
-				ShaderCompileInfo::FlagDebug | ShaderCompileInfo::FlagDisableOptimization;
+				ShaderCompileInput::FlagDebug | ShaderCompileInput::FlagDisableOptimization;
 #else
-				ShaderCompileInfo::FlagNone;
+				ShaderCompileInput::FlagNone;
 #endif
 			//compiled runtime
 			{
@@ -706,30 +702,38 @@ namespace adria
 		}
 	}
 
-	void ShaderCache::Initialize(ID3D11Device* _device)
+	void ShaderManager::Initialize(ID3D11Device* _device)
 	{
 		device = _device;
+		file_watcher = std::make_unique<FileWatcher>();
 		CompileAllShaders();
 		FillShaderFileDataMap();
 	}
 
-	void ShaderCache::Destroy()
+	void ShaderManager::Destroy()
 	{
 		device = nullptr;
+
+		auto FreeContainer = []<typename T>(T& container) 
+		{
+			T empty;
+			using std::swap;
+			swap(container, empty);
+		};
 		FreeContainer(shader_map);
 		FreeContainer(shader_file_data_map);
 		FreeContainer(shader_program_map);
 		FreeContainer(dependency_map);
 	}
 
-	void ShaderCache::RecompileShader(EShader shader, bool recreate_programs)
+	void ShaderManager::RecompileShader(EShader shader, bool recreate_programs)
 	{
-		ShaderCompileInfo shader_info{ .entrypoint = "main" };
+		ShaderCompileInput shader_info{ .entrypoint = "main" };
 		shader_info.flags =
 #if _DEBUG
-			ShaderCompileInfo::FlagDebug | ShaderCompileInfo::FlagDisableOptimization;
+			ShaderCompileInput::FlagDebug | ShaderCompileInput::FlagDisableOptimization;
 #else
-			ShaderCompileInfo::FlagNone;
+			ShaderCompileInput::FlagNone;
 #endif
 		shader_info.source_file = std::string(shaders_directory) + GetShaderSource(shader);
 		shader_info.stage = GetStage(shader);
@@ -739,12 +743,12 @@ namespace adria
 		if(recreate_programs) RecreateDependentPrograms(shader);
 	}
 
-	ShaderProgram* ShaderCache::GetShaderProgram(EShaderProgram shader_program)
+	ShaderProgram* ShaderManager::GetShaderProgram(EShaderProgram shader_program)
 	{
 		return shader_program_map[shader_program].get();
 	}
 
-	void ShaderCache::RecompileChangedShaders()
+	void ShaderManager::RecompileChangedShaders()
 	{
 		ADRIA_LOG(INFO, "Recompiling changed shaders...");
 		using UnderlyingType = std::underlying_type_t<EShader>;
@@ -768,7 +772,7 @@ namespace adria
 		ADRIA_LOG(INFO, "Compilation done in %f s!", timer.MarkInSeconds());
 	}
 
-	void ShaderCache::RecompileAllShaders()
+	void ShaderManager::RecompileAllShaders()
 	{
 		ADRIA_LOG(INFO, "Recompiling all shaders...");
 		using UnderlyingType = std::underlying_type_t<EShader>;

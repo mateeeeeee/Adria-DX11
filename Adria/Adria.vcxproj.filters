@@ -188,7 +188,7 @@
     <ClCompile Include="Rendering\ParticleRenderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ShaderCache.cpp">
+    <ClCompile Include="Rendering\ShaderManager.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\CPUProfiler.cpp">
@@ -445,7 +445,7 @@
     <ClInclude Include="Rendering\SceneViewport.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ShaderCache.h">
+    <ClInclude Include="Rendering\ShaderManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\CPUProfiler.h">
@@ -467,6 +467,9 @@
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\HashSet.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\FileWatcher.h">
       <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>

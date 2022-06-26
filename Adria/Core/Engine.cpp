@@ -7,7 +7,7 @@
 #include "../Graphics/GraphicsDeviceDX11.h"
 #include "../Rendering/Renderer.h"
 #include "../Rendering/ModelImporter.h"
-#include "../Rendering/ShaderCache.h"
+#include "../Rendering/ShaderManager.h"
 #include "../Utilities/Random.h"
 #include "../Utilities/Timer.h"
 #include "../Utilities/JsonUtil.h"
@@ -206,7 +206,7 @@ namespace adria
 		TaskSystem::Initialize();
 
 		gfx = std::make_unique<GraphicsDevice>(Window::Handle());
-		ShaderCache::Initialize(gfx->Device());
+		ShaderManager::Initialize(gfx->Device());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		model_importer = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
 
@@ -230,7 +230,7 @@ namespace adria
 
 	Engine::~Engine()
 	{
-		ShaderCache::Destroy();
+		ShaderManager::Destroy();
 		TaskSystem::Destroy();
 	}
 
