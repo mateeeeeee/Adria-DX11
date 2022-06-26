@@ -65,8 +65,9 @@ cbuffer MaterialCBuf : register(b4)
 {
     float3 ambient;
     float3 diffuse;
+    float  alpha_cutoff;
     float3 specular;
-    float shininess;
+    float  shininess;
     
     float albedo_factor;
     float metallic_factor;

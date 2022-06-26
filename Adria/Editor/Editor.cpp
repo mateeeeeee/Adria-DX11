@@ -299,6 +299,7 @@ namespace adria
                     "Move Camera with W, A, S, D, Q and E. Use Mouse for Rotating Camera. Use Mouse Scroll for Zoom In/Out.\n"
                     "Press I to toggle between Cinema Mode and Editor Mode. (Scene Window has to be active) \n"
                     "Press G to toggle Gizmo. (Scene Window has to be active) \n"
+                    "Press F5 to recompile changed shaders.\n"
                     "When Gizmo is enabled, use T, R and E to switch between Translation, Rotation and Scaling Mode.\n"
                     "Left Click on entity to select it. Left click again on selected entity to unselect it.\n"
                     "Right Click on empty area in Entities window to add entity. Right Click on selected entity to delete it.\n" 

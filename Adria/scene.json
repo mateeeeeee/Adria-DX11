@@ -20,10 +20,10 @@
 			"texture" : ["Resources/Textures/Skybox/sunsetcube1024.dds"]
 	}, 
     "models" : [
-	{
-		"path" : "Resources/Models/Sponza/glTF/Sponza.gltf",
-		"scale" : [50.0, 50.0, 50.0]
-	}
+			{
+				"path": "Resources/Models/AbandonedWarehouse/AbandonedWarehouse.gltf",
+				"scale": [ 10.0, 10.0, 10.0 ]
+			}
 	],
 	"lights" : [
 	{

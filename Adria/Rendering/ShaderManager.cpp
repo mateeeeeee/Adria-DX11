@@ -69,6 +69,7 @@ namespace adria
 			case PS_Decals:
 			case PS_DecalsModifyNormals:
 			case PS_GBufferPBR:
+			case PS_GBufferPBR_Mask:
 			case PS_GBufferTerrain:
 			case PS_AmbientPBR:
 			case PS_AmbientPBR_AO:
@@ -184,6 +185,7 @@ namespace adria
 			case VS_GBufferPBR:
 				return "Deferred/GeometryPassPBR_VS.hlsl";
 			case PS_GBufferPBR:
+			case PS_GBufferPBR_Mask:
 				return "Deferred/GeometryPassPBR_PS.hlsl";
 			case VS_GBufferTerrain:
 				return "Deferred/GeometryPassTerrain_VS.hlsl";
@@ -367,6 +369,8 @@ namespace adria
 				return { {"TRANSPARENT", "1"} };
 			case CS_BlurVertical:
 				return { { "VERTICAL", "1" } };
+			case PS_GBufferPBR_Mask:
+				return { { "MASK", "1" } };
 			default:
 				return {};
 			}
@@ -450,6 +454,7 @@ namespace adria
 			gfx_shader_program_map[EShaderProgram::Decals_ModifyNormals].SetVertexShader(vs_shader_map[VS_Decals].get()).SetPixelShader(ps_shader_map[PS_DecalsModifyNormals].get()).SetInputLayout(&input_layout_map[VS_Decals]); 
 			gfx_shader_program_map[EShaderProgram::GBuffer_Terrain].SetVertexShader(vs_shader_map[VS_GBufferTerrain].get()).SetPixelShader(ps_shader_map[PS_GBufferTerrain].get()).SetInputLayout(&input_layout_map[VS_GBufferTerrain]); 
 			gfx_shader_program_map[EShaderProgram::GBufferPBR].SetVertexShader(vs_shader_map[VS_GBufferPBR].get()).SetPixelShader(ps_shader_map[PS_GBufferPBR].get()).SetInputLayout(&input_layout_map[VS_GBufferPBR]); 
+			gfx_shader_program_map[EShaderProgram::GBufferPBR_Mask].SetVertexShader(vs_shader_map[VS_GBufferPBR].get()).SetPixelShader(ps_shader_map[PS_GBufferPBR_Mask].get()).SetInputLayout(&input_layout_map[VS_GBufferPBR]); 
 			gfx_shader_program_map[EShaderProgram::AmbientPBR].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
 			gfx_shader_program_map[EShaderProgram::AmbientPBR_AO].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_AO].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
 			gfx_shader_program_map[EShaderProgram::AmbientPBR_IBL].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_IBL].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
@@ -567,13 +572,13 @@ namespace adria
 		file_watcher = nullptr;
 		auto FreeContainer = []<typename T>(T& container) 
 		{
+			container.clear();
 			T empty;
 			using std::swap;
 			swap(container, empty);
 		};
 		FreeContainer(gfx_shader_program_map);
 		FreeContainer(compute_shader_program_map);
-		FreeContainer(dependent_files_map);
 		FreeContainer(vs_shader_map);
 		FreeContainer(ps_shader_map);
 		FreeContainer(hs_shader_map);
@@ -581,7 +586,6 @@ namespace adria
 		FreeContainer(gs_shader_map);
 		FreeContainer(cs_shader_map);
 		FreeContainer(input_layout_map);
-
 	}
 
 	ShaderProgram* ShaderManager::GetShaderProgram(EShaderProgram shader_program)

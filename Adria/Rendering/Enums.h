@@ -56,6 +56,7 @@ namespace adria
 		PS_DecalsModifyNormals,
 		VS_GBufferPBR,
 		PS_GBufferPBR,
+		PS_GBufferPBR_Mask,
 		VS_GBufferTerrain,
 		PS_GBufferTerrain,
 		VS_ScreenQuad,
@@ -150,6 +151,7 @@ namespace adria
 		Sun,
 		Billboard,
 		GBufferPBR,
+		GBufferPBR_Mask,
 		GBuffer_Terrain,
 		AmbientPBR,
 		AmbientPBR_AO,
@@ -275,7 +277,8 @@ namespace adria
 
 	enum class ERasterizerState
 	{
-		None
+		None,
+		NoCulling
 	};
 
 	enum EAntiAliasing : uint8
@@ -298,5 +301,12 @@ namespace adria
 		Project_XY,
 		Project_YZ,
 		Project_XZ
+	};
+
+	enum class EMaterialAlphaMode : uint8
+	{
+		Opaque,
+		Blend,
+		Mask
 	};
 }

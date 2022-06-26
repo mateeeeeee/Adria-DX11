@@ -1959,12 +1959,15 @@ namespace adria
 		gbuffer_pass.Begin(context);
 		{
 			auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
-			ShaderManager::GetShaderProgram(EShaderProgram::GBufferPBR)->Bind(context);
+			
 			for (auto e : gbuffer_view)
 			{
 				auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
-
 				if (!visibility.camera_visible) continue;
+
+				if (material.double_sided) context->RSSetState(cull_none.Get());
+				if(material.alpha_mode == EMaterialAlphaMode::Opaque) ShaderManager::GetShaderProgram(EShaderProgram::GBufferPBR)->Bind(context);
+				else ShaderManager::GetShaderProgram(EShaderProgram::GBufferPBR_Mask)->Bind(context);
 
 				object_cbuf_data.model = transform.current_transform;
 				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
@@ -1974,6 +1977,7 @@ namespace adria
 				material_cbuf_data.metallic_factor = material.metallic_factor;
 				material_cbuf_data.roughness_factor = material.roughness_factor;
 				material_cbuf_data.emissive_factor = material.emissive_factor;
+				material_cbuf_data.alpha_cutoff = material.alpha_cutoff;
 				material_cbuffer->Update(context, material_cbuf_data);
 
 				static ID3D11ShaderResourceView* const null_view = nullptr;
@@ -2014,14 +2018,7 @@ namespace adria
 					context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &null_view);
 				}
 
-				if (reg.has<RenderState>(e))
-				{
-					auto const& states = reg.get<RenderState>(e);
-					ResolveCustomRenderState(states, false);
-					mesh.Draw(context);
-					ResolveCustomRenderState(states, true);
-				}
-				else mesh.Draw(context);
+				mesh.Draw(context);
 			}
 
 			auto terrain_view = reg.view<Mesh, Transform, Visibility, TerrainComponent>();

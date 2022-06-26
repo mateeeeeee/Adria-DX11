@@ -1,12 +1,9 @@
 #include "../Globals/GlobalsPS.hlsli"
 
-
 Texture2D<float4> txAlbedo   : register(t0);      
 Texture2D<float4> txMetallicRoughness : register(t1);
 Texture2D<float4> txNormal   : register(t2);
 Texture2D<float4> txEmissive : register(t3);
-
-
 
 struct VS_OUTPUT
 {
@@ -16,6 +13,7 @@ struct VS_OUTPUT
     float3 TangentWS    : TANGENT;
     float3 BitangentWS  : BITANGENT;
     float3 NormalWS     : NORMAL1;
+    bool  IsFrontFace   : SV_IsFrontFace;
 };
 
 struct PS_GBUFFER_OUT
@@ -36,17 +34,18 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, f
     return Out;
 }
 
-
 PS_GBUFFER_OUT main(VS_OUTPUT In)
 {
-
     In.Uvs.y = 1 - In.Uvs.y;
- 
     float4 DiffuseColor = txAlbedo.Sample(linear_wrap_sampler, In.Uvs) * albedo_factor;
 
-    if(DiffuseColor.a < 0.5) discard;
+#ifdef MASK
+    if(DiffuseColor.a < alpha_cutoff) discard;
+#endif
 
     float3 Normal = normalize(In.NormalWS);
+    if (!In.IsFrontFace) Normal = -Normal;
+    
     float3 Tangent = normalize(In.TangentWS);
     float3 Bitangent = normalize(In.BitangentWS); 
     float3 BumpMapNormal = txNormal.Sample( linear_wrap_sampler, In.Uvs );

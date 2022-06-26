@@ -112,7 +112,6 @@ namespace adria
 
     using namespace tecs;
 
-    [[nodiscard]]
     std::vector<entity> ModelImporter::LoadGrid(GridParameters const& params, std::vector<TexturedNormalVertex>* vertices_out)
     {
         if (params.heightmap)
@@ -351,7 +350,6 @@ namespace adria
         texture_manager(texture_manager), gfx(gfx)
     {}
 
-	[[maybe_unused]]
 	std::vector<entity> ModelImporter::ImportModel_GLTF(ModelParameters const& params)
 	{
 		tinygltf::TinyGLTF loader;
@@ -391,6 +389,62 @@ namespace adria
 				entity e = reg.create();
 				entities.push_back(e);
 				mesh_entities.push_back(e);
+
+				Material material{};
+				tinygltf::Material gltf_material = model.materials[primitive.material];
+				tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
+				if (pbr_metallic_roughness.baseColorTexture.index >= 0)
+				{
+					tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
+					tinygltf::Image const& base_image = model.images[base_texture.source];
+					std::string texbase = params.textures_path + base_image.uri;
+					material.albedo_texture = texture_manager.LoadTexture(ConvertToWide(texbase));
+					material.albedo_factor = (float32)pbr_metallic_roughness.baseColorFactor[0];
+				}
+				if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
+				{
+					tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
+					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
+					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
+					material.metallic_roughness_texture = texture_manager.LoadTexture(ConvertToWide(texmetallicroughness));
+					material.metallic_factor = (float32)pbr_metallic_roughness.metallicFactor;
+					material.roughness_factor = (float32)pbr_metallic_roughness.roughnessFactor;
+				}
+				if (gltf_material.normalTexture.index >= 0)
+				{
+					tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
+					tinygltf::Image const& normal_image = model.images[normal_texture.source];
+					std::string texnormal = params.textures_path + normal_image.uri;
+					material.normal_texture = texture_manager.LoadTexture(ConvertToWide(texnormal));
+				}
+				if (gltf_material.emissiveTexture.index >= 0)
+				{
+					tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
+					tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
+					std::string texemissive = params.textures_path + emissive_image.uri;
+					material.emissive_texture = texture_manager.LoadTexture(ConvertToWide(texemissive));
+					material.emissive_factor = (float32)gltf_material.emissiveFactor[0];
+				}
+				material.shader = EShaderProgram::GBufferPBR;
+				material.alpha_cutoff = gltf_material.alphaCutoff;
+				material.double_sided = gltf_material.doubleSided;
+				if (gltf_material.alphaMode == "OPAQUE")
+				{
+					material.alpha_mode = EMaterialAlphaMode::Opaque;
+					material.shader = EShaderProgram::GBufferPBR;
+				}
+				else if (gltf_material.alphaMode == "BLEND")
+				{
+					material.alpha_mode = EMaterialAlphaMode::Blend;
+				}
+				else if (gltf_material.alphaMode == "MASK")
+				{
+					material.alpha_mode = EMaterialAlphaMode::Mask;
+					material.shader = EShaderProgram::GBufferPBR_Mask;
+				}
+
+				reg.emplace<Material>(e, material);
+				reg.emplace<Deferred>(e);
 
 				Mesh mesh_component{};
 				mesh_component.indices_count = static_cast<uint32>(index_accessor.count);
@@ -489,6 +543,12 @@ namespace adria
 						for (size_t i = 0; i < vertex_count; ++i)
 						{
 							normals.push_back(*(XMFLOAT3*)((size_t)data + i * stride));
+							if (material.double_sided)
+							{
+								normals.back().x *= -1;
+								normals.back().y *= -1;
+								normals.back().z *= -1;
+							}
 						}
 					}
 					else if (!attr_name.compare("TANGENT"))
@@ -570,46 +630,6 @@ namespace adria
 						bitangents[i]
 					);
 				}
-
-				Material material{};
-				tinygltf::Material gltf_material = model.materials[primitive.material];
-				tinygltf::PbrMetallicRoughness pbr_metallic_roughness = gltf_material.pbrMetallicRoughness;
-				if (pbr_metallic_roughness.baseColorTexture.index >= 0)
-				{
-					tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
-					tinygltf::Image const& base_image = model.images[base_texture.source];
-					std::string texbase = params.textures_path + base_image.uri;
-					material.albedo_texture = texture_manager.LoadTexture(ConvertToWide(texbase));
-					material.albedo_factor = (float32)pbr_metallic_roughness.baseColorFactor[0];
-				}
-				if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
-				{
-					tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
-					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
-					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
-					material.metallic_roughness_texture = texture_manager.LoadTexture(ConvertToWide(texmetallicroughness));
-					material.metallic_factor = (float32)pbr_metallic_roughness.metallicFactor;
-					material.roughness_factor = (float32)pbr_metallic_roughness.roughnessFactor;
-				}
-				if (gltf_material.normalTexture.index >= 0)
-				{
-					tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
-					tinygltf::Image const& normal_image = model.images[normal_texture.source];
-					std::string texnormal = params.textures_path + normal_image.uri;
-					material.normal_texture = texture_manager.LoadTexture(ConvertToWide(texnormal));
-				}
-				if (gltf_material.emissiveTexture.index >= 0)
-				{
-					tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
-					tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
-					std::string texemissive = params.textures_path + emissive_image.uri;
-					material.emissive_texture = texture_manager.LoadTexture(ConvertToWide(texemissive));
-					material.emissive_factor = (float32)gltf_material.emissiveFactor[0];
-				}
-				material.shader = EShaderProgram::GBufferPBR;;
-
-				reg.emplace<Material>(e, material);
-				reg.emplace<Deferred>(e);
 			}
 		}
 
@@ -711,7 +731,6 @@ namespace adria
 		return entities;
 	}
 
-    [[maybe_unused]]
     entity ModelImporter::LoadSkybox(SkyboxParameters const& params)
     {
         entity skybox = reg.create();
@@ -728,7 +747,6 @@ namespace adria
         return skybox;
     }
 
-    [[maybe_unused]] 
     entity ModelImporter::LoadLight(LightParameters const& params)
     {
         entity light = reg.create();
@@ -869,7 +887,6 @@ namespace adria
         return light;
 	}
 
-    [[maybe_unused]]
     std::vector<entity> ModelImporter::LoadOcean(OceanParameters const& params)
     {
         std::vector<entity> ocean_chunks = ModelImporter::LoadGrid(params.ocean_grid);
@@ -889,8 +906,7 @@ namespace adria
         return ocean_chunks;
 	}
 
-    [[maybe_unused]]
-	std::vector<entity> ModelImporter::LoadTerrain(TerrainParameters& params)
+    std::vector<entity> ModelImporter::LoadTerrain(TerrainParameters& params)
 	{
         std::vector<TexturedNormalVertex> vertices;
 		std::vector<entity> terrain_chunks = LoadGrid(params.terrain_grid, &vertices);
@@ -922,7 +938,6 @@ namespace adria
 		return terrain_chunks;
 	}
 
-	[[maybe_unused]]
 	entity ModelImporter::LoadFoliage(FoliageParameters const& params)
 	{
 		const float32 size = params.foliage_scale;
@@ -1002,8 +1017,7 @@ namespace adria
 		return foliage;
 	}
 
-    [[maybe_unused]]
-	std::vector<entity> ModelImporter::LoadTrees(TreeParameters const& params)
+    std::vector<entity> ModelImporter::LoadTrees(TreeParameters const& params)
 	{
 		const float32 size = params.tree_scale;
 
@@ -1085,8 +1099,7 @@ namespace adria
 		return trees;
 	}
 
-    [[maybe_unused]]
-	entity ModelImporter::LoadEmitter(EmitterParameters const& params)
+    entity ModelImporter::LoadEmitter(EmitterParameters const& params)
 	{
 		Emitter emitter{};
 		emitter.position = DirectX::XMFLOAT4(params.position[0], params.position[1], params.position[2], 1);
@@ -1112,8 +1125,7 @@ namespace adria
         return emitter_entity;
 	}
 
-    [[maybe_unused]]
-	entity ModelImporter::LoadDecal(DecalParameters const& params)
+    entity ModelImporter::LoadDecal(DecalParameters const& params)
 	{
         Decal decal{};
         if(!params.albedo_texture_path.empty()) decal.albedo_decal_texture = texture_manager.LoadTexture(params.albedo_texture_path);
