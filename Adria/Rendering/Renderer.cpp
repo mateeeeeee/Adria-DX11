@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iterator>
+#include <map>
 #include "../Utilities/Random.h"
 #include "Renderer.h"
 #include "Camera.h"
@@ -597,11 +598,6 @@ namespace adria
 		voxel_cbuffer = std::make_unique<ConstantBuffer<VoxelCBuffer>>(device);
 		terrain_cbuffer = std::make_unique<ConstantBuffer<TerrainCBuffer>>(device);
 
-		//for bokeh
-		D3D11_BUFFER_DESC buffer_desc{};
-		buffer_desc.MiscFlags = D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
-		buffer_desc.ByteWidth = 16;
-
 		BufferDesc bokeh_indirect_draw_buffer_desc{};
 		bokeh_indirect_draw_buffer_desc.size = 4 * sizeof(uint32);
 		bokeh_indirect_draw_buffer_desc.misc_flags = EBufferMiscFlag::IndirectArgs;
@@ -638,7 +634,7 @@ namespace adria
 			XMFLOAT3{ -0.5f,  0.5f, -0.5f }
 		};
 
-		const uint16_t cube_indices[36] = 
+		const uint16 cube_indices[36] = 
 		{
 			// front
 			0, 1, 2,
@@ -834,7 +830,6 @@ namespace adria
 	{
 		ID3D11Device* device = gfx->Device();
 
-		//create shadow textures
 		{
 			TextureDesc depth_map_desc{};
 			depth_map_desc.width = SHADOW_MAP_SIZE;
@@ -1955,72 +1950,90 @@ namespace adria
 
 		std::vector<ID3D11ShaderResourceView*> nullSRVs(gbuffer.size() + 1, nullptr);
 		context->PSSetShaderResources(0, static_cast<uint32>(nullSRVs.size()), nullSRVs.data());
+
+		struct BatchParams
+		{
+			EShaderProgram shader_program;
+			bool double_sided;
+			auto operator<=>(BatchParams const&) const = default;
+		};
+		std::map<BatchParams, std::vector<entity>> batched_entities;
+
+		auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
+		for (auto e : gbuffer_view)
+		{
+			auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
+			if (!visibility.camera_visible) continue;
+
+			BatchParams params{};
+			params.double_sided = material.double_sided;
+			params.shader_program = material.alpha_mode == EMaterialAlphaMode::Opaque ? EShaderProgram::GBufferPBR : EShaderProgram::GBufferPBR_Mask;
+			batched_entities[params].push_back(e);
+		}
 		
 		gbuffer_pass.Begin(context);
 		{
-			auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
-			
-			for (auto e : gbuffer_view)
+			for (auto const& [params, entities] : batched_entities)
 			{
-				auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
-				if (!visibility.camera_visible) continue;
-
-				if (material.double_sided) context->RSSetState(cull_none.Get());
-				if(material.alpha_mode == EMaterialAlphaMode::Opaque) ShaderManager::GetShaderProgram(EShaderProgram::GBufferPBR)->Bind(context);
-				else ShaderManager::GetShaderProgram(EShaderProgram::GBufferPBR_Mask)->Bind(context);
-
-				object_cbuf_data.model = transform.current_transform;
-				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
-				object_cbuffer->Update(context, object_cbuf_data);
-
-				material_cbuf_data.albedo_factor = material.albedo_factor;
-				material_cbuf_data.metallic_factor = material.metallic_factor;
-				material_cbuf_data.roughness_factor = material.roughness_factor;
-				material_cbuf_data.emissive_factor = material.emissive_factor;
-				material_cbuf_data.alpha_cutoff = material.alpha_cutoff;
-				material_cbuffer->Update(context, material_cbuf_data);
-
-				static ID3D11ShaderResourceView* const null_view = nullptr;
-
-				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
+				ShaderManager::GetShaderProgram(params.shader_program)->Bind(context);
+				if (params.double_sided) context->RSSetState(cull_none.Get());
+				for (auto e : entities)
 				{
-					auto view = texture_manager.GetTextureView(material.albedo_texture);
-					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
-				}
+					auto [mesh, transform, material] = gbuffer_view.get<Mesh, Transform, Material>(e);
+					object_cbuf_data.model = transform.current_transform;
+					object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+					object_cbuffer->Update(context, object_cbuf_data);
 
-				if (material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE)
-				{
-					auto view = texture_manager.GetTextureView(material.metallic_roughness_texture);
-					context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS_METALLIC, 1, &view);
-				}
-				else
-				{
-					context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS_METALLIC, 1, &null_view);
-				}
+					material_cbuf_data.albedo_factor = material.albedo_factor;
+					material_cbuf_data.metallic_factor = material.metallic_factor;
+					material_cbuf_data.roughness_factor = material.roughness_factor;
+					material_cbuf_data.emissive_factor = material.emissive_factor;
+					material_cbuf_data.alpha_cutoff = material.alpha_cutoff;
+					material_cbuffer->Update(context, material_cbuf_data);
 
-				if (material.normal_texture != INVALID_TEXTURE_HANDLE)
-				{
-					auto view = texture_manager.GetTextureView(material.normal_texture);
-					context->PSSetShaderResources(TEXTURE_SLOT_NORMAL, 1, &view);
-				}
-				else
-				{
-					context->PSSetShaderResources(TEXTURE_SLOT_NORMAL, 1, &null_view);
-				}
+					static ID3D11ShaderResourceView* const null_view = nullptr;
 
-				if (material.emissive_texture != INVALID_TEXTURE_HANDLE)
-				{
-					auto view = texture_manager.GetTextureView(material.emissive_texture);
-					context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &view);
-				}
-				else
-				{
-					context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &null_view);
-				}
+					if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
+					{
+						auto view = texture_manager.GetTextureView(material.albedo_texture);
+						context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
+					}
 
-				mesh.Draw(context);
+					if (material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE)
+					{
+						auto view = texture_manager.GetTextureView(material.metallic_roughness_texture);
+						context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS_METALLIC, 1, &view);
+					}
+					else
+					{
+						context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS_METALLIC, 1, &null_view);
+					}
+
+					if (material.normal_texture != INVALID_TEXTURE_HANDLE)
+					{
+						auto view = texture_manager.GetTextureView(material.normal_texture);
+						context->PSSetShaderResources(TEXTURE_SLOT_NORMAL, 1, &view);
+					}
+					else
+					{
+						context->PSSetShaderResources(TEXTURE_SLOT_NORMAL, 1, &null_view);
+					}
+
+					if (material.emissive_texture != INVALID_TEXTURE_HANDLE)
+					{
+						auto view = texture_manager.GetTextureView(material.emissive_texture);
+						context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &view);
+					}
+					else
+					{
+						context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &null_view);
+					}
+
+					mesh.Draw(context);
+				}
+				if (params.double_sided) context->RSSetState(nullptr); 
 			}
-
+			
 			auto terrain_view = reg.view<Mesh, Transform, Visibility, TerrainComponent>();
 			ShaderManager::GetShaderProgram(EShaderProgram::GBuffer_Terrain)->Bind(context);
 			for (auto e : terrain_view)
