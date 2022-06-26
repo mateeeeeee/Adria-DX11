@@ -189,6 +189,7 @@ namespace adria
 
 		std::unique_ptr<Buffer> cube_vb;
 		std::unique_ptr<Buffer> cube_ib;
+		std::unique_ptr<Buffer> aabb_wireframe_ib;
 
 		//samplers
 		Microsoft::WRL::ComPtr<ID3D11SamplerState>			linear_wrap_sampler;
@@ -265,6 +266,7 @@ namespace adria
 		void PassSky();
 		void PassOcean();
 		void PassParticles();
+		void PassAABB();
 		void PassForwardCommon(bool transparent);
 		
 		//POSTPROCESS

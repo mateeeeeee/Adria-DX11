@@ -150,12 +150,13 @@ namespace adria
 		float32 godrays_exposure = 2.0f;
 	};
 
-	struct COMPONENT Visibility
+	struct COMPONENT AABB
 	{
 		DirectX::BoundingBox aabb;
 		bool camera_visible = true;
 		bool light_visible = true;
 		bool skip_culling = false;
+		bool draw_aabb = false;
 	};
 
 	struct COMPONENT RenderState

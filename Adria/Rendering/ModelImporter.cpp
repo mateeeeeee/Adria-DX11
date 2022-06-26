@@ -181,7 +181,7 @@ namespace adria
             reg.emplace<Transform>(grid);
 
             BoundingBox aabb = AABBFromRange(vertices.begin(), vertices.end());
-            reg.emplace<Visibility>(grid, aabb, true, true);
+            reg.emplace<AABB>(grid, aabb, true, true);
 
             chunks.push_back(grid);
         }
@@ -226,7 +226,7 @@ namespace adria
                     reg.emplace<Mesh>(chunk, mesh);
                     reg.emplace<Transform>(chunk);
                     BoundingBox aabb = AABBFromRange(chunk_vertices_aabb.begin(), chunk_vertices_aabb.end());
-                    reg.emplace<Visibility>(chunk, aabb, true, true);
+                    reg.emplace<AABB>(chunk, aabb, true, true);
                     chunks.push_back(chunk);
                 }
             }
@@ -704,7 +704,7 @@ namespace adria
 					XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
 					BoundingBox aabb = AABBFromRange(vertices.begin() + mesh.base_vertex_location, vertices.begin() + mesh.base_vertex_location + mesh.vertex_count);
 					aabb.Transform(aabb, model);
-					reg.emplace<Visibility>(e, aabb, true, true);
+					reg.emplace<AABB>(e, aabb, true, true);
 					reg.emplace<Transform>(e, model, model);
 				}
 			}
@@ -816,7 +816,7 @@ namespace adria
             auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
             aabb.Transform(aabb, XMMatrixTranslationFromVector(params.light_data.position));
 
-            reg.emplace<Visibility>(light, aabb, true, false);
+            reg.emplace<AABB>(light, aabb, true, false);
             reg.emplace<Transform>(light, translation_matrix, translation_matrix);
             //sun rendered in separate pass
             if (params.light_data.type != ELightType::Directional) reg.emplace<Forward>(light, true);
@@ -1025,9 +1025,9 @@ namespace adria
 		transform.current_transform = transform.starting_transform;
 		reg.emplace<Transform>(foliage, transform);
 
-		Visibility vis{};
+		AABB vis{};
 		vis.skip_culling = true;
-		reg.emplace<Visibility>(foliage, vis);
+		reg.emplace<AABB>(foliage, vis);
 
 		return foliage;
 	}
@@ -1106,9 +1106,9 @@ namespace adria
 			transform.current_transform = transform.starting_transform;
 			reg.emplace<Transform>(tree, transform);
 
-			Visibility vis{};
+			AABB vis{};
 			vis.skip_culling = true;
-			reg.emplace<Visibility>(tree, vis);
+			reg.emplace<AABB>(tree, vis);
         }
 
 		return trees;

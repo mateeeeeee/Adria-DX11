@@ -17,6 +17,5 @@ VS_OUTPUT main(VS_INPUT vin)
 {
     VS_OUTPUT vout;
     vout.Pos = mul(mul(float4(vin.Pos, 1.0), model), viewprojection);
-
     return vout;
 }

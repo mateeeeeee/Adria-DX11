@@ -658,6 +658,24 @@ namespace adria
 
 		cube_vb = std::make_unique<Buffer>(gfx, VertexBufferDesc(ARRAYSIZE(cube_vertices), sizeof(SimpleVertex)), cube_vertices);
 		cube_ib = std::make_unique<Buffer>(gfx, IndexBufferDesc(ARRAYSIZE(cube_indices), true), cube_indices);
+
+		const uint16 aabb_indices[] = {
+			0, 1,
+			1, 2,
+			2, 3,
+			3, 0,
+
+			0, 4,
+			1, 5,
+			2, 6,
+			3, 7,
+
+			4, 5,
+			5, 6,
+			6, 7,
+			7, 4
+		};
+		aabb_wireframe_ib = std::make_unique<Buffer>(gfx, IndexBufferDesc(ARRAYSIZE(aabb_indices), true), aabb_indices);
 	}
 	void Renderer::CreateSamplers()
 	{
@@ -1900,31 +1918,31 @@ namespace adria
 	void Renderer::CameraFrustumCulling()
 	{
 		BoundingFrustum camera_frustum = camera->Frustum();
-		auto visibility_view = reg.view<Visibility>();
-		for (auto e : visibility_view)
+		auto aabb_view = reg.view<AABB>();
+		for (auto e : aabb_view)
 		{
-			auto& visibility = visibility_view.get(e);
-			if (visibility.skip_culling) continue;
-			visibility.camera_visible = camera_frustum.Intersects(visibility.aabb) || reg.has<Light>(e); //dont cull lights for now
+			auto& aabb = aabb_view.get(e);
+			if (aabb.skip_culling) continue;
+			aabb.camera_visible = camera_frustum.Intersects(aabb.aabb) || reg.has<Light>(e); //dont cull lights for now
 		}
 	}
 	void Renderer::LightFrustumCulling(ELightType type)
 	{
-		auto visibility_view = reg.view<Visibility>();
+		auto visibility_view = reg.view<AABB>();
 		for (auto e : visibility_view)
 		{
 			if (reg.has<Light>(e)) continue; 
-			auto& visibility = visibility_view.get(e);
-			if (visibility.skip_culling) continue;
+			auto& aabb = visibility_view.get(e);
+			if (aabb.skip_culling) continue;
 
 			switch (type)
 			{
 			case ELightType::Directional:
-				visibility.light_visible = light_bounding_box.Intersects(visibility.aabb);
+				aabb.light_visible = light_bounding_box.Intersects(aabb.aabb);
 				break;
 			case ELightType::Spot:
 			case ELightType::Point:
-				visibility.light_visible = light_bounding_frustum.Intersects(visibility.aabb);
+				aabb.light_visible = light_bounding_frustum.Intersects(aabb.aabb);
 				break;
 			default:
 				ADRIA_ASSERT(false);
@@ -1959,11 +1977,11 @@ namespace adria
 		};
 		std::map<BatchParams, std::vector<entity>> batched_entities;
 
-		auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
+		auto gbuffer_view = reg.view<Mesh, Transform, Material, Deferred, AABB>();
 		for (auto e : gbuffer_view)
 		{
-			auto [mesh, transform, material, visibility] = gbuffer_view.get<Mesh, Transform, Material, Visibility>(e);
-			if (!visibility.camera_visible) continue;
+			auto [mesh, transform, material, aabb] = gbuffer_view.get<Mesh, Transform, Material, AABB>(e);
+			if (!aabb.camera_visible) continue;
 
 			BatchParams params{};
 			params.double_sided = material.double_sided;
@@ -2041,13 +2059,13 @@ namespace adria
 				if (params.double_sided) context->RSSetState(nullptr); 
 			}
 			
-			auto terrain_view = reg.view<Mesh, Transform, Visibility, TerrainComponent>();
+			auto terrain_view = reg.view<Mesh, Transform, AABB, TerrainComponent>();
 			ShaderManager::GetShaderProgram(EShaderProgram::GBuffer_Terrain)->Bind(context);
 			for (auto e : terrain_view)
 			{
-				auto [mesh, transform, visibility, terrain] = terrain_view.get<Mesh, Transform, Visibility, TerrainComponent>(e);
+				auto [mesh, transform, aabb, terrain] = terrain_view.get<Mesh, Transform, AABB, TerrainComponent>(e);
 
-				if (!visibility.camera_visible) continue;
+				if (!aabb.camera_visible) continue;
 
 				object_cbuf_data.model = transform.current_transform;
 				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
@@ -2082,12 +2100,12 @@ namespace adria
 				mesh.Draw(context);
 			}
 
-			auto foliage_view = reg.view<Mesh, Transform, Material, Visibility, Foliage>();
+			auto foliage_view = reg.view<Mesh, Transform, Material, AABB, Foliage>();
 			ShaderManager::GetShaderProgram(EShaderProgram::GBuffer_Foliage)->Bind(context);
 			for (auto e : foliage_view)
 			{
-				auto [mesh, transform, visibility, material] = foliage_view.get<Mesh, Transform, Visibility, Material>(e);
-				if (!visibility.camera_visible) continue;
+				auto [mesh, transform, aabb, material] = foliage_view.get<Mesh, Transform, AABB, Material>(e);
+				if (!aabb.camera_visible) continue;
 
 				object_cbuf_data.model = transform.current_transform;
 				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
@@ -2524,6 +2542,7 @@ namespace adria
 		PassForwardCommon(false);
 		PassSky();
 		PassOcean();
+		PassAABB();
 		PassForwardCommon(true);
 		forward_pass.End(context);
 	}
@@ -2556,7 +2575,7 @@ namespace adria
 		}
 		lights->Update(_lights.data(), std::min<uint64>(_lights.size(), VOXELIZE_MAX_LIGHTS) * sizeof(LightSBuffer));
 
-		auto voxel_view = reg.view<Mesh, Transform, Material, Deferred, Visibility>();
+		auto voxel_view = reg.view<Mesh, Transform, Material, Deferred, AABB>();
 
 		ShaderManager::GetShaderProgram(EShaderProgram::Voxelize)->Bind(context);
 		context->RSSetState(cull_none.Get());
@@ -2577,9 +2596,9 @@ namespace adria
 
 		for (auto e : voxel_view)
 		{
-			auto [mesh, transform, material, visibility] = voxel_view.get<Mesh, Transform, Material, Visibility>(e);
+			auto [mesh, transform, material, aabb] = voxel_view.get<Mesh, Transform, Material, AABB>(e);
 
-			if (!visibility.camera_visible) continue;
+			if (!aabb.camera_visible) continue;
 
 			object_cbuf_data.model = transform.current_transform;
 			object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
@@ -2925,14 +2944,14 @@ namespace adria
 	void Renderer::PassShadowMapCommon()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		auto shadow_view = reg.view<Mesh, Transform, Visibility>();
+		auto shadow_view = reg.view<Mesh, Transform, AABB>();
 		if (!renderer_settings.shadow_transparent)
 		{
 			ShaderManager::GetShaderProgram(EShaderProgram::DepthMap)->Bind(context);
 			for (auto e : shadow_view)
 			{
-				auto& visibility = shadow_view.get<Visibility>(e);
-				if (visibility.light_visible)
+				auto& aabb = shadow_view.get<AABB>(e);
+				if (aabb.light_visible)
 				{
 					auto const& transform = shadow_view.get<Transform>(e);
 					auto const& mesh = shadow_view.get<Mesh>(e);
@@ -2955,8 +2974,8 @@ namespace adria
 			std::vector<entity> potentially_transparent, not_transparent;
 			for (auto e : shadow_view)
 			{
-				auto const& visibility = shadow_view.get<Visibility>(e);
-				if (visibility.light_visible)
+				auto const& aabb = shadow_view.get<AABB>(e);
+				if (aabb.light_visible)
 				{
 					if (auto* p_material = reg.get_if<Material>(e))
 					{
@@ -3123,12 +3142,12 @@ namespace adria
 		renderer_settings.ocean_tesselation ? ShaderManager::GetShaderProgram(EShaderProgram::OceanLOD)->Bind(context)
 						  : ShaderManager::GetShaderProgram(EShaderProgram::Ocean)->Bind(context);
 
-		auto ocean_chunk_view = reg.view<Mesh, Material, Transform, Visibility, Ocean>();
+		auto ocean_chunk_view = reg.view<Mesh, Material, Transform, AABB, Ocean>();
 		for (auto ocean_chunk : ocean_chunk_view)
 		{
-			auto [mesh, material, transform, visibility] = ocean_chunk_view.get<const Mesh, const Material, const Transform, const Visibility>(ocean_chunk);
+			auto [mesh, material, transform, aabb] = ocean_chunk_view.get<const Mesh, const Material, const Transform, const AABB>(ocean_chunk);
 
-			if (visibility.camera_visible)
+			if (aabb.camera_visible)
 			{
 				object_cbuf_data.model = transform.current_transform;
 				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
@@ -3174,18 +3193,63 @@ namespace adria
 		particle_pass.End(context);
 	}
 
+	void Renderer::PassAABB()
+	{
+		ID3D11DeviceContext* context = gfx->Context();
+		auto aabb_view = reg.view<AABB>();
+		for (auto e : aabb_view)
+		{
+			auto& aabb = aabb_view.get(e);
+			if (aabb.draw_aabb)
+			{
+				XMFLOAT3 corners[8];
+				aabb.aabb.GetCorners(corners);
+				SimpleVertex vertices[] =
+				{
+					SimpleVertex{corners[0]},
+					SimpleVertex{corners[1]},
+					SimpleVertex{corners[2]},
+					SimpleVertex{corners[3]},
+					SimpleVertex{corners[4]},
+					SimpleVertex{corners[5]},
+					SimpleVertex{corners[6]},
+					SimpleVertex{corners[7]}
+				}; //dont recreate every frame
+				auto aabb_vb = std::make_unique<Buffer>(gfx, VertexBufferDesc(ARRAYSIZE(vertices), sizeof(SimpleVertex)), vertices);
+				
+				object_cbuf_data.model = XMMatrixIdentity();
+				object_cbuf_data.transposed_inverse_model = XMMatrixIdentity();
+				object_cbuffer->Update(context, object_cbuf_data);
+
+				material_cbuf_data.diffuse = XMFLOAT3(1, 0, 0);
+				material_cbuffer->Update(context, material_cbuf_data);
+
+				context->RSSetState(wireframe.Get());
+				ShaderManager::GetShaderProgram(EShaderProgram::Solid)->Bind(context);
+				context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+				BindVertexBuffer(context, aabb_vb.get());
+				BindIndexBuffer(context, aabb_wireframe_ib.get());
+				context->DrawIndexed(aabb_wireframe_ib->GetCount(), 0, 0);
+				context->RSSetState(nullptr);
+
+				aabb.draw_aabb = false;
+				break;
+			}
+		}
+	}
+
 	void Renderer::PassForwardCommon(bool transparent)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-		auto forward_view = reg.view<Mesh, Transform, Visibility, Material, Forward>();
+		auto forward_view = reg.view<Mesh, Transform, AABB, Material, Forward>();
 
 		if (transparent) context->OMSetBlendState(alpha_blend.Get(), nullptr, 0xffffffff);
 
 		for (auto e : forward_view)
 		{
-			auto [forward, visibility] = forward_view.get<Forward const, Visibility const>(e);
+			auto [forward, aabb] = forward_view.get<Forward const, AABB const>(e);
 
-			if (!(visibility.camera_visible && forward.transparent == transparent)) continue;
+			if (!(aabb.camera_visible && forward.transparent == transparent)) continue;
 			
 			auto [transform, mesh, material] = forward_view.get<Transform, Mesh, Material>(e);
 

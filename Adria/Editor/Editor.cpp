@@ -141,7 +141,6 @@ namespace adria
         ELogLevel logger_level;
     };
 
-
     Editor::Editor(EditorInit const& init) : engine(), editor_log(new ImGuiLogger{})
     {
         engine = std::make_unique<Engine>(init.engine_init);
@@ -1156,7 +1155,7 @@ namespace adria
 						emitter->position = XMFLOAT4(translation[0], translation[1], translation[2], 1.0f);
 					}
 
-					if (Visibility* vis = engine->reg.get_if<Visibility>(selected_entity))
+					if (AABB* vis = engine->reg.get_if<AABB>(selected_entity))
 					{
 						vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
 						vis->aabb.Transform(vis->aabb, DirectX::XMLoadFloat4x4(&tr));
@@ -1167,7 +1166,7 @@ namespace adria
 						for (size_t i = 0; i < relationship->children_count; ++i)
 						{
 							entity child = relationship->children[i];
-							if (Visibility* vis = engine->reg.get_if<Visibility>(child))
+							if (AABB* vis = engine->reg.get_if<AABB>(child))
 							{
 								vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
 								vis->aabb.Transform(vis->aabb, DirectX::XMLoadFloat4x4(&tr));
@@ -1288,6 +1287,12 @@ namespace adria
 					ImGui::PopID();
 					ImGui::Checkbox("Modify GBuffer Normals", &decal->modify_gbuffer_normals);
 				}
+
+				if (AABB* aabb = engine->reg.get_if<AABB>(selected_entity))
+				{
+					aabb->draw_aabb = true;
+				}
+
             }
         }
         ImGui::End();
@@ -1375,7 +1380,7 @@ namespace adria
 
             if (ImGuizmo::IsUsing())
             {
-                Visibility* vis = engine->reg.get_if<Visibility>(selected_entity);
+                AABB* vis = engine->reg.get_if<AABB>(selected_entity);
                 if (vis)
                 {
                     vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
@@ -1387,7 +1392,7 @@ namespace adria
 					for (size_t i = 0; i < relationship->children_count; ++i)
 					{
 						entity child = relationship->children[i];
-						if (Visibility* vis = engine->reg.get_if<Visibility>(child))
+						if (AABB* vis = engine->reg.get_if<AABB>(child))
 						{
 							vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
 							vis->aabb.Transform(vis->aabb, DirectX::XMLoadFloat4x4(&tr));
