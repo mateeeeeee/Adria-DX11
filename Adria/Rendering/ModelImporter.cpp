@@ -720,13 +720,28 @@ namespace adria
 		std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(CompleteVertex)), vertices.data());
 		std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
 
+		entity root = reg.create();
+		reg.emplace<Transform>(root);
+		reg.emplace<Tag>(root, model_name);
+		Relationship relationship;
+		relationship.children_count = entities.size();
+		ADRIA_ASSERT(relationship.children_count <= Relationship::MAX_CHILDREN);
+		for (size_t i = 0; i < relationship.children_count; ++i)
+		{
+			relationship.children[i] = entities[i];
+		}
+		reg.add<Relationship>(root, relationship);
+
+		size_t i = 0;
 		for (entity e : entities)
 		{
 			auto& mesh = reg.get<Mesh>(e);
 			mesh.vertex_buffer = vb;
 			mesh.index_buffer = ib;
-			reg.emplace<Tag>(e, model_name + " mesh" + std::to_string(as_integer(e)));
+			reg.emplace<Tag>(e, model_name + " submesh" + std::to_string(i++));
+			reg.emplace<Relationship>(e, root);
 		}
+		
 		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
 		return entities;
 	}

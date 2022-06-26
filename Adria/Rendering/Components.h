@@ -1,13 +1,14 @@
 #pragma once
 #include <memory>
+#include <DirectXCollision.h>
 #include "Enums.h"
+#include "Terrain.h"
 #include "../Core/Definitions.h"
 #include "../Math/Constants.h"
-#include <DirectXCollision.h>
 #include "../Graphics/VertexTypes.h"
 #include "../Graphics/Buffer.h"
 #include "../Graphics/TextureManager.h"
-#include "Terrain.h"
+#include "../tecs/entity.h"
 
 #define COMPONENT 
 
@@ -17,6 +18,14 @@ namespace adria
 	{
 		DirectX::XMMATRIX starting_transform = DirectX::XMMatrixIdentity();
 		DirectX::XMMATRIX current_transform = DirectX::XMMatrixIdentity();
+	};
+
+	struct COMPONENT Relationship
+	{
+		static constexpr size_t MAX_CHILDREN = 2048;
+		tecs::entity parent_root = tecs::null_entity;
+		size_t children_count = 0;
+		tecs::entity children[MAX_CHILDREN] = { tecs::null_entity };
 	};
 
 	struct COMPONENT Mesh

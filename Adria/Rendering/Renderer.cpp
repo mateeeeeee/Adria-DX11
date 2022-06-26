@@ -1980,7 +1980,14 @@ namespace adria
 				for (auto e : entities)
 				{
 					auto [mesh, transform, material] = gbuffer_view.get<Mesh, Transform, Material>(e);
-					object_cbuf_data.model = transform.current_transform;
+
+					XMMATRIX parent_transform = XMMatrixIdentity();
+					if (Relationship* relationship = reg.get_if<Relationship>(e))
+					{
+						if (auto* root_transform = reg.get_if<Transform>(relationship->parent_root)) parent_transform = root_transform->current_transform;
+					}
+					
+					object_cbuf_data.model = transform.current_transform * parent_transform;
 					object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 					object_cbuffer->Update(context, object_cbuf_data);
 
@@ -2918,7 +2925,6 @@ namespace adria
 	void Renderer::PassShadowMapCommon()
 	{
 		ID3D11DeviceContext* context = gfx->Context();
-
 		auto shadow_view = reg.view<Mesh, Transform, Visibility>();
 		if (!renderer_settings.shadow_transparent)
 		{
@@ -2931,7 +2937,13 @@ namespace adria
 					auto const& transform = shadow_view.get<Transform>(e);
 					auto const& mesh = shadow_view.get<Mesh>(e);
 
-					object_cbuf_data.model = transform.current_transform;
+					XMMATRIX parent_transform = XMMatrixIdentity();
+					if (Relationship* relationship = reg.get_if<Relationship>(e))
+					{
+						if (auto* root_transform = reg.get_if<Transform>(relationship->parent_root)) parent_transform = root_transform->current_transform;
+					}
+
+					object_cbuf_data.model = transform.current_transform * parent_transform;
 					object_cbuf_data.transposed_inverse_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 					object_cbuffer->Update(context, object_cbuf_data);
 					mesh.Draw(context);
@@ -2962,7 +2974,13 @@ namespace adria
 				auto& transform = shadow_view.get<Transform>(e);
 				auto& mesh = shadow_view.get<Mesh>(e);
 
-				object_cbuf_data.model = transform.current_transform;
+				XMMATRIX parent_transform = XMMatrixIdentity();
+				if (Relationship* relationship = reg.get_if<Relationship>(e))
+				{
+					if (auto* root_transform = reg.get_if<Transform>(relationship->parent_root)) parent_transform = root_transform->current_transform;
+				}
+
+				object_cbuf_data.model = transform.current_transform * parent_transform;
 				object_cbuf_data.transposed_inverse_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 				object_cbuffer->Update(context, object_cbuf_data);
 				mesh.Draw(context);
@@ -2977,7 +2995,13 @@ namespace adria
 				ADRIA_ASSERT(material != nullptr);
 				ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
 
-				object_cbuf_data.model = transform.current_transform;
+				XMMATRIX parent_transform = XMMatrixIdentity();
+				if (Relationship* relationship = reg.get_if<Relationship>(e))
+				{
+					if (auto* root_transform = reg.get_if<Transform>(relationship->parent_root)) parent_transform = root_transform->current_transform;
+				}
+
+				object_cbuf_data.model = transform.current_transform * parent_transform;
 				object_cbuf_data.transposed_inverse_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 				object_cbuffer->Update(context, object_cbuf_data);
 

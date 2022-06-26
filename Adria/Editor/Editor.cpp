@@ -861,8 +861,7 @@ namespace adria
 	void Editor::ListEntities()
     {
         auto all_entities = engine->reg.view<Tag>();
-
-        ImGui::Begin("Entities");
+		ImGui::Begin("Entities");
         {
             if (ImGui::BeginPopupContextWindow(0, 1, false))
             {
@@ -871,48 +870,63 @@ namespace adria
                     entity empty = engine->reg.create();
                     engine->reg.emplace<Tag>(empty);
                 }
-
                 ImGui::EndPopup();
             }
+			std::vector<entity> deleted_entities{};
+			std::function<void(entity, bool)> ShowEntity;
+			ShowEntity = [&](entity e, bool first_iteration)
+			{
+				Relationship* relationship = engine->reg.get_if<Relationship>(e);
+				if (first_iteration && relationship && relationship->parent_root != null_entity) return;
+				auto& tag = all_entities.get(e);
 
-            std::vector<entity> deleted_entities{};
-            for (auto e : all_entities)
-            {
-                auto& tag = all_entities.get(e);
+				ImGuiTreeNodeFlags flags = ((selected_entity == e) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
+				flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+				bool opened = ImGui::TreeNodeEx(tag.name.c_str(), flags);
 
-                ImGuiTreeNodeFlags flags = ((selected_entity == e) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-                flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-                bool opened = ImGui::TreeNodeEx(tag.name.c_str(), flags);
+				if (ImGui::IsItemClicked())
+				{
+					if (e == selected_entity) selected_entity = null_entity;
+					else selected_entity = e;
+				}
 
-                
-                if (ImGui::IsItemClicked())
-                {
-                    if (e == selected_entity)
-                        selected_entity = null_entity;
-                    else
-                        selected_entity = e;
-                }
+				bool entity_deleted = false;
+				if (ImGui::BeginPopupContextItem())
+				{
+					if (ImGui::MenuItem("Delete")) entity_deleted = true;
 
+					ImGui::EndPopup();
+				}
 
-                bool entity_deleted = false;
-                if (ImGui::BeginPopupContextItem())
-                {
-                    if (ImGui::MenuItem("Delete")) entity_deleted = true;
+				if (entity_deleted)
+				{
+					deleted_entities.push_back(e);
+					if (e == selected_entity) selected_entity = null_entity;
+					if (relationship)
+					{
+						for (size_t i = 0; i < relationship->children_count; ++i)
+						{
+							deleted_entities.push_back(relationship->children[i]);
+						}
+					}
+				}
 
-                    ImGui::EndPopup();
-                }
+				if (opened)
+				{
+					if (relationship)
+					{
+						for (size_t i = 0; i < relationship->children_count; ++i)
+						{
+							ShowEntity(relationship->children[i], false);
+						}
+					}
+					ImGui::TreePop();
+				}
+			};
 
-                if (opened) ImGui::TreePop();
+            for (auto e : all_entities) ShowEntity(e, true);
 
-                if (entity_deleted)
-                {
-                    deleted_entities.push_back(e);
-                    if (selected_entity == e) selected_entity = null_entity;
-                }
-            }
-
-            for (auto e : deleted_entities)
-                engine->reg.destroy(e);
+			for (auto e : deleted_entities) engine->reg.destroy(e);
         }
         ImGui::End();
     }
@@ -1145,11 +1159,22 @@ namespace adria
 					if (Visibility* vis = engine->reg.get_if<Visibility>(selected_entity))
 					{
 						vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
-						transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
-						vis->aabb.Transform(vis->aabb, transform->current_transform);
+						vis->aabb.Transform(vis->aabb, DirectX::XMLoadFloat4x4(&tr));
 					}
-					else transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
 
+					if (Relationship* relationship = engine->reg.get_if<Relationship>(selected_entity))
+					{
+						for (size_t i = 0; i < relationship->children_count; ++i)
+						{
+							entity child = relationship->children[i];
+							if (Visibility* vis = engine->reg.get_if<Visibility>(child))
+							{
+								vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
+								vis->aabb.Transform(vis->aabb, DirectX::XMLoadFloat4x4(&tr));
+							}
+						}
+					}
+					transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
                 }
 
                 auto skybox = engine->reg.get_if<Skybox>(selected_entity);
@@ -1168,12 +1193,6 @@ namespace adria
 						}
 						ImGuiFileDialog::Instance()->Close();
 					}
-                }
-
-                auto forward = engine->reg.get_if<Forward>(selected_entity);
-                if (forward)
-                {
-                    if (ImGui::CollapsingHeader("Forward")) ImGui::Checkbox("Transparent", &forward->transparent);
                 }
 
                 auto emitter = engine->reg.get_if<Emitter>(selected_entity);
@@ -1267,266 +1286,8 @@ namespace adria
 						ImGuiFileDialog::Instance()->Close();
 					}
 					ImGui::PopID();
-
 					ImGui::Checkbox("Modify GBuffer Normals", &decal->modify_gbuffer_normals);
 				}
-
-                static char const* const components[] = { "Mesh", "Transform", "Material",
-               "Visibility", "Light", "Skybox", "Deferred", "Forward", "Emitter"};
-                
-                static int current_component = 0;
-                char const* combo_label = components[current_component];
-                if (ImGui::BeginCombo("Components", combo_label, 0))
-                {
-                    for (int n = 0; n < IM_ARRAYSIZE(components); n++)
-                    {
-                        const bool is_selected = (current_component == n);
-                        if (ImGui::Selectable(components[n], is_selected))
-                            current_component = n;
-
-                        // Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-                        if (is_selected)
-                            ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                }
-
-                enum EComponentIndex
-                {
-                    MESH,
-                    TRANSFORM,
-                    MATERIAL,
-                    VISIBILITY,
-                    LIGHT,
-                    SKYBOX,
-                    DEFERRED,
-                    FORWARD,
-                    EMITTER
-                };
-
-                static ModelParameters params{};
-                if (current_component == MESH)
-                {
-                    
-                    if(ImGui::Button("Choose Mesh"))
-                        ImGuiFileDialog::Instance()->OpenDialog("Choose Mesh", "Choose File", ".obj,.gltf", ".");
-
-                    if (ImGuiFileDialog::Instance()->Display("Choose Mesh"))
-                    {
-
-                        if (ImGuiFileDialog::Instance()->IsOk())
-                        {
-                            std::string model_path = ImGuiFileDialog::Instance()->GetFilePathName();
-                            params.model_path = model_path;
-                        }
-
-                    ImGuiFileDialog::Instance()->Close();
-                    }
-                }
-
-                static ELightType light_type = ELightType::Point;
-                if (current_component == LIGHT)
-                {
-                    static char const* const light_types[] = { "Directional", "Point", "Spot"};
-
-                    static int current_light_type = 0;
-                    ImGui::ListBox("Light Types", &current_light_type, light_types, IM_ARRAYSIZE(light_types));
-                    light_type = static_cast<ELightType>(current_light_type);
-                }
-
-                if (ImGui::Button("Add Component"))
-                {
-                    switch(current_component)
-                    {
-                    case MESH:
-                        if (engine->reg.has<Mesh>(selected_entity))
-                        {
-                            ADRIA_LOG(WARNING, "Entity already has Mesh Component!");
-                        }
-                        else
-                        {
-                            ADRIA_LOG(WARNING, "Not supported for now!");
-                        }
-                        break;
-                    case TRANSFORM:
-                        if (engine->reg.has<Transform>(selected_entity))
-                        {
-                            ADRIA_LOG(WARNING, "Entity already has Transform Component!");
-                        }
-                        else engine->reg.emplace<Transform>(selected_entity);
-                        break;
-                    case MATERIAL:
-                        if (engine->reg.has<Material>(selected_entity))
-                        {
-                            ADRIA_LOG(WARNING, "Entity already has Material Component!");
-                        }
-                        else
-                        {
-                            Material mat{};
-                            if (engine->reg.has<Deferred>(selected_entity))
-                                mat.shader = EShaderProgram::GBufferPBR;
-                            else mat.shader = EShaderProgram::Solid;
-                            engine->reg.emplace<Material>(selected_entity, mat);
-                        }
-                        break;
-                    case VISIBILITY:
-                        if (engine->reg.has<Visibility>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Visibility Component!");
-						}
-                        else if (!engine->reg.has<Mesh>(selected_entity) || !engine->reg.has<Transform>(selected_entity))
-                        {
-                            ADRIA_LOG(WARNING, "Entity has to have Mesh and Transform Component before adding Visibility!");
-                        }
-                        break;
-                    case LIGHT:
-                        if (engine->reg.has<Light>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Light Component!");
-						}
-                        else
-                        {
-                            Light light{};
-                            light.type = light_type;
-                            engine->reg.emplace<Light>(selected_entity, light);
-                        }
-                        break;
-                    case SKYBOX:
-                        if (engine->reg.has<Skybox>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Skybox Component!");
-						}
-                        else 
-                        {
-                            engine->reg.emplace<Skybox>(selected_entity);
-                        }
-                        break;
-                    case DEFERRED:
-                        if(engine->reg.has<Deferred>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Deferred Component!");
-						}
-                        else if (engine->reg.has<Forward>(selected_entity))
-                        {
-                            ADRIA_LOG(WARNING, "Cannot add Deferred Component to entity that has Forward Component!");
-                        }
-                        else 
-                        {
-							engine->reg.emplace<Deferred>(selected_entity);
-                        }
-                        break;
-                    case FORWARD:
-                        if (engine->reg.has<Forward>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity already has Forward Component!");
-						}
-                        else if (engine->reg.has<Deferred>(selected_entity))
-                        {
-                            ADRIA_LOG(WARNING, "Cannot add Forward Component to entity that has Deferred Component!");
-                        }
-                        else 
-                        {
-                            engine->reg.emplace<Forward>(selected_entity, false);
-                        }
-                        break;
-                    case EMITTER:
-                        if (engine->reg.has<Emitter>(selected_entity))
-                        {
-                            ADRIA_LOG(WARNING, "Entity already has Emitter Component!");
-                        }
-                        else
-                        {
-                            engine->reg.emplace<Emitter>(selected_entity);
-                        }
-                    }
-                }
-
-                if (ImGui::Button("Remove Component"))
-                {
-                    switch (current_component)
-                    {
-                    case MESH:
-                        if (!engine->reg.has<Mesh>(selected_entity))
-                        {
-                            ADRIA_LOG(WARNING, "Entity doesn't have Mesh Component!");
-                        }
-                        else 
-                        {
-                            engine->reg.remove<Mesh>(selected_entity);
-                        }
-                        break;
-                    case TRANSFORM:
-						if (!engine->reg.has<Transform>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Transform Component!");
-						}
-						else
-						{
-							engine->reg.remove<Transform>(selected_entity);
-						}
-                        break;
-                    case MATERIAL:
-						if (!engine->reg.has<Material>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Material Component!");
-						}
-						else
-						{
-							engine->reg.remove<Material>(selected_entity);
-						}
-                        break;
-                    case VISIBILITY:
-						if (!engine->reg.has<Visibility>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Visibility Component!");
-						}
-						else
-						{
-							engine->reg.remove<Visibility>(selected_entity);
-						}
-                        break;
-                    case LIGHT:
-						if (!engine->reg.has<Light>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Light Component!");
-						}
-						else
-						{
-							engine->reg.remove<Light>(selected_entity);
-						}
-                        break;
-                    case SKYBOX:
-						if (!engine->reg.has<Skybox>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Skybox Component!");
-						}
-						else
-						{
-							engine->reg.remove<Skybox>(selected_entity);
-						}
-                        break;
-                    case DEFERRED:
-						if (!engine->reg.has<Deferred>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Deferred Component!");
-						}
-						else
-						{
-							engine->reg.remove<Deferred>(selected_entity);
-						}
-                        break;
-                    case FORWARD:
-						if (!engine->reg.has<Forward>(selected_entity))
-						{
-							ADRIA_LOG(WARNING, "Entity doesn't have Forward Component!");
-						}
-						else
-						{
-							engine->reg.remove<Forward>(selected_entity);
-						}
-                        break;
-                    }
-                }
             }
         }
         ImGui::End();
@@ -1586,7 +1347,6 @@ namespace adria
 
         if (selected_entity != null_entity && engine->reg.has<Transform>(selected_entity) && gizmo_enabled)
         {
-
             ImGuizmo::SetDrawlist();
 
             ImVec2 window_size = ImGui::GetWindowSize();
@@ -1605,7 +1365,6 @@ namespace adria
             DirectX::XMStoreFloat4x4(&view, camera_view);
             DirectX::XMStoreFloat4x4(&projection, camera_proj);
 
-
             auto& entity_transform = engine->reg.get<Transform>(selected_entity);
 
             DirectX::XMFLOAT4X4 tr;
@@ -1617,15 +1376,25 @@ namespace adria
             if (ImGuizmo::IsUsing())
             {
                 Visibility* vis = engine->reg.get_if<Visibility>(selected_entity);
-
                 if (vis)
                 {
                     vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
-                    entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
-                    vis->aabb.Transform(vis->aabb, entity_transform.current_transform);
+                    vis->aabb.Transform(vis->aabb, DirectX::XMLoadFloat4x4(&tr));
                 }
-                else entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
-
+               
+				if (Relationship* relationship = engine->reg.get_if<Relationship>(selected_entity))
+				{
+					for (size_t i = 0; i < relationship->children_count; ++i)
+					{
+						entity child = relationship->children[i];
+						if (Visibility* vis = engine->reg.get_if<Visibility>(child))
+						{
+							vis->aabb.Transform(vis->aabb, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
+							vis->aabb.Transform(vis->aabb, DirectX::XMLoadFloat4x4(&tr));
+						}
+					}
+				}
+				entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
             }
         }
 
@@ -1975,7 +1744,6 @@ namespace adria
                     break;
                 }
             }
-
             ImGuiFileDialog::Instance()->Close();
         }
     }

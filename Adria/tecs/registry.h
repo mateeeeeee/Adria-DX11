@@ -92,6 +92,7 @@ namespace adria::tecs
 		{
 			remove_all(e);
 			release_entity(e);
+			e = null_entity;
 		}
 
 		template<typename... Cs>
