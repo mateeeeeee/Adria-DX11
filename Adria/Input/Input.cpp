@@ -164,7 +164,7 @@ namespace adria
 			    {
 				    int32 mx = GET_X_LPARAM(data.lparam);
 				    int32 my = GET_Y_LPARAM(data.lparam);
-                    input_events.left_mouse_clicked.Broadcast(mx, my);
+                    input_events.left_mouse_clicked_event.Broadcast(mx, my);
 			    }
                 break;
             case WM_KEYDOWN:

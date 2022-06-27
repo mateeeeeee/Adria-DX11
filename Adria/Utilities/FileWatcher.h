@@ -15,7 +15,7 @@ namespace adria
 		Deleted 
 	};
 
-	DECLARE_EVENT(FileModified, FileWatcher, std::string const&);
+	DECLARE_EVENT(FileModifiedEvent, FileWatcher, std::string const&);
 
 	class FileWatcher
 	{
@@ -56,11 +56,11 @@ namespace adria
 			}
 		}
 		
-		FileModified& GetFileModifiedEvent() { return file_modified_event; }
+		FileModifiedEvent& GetFileModifiedEvent() { return file_modified_event; }
 
 	private:
 		std::vector<std::string> paths_to_watch;
 		HashMap<std::string, std::filesystem::file_time_type> files_map;
-		FileModified file_modified_event;
+		FileModifiedEvent file_modified_event;
 	};
 }
