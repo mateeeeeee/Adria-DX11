@@ -391,25 +391,20 @@ namespace adria
 		PassGBuffer();
 		PassDecals();
 
-		if (pick_in_current_frame)
-		{
-			PassPicking();
-		}
-		
+		if (pick_in_current_frame) PassPicking();
+
 		if(!renderer_settings.voxel_debug)
 		{
 			if (renderer_settings.ambient_occlusion == EAmbientOcclusion::SSAO) PassSSAO();
 			else if (renderer_settings.ambient_occlusion == EAmbientOcclusion::HBAO) PassHBAO();
 		
 			PassAmbient();
-		
 			PassDeferredLighting();
 		
 			if (renderer_settings.use_tiled_deferred) PassDeferredTiledLighting();
 			else if (renderer_settings.use_clustered_deferred) PassDeferredClusteredLighting();
 		
 			PassForward();
-
 			PassParticles();
 		}
 
@@ -421,7 +416,6 @@ namespace adria
 		}
 
 		PassPostprocessing();
-
 	}
 	void Renderer::ResolveToBackbuffer()
 	{
@@ -2005,7 +1999,7 @@ namespace adria
 					XMMATRIX parent_transform = XMMatrixIdentity();
 					if (Relationship* relationship = reg.get_if<Relationship>(e))
 					{
-						if (auto* root_transform = reg.get_if<Transform>(relationship->parent_root)) parent_transform = root_transform->current_transform;
+						if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 					}
 					
 					object_cbuf_data.model = transform.current_transform * parent_transform;
@@ -2962,7 +2956,7 @@ namespace adria
 					XMMATRIX parent_transform = XMMatrixIdentity();
 					if (Relationship* relationship = reg.get_if<Relationship>(e))
 					{
-						if (auto* root_transform = reg.get_if<Transform>(relationship->parent_root)) parent_transform = root_transform->current_transform;
+						if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 					}
 
 					object_cbuf_data.model = transform.current_transform * parent_transform;
@@ -2999,7 +2993,7 @@ namespace adria
 				XMMATRIX parent_transform = XMMatrixIdentity();
 				if (Relationship* relationship = reg.get_if<Relationship>(e))
 				{
-					if (auto* root_transform = reg.get_if<Transform>(relationship->parent_root)) parent_transform = root_transform->current_transform;
+					if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 				}
 
 				object_cbuf_data.model = transform.current_transform * parent_transform;
@@ -3020,7 +3014,7 @@ namespace adria
 				XMMATRIX parent_transform = XMMatrixIdentity();
 				if (Relationship* relationship = reg.get_if<Relationship>(e))
 				{
-					if (auto* root_transform = reg.get_if<Transform>(relationship->parent_root)) parent_transform = root_transform->current_transform;
+					if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 				}
 
 				object_cbuf_data.model = transform.current_transform * parent_transform;

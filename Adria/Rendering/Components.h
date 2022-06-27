@@ -23,7 +23,7 @@ namespace adria
 	struct COMPONENT Relationship
 	{
 		static constexpr size_t MAX_CHILDREN = 2048;
-		tecs::entity parent_root = tecs::null_entity;
+		tecs::entity parent = tecs::null_entity;
 		size_t children_count = 0;
 		tecs::entity children[MAX_CHILDREN] = { tecs::null_entity };
 	};

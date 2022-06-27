@@ -876,7 +876,7 @@ namespace adria
 			ShowEntity = [&](entity e, bool first_iteration)
 			{
 				Relationship* relationship = engine->reg.get_if<Relationship>(e);
-				if (first_iteration && relationship && relationship->parent_root != null_entity) return;
+				if (first_iteration && relationship && relationship->parent != null_entity) return;
 				auto& tag = all_entities.get(e);
 
 				ImGuiTreeNodeFlags flags = ((selected_entity == e) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
@@ -900,7 +900,6 @@ namespace adria
 				if (entity_deleted)
 				{
 					deleted_entities.push_back(e);
-					if (e == selected_entity) selected_entity = null_entity;
 					if (relationship)
 					{
 						for (size_t i = 0; i < relationship->children_count; ++i)
@@ -924,8 +923,29 @@ namespace adria
 			};
 
             for (auto e : all_entities) ShowEntity(e, true);
-
-			for (auto e : deleted_entities) engine->reg.destroy(e);
+			for (auto e : deleted_entities)
+			{
+				if (Relationship* relationship = engine->reg.get_if<Relationship>(e))
+				{
+					if (relationship->parent != null_entity)
+					{
+						ADRIA_ASSERT(engine->reg.has<Relationship>(relationship->parent));
+						Relationship& parent_relationship = engine->reg.get<Relationship>(relationship->parent);
+						for (size_t i = 0; i < parent_relationship.children_count; ++i)
+						{
+							entity child = parent_relationship.children[i];
+							if (child == e)
+							{
+								std::swap(parent_relationship.children[i], parent_relationship.children[parent_relationship.children_count - 1]);
+								--parent_relationship.children_count;
+								break;
+							}
+						}
+					}
+				}
+				if (e == selected_entity) selected_entity = null_entity;
+				engine->reg.destroy(e);
+			}
         }
         ImGui::End();
     }
