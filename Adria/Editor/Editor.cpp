@@ -910,7 +910,6 @@ namespace adria
         auto all_entities = engine->reg.view<Tag>();
 		ImGui::Begin("Entities");
         {
-			std::vector<entity> deleted_entities{};
 			std::function<void(entity, bool)> ShowEntity;
 			ShowEntity = [&](entity e, bool first_iteration)
 			{
@@ -940,6 +939,7 @@ namespace adria
 					ImGui::TreePop();
 				}
 			};
+			for (auto e : all_entities) ShowEntity(e, true);
         }
         ImGui::End();
     }
