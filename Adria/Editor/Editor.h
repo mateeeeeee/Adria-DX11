@@ -14,7 +14,7 @@ namespace adria
     struct Material;
     enum class EMaterialTextureType;
     struct ImGuiLogger;
-
+    
 	struct EditorInit
 	{
 		EngineInit engine_init;

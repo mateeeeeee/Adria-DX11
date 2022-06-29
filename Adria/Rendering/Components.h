@@ -107,7 +107,7 @@ namespace adria
 	{
 		TextureHandle albedo_texture			  = INVALID_TEXTURE_HANDLE;
 		TextureHandle normal_texture			  = INVALID_TEXTURE_HANDLE;
-		TextureHandle metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
+		TextureHandle metallic_roughness_texture  = INVALID_TEXTURE_HANDLE;
 		TextureHandle emissive_texture			  = INVALID_TEXTURE_HANDLE;
 
 		float32 albedo_factor		= 1.0f;
@@ -157,7 +157,7 @@ namespace adria
 		bool light_visible = true;
 		bool skip_culling = false;
 		bool draw_aabb = false;
-		std::shared_ptr<Buffer> aabb_vb = nullptr;;
+		std::shared_ptr<Buffer> aabb_vb = nullptr;
 
 		void UpdateBuffer(GraphicsDevice* gfx)
 		{
