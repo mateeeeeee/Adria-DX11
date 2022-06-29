@@ -429,7 +429,10 @@ namespace adria
 			{
 				EShader shader = (EShader)s;
 				if (GetStage(shader) != EShaderStage::VS) continue;
-				if (shader != VS_Foliage) input_layout_map[shader] = InputLayout(device, vs_shader_map[shader]->GetBlob());
+				
+				if (shader != VS_Foliage) input_layout_map.emplace(std::piecewise_construct, 
+																   std::forward_as_tuple(shader),
+																   std::forward_as_tuple(device, vs_shader_map[shader]->GetBlob()));
 				else
 				{
 				std::vector<D3D11_INPUT_ELEMENT_DESC> foliage_input_desc = {
@@ -439,7 +442,9 @@ namespace adria
 					{ "INSTANCE_OFFSET", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
 					{ "INSTANCE_ROTATION", 0, DXGI_FORMAT_R32_FLOAT, 1, 12, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
 					};
-				input_layout_map[shader] = InputLayout(device, vs_shader_map[shader]->GetBlob(), foliage_input_desc);
+				input_layout_map.emplace(std::piecewise_construct,
+					std::forward_as_tuple(shader),
+					std::forward_as_tuple(device, vs_shader_map[shader]->GetBlob(), foliage_input_desc));
 				}
 			}
 
@@ -538,7 +543,7 @@ namespace adria
 			std::vector<UnderlyingType> shaders(EShader_Count);
 			std::iota(std::begin(shaders), std::end(shaders), 0);
 			std::for_each(
-				std::execution::par_unseq,
+				std::execution::seq,
 				std::begin(shaders),
 				std::end(shaders),
 				[](UnderlyingType s)
