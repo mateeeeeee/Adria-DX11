@@ -446,6 +446,7 @@ namespace adria
 				else if (gltf_material.alphaMode == "BLEND")
 				{
 					material.alpha_mode = EMaterialAlphaMode::Blend;
+					material.shader = EShaderProgram::GBufferPBR_Mask;
 				}
 				else if (gltf_material.alphaMode == "MASK")
 				{
