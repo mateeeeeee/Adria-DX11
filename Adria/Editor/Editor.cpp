@@ -928,26 +928,6 @@ namespace adria
 					else selected_entity = e;
 				}
 
-				bool entity_deleted = false;
-				if (ImGui::BeginPopupContextItem())
-				{
-					if (ImGui::MenuItem("Delete")) entity_deleted = true;
-
-					ImGui::EndPopup();
-				}
-
-				if (entity_deleted)
-				{
-					deleted_entities.push_back(e);
-					if (relationship)
-					{
-						for (size_t i = 0; i < relationship->children_count; ++i)
-						{
-							deleted_entities.push_back(relationship->children[i]);
-						}
-					}
-				}
-
 				if (opened)
 				{
 					if (relationship)
@@ -960,31 +940,6 @@ namespace adria
 					ImGui::TreePop();
 				}
 			};
-
-            for (auto e : all_entities) ShowEntity(e, true);
-			for (auto e : deleted_entities)
-			{
-				if (Relationship* relationship = engine->reg.get_if<Relationship>(e))
-				{
-					if (relationship->parent != null_entity)
-					{
-						ADRIA_ASSERT(engine->reg.has<Relationship>(relationship->parent));
-						Relationship& parent_relationship = engine->reg.get<Relationship>(relationship->parent);
-						for (size_t i = 0; i < parent_relationship.children_count; ++i)
-						{
-							entity child = parent_relationship.children[i];
-							if (child == e)
-							{
-								std::swap(parent_relationship.children[i], parent_relationship.children[parent_relationship.children_count - 1]);
-								--parent_relationship.children_count;
-								break;
-							}
-						}
-					}
-				}
-				if (e == selected_entity) selected_entity = null_entity;
-				engine->reg.destroy(e);
-			}
         }
         ImGui::End();
     }
