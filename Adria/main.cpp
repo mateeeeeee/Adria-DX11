@@ -10,7 +10,7 @@
 #include "Logging/Logger.h"
 #include "Editor/Editor.h"
 #include "Utilities/MemoryDebugger.h"
-#include "Utilities/CommandLineParser.h"
+#include "Utilities/CommandLineArgs.h"
 
 using namespace adria;
 
@@ -30,22 +30,24 @@ int APIENTRY wWinMain(
     //MemoryDebugger::SetAllocHook(MemoryAllocHook);
     //MemoryDebugger::SetBreak(275);
 	//MemoryDebugger::Checkpoint();
-	CommandLineConfigInfo cmd_line_info = ParseCommandLine(lpCmdLine);
+	CommandLineArgs::Parse(lpCmdLine);
     {
-		ADRIA_REGISTER_LOGGER(new FileLogger(cmd_line_info.log_file.c_str(), static_cast<ELogLevel>(cmd_line_info.log_level)));
-		ADRIA_REGISTER_LOGGER(new OutputDebugStringLogger(static_cast<ELogLevel>(cmd_line_info.log_level)));
+        char const* log_file = CommandLineArgs::GetString(ECmdLineArg::LogFile);
+        int32 log_level = CommandLineArgs::GetInt(ECmdLineArg::LogLevel);
+		ADRIA_REGISTER_LOGGER(new FileLogger(log_file, static_cast<ELogLevel>(log_level)));
+		ADRIA_REGISTER_LOGGER(new OutputDebugStringLogger(static_cast<ELogLevel>(log_level)));
 
-        WindowInit window_init{};
-        window_init.instance = hInstance;
-        window_init.width = cmd_line_info.window_width;
-        window_init.height = cmd_line_info.window_height;
-        window_init.title = cmd_line_info.window_title;
-        window_init.maximize = cmd_line_info.window_maximize;
-        Window::Initialize(window_init);
+		WindowInit window_init{};
+		window_init.instance = hInstance;
+		window_init.width = CommandLineArgs::GetInt(ECmdLineArg::WindowWidth);
+		window_init.height = CommandLineArgs::GetInt(ECmdLineArg::WindowHeight);
+		window_init.title = CommandLineArgs::GetString(ECmdLineArg::WindowTitle);
+		window_init.maximize = CommandLineArgs::GetBool(ECmdLineArg::WindowMaximize);
+		Window::Initialize(window_init);
 
         EngineInit engine_init{};
-        engine_init.vsync = cmd_line_info.vsync;
-        engine_init.scene_file = cmd_line_info.scene_file.c_str();
+        engine_init.vsync = CommandLineArgs::GetBool(ECmdLineArg::Vsync);
+        engine_init.scene_file = CommandLineArgs::GetString(ECmdLineArg::SceneFile);
 
         EditorInit editor_init{};
         editor_init.engine_init = std::move(engine_init);

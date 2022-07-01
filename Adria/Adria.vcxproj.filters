@@ -191,6 +191,9 @@
     <ClCompile Include="Utilities\CPUProfiler.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\CommandLineArgs.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -397,7 +400,7 @@
     <ClInclude Include="Utilities\Heightmap.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\CommandLineParser.h">
+    <ClInclude Include="Utilities\CommandLineArgs.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\ProfilerSettings.h">
