@@ -161,9 +161,6 @@
     <ClCompile Include="Editor\Editor.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
-    <ClCompile Include="..\ThirdParty\ImGui\ImGuiFileDialog.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
     <ClCompile Include="Utilities\Heightmap.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
@@ -387,12 +384,6 @@
     </ClInclude>
     <ClInclude Include="Rendering\RendererSettings.h">
       <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGuiFileDialog.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\ImGui\ImGuiFileDialogConfig.h">
-      <Filter>ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Math\ComputeNormals.h">
       <Filter>Math</Filter>

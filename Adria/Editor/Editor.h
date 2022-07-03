@@ -12,7 +12,6 @@
 namespace adria
 {
     struct Material;
-    enum class EMaterialTextureType;
     struct ImGuiLogger;
     
 	struct EditorInit
@@ -24,11 +23,8 @@ namespace adria
 	public:
 
         explicit Editor(EditorInit const& init);
-
         ~Editor();
-
         void HandleWindowMessage(WindowMessage const& msg_data);
-
         void Run();
 
 	private:
@@ -46,7 +42,6 @@ namespace adria
 
         void SetStyle();
         void HandleInput();
-        
         void MenuBar();
         void TerrainSettings();
         void OceanSettings();
@@ -62,7 +57,6 @@ namespace adria
         void RendererSettings();
         void ShaderHotReload();
         void StatsAndProfiling();
-        void OpenMaterialFileDialog(Material* mat, EMaterialTextureType type);
 	};
 }
 
