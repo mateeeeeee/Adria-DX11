@@ -9,7 +9,7 @@ namespace adria
 	class Timer
 	{
 		using tp = typename Clock::time_point;
-		
+
 	public:
 
 		Timer() : t0{ Clock::now() } { t1 = t0; }
@@ -38,40 +38,26 @@ namespace adria
 
 		float ElapsedInSeconds() const
 		{
-			return Elapsed() / DurationSecondRatio();
+			return Elapsed() / DurationSecondRatio;
 		}
 
 		float PeekInSeconds() const
 		{
-
-			return Peek() / DurationSecondRatio();
+			return Peek() / DurationSecondRatio;
 		}
 
 		float MarkInSeconds()
 		{
-
-			return Mark() / DurationSecondRatio();
+			return Mark() / DurationSecondRatio;
 		}
 
-
+	private:
+		const tp t0;
+		tp t1;
 	private:
 
-		const tp t0;  //vrijeme stvaranja objekta
-		tp t1;  //vrijeme koje se moze promijeniti sa Mark metodom
-
-	private:
-
-		static float DurationSecondRatio()
-		{
-			static const std::chrono::seconds oneSecond(1);
-			static const Duration oneUnit(1);
-			static const float ratio = oneSecond * 1.0f / oneUnit;
-			return ratio;
-		}
-
+		static constexpr float DurationSecondRatio = std::chrono::seconds(1) / Duration(1);
 	};
 
-	using EngineTimer = Timer<>;
-
-
+	using AdriaTimer = Timer<>;
 };

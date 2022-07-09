@@ -245,7 +245,7 @@ namespace adria
 
 	void Engine::Run(RendererSettings const& settings)
 	{
-		static EngineTimer timer;
+		static AdriaTimer timer;
 		float32 const dt = timer.MarkInSeconds();
 
 		if (Window::IsActive())
