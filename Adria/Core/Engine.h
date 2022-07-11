@@ -19,7 +19,7 @@ namespace adria
 	struct EngineInit
 	{
 		bool vsync = false;
-		char const* scene_file = "scene.json";
+		std::string scene_file = "scene.json";
 	};
 
 	struct SceneConfig;

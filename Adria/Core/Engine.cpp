@@ -31,7 +31,7 @@ namespace adria
 
 	namespace 
 	{
-		std::optional<SceneConfig> ParseSceneConfig(char const* scene_file)
+		std::optional<SceneConfig> ParseSceneConfig(std::string const& scene_file)
 		{
 			SceneConfig config{};
 			json models, lights, camera, skybox;
