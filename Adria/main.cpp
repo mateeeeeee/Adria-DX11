@@ -70,7 +70,6 @@ int APIENTRY wWinMain(
         Window::Destroy();
     }
     //MemoryDebugger::CheckLeaks();
-
 }
 
 
