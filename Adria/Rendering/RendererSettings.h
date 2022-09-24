@@ -35,7 +35,7 @@ namespace adria
 		float32   hbao_power = 1.5f;
 		float32   hbao_radius = 2.0f;
 		//ssr
-		bool ssr = false;
+		bool ssr = true;
 		float32 ssr_ray_step = 1.60f;
 		float32 ssr_ray_hit_threshold = 2.00f;
 		//dof & bokeh

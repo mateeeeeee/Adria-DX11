@@ -191,6 +191,7 @@
     <ClCompile Include="Utilities\Image.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Luz\Luz\Utilities\CLIParser.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imconfig.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imgui.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGuizmo.h" />

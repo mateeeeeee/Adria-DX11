@@ -20,6 +20,22 @@ namespace adria
 	};
 	class Editor
 	{
+		enum
+		{
+			Flag_Profiler,
+			Flag_Camera,
+			Flag_Log,
+			Flag_Entities,
+			Flag_HotReload,
+			Flag_Renderer,
+            Flag_Terrain,
+			Flag_Ocean,
+			Flag_Decal,
+			Flag_Particles,
+			Flag_Sky,
+			Flag_AddEntities,
+			Flag_Count
+		};
 	public:
 
         explicit Editor(EditorInit const& init);
@@ -38,6 +54,8 @@ namespace adria
         RendererSettings renderer_settings{};
         ProfilerSettings profiler_settings{};
         SceneViewport scene_viewport_data;
+
+        std::array<bool, Flag_Count> window_flags = { false };
 	private:
 
         void SetStyle();
