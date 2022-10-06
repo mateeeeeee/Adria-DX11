@@ -529,10 +529,10 @@
     <FxCompile Include="Resources\Shaders\Deferred\LightingPBR_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\GeometryPassPBR_PS.hlsl">
+    <FxCompile Include="Resources\Shaders\Deferred\GBuffer_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\GeometryPassPBR_VS.hlsl">
+    <FxCompile Include="Resources\Shaders\Deferred\GBuffer_VS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\IrmapCS.hlsl">
@@ -727,10 +727,10 @@
     <FxCompile Include="Resources\Shaders\Deferred\ClusterLightingPBR_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\GeometryPassTerrain_VS.hlsl">
+    <FxCompile Include="Resources\Shaders\Deferred\TerrainGBuffer_VS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\GeometryPassTerrain_PS.hlsl">
+    <FxCompile Include="Resources\Shaders\Deferred\TerrainGBuffer_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\FogPS.hlsl">
