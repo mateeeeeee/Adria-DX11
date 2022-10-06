@@ -134,23 +134,16 @@ float4 main(VertexOut pin) : SV_TARGET
         }
         else if (current_light.type == DIRECTIONAL_LIGHT && current_light.use_cascades)
         {
-            float viewDepth = Position.z;
-            matrix shadow_matrices[3] = { shadow_matrix1, shadow_matrix2, shadow_matrix3 };
-            
-            for (uint i = 0; i < 3; ++i)
+            float view_depth = Position.z;
+            for (uint i = 0; i < 4; ++i)
             {
-
                 matrix light_space_matrix = shadow_matrices[i];
-
-                if (viewDepth < splits[i])
+                if (view_depth < splits[i])
                 {
-                    float4 posShadowMap = mul(float4(Position, 1.0), light_space_matrix);
-        
-                    float3 UVD = posShadowMap.xyz / posShadowMap.w;
-
+                    float4 pos_shadow_map = mul(float4(Position, 1.0), light_space_matrix);
+                    float3 UVD = pos_shadow_map.xyz / pos_shadow_map.w;
                     UVD.xy = 0.5 * UVD.xy + 0.5;
                     UVD.y = 1.0 - UVD.y;
-                    
                     shadow_factor = CSMCalcShadowFactor_PCF3x3(shadow_sampler, cascadeDepthMap, i, UVD, shadow_map_size, softness);
                     break;
                 }
@@ -158,12 +151,10 @@ float4 main(VertexOut pin) : SV_TARGET
         }
         else
         {
-            float4 posShadowMap = mul(float4(Position, 1.0), shadow_matrix1);
-            float3 UVD = posShadowMap.xyz / posShadowMap.w;
-
+            float4 pos_shadow_map = mul(float4(Position, 1.0), shadow_matrices[0]);
+            float3 UVD = pos_shadow_map.xyz / pos_shadow_map.w;
             UVD.xy = 0.5 * UVD.xy + 0.5;
-            UVD.y = 1.0 - UVD.y;
-                
+            UVD.y = 1.0 - UVD.y; 
             shadow_factor = CalcShadowFactor_PCF3x3(shadow_sampler, shadowDepthMap, UVD, shadow_map_size, softness);
         }
         Lo = Lo * shadow_factor;

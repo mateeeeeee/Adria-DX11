@@ -57,7 +57,7 @@ float4 main(VertexOut input) : SV_TARGET
 			[branch]
             if (current_light.casts_shadows)
             {
-                float4 posShadowMap = mul(float4(P, 1.0), shadow_matrix1);
+                float4 posShadowMap = mul(float4(P, 1.0), shadow_matrices[0]);
                 float3 UVD = posShadowMap.xyz / posShadowMap.w;
 
                 UVD.xy = 0.5 * UVD.xy + 0.5;

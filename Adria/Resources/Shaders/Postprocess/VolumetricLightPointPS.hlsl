@@ -14,12 +14,8 @@ struct VertexOut
 };
 
 
-
-
 float4 main(VertexOut input) : SV_TARGET
 {
-    
-     //float2 ScreenCoord = input.pos2D.xy / input.pos2D.w * float2(0.5f, -0.5f) + 0.5f;
     float depth = max(input.PosH.z, depthTx.SampleLevel(linear_clamp_sampler, input.Tex, 2));
     float3 P = GetPositionVS(input.Tex, depth);
     float3 V = float3(0.0f, 0.0f, 0.0f) - P;
@@ -30,15 +26,9 @@ float4 main(VertexOut input) : SV_TARGET
     float accumulation = 0;
 
     float3 rayEnd = float3(0.0f, 0.0f, 0.0f);
-	// todo: rayEnd should be clamped to the closest cone intersection point when camera is outside volume
-	
     const uint sampleCount = 16;
     const float stepSize = length(P - rayEnd) / sampleCount;
-
-	// dither ray start to help with undersampling:
     P = P + V * stepSize * dither(input.PosH.xy);
-
-	// Perform ray marching to integrate light volume along view ray:
 	[loop]
     for (uint i = 0; i < sampleCount; ++i)
     {
@@ -46,12 +36,9 @@ float4 main(VertexOut input) : SV_TARGET
         const float dist2 = dot(L, L);
         const float dist = sqrt(dist2);
         L /= dist;
-
         float SpotFactor = dot(L, normalize(-current_light.direction.xyz));
         float spotCutOff = current_light.outer_cosine;
-
         float attenuation = DoAttenuation(dist, current_light.range);
-
 		[branch]
         if (current_light.casts_shadows)
         {

@@ -31,7 +31,7 @@ namespace adria
 		constexpr uint32 SHADOW_MAP_SIZE = 2048;
 		constexpr uint32 SHADOW_CUBE_SIZE = 512;
 		constexpr uint32 SHADOW_CASCADE_SIZE = 2048;
-		constexpr uint32 CASCADE_COUNT = 3;
+		constexpr uint32 CASCADE_COUNT = 4;
 
 		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Directional(Light const& light, BoundingSphere const&
 		scene_bounding_sphere, BoundingBox& cull_box)
@@ -137,24 +137,17 @@ namespace adria
 			ADRIA_ASSERT(light.type == ELightType::Spot);
 
 			XMVECTOR light_dir = XMVector3Normalize(light.direction);
-
 			XMVECTOR light_pos = light.position;
-
 			XMVECTOR target_pos = light_pos + light_dir * light.range;
-
 			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 			XMMATRIX V = XMMatrixLookAtLH(light_pos, target_pos, up);
-
 			static const float32 shadow_near = 0.5f;
-
 			float32 fov_angle = 2.0f * acos(light.outer_cosine);
-
 			XMMATRIX P = XMMatrixPerspectiveFovLH(fov_angle, 1.0f, shadow_near, light.range);
 
 			cull_frustum = BoundingFrustum(P);
 			cull_frustum.Transform(cull_frustum, XMMatrixInverse(nullptr, V));
-
 			return { V,P };
 		}
 	
@@ -163,12 +156,10 @@ namespace adria
 		{
 			static float32 const shadow_near = 0.5f;
 			XMMATRIX P = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, shadow_near, light.range);
-
 			XMVECTOR light_pos = light.position;
 			XMMATRIX V{};
 			XMVECTOR target{};
 			XMVECTOR up{};
-
 			switch (face_index)
 			{
 			case 0:  //X+
@@ -204,23 +195,18 @@ namespace adria
 			default:
 				ADRIA_ASSERT(false && "Invalid face index!");
 			}
-
 			cull_frustum = BoundingFrustum(P);
 			cull_frustum.Transform(cull_frustum, XMMatrixInverse(nullptr, V));
-
 			return { V,P };
 		}
 
 		std::array<XMMATRIX, CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float32 split_lambda, std::array<float32, CASCADE_COUNT>& split_distances)
 		{
-			
 			float32 camera_near = camera.Near();
 			float32 camera_far = camera.Far();
 			float32 fov = camera.Fov();
 			float32 ar = camera.AspectRatio();
-
 			float32 f = 1.0f / CASCADE_COUNT;
-
 			for (uint32 i = 0; i < split_distances.size(); i++)
 			{
 				float32 fi = (i + 1) * f;
@@ -233,7 +219,6 @@ namespace adria
 			projectionMatrices[0] = XMMatrixPerspectiveFovLH(fov, ar, camera_near, split_distances[0]);
 			for (uint32 i = 1; i < projectionMatrices.size(); ++i)
 				projectionMatrices[i] = XMMatrixPerspectiveFovLH(fov, ar, split_distances[i - 1], split_distances[i]);
-
 			return projectionMatrices;
 		}
 
@@ -260,7 +245,6 @@ namespace adria
 				frustumCenter = frustumCenter + XMLoadFloat3(&corners[i]);
 			}
 			frustumCenter /= static_cast<float32>(corners.size());
-
 			float32 radius = 0.0f;
 
 			for (uint32 i = 0; i < corners.size(); ++i)
@@ -278,7 +262,6 @@ namespace adria
 			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 			XMMATRIX V = XMMatrixLookAtLH(frustumCenter, frustumCenter + lightDistanceFactor * lightDir * radius, up);
-
 			XMFLOAT3 minE, maxE, cascadeE;
 
 			XMStoreFloat3(&minE, minExtents);
@@ -293,28 +276,20 @@ namespace adria
 			float32 f = maxE.z * farFactor;
 
 			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
-
 			XMMATRIX VP = V * P;
-
 			XMFLOAT3 so(0, 0, 0);
-
 			XMVECTOR shadowOrigin = XMLoadFloat3(&so);
-
 			shadowOrigin = XMVector3Transform(shadowOrigin, VP); //sOrigin * P;
-
 			shadowOrigin *= (SHADOW_CASCADE_SIZE / 2.0f);
 
 			XMVECTOR roundedOrigin = XMVectorRound(shadowOrigin);
 			XMVECTOR roundOffset = roundedOrigin - shadowOrigin;
-
 			roundOffset *= (2.0f / SHADOW_CASCADE_SIZE);
-
 			roundOffset *= XMVectorSet(1.0, 1.0, 0.0, 0.0);
 
 			P.r[3] += roundOffset;
 			BoundingBox::CreateFromPoints(cull_box, XMVectorSet(l, b, n, 1.0f), XMVectorSet(r, t, f, 1.0f));
 			cull_box.Transform(cull_box, XMMatrixInverse(nullptr, V));
-
 			return { V,P };
 		}
 
@@ -2821,7 +2796,7 @@ namespace adria
 		shadow_cbuf_data.lightviewprojection = V * P;
 		shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
-		shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
+		shadow_cbuf_data.shadow_matrices[0] = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
 		shadow_cbuffer->Update(context, shadow_cbuf_data);
 
 		ID3D11ShaderResourceView* null_srv[1] = { nullptr };
@@ -2848,7 +2823,7 @@ namespace adria
 		shadow_cbuf_data.lightviewprojection = V * P;
 		shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
-		shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
+		shadow_cbuf_data.shadow_matrices[0] = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
 		shadow_cbuffer->Update(context, shadow_cbuf_data);
 
 		ID3D11ShaderResourceView* null_srv[1] = { nullptr };
@@ -2928,12 +2903,14 @@ namespace adria
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWARRAY, 1, srv);
 
 		shadow_cbuf_data.shadow_map_size = SHADOW_CASCADE_SIZE;
-		shadow_cbuf_data.shadow_matrix1 = XMMatrixInverse(nullptr, camera->View()) * light_view_projections[0];
-		shadow_cbuf_data.shadow_matrix2 = XMMatrixInverse(nullptr, camera->View()) * light_view_projections[1];
-		shadow_cbuf_data.shadow_matrix3 = XMMatrixInverse(nullptr, camera->View()) * light_view_projections[2];
+		shadow_cbuf_data.shadow_matrices[0] = XMMatrixInverse(nullptr, camera->View()) * light_view_projections[0];
+		shadow_cbuf_data.shadow_matrices[1] = XMMatrixInverse(nullptr, camera->View()) * light_view_projections[1];
+		shadow_cbuf_data.shadow_matrices[2] = XMMatrixInverse(nullptr, camera->View()) * light_view_projections[2];
+		shadow_cbuf_data.shadow_matrices[3] = XMMatrixInverse(nullptr, camera->View()) * light_view_projections[3];
 		shadow_cbuf_data.split0 = split_distances[0];
 		shadow_cbuf_data.split1 = split_distances[1];
 		shadow_cbuf_data.split2 = split_distances[2];
+		shadow_cbuf_data.split3 = split_distances[3];
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
 		shadow_cbuf_data.visualize = static_cast<int>(false);
 		shadow_cbuffer->Update(context, shadow_cbuf_data);

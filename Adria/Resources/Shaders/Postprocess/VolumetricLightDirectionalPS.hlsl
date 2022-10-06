@@ -16,13 +16,10 @@ struct VertexOut
 
 float4 main(VertexOut input) : SV_TARGET
 {
-    
     if (current_light.casts_shadows == 0)
     {
         return 0;
     }
-
-    //float2 ScreenCoord = input.pos2D.xy / input.pos2D.w * float2(0.5f, -0.5f) + 0.5f;
     float depth = max(input.PosH.z, depthTx.SampleLevel(linear_clamp_sampler, input.Tex, 2));
     float3 P = GetPositionVS(input.Tex, depth);
     float3 V = float3(0.0f, 0.0f, 0.0f) - P;
@@ -31,22 +28,15 @@ float4 main(VertexOut input) : SV_TARGET
 
     float marchedDistance = 0;
     float3 accumulation = 0;
-
     const float3 L = current_light.direction.xyz;
-
     float3 rayEnd = float3(0.0f, 0.0f, 0.0f);
-
     const uint sampleCount = 16;
     const float stepSize = length(P - rayEnd) / sampleCount;
-
-	// dither ray start to help with undersampling:
     P = P + V * stepSize * dither(input.PosH.xy);
-
-	// Perform ray marching to integrate light volume along view ray:
 	[loop]
     for (uint i = 0; i < sampleCount; ++i)
     {
-        float4 posShadowMap = mul(float4(P, 1.0), shadow_matrix1);
+        float4 posShadowMap = mul(float4(P, 1.0), shadow_matrices[0]);
         float3 UVD = posShadowMap.xyz / posShadowMap.w;
 
         UVD.xy = 0.5 * UVD.xy + 0.5;
