@@ -113,9 +113,6 @@
     <ClCompile Include="Graphics\TextureManager.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\CameraManager.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\Renderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -285,9 +282,6 @@
     </ClInclude>
     <ClInclude Include="Math\BoundingVolumeHelpers.h">
       <Filter>Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Rendering\CameraManager.h">
-      <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\Components.h">
       <Filter>Rendering</Filter>

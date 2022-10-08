@@ -54,10 +54,13 @@ namespace adria
     class Input
     {
     public:
-        Input();
+        static Input& GetInstance()
+		{
+			static Input input;
+			return input;
+		}
 
         void NewFrame();
-
         void HandleWindowMessage(WindowMessage const&);
 
         bool GetKey(EKeyCode key)    /*const*/   { return keys[key]; }                         
@@ -91,5 +94,8 @@ namespace adria
 
         bool new_frame = false;
         bool resizing = false;
+
+    private:
+		Input();
     };
 }

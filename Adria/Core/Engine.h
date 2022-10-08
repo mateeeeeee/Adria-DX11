@@ -4,7 +4,7 @@
 #include "../Events/EventQueue.h"
 #include "../Input/Input.h"
 #include "../tecs/registry.h"
-#include "../Rendering/CameraManager.h"
+#include "../Rendering/Camera.h"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/SceneViewport.h"
 
@@ -44,8 +44,7 @@ namespace adria
 	private:
 		bool vsync;
 		tecs::registry reg;
-		CameraManager camera_manager;
-		Input input;
+		std::unique_ptr<Camera> camera;
 		std::unique_ptr<GraphicsDevice> gfx;
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<ModelImporter> model_importer;

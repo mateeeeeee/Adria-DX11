@@ -285,15 +285,15 @@ namespace adria
 
     void Editor::HandleInput()
     {
-        if (scene_focused && engine->input.IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
-        if (scene_focused && engine->input.IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
+		if (scene_focused && Input::GetInstance().IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
+		if (scene_focused && Input::GetInstance().IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
         if (gizmo_enabled && gui->IsVisible())
         {
-            if (engine->input.IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
-            if (engine->input.IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
-            if (engine->input.IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE; //e because s is for camera movement and its close to wasd and tr
+            if ( Input::GetInstance().IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
+            if ( Input::GetInstance().IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
+            if ( Input::GetInstance().IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE; //e because s is for camera movement and its close to wasd and tr
         }
-        engine->camera_manager.ShouldUpdate(scene_focused);
+        engine->camera->Enable(scene_focused);
     }
 
 	void Editor::MenuBar()
@@ -1370,7 +1370,7 @@ namespace adria
     void Editor::Camera()
     {
 		if (!window_flags[Flag_Camera]) return;
-		auto& camera = engine->camera_manager.GetActiveCamera();
+		auto& camera = *engine->camera;
 		if (ImGui::Begin("Camera", &window_flags[Flag_Camera]))
 		{
 			XMFLOAT3 cam_pos;
@@ -1425,7 +1425,7 @@ namespace adria
             ImGuizmo::SetRect(window_pos.x, window_pos.y,
                 window_size.x, window_size.y);
 
-            auto& camera = engine->camera_manager.GetActiveCamera();
+            auto& camera = *engine->camera;
 
             auto camera_view = camera.View();
             auto camera_proj = camera.Proj();

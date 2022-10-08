@@ -178,7 +178,6 @@
     <ClCompile Include="Logging\Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Rendering\Camera.cpp" />
-    <ClCompile Include="Rendering\CameraManager.cpp" />
     <ClCompile Include="Rendering\ModelImporter.cpp" />
     <ClCompile Include="Rendering\ParticleRenderer.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
@@ -236,7 +235,6 @@
     <ClInclude Include="Math\ComputeTangentFrame.h" />
     <ClInclude Include="Math\Constants.h" />
     <ClInclude Include="Rendering\Camera.h" />
-    <ClInclude Include="Rendering\CameraManager.h" />
     <ClInclude Include="Rendering\Components.h" />
     <ClInclude Include="Rendering\ConstantBuffers.h" />
     <ClInclude Include="Rendering\Enums.h" />

@@ -200,8 +200,7 @@ namespace adria
 
 	using namespace tecs;
 
-	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }, input{}, camera_manager{ input },
-		scene_viewport_data{}
+	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }, scene_viewport_data{}
 	{
 		TaskSystem::Initialize();
 
@@ -210,12 +209,10 @@ namespace adria
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		model_importer = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
 
-		InputEvents& input_events = input.GetInputEvents();
+		InputEvents& input_events = Input::GetInstance().GetInputEvents();
 
-		std::ignore = input_events.window_resized_event.AddMember(&CameraManager::OnResize, camera_manager);
 		std::ignore = input_events.window_resized_event.AddMember(&GraphicsDevice::ResizeBackbuffer, *gfx);
 		std::ignore = input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
-		std::ignore = input_events.scroll_mouse_event.AddMember(&CameraManager::OnScroll, camera_manager);
 		std::ignore = input_events.left_mouse_clicked_event.Add([this](int32 mx, int32 my) { renderer->OnLeftMouseClicked(); });
 		std::ignore = input_events.f5_pressed_event.Add(ShaderManager::CheckIfShadersHaveChanged);
 
@@ -224,9 +221,12 @@ namespace adria
 		{
 			InitializeScene(scene_config.value());
 			scene_config.value().camera_params.aspect_ratio = static_cast<float32>(Window::Width()) / Window::Height();
-			camera_manager.AddCamera(scene_config.value().camera_params);
+			camera = std::make_unique<Camera>(scene_config.value().camera_params);
 		}
 		else Window::Quit(1);
+
+		std::ignore = input_events.window_resized_event.AddMember(&Camera::OnResize, *camera);
+		std::ignore = input_events.scroll_mouse_event.AddMember(&Camera::Zoom, *camera);
 	}
 
 	Engine::~Engine()
@@ -240,7 +240,7 @@ namespace adria
 
 	void Engine::HandleWindowMessage(WindowMessage const& msg_data)
 	{
-		input.HandleWindowMessage(msg_data);
+		Input::GetInstance().HandleWindowMessage(msg_data);
 	}
 
 	void Engine::Run(RendererSettings const& settings)
@@ -248,25 +248,19 @@ namespace adria
 		static AdriaTimer timer;
 		float32 const dt = timer.MarkInSeconds();
 
+		Input::GetInstance().NewFrame();
 		if (Window::IsActive())
 		{
-			input.NewFrame();
-			
 			Update(dt);
 			Render(settings);
-		}
-		else
-		{
-			input.NewFrame();
 		}
 	}
 
 	void Engine::Update(float32 dt)
 	{
-		camera_manager.Update(dt);
-		auto& camera = camera_manager.GetActiveCamera();
+		camera->Tick(dt);
 		renderer->SetSceneViewportData(std::move(scene_viewport_data));
-		renderer->NewFrame(&camera);
+		renderer->NewFrame(camera.get());
 		renderer->Update(dt);
 	}
 
@@ -295,8 +289,8 @@ namespace adria
 		{
 			editor_active = false;
 			scene_viewport_data.scene_viewport_focused = true;
-			scene_viewport_data.mouse_position_x = input.GetMousePositionX();
-			scene_viewport_data.mouse_position_y = input.GetMousePositionY();
+			scene_viewport_data.mouse_position_x = Input::GetInstance().GetMousePositionX();
+			scene_viewport_data.mouse_position_y = Input::GetInstance().GetMousePositionY();
 			
 			auto [pos_x, pos_y] = Window::Position();
 			scene_viewport_data.scene_viewport_pos_x = static_cast<float32>(pos_x);
