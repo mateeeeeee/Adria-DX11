@@ -118,7 +118,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\nfd\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
     </ClCompile>
     <Link>
@@ -138,7 +138,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\nfd\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
     </ClCompile>
     <Link>
@@ -191,6 +191,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Luz\Luz\Utilities\CLIParser.h" />
+    <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imconfig.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imgui.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGuizmo.h" />
@@ -287,6 +288,7 @@
     <Image Include="Resources\Icons\adria_logo.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\README.md" />
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli" />
     <None Include="Resources\Shaders\Globals\GlobalsDS.hlsli" />
     <None Include="Resources\Shaders\Globals\GlobalsGS.hlsli" />
