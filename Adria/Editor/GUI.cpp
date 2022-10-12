@@ -1,4 +1,5 @@
 #include "GUI.h"
+#include "IconsFontAwesome4.h"
 #include "../Core/Window.h"
 #include "../Graphics/GraphicsDeviceDX11.h"
 #include "../ImGui/ImGuizmo.h"
@@ -19,6 +20,12 @@ namespace adria
 		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 		io.ConfigWindowsResizeFromEdges = true;
 		io.ConfigViewportsNoTaskBarIcon = true;
+
+		ImFontConfig font_config{};
+		io.Fonts->AddFontFromFileTTF("Resources/Fonts/NotoSans-Regular.ttf", 20.0f, &font_config);
+		font_config.MergeMode = true;
+		ImWchar const icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+		io.Fonts->AddFontFromFileTTF("Resources/Fonts/" FONT_ICON_FILE_NAME_FA, 15.0f, &font_config, icon_ranges);
 
 		ImGui_ImplWin32_Init(Window::Handle());
 		ImGui_ImplDX11_Init(gfx->Device(), gfx->Context());

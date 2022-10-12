@@ -63,9 +63,6 @@ Graphics engine written in C++/DirectX11. For successful build you will need tex
 
 ## Screenshots
 
-Editor 
-![alt text](Screenshots/editor.png "Editor")
-
 <table>
   <tr>
     <td>Tiled Deferred Rendering with 256 lights</td>

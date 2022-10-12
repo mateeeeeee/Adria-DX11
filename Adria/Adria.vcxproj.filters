@@ -74,6 +74,9 @@
     <Filter Include="Shaders\Particles">
       <UniqueIdentifier>{ce1dc203-44c4-4ed9-b8e3-61f7f2e0de0e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Font">
+      <UniqueIdentifier>{75fd7241-0f8e-4012-a9cc-e4969ddcb4df}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -454,6 +457,9 @@
     <ClInclude Include="..\..\Luz\Luz\Utilities\CLIParser.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h">
+      <Filter>Font</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -509,6 +515,7 @@
       <Filter>Shaders\Particles</Filter>
     </None>
     <None Include="scene.json" />
+    <None Include="..\README.md" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\Misc\SkyboxPS.hlsl">
