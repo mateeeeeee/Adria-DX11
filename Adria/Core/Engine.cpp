@@ -121,15 +121,15 @@ namespace adria
 				light.light_data.godrays_density = light_params.FindOr<float32>("godrays_density", 0.975f);
 				light.light_data.godrays_weight = light_params.FindOr<float32>("godrays_weight", 0.25f);
 
-				light.mesh_type = ELightMesh::NoMesh;
+				light.mesh_type = LightMesh::NoMesh;
 				std::string mesh = light_params.FindOr<std::string>("mesh", "");
 				if (mesh == "cube")
 				{
-					light.mesh_type = ELightMesh::Cube;
+					light.mesh_type = LightMesh::Cube;
 				}
 				else if (mesh == "quad")
 				{
-					light.mesh_type = ELightMesh::Quad;
+					light.mesh_type = LightMesh::Quad;
 				}
 				light.mesh_size = light_params.FindOr<uint32>("size", 100u);
 				light.light_texture = light_params.FindOr<std::string>("texture", "");
@@ -205,9 +205,10 @@ namespace adria
 		g_TaskManager.Initialize();
 
 		gfx = std::make_unique<GfxDevice>(Window::Handle());
+		g_TextureManager.Initialize(gfx.get());
 		ShaderManager::Initialize(gfx->Device());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
-		model_importer = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
+		model_importer = std::make_unique<ModelImporter>(reg, gfx.get());
 
 		InputEvents& input_events = g_Input.GetInputEvents();
 
@@ -234,6 +235,7 @@ namespace adria
 		model_importer = nullptr;
 		renderer = nullptr;
 		ShaderManager::Destroy();
+		g_TextureManager.Destroy();
 		gfx = nullptr;
 		g_TaskManager.Destroy();
 	}

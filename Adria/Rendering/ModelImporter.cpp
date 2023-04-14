@@ -255,7 +255,6 @@ namespace adria
         if (vertices_out) *vertices_out = vertices;
         return chunks;
     }
-
 	std::vector<entity> ModelImporter::LoadObjMesh(std::string const& model_path, std::vector<std::string>* diffuse_textures_out)
 	{
 		tinyobj::ObjReaderConfig reader_config{};
@@ -356,9 +355,7 @@ namespace adria
 		return entities;
 	}
 
-	ModelImporter::ModelImporter(registry& reg, GfxDevice* gfx, TextureManager& texture_manager) : reg(reg),
-        texture_manager(texture_manager), gfx(gfx)
-    {}
+	ModelImporter::ModelImporter(registry& reg, GfxDevice* gfx) : reg(reg), gfx(gfx) {}
 
 	std::vector<entity> ModelImporter::ImportModel_GLTF(ModelParameters const& params)
 	{
@@ -408,7 +405,7 @@ namespace adria
 					tinygltf::Texture const& base_texture = model.textures[pbr_metallic_roughness.baseColorTexture.index];
 					tinygltf::Image const& base_image = model.images[base_texture.source];
 					std::string texbase = params.textures_path + base_image.uri;
-					material.albedo_texture = texture_manager.LoadTexture(ToWideString(texbase));
+					material.albedo_texture = g_TextureManager.LoadTexture(ToWideString(texbase));
 					material.albedo_factor = (float32)pbr_metallic_roughness.baseColorFactor[0];
 				}
 				if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
@@ -416,7 +413,7 @@ namespace adria
 					tinygltf::Texture const& metallic_roughness_texture = model.textures[pbr_metallic_roughness.metallicRoughnessTexture.index];
 					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
-					material.metallic_roughness_texture = texture_manager.LoadTexture(ToWideString(texmetallicroughness));
+					material.metallic_roughness_texture = g_TextureManager.LoadTexture(ToWideString(texmetallicroughness));
 					material.metallic_factor = (float32)pbr_metallic_roughness.metallicFactor;
 					material.roughness_factor = (float32)pbr_metallic_roughness.roughnessFactor;
 				}
@@ -425,14 +422,14 @@ namespace adria
 					tinygltf::Texture const& normal_texture = model.textures[gltf_material.normalTexture.index];
 					tinygltf::Image const& normal_image = model.images[normal_texture.source];
 					std::string texnormal = params.textures_path + normal_image.uri;
-					material.normal_texture = texture_manager.LoadTexture(ToWideString(texnormal));
+					material.normal_texture = g_TextureManager.LoadTexture(ToWideString(texnormal));
 				}
 				if (gltf_material.emissiveTexture.index >= 0)
 				{
 					tinygltf::Texture const& emissive_texture = model.textures[gltf_material.emissiveTexture.index];
 					tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 					std::string texemissive = params.textures_path + emissive_image.uri;
-					material.emissive_texture = texture_manager.LoadTexture(ToWideString(texemissive));
+					material.emissive_texture = g_TextureManager.LoadTexture(ToWideString(texemissive));
 					material.emissive_factor = (float32)gltf_material.emissiveFactor[0];
 				}
 				material.shader = EShaderProgram::GBufferPBR;
@@ -762,7 +759,6 @@ namespace adria
 		ADRIA_LOG(INFO, "GLTF Mesh %s successfully loaded!", params.model_path.c_str());
 		return entities;
 	}
-
     entity ModelImporter::LoadSkybox(SkyboxParameters const& params)
     {
         entity skybox = reg.create();
@@ -770,15 +766,14 @@ namespace adria
         Skybox sky{};
         sky.active = true;
 
-        if (params.cubemap.has_value()) sky.cubemap_texture = texture_manager.LoadCubeMap(params.cubemap.value());
-        else sky.cubemap_texture = texture_manager.LoadCubeMap(params.cubemap_textures);
+        if (params.cubemap.has_value()) sky.cubemap_texture = g_TextureManager.LoadCubeMap(params.cubemap.value());
+        else sky.cubemap_texture = g_TextureManager.LoadCubeMap(params.cubemap_textures);
 
         reg.emplace<Skybox>(skybox, sky);
         reg.emplace<Tag>(skybox, "Skybox");
         
         return skybox;
     }
-
     entity ModelImporter::LoadLight(LightParameters const& params)
     {
         entity light = reg.create();
@@ -788,7 +783,7 @@ namespace adria
   
         reg.emplace<Light>(light, params.light_data);
 
-        if (params.mesh_type == ELightMesh::Quad)
+        if (params.mesh_type == LightMesh::Quad)
         {
             uint32 const size = params.mesh_size;
             std::vector<TexturedVertex> const vertices =
@@ -814,9 +809,9 @@ namespace adria
             XMStoreFloat3(&material.diffuse, params.light_data.color);
 
             if (params.light_texture.has_value())
-                material.albedo_texture = texture_manager.LoadTexture(params.light_texture.value()); //
+                material.albedo_texture = g_TextureManager.LoadTexture(params.light_texture.value()); //
             else if(params.light_data.type == ELightType::Directional)
-                material.albedo_texture = texture_manager.LoadTexture(L"Resources/Textures/sun.png");
+                material.albedo_texture = g_TextureManager.LoadTexture(L"Resources/Textures/sun.png");
 
             if (params.light_data.type == ELightType::Directional)
                 material.shader = EShaderProgram::Sun;
@@ -834,7 +829,7 @@ namespace adria
             //sun rendered in separate pass
             if (params.light_data.type != ELightType::Directional) reg.emplace<Forward>(light, true);
         }
-        else if (params.mesh_type == ELightMesh::Cube)
+        else if (params.mesh_type == LightMesh::Cube)
         {
 		    
            const SimpleVertex cube_vertices[8] = {
@@ -886,9 +881,9 @@ namespace adria
            //XMStoreFloat3(&material.diffuse, params.light_data.color);
            //
            //if (params.light_texture.has_value())
-           //    material.diffuse_texture = texture_manager.LoadTexture(params.light_texture.value()); //
+           //    material.diffuse_texture = g_TextureManager.LoadTexture(params.light_texture.value()); //
            //else if (params.light_data.type == LightType::eDirectional)
-           //    material.diffuse_texture = texture_manager.LoadTexture(L"Resources/Textures/sun.png");
+           //    material.diffuse_texture = g_TextureManager.LoadTexture(L"Resources/Textures/sun.png");
            //
            //if (params.light_data.type == LightType::eDirectional)
            //    material.shader = StandardShader::eSun;
@@ -914,7 +909,6 @@ namespace adria
 
         return light;
 	}
-
     std::vector<entity> ModelImporter::LoadOcean(OceanParameters const& params)
     {
         std::vector<entity> ocean_chunks = ModelImporter::LoadGrid(params.ocean_grid);
@@ -933,7 +927,6 @@ namespace adria
 
         return ocean_chunks;
 	}
-
     std::vector<entity> ModelImporter::LoadTerrain(TerrainParameters& params)
 	{
         std::vector<TexturedNormalVertex> vertices;
@@ -951,11 +944,11 @@ namespace adria
         GenerateTerrainLayerTexture(params.layer_texture.c_str(), TerrainComponent::terrain.get(), params.layer_params);
 
         TerrainComponent terrain_component{};
-		terrain_component.grass_texture = texture_manager.LoadTexture(params.grass_texture);
-		terrain_component.rock_texture = texture_manager.LoadTexture(params.rock_texture);
-		terrain_component.base_texture = texture_manager.LoadTexture(params.base_texture);
-		terrain_component.sand_texture = texture_manager.LoadTexture(params.sand_texture);
-        terrain_component.layer_texture = texture_manager.LoadTexture(params.layer_texture);
+		terrain_component.grass_texture = g_TextureManager.LoadTexture(params.grass_texture);
+		terrain_component.rock_texture = g_TextureManager.LoadTexture(params.rock_texture);
+		terrain_component.base_texture = g_TextureManager.LoadTexture(params.base_texture);
+		terrain_component.sand_texture = g_TextureManager.LoadTexture(params.sand_texture);
+        terrain_component.layer_texture = g_TextureManager.LoadTexture(params.layer_texture);
 
 		for (auto terrain_chunk : terrain_chunks)
 		{
@@ -965,7 +958,6 @@ namespace adria
 
 		return terrain_chunks;
 	}
-
 	entity ModelImporter::LoadFoliage(FoliageParameters const& params)
 	{
 		const float32 size = params.foliage_scale;
@@ -984,13 +976,13 @@ namespace adria
 
 		switch (params.mesh_texture_pair.first)
 		{
-		case EFoliageMesh::SingleQuad:
+		case FoliageMesh::SingleQuad:
 			foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_single.obj");
 			break;
-		case EFoliageMesh::DoubleQuad:
+		case FoliageMesh::DoubleQuad:
 			foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_double.obj");
 			break;
-		case EFoliageMesh::TripleQuad:
+		case FoliageMesh::TripleQuad:
 			foliages = LoadObjMesh("Resources/Models/Foliage/foliagequad_triple.obj");
 			break;
 		default:
@@ -1027,7 +1019,7 @@ namespace adria
 		mesh_component.instance_count = (uint32)instance_data.size();
 
 		Material material{};
-		material.albedo_texture = texture_manager.LoadTexture(params.mesh_texture_pair.second);
+		material.albedo_texture = g_TextureManager.LoadTexture(params.mesh_texture_pair.second);
 		material.albedo_factor = 1.0f;
 		material.shader = EShaderProgram::GBuffer_Foliage;
 		reg.emplace<Material>(foliage, material);
@@ -1044,7 +1036,6 @@ namespace adria
 
 		return foliage;
 	}
-
     std::vector<entity> ModelImporter::LoadTrees(TreeParameters const& params)
 	{
 		const float32 size = params.tree_scale;
@@ -1065,11 +1056,11 @@ namespace adria
         std::string texture_path;
         switch (params.tree_type)
         {
-        case ETreeType::Tree01:
+        case TreeType::Tree01:
             trees = LoadObjMesh("Resources/Models/Trees/Tree01/tree01.obj", &diffuse_textures);
             texture_path = "Resources/Models/Trees/Tree01/";
             break;
-        case ETreeType::Tree02:
+        case TreeType::Tree02:
         default:
             trees = LoadObjMesh("Resources/Models/Trees/Tree02/tree02.obj", &diffuse_textures);
             texture_path = "Resources/Models/Trees/Tree02/";
@@ -1108,7 +1099,7 @@ namespace adria
 			mesh_component.instance_count = (uint32)instance_data.size();
 			
 			Material material{};
-			material.albedo_texture = texture_manager.LoadTexture(texture_path + diffuse_textures[i]);
+			material.albedo_texture = g_TextureManager.LoadTexture(texture_path + diffuse_textures[i]);
 			material.albedo_factor = 1.0f;
 			material.shader = EShaderProgram::GBuffer_Foliage;
 			reg.emplace<Material>(tree, material);
@@ -1126,7 +1117,6 @@ namespace adria
 
 		return trees;
 	}
-
     entity ModelImporter::LoadEmitter(EmitterParameters const& params)
 	{
 		Emitter emitter{};
@@ -1142,7 +1132,7 @@ namespace adria
 		emitter.particles_per_second = params.particles_per_second;
         emitter.sort = params.sort;
         emitter.collisions_enabled = params.collisions;
-		emitter.particle_texture = texture_manager.LoadTexture(params.texture_path);
+		emitter.particle_texture = g_TextureManager.LoadTexture(params.texture_path);
 
 		tecs::entity emitter_entity = reg.create();
 		reg.add(emitter_entity, emitter);
@@ -1152,12 +1142,11 @@ namespace adria
 
         return emitter_entity;
 	}
-
     entity ModelImporter::LoadDecal(DecalParameters const& params)
 	{
         Decal decal{};
-        if(!params.albedo_texture_path.empty()) decal.albedo_decal_texture = texture_manager.LoadTexture(params.albedo_texture_path);
-        if(!params.normal_texture_path.empty()) decal.normal_decal_texture = texture_manager.LoadTexture(params.normal_texture_path);
+        if(!params.albedo_texture_path.empty()) decal.albedo_decal_texture = g_TextureManager.LoadTexture(params.albedo_texture_path);
+        if(!params.normal_texture_path.empty()) decal.normal_decal_texture = g_TextureManager.LoadTexture(params.normal_texture_path);
 
         XMVECTOR P = XMLoadFloat4(&params.position);
         XMVECTOR N = XMLoadFloat4(&params.normal);

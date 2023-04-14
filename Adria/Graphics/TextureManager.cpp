@@ -5,16 +5,15 @@
 #include "WICTextureLoader.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/StringUtil.h"
-#include "../Core/Macros.h"
 #include "../Utilities/Image.h"
 #include "../Utilities/FilesUtil.h"
+#include "../Core/Macros.h"
 
 namespace adria
 {
 	namespace
 	{
-		
-		enum class ETextureFormat
+		enum class TextureFormat
 		{
 			DDS,
 			BMP,
@@ -28,81 +27,79 @@ namespace adria
 			PIC,
 			NotSupported
 		};
-
-		ETextureFormat GetTextureFormat(std::string const& path)
+		TextureFormat GetTextureFormat(std::string const& path)
 		{
 			std::string extension = GetExtension(path);
 			std::transform(extension.begin(), extension.end(), extension.begin(),
 				[](unsigned char c) { return std::tolower(c); });
 
 			if (extension == ".dds")
-				return ETextureFormat::DDS;
+				return TextureFormat::DDS;
 			else if (extension == ".bmp")
-				return ETextureFormat::BMP;
+				return TextureFormat::BMP;
 			else if (extension == ".jpg" || extension == ".jpeg")
-				return ETextureFormat::JPG;
+				return TextureFormat::JPG;
 			else if (extension == ".png")
-				return ETextureFormat::PNG;
+				return TextureFormat::PNG;
 			else if (extension == ".tiff" || extension == ".tif")
-				return ETextureFormat::TIFF;
+				return TextureFormat::TIFF;
 			else if (extension == ".gif")
-				return ETextureFormat::GIF;
+				return TextureFormat::GIF;
 			else if (extension == ".ico")
-				return ETextureFormat::ICO;
+				return TextureFormat::ICO;
 			else if (extension == ".tga")
-				return ETextureFormat::TGA;
+				return TextureFormat::TGA;
 			else if (extension == ".hdr")
-				return ETextureFormat::HDR;
+				return TextureFormat::HDR;
 			else if (extension == ".pic")
-				return ETextureFormat::PIC;
+				return TextureFormat::PIC;
 			else
-				return ETextureFormat::NotSupported;
+				return TextureFormat::NotSupported;
 		}
-
-		ETextureFormat GetTextureFormat(std::wstring const& path)
+		TextureFormat GetTextureFormat(std::wstring const& path)
 		{
 			return GetTextureFormat(ToString(path));
 		}
-
 		constexpr UINT MipmapLevels(UINT width, UINT height)
 		{
 			UINT levels = 1U;
 			while ((width | height) >> levels) ++levels;
 			return levels;
 		}
-
 	}
 
-TextureManager::TextureManager(ID3D11Device* _device, ID3D11DeviceContext* _context)
+
+void TextureManager::Initialize(GfxDevice* _gfx)
 {
-	ADRIA_ASSERT(_device != nullptr && _context != nullptr);
-
-	device = _device;
-	context = _context;
-
+	gfx = _gfx;
 	mipmaps = true;
+}
+
+void TextureManager::Destroy()
+{
+	gfx = nullptr;
 }
 
 TextureHandle TextureManager::LoadTexture(std::wstring const& name)
 {
-	ETextureFormat format = GetTextureFormat(name);
+	TextureFormat format = GetTextureFormat(name);
 
 	switch (format)
 	{
-	case ETextureFormat::DDS:
+	case TextureFormat::DDS:
 		return LoadDDSTexture(name);
-	case ETextureFormat::BMP:
-	case ETextureFormat::PNG:
-	case ETextureFormat::JPG:
-	case ETextureFormat::TIFF:
-	case ETextureFormat::GIF:
-	case ETextureFormat::ICO:
+	case TextureFormat::BMP:
+	case TextureFormat::PNG:
+	case TextureFormat::JPG:
+	case TextureFormat::TIFF:
+	case TextureFormat::GIF:
+	case TextureFormat::ICO:
 		return LoadWICTexture(name);
-	case ETextureFormat::TGA:
-	case ETextureFormat::HDR:
-	case ETextureFormat::PIC:
+	case TextureFormat::TGA:
+	case TextureFormat::HDR:
+	case TextureFormat::PIC:
 		return LoadTexture_HDR_TGA_PIC(ToString(name));
-	case ETextureFormat::NotSupported:
+	case TextureFormat::NotSupported:
 	default:
 		ADRIA_ASSERT(false && "Unsupported Texture Format!");
 	}
@@ -117,14 +114,15 @@ TextureHandle TextureManager::LoadTexture(std::string const& name)
 
 TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 {
-	ETextureFormat format = GetTextureFormat(name);
+	TextureFormat format = GetTextureFormat(name);
+	ADRIA_ASSERT(format == TextureFormat::DDS || format == TextureFormat::HDR && "Cubemap in one file has to be .dds or .hdr format");
 
-	ADRIA_ASSERT(format == ETextureFormat::DDS || format == ETextureFormat::HDR && "Cubemap in one file has to be .dds or .hdr format");
-
+	ID3D11Device* device = gfx->Device();
+	ID3D11DeviceContext* context = gfx->Context();
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
 		++handle;
-		if (format == ETextureFormat::DDS)
+		if (format == TextureFormat::DDS)
 		{
 
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cubemap_srv;
@@ -239,9 +237,12 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 
 TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cubemap_textures)
 {
-	ETextureFormat format = GetTextureFormat(cubemap_textures[0]);
-	ADRIA_ASSERT(format == ETextureFormat::JPG || format == ETextureFormat::PNG || format == ETextureFormat::TGA ||
-		format == ETextureFormat::BMP || format == ETextureFormat::HDR || format == ETextureFormat::PIC);
+	TextureFormat format = GetTextureFormat(cubemap_textures[0]);
+	ADRIA_ASSERT(format == TextureFormat::JPG || format == TextureFormat::PNG || format == TextureFormat::TGA ||
+		format == TextureFormat::BMP || format == TextureFormat::HDR || format == TextureFormat::PIC);
+	
+	ID3D11Device* device = gfx->Device();
+	ID3D11DeviceContext* context = gfx->Context();
 
 	++handle;
 	D3D11_TEXTURE2D_DESC desc{};
@@ -314,6 +315,8 @@ void TextureManager::SetMipMaps(bool _mipmaps)
 
 TextureHandle TextureManager::LoadDDSTexture(std::wstring const& name)
 {
+	ID3D11Device* device = gfx->Device();
+	ID3D11DeviceContext* context = gfx->Context();
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
 		++handle;
@@ -340,6 +343,9 @@ TextureHandle TextureManager::LoadDDSTexture(std::wstring const& name)
 
 TextureHandle TextureManager::LoadWICTexture(std::wstring const& name)
 {
+	ID3D11Device* device = gfx->Device();
+	ID3D11DeviceContext* context = gfx->Context();
+
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
 		++handle;
@@ -367,6 +373,9 @@ TextureHandle TextureManager::LoadWICTexture(std::wstring const& name)
 
 TextureHandle TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
 {
+	ID3D11Device* device = gfx->Device();
+	ID3D11DeviceContext* context = gfx->Context();
+
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
 		++handle;

@@ -563,7 +563,7 @@ namespace adria
 						}
 						ImGui::EndCombo();
 					}
-					foliage_params.mesh_texture_pair.first = static_cast<EFoliageMesh>(current_foliage_type);
+					foliage_params.mesh_texture_pair.first = static_cast<FoliageMesh>(current_foliage_type);
 
 					if (ImGui::Button("Add Foliage"))
 					{
@@ -645,7 +645,7 @@ namespace adria
 						}
 						ImGui::EndCombo();
 					}
-					tree_params.tree_type = static_cast<ETreeType>(current_tree_type);
+					tree_params.tree_type = static_cast<TreeType>(current_tree_type);
 
 					if (ImGui::Button("Add Trees"))
 					{
@@ -980,7 +980,7 @@ namespace adria
 					light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
 					light_params.light_data.position = DirectX::XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
 					light_params.light_data.type = ELightType::Point;
-					light_params.mesh_type = ELightMesh::NoMesh;
+					light_params.mesh_type = LightMesh::NoMesh;
 					light_params.light_data.range = real() * 100.0f + 40.0f;
 					light_params.light_data.active = true;
 					light_params.light_data.volumetric = false;
@@ -1121,8 +1121,7 @@ namespace adria
                 if (material && ImGui::CollapsingHeader("Material"))
                 {
 					ImGui::Text("Albedo Texture");
-					ImGui::Image(engine->renderer->GetTextureManager().GetTextureView(material->albedo_texture),
-						ImVec2(48.0f, 48.0f));
+					ImGui::Image(g_TextureManager.GetTextureView(material->albedo_texture), ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(0);
 					if (ImGui::Button("Remove")) material->albedo_texture = INVALID_TEXTURE_HANDLE;
@@ -1134,15 +1133,14 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							material->albedo_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							material->albedo_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
 					ImGui::PopID();
 
 					ImGui::Text("Metallic-Roughness Texture");
-					ImGui::Image(engine->renderer->GetTextureManager().GetTextureView(material->metallic_roughness_texture),
-						ImVec2(48.0f, 48.0f));
+					ImGui::Image(g_TextureManager.GetTextureView(material->metallic_roughness_texture), ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(1);
 					if (ImGui::Button("Remove")) material->metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
@@ -1154,15 +1152,14 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							material->metallic_roughness_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							material->metallic_roughness_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
 					ImGui::PopID();
 
 					ImGui::Text("Emissive Texture");
-					ImGui::Image(engine->renderer->GetTextureManager().GetTextureView(material->emissive_texture),
-						ImVec2(48.0f, 48.0f));
+					ImGui::Image(g_TextureManager.GetTextureView(material->emissive_texture), ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(2);
 					if (ImGui::Button("Remove")) material->emissive_texture = INVALID_TEXTURE_HANDLE;
@@ -1174,7 +1171,7 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							material->emissive_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							material->emissive_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
@@ -1252,7 +1249,7 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							skybox->cubemap_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							skybox->cubemap_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
@@ -1262,8 +1259,7 @@ namespace adria
                 if (emitter && ImGui::CollapsingHeader("Emitter"))
                 {
 					ImGui::Text("Particle Texture");
-					ImGui::Image(engine->renderer->GetTextureManager().GetTextureView(emitter->particle_texture),
-						ImVec2(48.0f, 48.0f));
+					ImGui::Image(g_TextureManager.GetTextureView(emitter->particle_texture), ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(3);
 					if (ImGui::Button("Remove")) emitter->particle_texture = INVALID_TEXTURE_HANDLE;
@@ -1275,7 +1271,7 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							emitter->particle_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							emitter->particle_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
@@ -1322,7 +1318,7 @@ namespace adria
 				if (decal && ImGui::CollapsingHeader("Decal"))
 				{
 					ImGui::Text("Decal Albedo Texture");
-					ImGui::Image(engine->renderer->GetTextureManager().GetTextureView(decal->albedo_decal_texture), ImVec2(48.0f, 48.0f));
+					ImGui::Image(g_TextureManager.GetTextureView(decal->albedo_decal_texture), ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(4);
 					if (ImGui::Button("Remove")) decal->albedo_decal_texture = INVALID_TEXTURE_HANDLE;
@@ -1334,7 +1330,7 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							decal->albedo_decal_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							decal->albedo_decal_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
@@ -1350,7 +1346,7 @@ namespace adria
 						if (result == NFD_OKAY)
 						{
 							std::wstring texture_path = ToWideString(file_path);
-							decal->normal_decal_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
+							decal->normal_decal_texture = g_TextureManager.LoadTexture(texture_path);
 							free(file_path);
 						}
 					}
@@ -1736,7 +1732,7 @@ namespace adria
                             light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
                             light_params.light_data.position = DirectX::XMVectorSet(real() * 500 - 250, real() * 500.0f, real() * 500 - 250, 1.0f);
                             light_params.light_data.type = ELightType::Point;
-                            light_params.mesh_type = ELightMesh::NoMesh;
+                            light_params.mesh_type = LightMesh::NoMesh;
                             light_params.light_data.range = real() * 100.0f + 40.0f;
                             light_params.light_data.active = true;
                             light_params.light_data.volumetric = false;

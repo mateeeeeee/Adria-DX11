@@ -319,8 +319,7 @@ namespace adria
 	}
 
 	Renderer::Renderer(registry& reg, GfxDevice* gfx, uint32 width, uint32 height)
-		: width(width), height(height), reg(reg), gfx(gfx), texture_manager(gfx->Device(), gfx->Context()),
-		profiler(gfx->Device()), particle_renderer(gfx), picker(gfx)
+		: width(width), height(height), reg(reg), gfx(gfx), profiler(gfx->Device()), particle_renderer(gfx), picker(gfx)
 	{
 		uint32 w = width, h = height;
 
@@ -493,10 +492,6 @@ namespace adria
 			recreate_clusters = true;
 		}
 	}
-	TextureManager& Renderer::GetTextureManager()
-	{
-		return texture_manager;
-	}
 	PickingData Renderer::GetLastPickingData() const
 	{
 		return last_picking_data;
@@ -510,26 +505,26 @@ namespace adria
 	{
 		//make for loop
 		TextureHandle tex_handle{};
-		tex_handle = texture_manager.LoadTexture("Resources/Textures/lensflare/flare0.jpg");
-		lens_flare_textures.push_back(texture_manager.GetTextureView(tex_handle));
+		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare0.jpg");
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = texture_manager.LoadTexture("Resources/Textures/lensflare/flare1.jpg");
-		lens_flare_textures.push_back(texture_manager.GetTextureView(tex_handle));
+		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare1.jpg");
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = texture_manager.LoadTexture("Resources/Textures/lensflare/flare2.jpg");
-		lens_flare_textures.push_back(texture_manager.GetTextureView(tex_handle));
+		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare2.jpg");
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = texture_manager.LoadTexture("Resources/Textures/lensflare/flare3.jpg");
-		lens_flare_textures.push_back(texture_manager.GetTextureView(tex_handle));
+		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare3.jpg");
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = texture_manager.LoadTexture("Resources/Textures/lensflare/flare4.jpg");
-		lens_flare_textures.push_back(texture_manager.GetTextureView(tex_handle));
+		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare4.jpg");
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = texture_manager.LoadTexture("Resources/Textures/lensflare/flare5.jpg");
-		lens_flare_textures.push_back(texture_manager.GetTextureView(tex_handle));
+		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare5.jpg");
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = texture_manager.LoadTexture("Resources/Textures/lensflare/flare6.jpg");
-		lens_flare_textures.push_back(texture_manager.GetTextureView(tex_handle));
+		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare6.jpg");
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
 		clouds_textures.resize(3);
 
@@ -543,13 +538,13 @@ namespace adria
 		hr = CreateDDSTextureFromFile(device, context, L"Resources\\Textures\\clouds\\worley.dds", nullptr, &clouds_textures[2]);
 		BREAK_IF_FAILED(hr);
 
-		foam_handle		= texture_manager.LoadTexture("Resources/Textures/foam.jpg");
-		perlin_handle	= texture_manager.LoadTexture("Resources/Textures/perlin.dds");
+		foam_handle		= g_TextureManager.LoadTexture("Resources/Textures/foam.jpg");
+		perlin_handle	= g_TextureManager.LoadTexture("Resources/Textures/perlin.dds");
 
-		hex_bokeh_handle = texture_manager.LoadTexture("Resources/Textures/bokeh/Bokeh_Hex.dds");
-		oct_bokeh_handle = texture_manager.LoadTexture("Resources/Textures/bokeh/Bokeh_Oct.dds");
-		circle_bokeh_handle = texture_manager.LoadTexture("Resources/Textures/bokeh/Bokeh_Circle.dds");
-		cross_bokeh_handle = texture_manager.LoadTexture("Resources/Textures/bokeh/Bokeh_Cross.dds");
+		hex_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Hex.dds");
+		oct_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Oct.dds");
+		circle_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Circle.dds");
+		cross_bokeh_handle = g_TextureManager.LoadTexture("Resources/Textures/bokeh/Bokeh_Cross.dds");
 
 	}
 	void Renderer::CreateBuffers()
@@ -1325,7 +1320,7 @@ namespace adria
 		for (auto skybox : skyboxes)
 		{
 			auto const& _skybox = skyboxes.get(skybox);
-			unfiltered_env_srv = texture_manager.GetTextureView(_skybox.cubemap_texture);
+			unfiltered_env_srv = g_TextureManager.GetTextureView(_skybox.cubemap_texture);
 			if (unfiltered_env_srv) break;
 		}
 
@@ -1992,13 +1987,13 @@ namespace adria
 
 					if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = texture_manager.GetTextureView(material.albedo_texture);
+						auto view = g_TextureManager.GetTextureView(material.albedo_texture);
 						context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 					}
 
 					if (material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = texture_manager.GetTextureView(material.metallic_roughness_texture);
+						auto view = g_TextureManager.GetTextureView(material.metallic_roughness_texture);
 						context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS_METALLIC, 1, &view);
 					}
 					else
@@ -2008,7 +2003,7 @@ namespace adria
 
 					if (material.normal_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = texture_manager.GetTextureView(material.normal_texture);
+						auto view = g_TextureManager.GetTextureView(material.normal_texture);
 						context->PSSetShaderResources(TEXTURE_SLOT_NORMAL, 1, &view);
 					}
 					else
@@ -2018,7 +2013,7 @@ namespace adria
 
 					if (material.emissive_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = texture_manager.GetTextureView(material.emissive_texture);
+						auto view = g_TextureManager.GetTextureView(material.emissive_texture);
 						context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &view);
 					}
 					else
@@ -2045,28 +2040,28 @@ namespace adria
 
 				if (terrain.grass_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = texture_manager.GetTextureView(terrain.grass_texture);
+					auto view = g_TextureManager.GetTextureView(terrain.grass_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_GRASS, 1, &view);
 				}
 				if (terrain.base_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = texture_manager.GetTextureView(terrain.base_texture);
+					auto view = g_TextureManager.GetTextureView(terrain.base_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_BASE, 1, &view);
 				}
 				if (terrain.rock_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = texture_manager.GetTextureView(terrain.rock_texture);
+					auto view = g_TextureManager.GetTextureView(terrain.rock_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_ROCK, 1, &view);
 				}
 				if (terrain.sand_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = texture_manager.GetTextureView(terrain.sand_texture);
+					auto view = g_TextureManager.GetTextureView(terrain.sand_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_SAND, 1, &view);
 				}
 
 				if (terrain.layer_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = texture_manager.GetTextureView(terrain.layer_texture);
+					auto view = g_TextureManager.GetTextureView(terrain.layer_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_LAYER, 1, &view);
 				}
 				mesh.Draw(context);
@@ -2085,7 +2080,7 @@ namespace adria
 
 				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = texture_manager.GetTextureView(material.albedo_texture);
+					auto view = g_TextureManager.GetTextureView(material.albedo_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 				}
 				mesh.Draw(context);
@@ -2130,8 +2125,8 @@ namespace adria
 				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 				object_cbuffer->Update(context, object_cbuf_data);
 
-				ID3D11ShaderResourceView* srvs[] = { texture_manager.GetTextureView(decal.albedo_decal_texture), 
-													 texture_manager.GetTextureView(decal.normal_decal_texture),
+				ID3D11ShaderResourceView* srvs[] = { g_TextureManager.GetTextureView(decal.albedo_decal_texture), 
+													 g_TextureManager.GetTextureView(decal.normal_decal_texture),
 													 depth_target->SRV() };
 				context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 				context->DrawIndexed(cube_ib->GetCount(), 0, 0);
@@ -2578,7 +2573,7 @@ namespace adria
 
 			material_cbuf_data.albedo_factor = material.albedo_factor;
 			material_cbuffer->Update(context, material_cbuf_data);
-			auto view = texture_manager.GetTextureView(material.albedo_texture);
+			auto view = g_TextureManager.GetTextureView(material.albedo_texture);
 
 			context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 			mesh.Draw(context);
@@ -2998,7 +2993,7 @@ namespace adria
 				object_cbuf_data.transposed_inverse_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
 				object_cbuffer->Update(context, object_cbuf_data);
 
-				auto view = texture_manager.GetTextureView(material->albedo_texture);
+				auto view = g_TextureManager.GetTextureView(material->albedo_texture);
 				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 
 				mesh.Draw(context);
@@ -3064,7 +3059,7 @@ namespace adria
 			{
 				auto const& skybox = skybox_view.get(e);
 				if (!skybox.active) continue;
-				auto view = texture_manager.GetTextureView(skybox.cubemap_texture);
+				auto view = g_TextureManager.GetTextureView(skybox.cubemap_texture);
 				context->PSSetShaderResources(TEXTURE_SLOT_CUBEMAP, 1, &view);
 				break;
 			}
@@ -3101,7 +3096,7 @@ namespace adria
 		for (auto skybox : skyboxes)
 		{
 			auto const& _skybox = skyboxes.get(skybox);
-			skybox_srv = texture_manager.GetTextureView(_skybox.cubemap_texture);
+			skybox_srv = g_TextureManager.GetTextureView(_skybox.cubemap_texture);
 			if (skybox_srv) break;
 		}
 
@@ -3110,7 +3105,7 @@ namespace adria
 							context->VSSetShaderResources(0, 1, &displacement_map_srv);
 
 		ID3D11ShaderResourceView* srvs[] = { ocean_normal_map->SRV(), skybox_srv ,
-		 texture_manager.GetTextureView(foam_handle) };
+		 g_TextureManager.GetTextureView(foam_handle) };
 		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
 		renderer_settings.ocean_tesselation ? ShaderManager::GetShaderProgram(EShaderProgram::OceanLOD)->Bind(context)
@@ -3160,7 +3155,7 @@ namespace adria
 		for (auto emitter : emitters)
 		{
 			Emitter const& emitter_params = emitters.get(emitter);
-			particle_renderer.Render(emitter_params, depth_target->SRV(), texture_manager.GetTextureView(emitter_params.particle_texture));
+			particle_renderer.Render(emitter_params, depth_target->SRV(), g_TextureManager.GetTextureView(emitter_params.particle_texture));
 		}
 
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
@@ -3227,7 +3222,7 @@ namespace adria
 
 			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{
-				auto view = texture_manager.GetTextureView(material.albedo_texture);
+				auto view = g_TextureManager.GetTextureView(material.albedo_texture);
 
 				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 			}
@@ -3424,16 +3419,16 @@ namespace adria
 			switch (renderer_settings.bokeh_type)
 			{
 			case EBokehType::Hex:
-				bokeh = texture_manager.GetTextureView(hex_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureView(hex_bokeh_handle);
 				break;
 			case EBokehType::Oct:
-				bokeh = texture_manager.GetTextureView(oct_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureView(oct_bokeh_handle);
 				break;
 			case EBokehType::Circle:
-				bokeh = texture_manager.GetTextureView(circle_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureView(circle_bokeh_handle);
 				break;
 			case EBokehType::Cross:
-				bokeh = texture_manager.GetTextureView(cross_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureView(cross_bokeh_handle);
 				break;
 			default:
 				ADRIA_ASSERT(false && "Invalid Bokeh Type");
@@ -3648,7 +3643,7 @@ namespace adria
 
 			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{
-				auto view = texture_manager.GetTextureView(material.albedo_texture);
+				auto view = g_TextureManager.GetTextureView(material.albedo_texture);
 				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 			}
 			mesh.Draw(context);

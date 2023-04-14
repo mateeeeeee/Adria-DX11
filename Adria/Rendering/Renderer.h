@@ -58,7 +58,6 @@ namespace adria
 		void OnLeftMouseClicked();
 
 		GfxTexture const* GetOffscreenTexture() const;
-		TextureManager& GetTextureManager();
 		PickingData GetLastPickingData() const;
 		std::vector<Timestamp> GetProfilerResults();
 
@@ -66,7 +65,6 @@ namespace adria
 		uint32 width, height;
 		tecs::registry& reg;
 		GfxDevice* gfx;
-		TextureManager texture_manager;
 		Camera const* camera;
 		RendererSettings renderer_settings;
 		GPUProfiler profiler;

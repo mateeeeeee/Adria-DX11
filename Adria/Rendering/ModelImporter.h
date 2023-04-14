@@ -13,20 +13,20 @@
 namespace adria
 {
     
-    enum class ELightMesh
+    enum class LightMesh
     {
         
         NoMesh,
         Quad,
         Cube
     };
-	enum class EFoliageMesh
+	enum class FoliageMesh
 	{
 		SingleQuad,
 		DoubleQuad,
 		TripleQuad
 	};
-    enum class ETreeType
+    enum class TreeType
     {
         Tree01,
         Tree02
@@ -35,7 +35,7 @@ namespace adria
     struct LightParameters
     {
         Light light_data;
-        ELightMesh mesh_type = ELightMesh::NoMesh;
+        LightMesh mesh_type = LightMesh::NoMesh;
         uint32 mesh_size = 0u;
         std::optional<std::string> light_texture = std::nullopt;
     };
@@ -71,7 +71,7 @@ namespace adria
     };
     struct FoliageParameters
     {
-        std::pair<EFoliageMesh, std::string> mesh_texture_pair;
+        std::pair<FoliageMesh, std::string> mesh_texture_pair;
         int32 foliage_count;
         float32 foliage_scale;
         DirectX::XMFLOAT2 foliage_center;
@@ -82,7 +82,7 @@ namespace adria
     };
     struct TreeParameters
     {
-        ETreeType tree_type;
+        TreeType tree_type;
 		int32 tree_count;
 		float32 tree_scale;
 		DirectX::XMFLOAT2 tree_center;
@@ -156,7 +156,7 @@ namespace adria
 
 	public:
         
-        ModelImporter(tecs::registry& reg, GfxDevice* gfx, TextureManager& texture_manager);
+        ModelImporter(tecs::registry& reg, GfxDevice* gfx);
 
         [[maybe_unused]] std::vector<tecs::entity> ImportModel_GLTF(ModelParameters const&);
 
@@ -171,17 +171,12 @@ namespace adria
 
 	private:
         tecs::registry& reg;
-		TextureManager& texture_manager;
-        GfxDevice* gfx;
+		GfxDevice* gfx;
 
     private:
 
-		[[nodiscard]]
-		std::vector<tecs::entity> LoadObjMesh(std::string const& model_path, std::vector<std::string>* diffuse_textures_out = nullptr);
-
-		[[nodiscard]]
-		std::vector<tecs::entity> LoadGrid(GridParameters const& args, std::vector<TexturedNormalVertex>* vertices = nullptr);
-
+        [[nodiscard]] std::vector<tecs::entity> LoadObjMesh(std::string const& model_path, std::vector<std::string>* diffuse_textures_out = nullptr);
+        [[nodiscard]] std::vector<tecs::entity> LoadGrid(GridParameters const& args, std::vector<TexturedNormalVertex>* vertices = nullptr);
 	};
 }
 
