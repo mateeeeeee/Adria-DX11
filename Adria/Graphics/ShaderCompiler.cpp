@@ -78,7 +78,7 @@ namespace adria
 		{
 			Microsoft::WRL::ComPtr<ID3DBlob> pBytecodeBlob;
 
-			std::wstring wide_filename = ConvertToWide(std::string(filename));
+			std::wstring wide_filename = ToWideString(std::string(filename));
 			HRESULT hr = D3DReadFileToBlob(wide_filename.c_str(), &pBytecodeBlob);
 			BREAK_IF_FAILED(hr);
 
@@ -151,7 +151,7 @@ namespace adria
 			Microsoft::WRL::ComPtr<ID3DBlob> pErrorBlob = nullptr;
 
 			CShaderInclude includer(GetParentPath(input.source_file).c_str());
-			HRESULT hr = D3DCompileFromFile(ConvertToWide(input.source_file).c_str(), 
+			HRESULT hr = D3DCompileFromFile(ToWideString(input.source_file).c_str(), 
 				defines.data(),
 				&includer, entrypoint.c_str(), model.c_str(),
 				shader_compile_flags, 0, &pBytecodeBlob, &pErrorBlob);

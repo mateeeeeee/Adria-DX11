@@ -179,6 +179,9 @@
     <ClCompile Include="Utilities\CPUProfiler.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Utilities\StringUtil.cpp">
+      <Filter>Utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -439,11 +442,17 @@
     <ClInclude Include="Utilities\FileWatcher.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Luz\Luz\Utilities\CLIParser.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h">
       <Filter>Font</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\CLIParser.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\AutoRefCountPtr.h">
+      <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\Singleton.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

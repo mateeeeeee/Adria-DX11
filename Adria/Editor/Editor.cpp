@@ -1133,7 +1133,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ConvertToWide(file_path);
+							std::wstring texture_path = ToWideString(file_path);
 							material->albedo_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
 							free(file_path);
 						}
@@ -1153,7 +1153,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ConvertToWide(file_path);
+							std::wstring texture_path = ToWideString(file_path);
 							material->metallic_roughness_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
 							free(file_path);
 						}
@@ -1173,7 +1173,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ConvertToWide(file_path);
+							std::wstring texture_path = ToWideString(file_path);
 							material->emissive_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
 							free(file_path);
 						}
@@ -1251,7 +1251,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ConvertToWide(file_path);
+							std::wstring texture_path = ToWideString(file_path);
 							skybox->cubemap_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
 							free(file_path);
 						}
@@ -1274,7 +1274,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ConvertToWide(file_path);
+							std::wstring texture_path = ToWideString(file_path);
 							emitter->particle_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
 							free(file_path);
 						}
@@ -1333,7 +1333,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ConvertToWide(file_path);
+							std::wstring texture_path = ToWideString(file_path);
 							decal->albedo_decal_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
 							free(file_path);
 						}
@@ -1349,7 +1349,7 @@ namespace adria
 						nfdresult_t result = NFD_OpenDialog(filter_list, NULL, &file_path);
 						if (result == NFD_OKAY)
 						{
-							std::wstring texture_path = ConvertToWide(file_path);
+							std::wstring texture_path = ToWideString(file_path);
 							decal->normal_decal_texture = engine->renderer->GetTextureManager().LoadTexture(texture_path);
 							free(file_path);
 						}

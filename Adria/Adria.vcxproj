@@ -186,9 +186,9 @@
     <ClCompile Include="Utilities\CPUProfiler.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
     <ClCompile Include="Utilities\Image.cpp" />
+    <ClCompile Include="Utilities\StringUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Luz\Luz\Utilities\CLIParser.h" />
     <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imconfig.h" />
     <ClInclude Include="..\ThirdParty\ImGui\imgui.h" />
@@ -255,6 +255,8 @@
     <ClInclude Include="tecs\registry.h" />
     <ClInclude Include="tecs\sparse_set.h" />
     <ClInclude Include="Utilities\AllocatorUtil.h" />
+    <ClInclude Include="Utilities\AutoRefCountPtr.h" />
+    <ClInclude Include="Utilities\CLIParser.h" />
     <ClInclude Include="Utilities\CPUProfiler.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
@@ -273,6 +275,7 @@
     <ClInclude Include="Utilities\Image.h" />
     <ClInclude Include="Utilities\MemoryDebugger.h" />
     <ClInclude Include="Utilities\Random.h" />
+    <ClInclude Include="Utilities\Singleton.h" />
     <ClInclude Include="Utilities\StringUtil.h" />
     <ClInclude Include="Utilities\TemplatesUtil.h" />
     <ClInclude Include="Utilities\Timer.h" />

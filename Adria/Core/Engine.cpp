@@ -176,7 +176,7 @@ namespace adria
 			std::string cubemap[1];
 			if (skybox_params.FindArray("texture", cubemap))
 			{
-				config.skybox_params.cubemap = ConvertToWide(cubemap[0]);
+				config.skybox_params.cubemap = ToWideString(cubemap[0]);
 			}
 			else
 			{

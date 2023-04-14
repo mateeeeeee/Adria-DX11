@@ -61,7 +61,7 @@ namespace adria
 
 		ETextureFormat GetTextureFormat(std::wstring const& path)
 		{
-			return GetTextureFormat(ConvertToNarrow(path));
+			return GetTextureFormat(ToString(path));
 		}
 
 		constexpr UINT MipmapLevels(UINT width, UINT height)
@@ -101,7 +101,7 @@ TextureHandle TextureManager::LoadTexture(std::wstring const& name)
 	case ETextureFormat::TGA:
 	case ETextureFormat::HDR:
 	case ETextureFormat::PIC:
-		return LoadTexture_HDR_TGA_PIC(ConvertToNarrow(name));
+		return LoadTexture_HDR_TGA_PIC(ToString(name));
 	case ETextureFormat::NotSupported:
 	default:
 		ADRIA_ASSERT(false && "Unsupported Texture Format!");
@@ -112,7 +112,7 @@ TextureHandle TextureManager::LoadTexture(std::wstring const& name)
 
 TextureHandle TextureManager::LoadTexture(std::string const& name)
 {
-	return LoadTexture(ConvertToWide(name));
+	return LoadTexture(ToWideString(name));
 }
 
 TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
@@ -137,7 +137,7 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 		}
 		else //HDR
 		{
-			Image equirect_hdr_image(ConvertToNarrow(name));
+			Image equirect_hdr_image(ToString(name));
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> cubemap_tex = nullptr;
 			D3D11_TEXTURE2D_DESC desc{};

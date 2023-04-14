@@ -1,9 +1,9 @@
 #pragma once
+#include <array>
+#include <unordered_map>
 #include "../Core/Definitions.h"
 #include "../Core/Windows.h"
 #include "../Events/Delegate.h"
-#include <array>
-#include <unordered_map>
 
 namespace adria
 {
