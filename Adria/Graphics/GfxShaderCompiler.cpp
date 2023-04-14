@@ -1,7 +1,7 @@
 #include <wrl.h>
 #include <d3dcompiler.h> 
 #include <fstream> 
-#include "ShaderCompiler.h"
+#include "GfxShaderCompiler.h"
 #include "../Utilities/HashUtil.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/FilesUtil.h"
@@ -71,10 +71,10 @@ namespace adria
 		};
 	}
 
-	namespace ShaderCompiler
+	namespace GfxShaderCompiler
 	{
 
-		void GetBlobFromCompiledShader(char const* filename, ShaderBlob& blob)
+		void GetBlobFromCompiledShader(char const* filename, GfxShaderBlob& blob)
 		{
 			Microsoft::WRL::ComPtr<ID3DBlob> pBytecodeBlob;
 
@@ -86,34 +86,34 @@ namespace adria
 			std::memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
 		}
 
-		void CompileShader(ShaderCompileInput const& input,
-			ShaderCompileOutput& output)
+		void CompileShader(GfxShaderCompileInput const& input,
+			GfxShaderCompileOutput& output)
 		{
-			output = ShaderCompileOutput{};
+			output = GfxShaderCompileOutput{};
 			std::string entrypoint, model;
 			switch (input.stage)
 			{
-			case EShaderStage::VS:
+			case GfxShaderStage::VS:
 				entrypoint = "vs_main";
 				model = "vs_5_0";
 				break;
-			case EShaderStage::PS:
+			case GfxShaderStage::PS:
 				entrypoint = "ps_main";
 				model = "ps_5_0";
 				break;
-			case EShaderStage::HS:
+			case GfxShaderStage::HS:
 				entrypoint = "hs_main";
 				model = "hs_5_0";
 				break;
-			case EShaderStage::DS:
+			case GfxShaderStage::DS:
 				entrypoint = "ds_main";
 				model = "ds_5_0";
 				break;
-			case EShaderStage::GS:
+			case GfxShaderStage::GS:
 				entrypoint = "gs_main";
 				model = "gs_5_0";
 				break;
-			case EShaderStage::CS:
+			case GfxShaderStage::CS:
 				entrypoint = "cs_main";
 				model = "cs_5_0";
 				break;
@@ -124,12 +124,12 @@ namespace adria
 			entrypoint = input.entrypoint.empty() ? entrypoint : input.entrypoint;
 
 			UINT shader_compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
-			if (input.flags & ShaderCompileInput::FlagDisableOptimization)
+			if (input.flags & GfxShaderCompileInput::FlagDisableOptimization)
 			{
 				shader_compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 			}
 
-			if (input.flags & ShaderCompileInput::FlagDebug)
+			if (input.flags & GfxShaderCompileInput::FlagDebug)
 			{
 				shader_compile_flags |= D3DCOMPILE_DEBUG;
 			}
@@ -171,7 +171,7 @@ namespace adria
 			output.dependent_files.push_back(input.source_file);
 		}
 
-		void CreateInputLayoutWithReflection(ID3D11Device* device, ShaderBlob const& blob, ID3D11InputLayout** il)
+		void CreateInputLayoutWithReflection(ID3D11Device* device, GfxShaderBlob const& blob, ID3D11InputLayout** il)
 		{
 			// Reflect shader info
 			Microsoft::WRL::ComPtr<ID3D11ShaderReflection> pVertexShaderReflection = nullptr;

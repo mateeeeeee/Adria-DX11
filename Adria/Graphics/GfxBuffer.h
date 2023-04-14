@@ -1,10 +1,10 @@
 #pragma once
 #include <vector>
-#include "ResourceCommon.h"
+#include "GfxResourceCommon.h"
 
 namespace adria
 {
-	struct BufferDesc
+	struct GfxBufferDesc
 	{
 		uint64 size = 0;
 		EResourceUsage resource_usage = EResourceUsage::Default;
@@ -13,12 +13,12 @@ namespace adria
 		EBufferMiscFlag misc_flags = EBufferMiscFlag::None;
 		uint32 stride = 0; //structured buffers, (vertex buffers, index buffers, needed for count calculation not for srv as structured buffers)
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN; //typed buffers, index buffers
-		std::strong_ordering operator<=>(BufferDesc const& other) const = default;
+		std::strong_ordering operator<=>(GfxBufferDesc const& other) const = default;
 	};
 
-	static BufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride)
+	static GfxBufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride)
 	{
-		BufferDesc desc{};
+		GfxBufferDesc desc{};
 		desc.bind_flags = EBindFlag::VertexBuffer;
 		desc.cpu_access = ECpuAccess::None;
 		desc.resource_usage = EResourceUsage::Immutable;
@@ -27,9 +27,9 @@ namespace adria
 		desc.misc_flags = EBufferMiscFlag::None;
 		return desc;
 	}
-	static BufferDesc IndexBufferDesc(uint64 index_count, bool small_indices)
+	static GfxBufferDesc IndexBufferDesc(uint64 index_count, bool small_indices)
 	{
-		BufferDesc desc{};
+		GfxBufferDesc desc{};
 		desc.bind_flags = EBindFlag::IndexBuffer;
 		desc.cpu_access = ECpuAccess::None;
 		desc.resource_usage = EResourceUsage::Immutable;
@@ -41,9 +41,9 @@ namespace adria
 	}
 
 	template<typename T>
-	static BufferDesc StructuredBufferDesc(uint64 count, bool uav = true, bool dynamic = false)
+	static GfxBufferDesc StructuredBufferDesc(uint64 count, bool uav = true, bool dynamic = false)
 	{
-		BufferDesc desc{};
+		GfxBufferDesc desc{};
 		desc.resource_usage = (uav || !dynamic) ? EResourceUsage::Default : EResourceUsage::Dynamic;
 		desc.bind_flags = EBindFlag::ShaderResource;
 		if (uav) desc.bind_flags |= EBindFlag::UnorderedAccess;
@@ -53,9 +53,9 @@ namespace adria
 		desc.size = desc.stride * count;
 		return desc;
 	}
-	static BufferDesc AppendBufferDesc(uint64 count, uint32 stride)
+	static GfxBufferDesc AppendBufferDesc(uint64 count, uint32 stride)
 	{
-		BufferDesc desc{};
+		GfxBufferDesc desc{};
 		desc.bind_flags = EBindFlag::UnorderedAccess;
 		desc.resource_usage = EResourceUsage::Default;
 		desc.misc_flags = EBufferMiscFlag::BufferStructured;
@@ -63,9 +63,9 @@ namespace adria
 		desc.size = count * stride;
 		return desc;
 	}
-	static BufferDesc IndirectArgsBufferDesc(uint64 size)
+	static GfxBufferDesc IndirectArgsBufferDesc(uint64 size)
 	{
-		BufferDesc desc{};
+		GfxBufferDesc desc{};
 		desc.bind_flags = EBindFlag::UnorderedAccess;
 		desc.resource_usage = EResourceUsage::Default;
 		desc.size = size;
@@ -92,19 +92,19 @@ namespace adria
 		return _flags;
 	}
 
-	struct BufferSubresourceDesc
+	struct GfxBufferSubresourceDesc
 	{
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
 		EFlagsUAV uav_flags = UAV_None;
-		std::strong_ordering operator<=>(BufferSubresourceDesc const& other) const = default;
+		std::strong_ordering operator<=>(GfxBufferSubresourceDesc const& other) const = default;
 	};
-	using BufferInitialData = void const*;
+	using GfxBufferInitialData = void const*;
 
-	class Buffer
+	class GfxBuffer
 	{
 	public:
-		Buffer(GraphicsDevice* gfx, BufferDesc const& desc, BufferInitialData initial_data = nullptr)
+		GfxBuffer(GfxDevice* gfx, GfxBufferDesc const& desc, GfxBufferInitialData initial_data = nullptr)
 			: gfx(gfx), desc(desc)
 		{
 			D3D11_BUFFER_DESC buffer_desc{};
@@ -127,21 +127,21 @@ namespace adria
 			BREAK_IF_FAILED(hr);
 		}
 
-		Buffer(Buffer const&) = delete;
-		Buffer& operator=(Buffer const&) = delete;
-		~Buffer() = default;
+		GfxBuffer(GfxBuffer const&) = delete;
+		GfxBuffer& operator=(GfxBuffer const&) = delete;
+		~GfxBuffer() = default;
 
 		ID3D11ShaderResourceView* SRV(size_t i = 0) const { return srvs[i].Get(); }
 		ID3D11UnorderedAccessView* UAV(size_t i = 0) const { return uavs[i].Get(); }
 
-		[[maybe_unused]] size_t CreateSRV(BufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSRV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
-			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
+			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 			return CreateSubresource(SubresourceType_SRV, _desc);
 		}
-		[[maybe_unused]] size_t CreateUAV(BufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateUAV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
-			BufferSubresourceDesc _desc = desc ? *desc : BufferSubresourceDesc{};
+			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 			return CreateSubresource(SubresourceType_UAV, _desc);
 		}
 
@@ -151,7 +151,7 @@ namespace adria
 			return resource.Detach();
 		}
 
-		BufferDesc const& GetDesc() const { return desc; }
+		GfxBufferDesc const& GetDesc() const { return desc; }
 		UINT GetCount() const
 		{
 			ADRIA_ASSERT(desc.stride != 0);
@@ -210,14 +210,14 @@ namespace adria
 		}
 
 	private:
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
+		GfxBufferDesc desc;
 		Microsoft::WRL::ComPtr<ID3D11Buffer> resource;
-		BufferDesc desc;
 		std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> srvs;
 		std::vector<Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>> uavs;
 
 	private:
-		size_t CreateSubresource(ESubresourceType type, BufferSubresourceDesc const& subresource_desc)
+		size_t CreateSubresource(ESubresourceType type, GfxBufferSubresourceDesc const& subresource_desc)
 		{
 			HRESULT hr = E_FAIL;
 			ID3D11Device* device = gfx->Device();
@@ -318,11 +318,11 @@ namespace adria
 		}
 	};
 
-	static void BindIndexBuffer(ID3D11DeviceContext* ctx,Buffer* ib, uint32 offset = 0)
+	static void BindIndexBuffer(ID3D11DeviceContext* ctx,GfxBuffer* ib, uint32 offset = 0)
 	{
 		ctx->IASetIndexBuffer(ib->GetNative(), ib->GetDesc().format, offset);
 	}
-	static void BindVertexBuffer(ID3D11DeviceContext* ctx, Buffer* vb, uint32 slot = 0, uint32 offset = 0)
+	static void BindVertexBuffer(ID3D11DeviceContext* ctx, GfxBuffer* vb, uint32 slot = 0, uint32 offset = 0)
 	{
 		ID3D11Buffer* const vbs[] = { vb->GetNative() };
 		uint32 strides[] = { vb->GetDesc().stride };

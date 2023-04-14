@@ -92,7 +92,7 @@
     <ClCompile Include="Input\Input.cpp">
       <Filter>Input</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GraphicsDeviceDX11.cpp">
+    <ClCompile Include="Graphics\GfxDevice.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\DDSTextureLoader.cpp">
@@ -101,7 +101,7 @@
     <ClCompile Include="Graphics\WICTextureLoader.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\ShaderCompiler.cpp">
+    <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\TextureManager.cpp">
@@ -155,10 +155,10 @@
     <ClCompile Include="Utilities\Heightmap.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\CommonStates.cpp">
+    <ClCompile Include="Graphics\GfxCommonStates.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\RenderPass.cpp">
+    <ClCompile Include="Graphics\GfxRenderPass.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\SkyModel.cpp">
@@ -229,7 +229,7 @@
     <ClInclude Include="Input\Input.h">
       <Filter>Input</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GraphicsDeviceDX11.h">
+    <ClInclude Include="Graphics\GfxDevice.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\DDSTextureLoader.h">
@@ -238,25 +238,25 @@
     <ClInclude Include="Graphics\WICTextureLoader.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\CommonStates.h">
+    <ClInclude Include="Graphics\GfxCommonStates.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ConstantBuffer.h">
+    <ClInclude Include="Graphics\GfxConstantBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\RenderPass.h">
+    <ClInclude Include="Graphics\GfxRenderPass.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ShaderProgram.h">
+    <ClInclude Include="Graphics\GfxShaderProgram.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ShaderCompiler.h">
+    <ClInclude Include="Graphics\GfxShaderCompiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\TextureManager.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\VertexTypes.h">
+    <ClInclude Include="Graphics\GfxVertexTypes.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Core\Macros.h">
@@ -373,7 +373,7 @@
     <ClInclude Include="Utilities\Heightmap.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ProfilerSettings.h">
+    <ClInclude Include="Graphics\GPUProfilerSettings.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\EnumUtil.h">
@@ -391,7 +391,7 @@
     <ClInclude Include="Rendering\ParticleRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ScopedAnnotation.h">
+    <ClInclude Include="Graphics\GfxScopedAnnotation.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Tasks\Task.h">
@@ -421,13 +421,13 @@
     <ClInclude Include="Events\Delegate.h">
       <Filter>Events</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Buffer.h">
+    <ClInclude Include="Graphics\GfxBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\ResourceCommon.h">
+    <ClInclude Include="Graphics\GfxResourceCommon.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\Texture.h">
+    <ClInclude Include="Graphics\GfxTexture.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\HashMap.h">
@@ -443,9 +443,6 @@
       <Filter>Font</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\CLIParser.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\AutoRefCountPtr.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Singleton.h">

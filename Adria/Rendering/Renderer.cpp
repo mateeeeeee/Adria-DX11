@@ -11,9 +11,9 @@
 #include "../Editor/GUI.h"
 #include "../Logging/Logger.h"
 #include "../Core/Window.h"
-#include "../Graphics/GraphicsDeviceDX11.h"
-#include "../Graphics/CommonStates.h"
-#include "../Graphics/ScopedAnnotation.h"
+#include "../Graphics/GfxDevice.h"
+#include "../Graphics/GfxCommonStates.h"
+#include "../Graphics/GfxScopedAnnotation.h"
 #include "../Math/Constants.h"
 #include "../Graphics/DDSTextureLoader.h"
 #include "../Utilities/Timer.h"
@@ -318,7 +318,7 @@ namespace adria
 		}
 	}
 
-	Renderer::Renderer(registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height)
+	Renderer::Renderer(registry& reg, GfxDevice* gfx, uint32 width, uint32 height)
 		: width(width), height(height), reg(reg), gfx(gfx), texture_manager(gfx->Device(), gfx->Context()),
 		profiler(gfx->Device()), particle_renderer(gfx), picker(gfx)
 	{
@@ -353,7 +353,7 @@ namespace adria
 	{
 		current_scene_viewport = std::move(vp);
 	}
-	void Renderer::SetProfilerSettings(ProfilerSettings const& _profiler_settings)
+	void Renderer::SetProfilerSettings(GPUProfilerSettings const& _profiler_settings)
 	{
 		profiler_settings = _profiler_settings;
 	}
@@ -447,7 +447,7 @@ namespace adria
 		}
 	}
 
-	Texture const* Renderer::GetOffscreenTexture() const
+	GfxTexture const* Renderer::GetOffscreenTexture() const
 	{
 		return offscreen_ldr_render_target.get();
 	}
@@ -556,29 +556,29 @@ namespace adria
 	{
 		ID3D11Device* device = gfx->Device();
 
-		frame_cbuffer = std::make_unique<ConstantBuffer<FrameCBuffer>>(device);
-		light_cbuffer = std::make_unique<ConstantBuffer<LightCBuffer>>(device);
-		object_cbuffer = std::make_unique<ConstantBuffer<ObjectCBuffer>>(device);
-		material_cbuffer = std::make_unique<ConstantBuffer<MaterialCBuffer>>(device);
-		shadow_cbuffer = std::make_unique<ConstantBuffer<ShadowCBuffer>>(device);
-		postprocess_cbuffer = std::make_unique<ConstantBuffer<PostprocessCBuffer>>(device);
-		compute_cbuffer = std::make_unique<ConstantBuffer<ComputeCBuffer>>(device);
-		weather_cbuffer = std::make_unique<ConstantBuffer<WeatherCBuffer>>(device);
-		voxel_cbuffer = std::make_unique<ConstantBuffer<VoxelCBuffer>>(device);
-		terrain_cbuffer = std::make_unique<ConstantBuffer<TerrainCBuffer>>(device);
+		frame_cbuffer = std::make_unique<GfxConstantBuffer<FrameCBuffer>>(device);
+		light_cbuffer = std::make_unique<GfxConstantBuffer<LightCBuffer>>(device);
+		object_cbuffer = std::make_unique<GfxConstantBuffer<ObjectCBuffer>>(device);
+		material_cbuffer = std::make_unique<GfxConstantBuffer<MaterialCBuffer>>(device);
+		shadow_cbuffer = std::make_unique<GfxConstantBuffer<ShadowCBuffer>>(device);
+		postprocess_cbuffer = std::make_unique<GfxConstantBuffer<PostprocessCBuffer>>(device);
+		compute_cbuffer = std::make_unique<GfxConstantBuffer<ComputeCBuffer>>(device);
+		weather_cbuffer = std::make_unique<GfxConstantBuffer<WeatherCBuffer>>(device);
+		voxel_cbuffer = std::make_unique<GfxConstantBuffer<VoxelCBuffer>>(device);
+		terrain_cbuffer = std::make_unique<GfxConstantBuffer<TerrainCBuffer>>(device);
 
-		BufferDesc bokeh_indirect_draw_buffer_desc{};
+		GfxBufferDesc bokeh_indirect_draw_buffer_desc{};
 		bokeh_indirect_draw_buffer_desc.size = 4 * sizeof(uint32);
 		bokeh_indirect_draw_buffer_desc.misc_flags = EBufferMiscFlag::IndirectArgs;
 		uint32 buffer_init[4] = { 0, 1, 0, 0 };
-		bokeh_indirect_draw_buffer = std::make_unique<Buffer>(gfx, bokeh_indirect_draw_buffer_desc, buffer_init);
+		bokeh_indirect_draw_buffer = std::make_unique<GfxBuffer>(gfx, bokeh_indirect_draw_buffer_desc, buffer_init);
 
 		static constexpr uint32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
-		voxels = std::make_unique<Buffer>(gfx, StructuredBufferDesc<VoxelType>(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION));
-		clusters = std::make_unique<Buffer>(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT));
-		light_counter = std::make_unique<Buffer>(gfx, StructuredBufferDesc<uint32>(1));
-		light_list = std::make_unique<Buffer>(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS));
-		light_grid = std::make_unique<Buffer>(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT));
+		voxels = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<VoxelType>(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION));
+		clusters = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT));
+		light_counter = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<uint32>(1));
+		light_list = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS));
+		light_grid = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT));
 
 		voxels->CreateSRV();
 		voxels->CreateUAV();
@@ -625,8 +625,8 @@ namespace adria
 			6, 7, 3
 		};
 
-		cube_vb = std::make_unique<Buffer>(gfx, VertexBufferDesc(ARRAYSIZE(cube_vertices), sizeof(SimpleVertex)), cube_vertices);
-		cube_ib = std::make_unique<Buffer>(gfx, IndexBufferDesc(ARRAYSIZE(cube_indices), true), cube_indices);
+		cube_vb = std::make_unique<GfxBuffer>(gfx, VertexBufferDesc(ARRAYSIZE(cube_vertices), sizeof(SimpleVertex)), cube_vertices);
+		cube_ib = std::make_unique<GfxBuffer>(gfx, IndexBufferDesc(ARRAYSIZE(cube_indices), true), cube_indices);
 
 		const uint16 aabb_indices[] = {
 			0, 1,
@@ -644,7 +644,7 @@ namespace adria
 			6, 7,
 			7, 4
 		};
-		aabb_wireframe_ib = std::make_unique<Buffer>(gfx, IndexBufferDesc(ARRAYSIZE(aabb_indices), true), aabb_indices);
+		aabb_wireframe_ib = std::make_unique<GfxBuffer>(gfx, IndexBufferDesc(ARRAYSIZE(aabb_indices), true), aabb_indices);
 	}
 	void Renderer::CreateSamplers()
 	{
@@ -780,17 +780,17 @@ namespace adria
 		bs_desc.RenderTarget[0].RenderTargetWriteMask = 0x0f;
 		device->CreateBlendState(&bs_desc, alpha_to_coverage.GetAddressOf());
 
-		D3D11_DEPTH_STENCIL_DESC ds_desc = CommonStates::DepthDefault();
+		D3D11_DEPTH_STENCIL_DESC ds_desc = GfxCommonStates::DepthDefault();
 		device->CreateDepthStencilState(&ds_desc, leq_depth.GetAddressOf());
 
-		ds_desc = CommonStates::DepthNone();
+		ds_desc = GfxCommonStates::DepthNone();
 		device->CreateDepthStencilState(&ds_desc, no_depth_test.GetAddressOf());
 
 		CD3D11_RASTERIZER_DESC rasterizer_state_desc(CD3D11_DEFAULT{});
 		rasterizer_state_desc.ScissorEnable = TRUE;
 		device->CreateRasterizerState(&rasterizer_state_desc, scissor_enabled.GetAddressOf());
 
-		D3D11_RASTERIZER_DESC raster_desc = CommonStates::CullNone();
+		D3D11_RASTERIZER_DESC raster_desc = GfxCommonStates::CullNone();
 		device->CreateRasterizerState(&raster_desc, cull_none.GetAddressOf());
 
 		D3D11_RASTERIZER_DESC shadow_render_state_desc{};
@@ -803,7 +803,7 @@ namespace adria
 
 		device->CreateRasterizerState(&shadow_render_state_desc, shadow_depth_bias.GetAddressOf());
 
-		D3D11_RASTERIZER_DESC wireframe_desc = CommonStates::Wireframe();
+		D3D11_RASTERIZER_DESC wireframe_desc = GfxCommonStates::Wireframe();
 		device->CreateRasterizerState(&wireframe_desc, wireframe.GetAddressOf());
 	}
 
@@ -821,24 +821,24 @@ namespace adria
 		ID3D11Device* device = gfx->Device();
 
 		{
-			TextureDesc depth_map_desc{};
+			GfxTextureDesc depth_map_desc{};
 			depth_map_desc.width = SHADOW_MAP_SIZE;
 			depth_map_desc.height = SHADOW_MAP_SIZE;
 			depth_map_desc.format = DXGI_FORMAT_R32_TYPELESS;
 			depth_map_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
-			shadow_depth_map = std::make_unique<Texture>(gfx, depth_map_desc);
+			shadow_depth_map = std::make_unique<GfxTexture>(gfx, depth_map_desc);
 
-			TextureDesc depth_cubemap_desc{};
+			GfxTextureDesc depth_cubemap_desc{};
 			depth_cubemap_desc.width = SHADOW_CUBE_SIZE;
 			depth_cubemap_desc.height = SHADOW_CUBE_SIZE;
 			depth_cubemap_desc.array_size = 6;
 			depth_cubemap_desc.format = DXGI_FORMAT_R32_TYPELESS;
 			depth_cubemap_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
 			depth_cubemap_desc.misc_flags = ETextureMiscFlag::TextureCube;
-			shadow_depth_cubemap = std::make_unique<Texture>(gfx, depth_cubemap_desc);
+			shadow_depth_cubemap = std::make_unique<GfxTexture>(gfx, depth_cubemap_desc);
 			for (uint32 i = 0; i < 6; ++i)
 			{
-				TextureSubresourceDesc dsv_desc{};
+				GfxTextureSubresourceDesc dsv_desc{};
 				dsv_desc.first_mip = 0;
 				dsv_desc.slice_count = 1;
 				dsv_desc.first_slice = i;
@@ -846,16 +846,16 @@ namespace adria
 				ADRIA_ASSERT(j == i + 1);
 			}
 
-			TextureDesc depth_cascade_maps_desc{};
+			GfxTextureDesc depth_cascade_maps_desc{};
 			depth_cascade_maps_desc.width = SHADOW_CASCADE_SIZE;
 			depth_cascade_maps_desc.height = SHADOW_CASCADE_SIZE;
 			depth_cascade_maps_desc.array_size = CASCADE_COUNT;
 			depth_cascade_maps_desc.format = DXGI_FORMAT_R32_TYPELESS;
 			depth_cascade_maps_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
-			shadow_cascade_maps = std::make_unique<Texture>(gfx, depth_cascade_maps_desc);
+			shadow_cascade_maps = std::make_unique<GfxTexture>(gfx, depth_cascade_maps_desc);
 			for (size_t i = 0; i < CASCADE_COUNT; ++i)
 			{
-				TextureSubresourceDesc dsv_desc{};
+				GfxTextureSubresourceDesc dsv_desc{};
 				dsv_desc.first_mip = 0;
 				dsv_desc.slice_count = 1;
 				dsv_desc.first_slice = (uint32)i;
@@ -889,15 +889,15 @@ namespace adria
 				random_texture_data.push_back(1.0f);
 			}
 
-			TextureDesc random_tex_desc{};
+			GfxTextureDesc random_tex_desc{};
 			random_tex_desc.width = AO_NOISE_DIM;
 			random_tex_desc.height = AO_NOISE_DIM;
 			random_tex_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 
-			TextureInitialData init_data{};
+			GfxTextureInitialData init_data{};
 			init_data.pSysMem = (void*)random_texture_data.data();
 			init_data.SysMemPitch = AO_NOISE_DIM * 4 * sizeof(float32);
-			ssao_random_texture = std::make_unique<Texture>(gfx, random_tex_desc, &init_data);
+			ssao_random_texture = std::make_unique<GfxTexture>(gfx, random_tex_desc, &init_data);
 
 			random_texture_data.clear();
 			for (int32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
@@ -909,37 +909,37 @@ namespace adria
 				random_texture_data.push_back(rand_float());
 			}
 			init_data.pSysMem = (void*)random_texture_data.data();
-			hbao_random_texture = std::make_unique<Texture>(gfx, random_tex_desc, &init_data);
+			hbao_random_texture = std::make_unique<GfxTexture>(gfx, random_tex_desc, &init_data);
 		}
 
 		//ocean
 		{
-			TextureDesc desc{};
+			GfxTextureDesc desc{};
 			desc.width = RESOLUTION;
 			desc.height = RESOLUTION;
 			desc.format = DXGI_FORMAT_R32_FLOAT;
 			desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
-			ocean_initial_spectrum = std::make_unique<Texture>(gfx, desc);
+			ocean_initial_spectrum = std::make_unique<GfxTexture>(gfx, desc);
 
 			std::vector<float32> ping_array(RESOLUTION * RESOLUTION);
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
 			for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float() * 2.f * pi<float32>;
-			ping_pong_phase_textures[!pong_phase] = std::make_unique<Texture>(gfx, desc);
+			ping_pong_phase_textures[!pong_phase] = std::make_unique<GfxTexture>(gfx, desc);
 
-			TextureInitialData init_data{};
+			GfxTextureInitialData init_data{};
 			init_data.pSysMem = ping_array.data();
 			init_data.SysMemPitch = RESOLUTION * sizeof(float32);
-			ping_pong_phase_textures[pong_phase] = std::make_unique<Texture>(gfx, desc, &init_data);
+			ping_pong_phase_textures[pong_phase] = std::make_unique<GfxTexture>(gfx, desc, &init_data);
 
 			desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-			ping_pong_spectrum_textures[pong_spectrum] = std::make_unique<Texture>(gfx, desc);
-			ping_pong_spectrum_textures[!pong_spectrum] = std::make_unique<Texture>(gfx, desc);
-			ocean_normal_map = std::make_unique<Texture>(gfx, desc);
+			ping_pong_spectrum_textures[pong_spectrum] = std::make_unique<GfxTexture>(gfx, desc);
+			ping_pong_spectrum_textures[!pong_spectrum] = std::make_unique<GfxTexture>(gfx, desc);
+			ocean_normal_map = std::make_unique<GfxTexture>(gfx, desc);
 		}
 
 		//voxel 
 		{
-			TextureDesc voxel_desc{};
+			GfxTextureDesc voxel_desc{};
 			voxel_desc.type = TextureType_3D;
 			voxel_desc.width = VOXEL_RESOLUTION;
 			voxel_desc.height = VOXEL_RESOLUTION;
@@ -949,8 +949,8 @@ namespace adria
 			voxel_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource | EBindFlag::RenderTarget;
 			voxel_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
-			voxel_texture = std::make_unique<Texture>(gfx, voxel_desc);
-			voxel_texture_second_bounce = std::make_unique<Texture>(gfx, voxel_desc);
+			voxel_texture = std::make_unique<GfxTexture>(gfx, voxel_desc);
+			voxel_texture_second_bounce = std::make_unique<GfxTexture>(gfx, voxel_desc);
 		}
 	}
 
@@ -960,16 +960,16 @@ namespace adria
 
 		uint32 const max_bokeh = width * height;
 
-		BufferDesc bokeh_buffer_desc{};
+		GfxBufferDesc bokeh_buffer_desc{};
 		bokeh_buffer_desc.stride = 8 * sizeof(float32);
 		bokeh_buffer_desc.size = bokeh_buffer_desc.stride * max_bokeh;
 		bokeh_buffer_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
 		bokeh_buffer_desc.misc_flags = EBufferMiscFlag::BufferStructured;
 		bokeh_buffer_desc.resource_usage = EResourceUsage::Default;
 
-		bokeh_buffer = std::make_unique<Buffer>(gfx, bokeh_buffer_desc);
+		bokeh_buffer = std::make_unique<GfxBuffer>(gfx, bokeh_buffer_desc);
 
-		BufferSubresourceDesc uav_desc{};
+		GfxBufferSubresourceDesc uav_desc{};
 		uav_desc.uav_flags = UAV_Append;
 		bokeh_buffer->CreateUAV(&uav_desc);
 		bokeh_buffer->CreateSRV();
@@ -978,63 +978,63 @@ namespace adria
 	{
 		ID3D11Device* device = gfx->Device();
 
-		TextureDesc render_target_desc{};
+		GfxTextureDesc render_target_desc{};
 		render_target_desc.width = width;
 		render_target_desc.height = height;
 		render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		render_target_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
 
-		hdr_render_target = std::make_unique<Texture>(gfx, render_target_desc);
-		prev_hdr_render_target = std::make_unique<Texture>(gfx, render_target_desc);
-		sun_target = std::make_unique<Texture>(gfx, render_target_desc);
+		hdr_render_target = std::make_unique<GfxTexture>(gfx, render_target_desc);
+		prev_hdr_render_target = std::make_unique<GfxTexture>(gfx, render_target_desc);
+		sun_target = std::make_unique<GfxTexture>(gfx, render_target_desc);
 
 		render_target_desc.bind_flags |= EBindFlag::UnorderedAccess;
-		postprocess_textures[0] = std::make_unique<Texture>(gfx, render_target_desc);
-		postprocess_textures[1] = std::make_unique<Texture>(gfx, render_target_desc);
+		postprocess_textures[0] = std::make_unique<GfxTexture>(gfx, render_target_desc);
+		postprocess_textures[1] = std::make_unique<GfxTexture>(gfx, render_target_desc);
 
-		TextureDesc depth_target_desc{};
+		GfxTextureDesc depth_target_desc{};
 		depth_target_desc.width = width;
 		depth_target_desc.height = height;
 		depth_target_desc.format = DXGI_FORMAT_R32_TYPELESS;
 		depth_target_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::DepthStencil;
-		depth_target = std::make_unique<Texture>(gfx, depth_target_desc);
+		depth_target = std::make_unique<GfxTexture>(gfx, depth_target_desc);
 		
-		TextureDesc fxaa_source_desc{};
+		GfxTextureDesc fxaa_source_desc{};
 		fxaa_source_desc.width = width;
 		fxaa_source_desc.height = height;
 		fxaa_source_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		fxaa_source_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
-		fxaa_texture = std::make_unique<Texture>(gfx, fxaa_source_desc);
+		fxaa_texture = std::make_unique<GfxTexture>(gfx, fxaa_source_desc);
 
-		TextureDesc offscreeen_desc = fxaa_source_desc;
-		offscreen_ldr_render_target = std::make_unique<Texture>(gfx, offscreeen_desc);
+		GfxTextureDesc offscreeen_desc = fxaa_source_desc;
+		offscreen_ldr_render_target = std::make_unique<GfxTexture>(gfx, offscreeen_desc);
 
-		TextureDesc uav_target_desc{};
+		GfxTextureDesc uav_target_desc{};
 		uav_target_desc.width = width;
 		uav_target_desc.height = height;
 		uav_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		uav_target_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
-		uav_target = std::make_unique<Texture>(gfx, uav_target_desc);
+		uav_target = std::make_unique<GfxTexture>(gfx, uav_target_desc);
 
-		TextureDesc tiled_debug_desc{};
+		GfxTextureDesc tiled_debug_desc{};
 		tiled_debug_desc.width = width;
 		tiled_debug_desc.height = height;
 		tiled_debug_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		tiled_debug_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
-		debug_tiled_texture = std::make_unique<Texture>(gfx, tiled_debug_desc);
+		debug_tiled_texture = std::make_unique<GfxTexture>(gfx, tiled_debug_desc);
 
-		TextureDesc velocity_buffer_desc{};
+		GfxTextureDesc velocity_buffer_desc{};
 		velocity_buffer_desc.width = width;
 		velocity_buffer_desc.height = height;
 		velocity_buffer_desc.format = DXGI_FORMAT_R16G16_FLOAT;
 		velocity_buffer_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
-		velocity_buffer = std::make_unique<Texture>(gfx, velocity_buffer_desc);
+		velocity_buffer = std::make_unique<GfxTexture>(gfx, velocity_buffer_desc);
 	}
 	void Renderer::CreateGBuffer(uint32 width, uint32 height)
 	{
 		gbuffer.clear();
 		
-		TextureDesc render_target_desc{};
+		GfxTextureDesc render_target_desc{};
 		render_target_desc.width = width;
 		render_target_desc.height = height;
 		render_target_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
@@ -1042,17 +1042,17 @@ namespace adria
 		for (uint32 i = 0; i < EGBufferSlot_Count; ++i)
 		{
 			render_target_desc.format = GBUFFER_FORMAT[i];
-			gbuffer.push_back(std::make_unique<Texture>(gfx, render_target_desc));
+			gbuffer.push_back(std::make_unique<GfxTexture>(gfx, render_target_desc));
 		}
 	}
 	void Renderer::CreateAOTexture(uint32 width, uint32 height)
 	{
-		TextureDesc ao_tex_desc{};
+		GfxTextureDesc ao_tex_desc{};
 		ao_tex_desc.width = width;
 		ao_tex_desc.height = height;
 		ao_tex_desc.format = DXGI_FORMAT_R8_UNORM;
 		ao_tex_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
-		ao_texture = std::make_unique<Texture>(gfx, ao_tex_desc);
+		ao_texture = std::make_unique<GfxTexture>(gfx, ao_tex_desc);
 	}
 	void Renderer::CreateRenderPasses(uint32 width, uint32 height)
 	{
@@ -1141,7 +1141,7 @@ namespace adria
 			render_pass_desc.rtv_attachments.push_back(gbuffer_albedo_attachment);
 			render_pass_desc.rtv_attachments.push_back(gbuffer_emissive_attachment);
 			render_pass_desc.dsv_attachment = depth_clear_attachment;
-			gbuffer_pass = RenderPass(render_pass_desc);
+			gbuffer_pass = GfxRenderPass(render_pass_desc);
 		}
 
 		//ambient pass
@@ -1150,7 +1150,7 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_clear_attachment);
-			ambient_pass = RenderPass(render_pass_desc);
+			ambient_pass = GfxRenderPass(render_pass_desc);
 		}
 
 		//lighting pass
@@ -1160,7 +1160,7 @@ namespace adria
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
 
-			lighting_pass = RenderPass(render_pass_desc);
+			lighting_pass = GfxRenderPass(render_pass_desc);
 		}
 
 		//forward pass
@@ -1170,7 +1170,7 @@ namespace adria
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
 			render_pass_desc.dsv_attachment = depth_load_attachment;
-			forward_pass = RenderPass(render_pass_desc);
+			forward_pass = GfxRenderPass(render_pass_desc);
 		}
 
 		//particle pass
@@ -1179,7 +1179,7 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
-			particle_pass = RenderPass(render_pass_desc);
+			particle_pass = GfxRenderPass(render_pass_desc);
 		}
 
 		//decal pass
@@ -1189,7 +1189,7 @@ namespace adria
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(decal_albedo_attachment);
 			render_pass_desc.rtv_attachments.push_back(decal_normal_attachment);
-			decal_pass = RenderPass(render_pass_desc);
+			decal_pass = GfxRenderPass(render_pass_desc);
 		}
 
 		//fxaa pass
@@ -1198,7 +1198,7 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(fxaa_source_attachment);
-			fxaa_pass = RenderPass(render_pass_desc);
+			fxaa_pass = GfxRenderPass(render_pass_desc);
 		}
 
 		//shadow map pass
@@ -1207,7 +1207,7 @@ namespace adria
 			render_pass_desc.width = SHADOW_MAP_SIZE;
 			render_pass_desc.height = SHADOW_MAP_SIZE;
 			render_pass_desc.dsv_attachment = shadow_map_attachment;
-			shadow_map_pass = RenderPass(render_pass_desc);
+			shadow_map_pass = GfxRenderPass(render_pass_desc);
 		}
 
 		//shadow cubemap pass
@@ -1223,7 +1223,7 @@ namespace adria
 				render_pass_desc.width = SHADOW_CUBE_SIZE;
 				render_pass_desc.height = SHADOW_CUBE_SIZE;
 				render_pass_desc.dsv_attachment = shadow_cubemap_attachment;
-				shadow_cubemap_pass[i] = RenderPass(render_pass_desc);
+				shadow_cubemap_pass[i] = GfxRenderPass(render_pass_desc);
 			}
 		}
 
@@ -1241,7 +1241,7 @@ namespace adria
 				render_pass_desc.width = SHADOW_CASCADE_SIZE;
 				render_pass_desc.height = SHADOW_CASCADE_SIZE;
 				render_pass_desc.dsv_attachment = cascade_shadow_map_attachment;
-				cascade_shadow_pass.push_back(RenderPass(render_pass_desc));
+				cascade_shadow_pass.push_back(GfxRenderPass(render_pass_desc));
 			}
 		}
 
@@ -1252,7 +1252,7 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(ssao_attachment);
-			ssao_pass = RenderPass(render_pass_desc);
+			ssao_pass = GfxRenderPass(render_pass_desc);
 			hbao_pass = ssao_pass;
 		}
 
@@ -1263,13 +1263,13 @@ namespace adria
 			ping_render_pass_desc.width = width;
 			ping_render_pass_desc.height = height;
 			ping_render_pass_desc.rtv_attachments.push_back(ping_color_load_attachment);
-			postprocess_passes[0] = RenderPass(ping_render_pass_desc);
+			postprocess_passes[0] = GfxRenderPass(ping_render_pass_desc);
 
 			RenderPassDesc pong_render_pass_desc{};
 			pong_render_pass_desc.width = width;
 			pong_render_pass_desc.height = height;
 			pong_render_pass_desc.rtv_attachments.push_back(pong_color_load_attachment);
-			postprocess_passes[1] = RenderPass(pong_render_pass_desc);
+			postprocess_passes[1] = GfxRenderPass(pong_render_pass_desc);
 
 		}
 
@@ -1280,7 +1280,7 @@ namespace adria
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_clear_attachment);
 			render_pass_desc.dsv_attachment = depth_load_attachment;
-			voxel_debug_pass = RenderPass(render_pass_desc);
+			voxel_debug_pass = GfxRenderPass(render_pass_desc);
 		}
 
 		//offscreen_resolve_pass
@@ -1289,7 +1289,7 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(offscreen_clear_attachment);
-			offscreen_resolve_pass = RenderPass(render_pass_desc);
+			offscreen_resolve_pass = GfxRenderPass(render_pass_desc);
 		}
 
 		//velocity buffer pass
@@ -1298,22 +1298,22 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(velocity_clear_attachment);
-			velocity_buffer_pass = RenderPass(render_pass_desc);
+			velocity_buffer_pass = GfxRenderPass(render_pass_desc);
 		}
 	}
 	void Renderer::CreateComputeTextures(uint32 width, uint32 height)
 	{
-		TextureDesc desc{};
+		GfxTextureDesc desc{};
 		desc.width = width;
 		desc.height = height;
 		desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
 		desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
 		
-		blur_texture_intermediate = std::make_unique<Texture>(gfx, desc);
-		blur_texture_final = std::make_unique<Texture>(gfx, desc);
+		blur_texture_intermediate = std::make_unique<GfxTexture>(gfx, desc);
+		blur_texture_final = std::make_unique<GfxTexture>(gfx, desc);
 		desc.misc_flags = ETextureMiscFlag::GenerateMips;
 		desc.bind_flags |= EBindFlag::RenderTarget;
-		bloom_extract_texture = std::make_unique<Texture>(gfx, desc);
+		bloom_extract_texture = std::make_unique<GfxTexture>(gfx, desc);
 	}
 	void Renderer::CreateIBLTextures()
 	{
@@ -1336,9 +1336,9 @@ namespace adria
 		unfiltered_env_tex->GetDesc(&tex_desc);
 		//Compute pre-filtered specular environment map.
 		{
-			ShaderBlob cs_blob;
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpmapCS.cso", cs_blob);
-			ComputeShader spmap_program{ device, cs_blob };
+			GfxShaderBlob cs_blob;
+			GfxShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpmapCS.cso", cs_blob);
+			GfxComputeShader spmap_program{ device, cs_blob };
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> env_tex = nullptr;
 			D3D11_TEXTURE2D_DESC env_desc = {};
@@ -1373,9 +1373,9 @@ namespace adria
 				float32 padding[3];
 			};
 
-			ConstantBuffer<RoughnessCBuffer> roughness_cb(device);
+			GfxConstantBuffer<RoughnessCBuffer> roughness_cb(device);
 			spmap_program.Bind(context);
-			roughness_cb.Bind(context, EShaderStage::CS, 0);
+			roughness_cb.Bind(context, GfxShaderStage::CS, 0);
 			context->CSSetShaderResources(0, 1, &unfiltered_env_srv);
 
 			float32 const delta_roughness = 1.0f / (std::max)(float32(tex_desc.MipLevels - 1), 1.0f);
@@ -1413,9 +1413,9 @@ namespace adria
 		}
 		// Compute diffuse irradiance cubemap.
 		{
-			ShaderBlob cs_blob;
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/IrmapCS.cso", cs_blob);
-			ComputeShader irmap_program(device, cs_blob);
+			GfxShaderBlob cs_blob;
+			GfxShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/IrmapCS.cso", cs_blob);
+			GfxComputeShader irmap_program(device, cs_blob);
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> irmap_tex = nullptr;
 			D3D11_TEXTURE2D_DESC irmap_desc{};
@@ -1460,9 +1460,9 @@ namespace adria
 
 		// Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.
 		{
-			ShaderBlob cs_blob;
-			ShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpbrdfCS.cso", cs_blob);
-			ComputeShader BRDFprogram(device, cs_blob);
+			GfxShaderBlob cs_blob;
+			GfxShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpbrdfCS.cso", cs_blob);
+			GfxComputeShader BRDFprogram(device, cs_blob);
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> brdf_tex = nullptr;
 			D3D11_TEXTURE2D_DESC brdf_desc = {};
@@ -1514,44 +1514,44 @@ namespace adria
 		{
 			ID3D11DeviceContext* context = gfx->Context();
 			//VS GLOBALS
-			frame_cbuffer->Bind(context,  EShaderStage::VS, CBUFFER_SLOT_FRAME);
-			object_cbuffer->Bind(context, EShaderStage::VS, CBUFFER_SLOT_OBJECT);
-			shadow_cbuffer->Bind(context, EShaderStage::VS, CBUFFER_SLOT_SHADOW);
-			weather_cbuffer->Bind(context, EShaderStage::VS, CBUFFER_SLOT_WEATHER);
-			voxel_cbuffer->Bind(context,  EShaderStage::VS, CBUFFER_SLOT_VOXEL);
+			frame_cbuffer->Bind(context,  GfxShaderStage::VS, CBUFFER_SLOT_FRAME);
+			object_cbuffer->Bind(context, GfxShaderStage::VS, CBUFFER_SLOT_OBJECT);
+			shadow_cbuffer->Bind(context, GfxShaderStage::VS, CBUFFER_SLOT_SHADOW);
+			weather_cbuffer->Bind(context, GfxShaderStage::VS, CBUFFER_SLOT_WEATHER);
+			voxel_cbuffer->Bind(context,  GfxShaderStage::VS, CBUFFER_SLOT_VOXEL);
 			context->VSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 
 			//TS/HS GLOBALS
-			frame_cbuffer->Bind(context, EShaderStage::DS, CBUFFER_SLOT_FRAME);
-			frame_cbuffer->Bind(context, EShaderStage::HS, CBUFFER_SLOT_FRAME);
+			frame_cbuffer->Bind(context, GfxShaderStage::DS, CBUFFER_SLOT_FRAME);
+			frame_cbuffer->Bind(context, GfxShaderStage::HS, CBUFFER_SLOT_FRAME);
 			context->DSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 			context->HSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 
 			//CS GLOBALS
-			frame_cbuffer->Bind(context, EShaderStage::CS, CBUFFER_SLOT_FRAME);
-			compute_cbuffer->Bind(context, EShaderStage::CS, CBUFFER_SLOT_COMPUTE);
-			voxel_cbuffer->Bind(context, EShaderStage::CS, CBUFFER_SLOT_VOXEL);
+			frame_cbuffer->Bind(context, GfxShaderStage::CS, CBUFFER_SLOT_FRAME);
+			compute_cbuffer->Bind(context, GfxShaderStage::CS, CBUFFER_SLOT_COMPUTE);
+			voxel_cbuffer->Bind(context, GfxShaderStage::CS, CBUFFER_SLOT_VOXEL);
 			context->CSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 			context->CSSetSamplers(1, 1, point_wrap_sampler.GetAddressOf());
 			context->CSSetSamplers(2, 1, linear_border_sampler.GetAddressOf());
 			context->CSSetSamplers(3, 1, linear_clamp_sampler.GetAddressOf());
 
 			//GS GLOBALS
-			frame_cbuffer->Bind(context, EShaderStage::GS, CBUFFER_SLOT_FRAME);
-			light_cbuffer->Bind(context, EShaderStage::GS, CBUFFER_SLOT_LIGHT);
-			voxel_cbuffer->Bind(context, EShaderStage::GS, CBUFFER_SLOT_VOXEL);
+			frame_cbuffer->Bind(context, GfxShaderStage::GS, CBUFFER_SLOT_FRAME);
+			light_cbuffer->Bind(context, GfxShaderStage::GS, CBUFFER_SLOT_LIGHT);
+			voxel_cbuffer->Bind(context, GfxShaderStage::GS, CBUFFER_SLOT_VOXEL);
 			context->GSSetSamplers(1, 1, point_wrap_sampler.GetAddressOf());
 			context->GSSetSamplers(4, 1, point_clamp_sampler.GetAddressOf());
 			
 			//PS GLOBALS
-			material_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_MATERIAL);
-			frame_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_FRAME);
-			light_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_LIGHT);
-			shadow_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_SHADOW);
-			postprocess_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_POSTPROCESS);
-			weather_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_WEATHER);
-			voxel_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_VOXEL);
-			terrain_cbuffer->Bind(context, EShaderStage::PS, CBUFFER_SLOT_TERRAIN);
+			material_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_MATERIAL);
+			frame_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_FRAME);
+			light_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_LIGHT);
+			shadow_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_SHADOW);
+			postprocess_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_POSTPROCESS);
+			weather_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_WEATHER);
+			voxel_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_VOXEL);
+			terrain_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_TERRAIN);
 			context->PSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 			context->PSSetSamplers(1, 1, point_wrap_sampler.GetAddressOf());
 			context->PSSetSamplers(2, 1, linear_border_sampler.GetAddressOf());
@@ -1683,9 +1683,9 @@ namespace adria
 				uint32 subseq_count;
 			};
 			static FFTCBuffer fft_cbuf_data{ .seq_count = RESOLUTION };
-			static ConstantBuffer<FFTCBuffer> fft_cbuffer(gfx->Device());
+			static GfxConstantBuffer<FFTCBuffer> fft_cbuffer(gfx->Device());
 
-			fft_cbuffer.Bind(context, EShaderStage::CS, 10);
+			fft_cbuffer.Bind(context, GfxShaderStage::CS, 10);
 			//fft horizontal
 			{
 				ShaderManager::GetShaderProgram(EShaderProgram::OceanFFT_Horizontal)->Bind(context);
@@ -1825,7 +1825,7 @@ namespace adria
 		{
 			light_count = current_light_count;
 			if (light_count == 0) return;
-			lights = std::make_unique<Buffer>(gfx, StructuredBufferDesc<LightSBuffer>(light_count, false, true));
+			lights = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<LightSBuffer>(light_count, false, true));
 			lights->CreateSRV();
 		}
 
@@ -2106,9 +2106,9 @@ namespace adria
 			bool32 modify_gbuffer_normals;
 		};
 
-		static ConstantBuffer<DecalCBuffer> decal_cbuffer(gfx->Device());
+		static GfxConstantBuffer<DecalCBuffer> decal_cbuffer(gfx->Device());
 		static DecalCBuffer decal_cbuf_data{};
-		decal_cbuffer.Bind(context, EShaderStage::PS, 11);
+		decal_cbuffer.Bind(context, GfxShaderStage::PS, 11);
 
 		decal_pass.Begin(context);
 		{
@@ -3657,7 +3657,7 @@ namespace adria
 		context->OMSetRenderTargets(0, nullptr, nullptr);
 	}
 
-	void Renderer::BlurTexture(Texture const* src)
+	void Renderer::BlurTexture(GfxTexture const* src)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 		std::array<ID3D11UnorderedAccessView*, 2> uavs{};
@@ -3699,7 +3699,7 @@ namespace adria
 		context->CSSetShaderResources(0, 1, null_srv);
 
 	}
-	void Renderer::CopyTexture(Texture const* src)
+	void Renderer::CopyTexture(GfxTexture const* src)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
@@ -3712,7 +3712,7 @@ namespace adria
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
 		context->PSSetShaderResources(0, 1, srv_null);
 	}
-	void Renderer::AddTextures(Texture const* src1, Texture const* src2)
+	void Renderer::AddTextures(GfxTexture const* src1, GfxTexture const* src2)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 		ID3D11ShaderResourceView* srv[] = { src1->SRV(), src2->SRV() };

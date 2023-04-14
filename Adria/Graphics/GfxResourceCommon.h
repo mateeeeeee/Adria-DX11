@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <optional>
-#include "GraphicsDeviceDX11.h"
+#include "GfxDevice.h"
 #include "../Utilities/EnumUtil.h"
 #include "../Utilities/StringUtil.h"
 #include "../Core/Macros.h"

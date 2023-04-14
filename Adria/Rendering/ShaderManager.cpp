@@ -5,8 +5,8 @@
 #include <execution>
 #include <filesystem>
 #include "ShaderManager.h"
-#include "../Graphics/ShaderProgram.h"
-#include "../Graphics/ShaderCompiler.h"
+#include "../Graphics/GfxShaderProgram.h"
+#include "../Graphics/GfxShaderCompiler.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/Timer.h"
 #include "../Utilities/HashMap.h"
@@ -23,19 +23,19 @@ namespace adria
 		std::unique_ptr<FileWatcher> file_watcher;
 		DelegateHandle file_modified_handle;
 
-		HashMap<EShader, std::unique_ptr<VertexShader>>		vs_shader_map;
-		HashMap<EShader, std::unique_ptr<PixelShader>>		ps_shader_map;
-		HashMap<EShader, std::unique_ptr<HullShader>>		hs_shader_map;
-		HashMap<EShader, std::unique_ptr<DomainShader>>		ds_shader_map;
-		HashMap<EShader, std::unique_ptr<GeometryShader>>	gs_shader_map;
-		HashMap<EShader, std::unique_ptr<ComputeShader>>	cs_shader_map;
+		HashMap<EShader, std::unique_ptr<GfxVertexShader>>		vs_shader_map;
+		HashMap<EShader, std::unique_ptr<GfxPixelShader>>		ps_shader_map;
+		HashMap<EShader, std::unique_ptr<GfxHullShader>>		hs_shader_map;
+		HashMap<EShader, std::unique_ptr<GfxDomainShader>>		ds_shader_map;
+		HashMap<EShader, std::unique_ptr<GfxGeometryShader>>	gs_shader_map;
+		HashMap<EShader, std::unique_ptr<GfxComputeShader>>	cs_shader_map;
 		HashMap<EShader, HashSet<fs::path>>					dependent_files_map;
-		HashMap<EShader, InputLayout>						input_layout_map;
+		HashMap<EShader, GfxInputLayout>						input_layout_map;
 
-		HashMap<EShaderProgram, GraphicsShaderProgram>		gfx_shader_program_map;
-		HashMap<EShaderProgram, ComputeShaderProgram> compute_shader_program_map;
+		HashMap<EShaderProgram, GfxGraphicsShaderProgram>		gfx_shader_program_map;
+		HashMap<EShaderProgram, GfxComputeShaderProgram> compute_shader_program_map;
 
-		constexpr EShaderStage GetStage(EShader shader)
+		constexpr GfxShaderStage GetStage(EShader shader)
 		{
 			switch (shader)
 			{
@@ -58,7 +58,7 @@ namespace adria
 			case VS_VoxelizeDebug:
 			case VS_Foliage:
 			case VS_Particles:
-				return EShaderStage::VS;
+				return GfxShaderStage::VS;
 			case PS_Skybox:
 			case PS_HosekWilkieSky:
 			case PS_UniformColorSky:
@@ -108,12 +108,12 @@ namespace adria
 			case PS_VoxelizeDebug:
 			case PS_Foliage:
 			case PS_Particles:
-				return EShaderStage::PS;
+				return GfxShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
 			case GS_Voxelize:
 			case GS_VoxelizeDebug:
-				return EShaderStage::GS;
+				return GfxShaderStage::GS;
 			case CS_BlurHorizontal:
 			case CS_BlurVertical:
 			case CS_BokehGenerate:
@@ -139,14 +139,14 @@ namespace adria
 			case CS_ParticleSortInner512:
 			case CS_ParticleSortInitArgs:
 			case CS_Picker:
-				return EShaderStage::CS;
+				return GfxShaderStage::CS;
 			case HS_OceanLOD:
-				return EShaderStage::HS;
+				return GfxShaderStage::HS;
 			case DS_OceanLOD:
-				return EShaderStage::DS;
+				return GfxShaderStage::DS;
 			case EShader_Count:
 			default:
-				return EShaderStage::StageCount;
+				return GfxShaderStage::StageCount;
 			}
 		}
 		constexpr std::string GetShaderSource(EShader shader)
@@ -346,7 +346,7 @@ namespace adria
 				return "";
 			}
 		}
-		constexpr std::vector<ShaderMacro> GetShaderMacros(EShader shader)
+		constexpr std::vector<GfxShaderMacro> GetShaderMacros(EShader shader)
 		{
 			switch (shader)
 			{
@@ -378,42 +378,42 @@ namespace adria
 
 		void CompileShader(EShader shader, bool first_compile = false)
 		{
-			ShaderCompileInput input{ .entrypoint = "main" };
+			GfxShaderCompileInput input{ .entrypoint = "main" };
 #if _DEBUG
-			input.flags = ShaderCompileInput::FlagDebug | ShaderCompileInput::FlagDisableOptimization;
+			input.flags = GfxShaderCompileInput::FlagDebug | GfxShaderCompileInput::FlagDisableOptimization;
 #else
-			input.flags = ShaderCompileInput::FlagNone;
+			input.flags = GfxShaderCompileInput::FlagNone;
 #endif
 			input.source_file = "Resources/Shaders/" + GetShaderSource(shader);
 			input.stage = GetStage(shader);
 			input.macros = GetShaderMacros(shader);
 
-			ShaderCompileOutput output{};
-			ShaderCompiler::CompileShader(input, output);
+			GfxShaderCompileOutput output{};
+			GfxShaderCompiler::CompileShader(input, output);
 			switch (input.stage)
 			{
-			case EShaderStage::VS:
-				if(first_compile) vs_shader_map[shader] = std::make_unique<VertexShader>(device, output.blob);
+			case GfxShaderStage::VS:
+				if(first_compile) vs_shader_map[shader] = std::make_unique<GfxVertexShader>(device, output.blob);
 				else vs_shader_map[shader]->Recreate(device, output.blob);
 				break;
-			case EShaderStage::PS:
-				if (first_compile) ps_shader_map[shader] = std::make_unique<PixelShader>(device, output.blob);
+			case GfxShaderStage::PS:
+				if (first_compile) ps_shader_map[shader] = std::make_unique<GfxPixelShader>(device, output.blob);
 				else ps_shader_map[shader]->Recreate(device, output.blob);
 				break;
-			case EShaderStage::HS:
-				if (first_compile) hs_shader_map[shader] = std::make_unique<HullShader>(device, output.blob);
+			case GfxShaderStage::HS:
+				if (first_compile) hs_shader_map[shader] = std::make_unique<GfxHullShader>(device, output.blob);
 				else hs_shader_map[shader]->Recreate(device, output.blob);
 				break;
-			case EShaderStage::DS:
-				if (first_compile) ds_shader_map[shader] = std::make_unique<DomainShader>(device, output.blob);
+			case GfxShaderStage::DS:
+				if (first_compile) ds_shader_map[shader] = std::make_unique<GfxDomainShader>(device, output.blob);
 				else ds_shader_map[shader]->Recreate(device, output.blob);
 				break;
-			case EShaderStage::GS:
-				if (first_compile) gs_shader_map[shader] = std::make_unique<GeometryShader>(device, output.blob);
+			case GfxShaderStage::GS:
+				if (first_compile) gs_shader_map[shader] = std::make_unique<GfxGeometryShader>(device, output.blob);
 				else gs_shader_map[shader]->Recreate(device, output.blob);
 				break;
-			case EShaderStage::CS:
-				if (first_compile) cs_shader_map[shader] = std::make_unique<ComputeShader>(device, output.blob);
+			case GfxShaderStage::CS:
+				if (first_compile) cs_shader_map[shader] = std::make_unique<GfxComputeShader>(device, output.blob);
 				else cs_shader_map[shader]->Recreate(device, output.blob);
 				break;
 			default:
@@ -428,7 +428,7 @@ namespace adria
 			for (UnderlyingType s = 0; s < EShader_Count; ++s)
 			{
 				EShader shader = (EShader)s;
-				if (GetStage(shader) != EShaderStage::VS) continue;
+				if (GetStage(shader) != GfxShaderStage::VS) continue;
 				
 				if (shader != VS_Foliage) input_layout_map.emplace(std::piecewise_construct, 
 																   std::forward_as_tuple(shader),
@@ -593,7 +593,7 @@ namespace adria
 		FreeContainer(input_layout_map);
 	}
 
-	ShaderProgram* ShaderManager::GetShaderProgram(EShaderProgram shader_program)
+	GfxShaderProgram* ShaderManager::GetShaderProgram(EShaderProgram shader_program)
 	{
 		bool is_gfx_program = gfx_shader_program_map.contains(shader_program);
 		if (is_gfx_program) return &gfx_shader_program_map[shader_program];

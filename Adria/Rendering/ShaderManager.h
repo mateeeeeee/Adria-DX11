@@ -5,13 +5,13 @@ struct ID3D11Device;
 
 namespace adria
 {
-	struct ShaderProgram;
+	struct GfxShaderProgram;
 
 	namespace ShaderManager
 	{
 		void Initialize(ID3D11Device* device);
 		void Destroy();
-		ShaderProgram* GetShaderProgram(EShaderProgram shader_program);
+		GfxShaderProgram* GetShaderProgram(EShaderProgram shader_program);
 		void CheckIfShadersHaveChanged();
 	};
 }

@@ -1,4 +1,4 @@
-#include "GraphicsDeviceDX11.h"
+#include "GfxDevice.h"
 #include <dxgidebug.h>
 #include <cstdlib>
 #include "../Core/Macros.h"
@@ -14,7 +14,7 @@ static inline void ReportLiveObjects()
 
 namespace adria
 {
-	GraphicsDevice::GraphicsDevice(void* handle)
+	GfxDevice::GfxDevice(void* handle)
 	{
 		HWND w_handle = static_cast<HWND>(handle);
 		RECT rect;
@@ -87,11 +87,11 @@ namespace adria
 		CreateBackBufferResources(width, height);
 		std::atexit(ReportLiveObjects);
 	}
-	GraphicsDevice::~GraphicsDevice()
+	GfxDevice::~GfxDevice()
 	{
 		WaitForGPU();
 	}
-	void GraphicsDevice::ResizeBackbuffer(uint32 w, uint32 h)
+	void GfxDevice::ResizeBackbuffer(uint32 w, uint32 h)
 	{
 		if ((width != w || height != h) && w > 0 && h > 0)
 		{
@@ -100,17 +100,17 @@ namespace adria
 			CreateBackBufferResources(w, h);
 		}
 	}
-	void GraphicsDevice::ClearBackbuffer()
+	void GfxDevice::ClearBackbuffer()
 	{
 		float32 clear_color[] = { 0.0f,0.0f, 0.0f,0.0f };
 		immediate_context->ClearRenderTargetView(backbuffer_rtv.Get(), clear_color);
 	}
-	void GraphicsDevice::SwapBuffers(bool vsync)
+	void GfxDevice::SwapBuffers(bool vsync)
 	{
 		HRESULT hr = swapchain->Present(vsync, 0);
 		BREAK_IF_FAILED(hr);
 	}
-	void GraphicsDevice::SetBackbuffer()
+	void GfxDevice::SetBackbuffer()
 	{
 		D3D11_VIEWPORT vp = {};
 		vp.Width = static_cast<float32>(width);
@@ -122,21 +122,21 @@ namespace adria
 		immediate_context->RSSetViewports(1, &vp);
 		immediate_context->OMSetRenderTargets(1, backbuffer_rtv.GetAddressOf(), nullptr);
 	}
-	ID3D11Device* GraphicsDevice::Device() const
+	ID3D11Device* GfxDevice::Device() const
 	{
 		return device.Get();
 	}
-	ID3D11DeviceContext* GraphicsDevice::Context() const
+	ID3D11DeviceContext* GfxDevice::Context() const
 	{
 		return immediate_context.Get();
 	}
 
-	ID3DUserDefinedAnnotation* GraphicsDevice::Annotation() const
+	ID3DUserDefinedAnnotation* GfxDevice::Annotation() const
 	{
 		return annot.Get();
 	}
 
-	void GraphicsDevice::WaitForGPU()
+	void GfxDevice::WaitForGPU()
 	{
 		immediate_context->Flush();
 		D3D11_QUERY_DESC desc{};
@@ -150,7 +150,7 @@ namespace adria
 		while (immediate_context->GetData(query.Get(), &result, sizeof(result), 0) == S_FALSE);
 		ADRIA_ASSERT(result == TRUE);
 	}
-	void GraphicsDevice::CreateBackBufferResources(uint32 w, uint32 h)
+	void GfxDevice::CreateBackBufferResources(uint32 w, uint32 h)
 	{
 		ID3D11RenderTargetView* null_views[] = { nullptr };
 		immediate_context->OMSetRenderTargets(ARRAYSIZE(null_views), null_views, nullptr);

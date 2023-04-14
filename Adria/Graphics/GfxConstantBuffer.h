@@ -2,15 +2,16 @@
 #include <vector>
 #include <d3d11.h>
 #include <wrl.h>
+#include "GfxShaderCompiler.h"
 #include "../Core/Definitions.h" 
 #include "../Core/Macros.h" 
-#include "ShaderCompiler.h"
+
 
 namespace adria
 {
 
 	template<typename CBuffer>
-	class ConstantBuffer
+	class GfxConstantBuffer
 	{
 		static constexpr uint32 GetCBufferSize(uint32 buffer_size)
 		{
@@ -19,16 +20,13 @@ namespace adria
 
 	public:
 
-		ConstantBuffer(ID3D11Device* device, bool dynamic = true);
-
-		ConstantBuffer(ID3D11Device* device, CBuffer const& initialdata, bool dynamic = true);
+		GfxConstantBuffer(ID3D11Device* device, bool dynamic = true);
+		GfxConstantBuffer(ID3D11Device* device, CBuffer const& initialdata, bool dynamic = true);
 
 		void Update(ID3D11DeviceContext* context, void const* data, uint32 data_size);
-
 		void Update(ID3D11DeviceContext* context, CBuffer const& buffer_data);
 
-		void Bind(ID3D11DeviceContext* context, EShaderStage stage, uint32 slot) const;
-
+		void Bind(ID3D11DeviceContext* context, GfxShaderStage stage, uint32 slot) const;
 		ID3D11Buffer* const Buffer() const 
 		{
 			return buffer.Get();
@@ -41,7 +39,7 @@ namespace adria
 
 
 	template<typename CBuffer>
-	ConstantBuffer<CBuffer>::ConstantBuffer(ID3D11Device* device, CBuffer const& initialdata, bool dynamic /*= true*/) : dynamic{ dynamic }
+	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(ID3D11Device* device, CBuffer const& initialdata, bool dynamic /*= true*/) : dynamic{ dynamic }
 	{
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -58,7 +56,7 @@ namespace adria
 	}
 
 	template<typename CBuffer>
-	ConstantBuffer<CBuffer>::ConstantBuffer(ID3D11Device* device, bool dynamic /*= true*/) : dynamic{ dynamic }
+	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(ID3D11Device* device, bool dynamic /*= true*/) : dynamic{ dynamic }
 	{
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -72,7 +70,7 @@ namespace adria
 	}
 
 	template<typename CBuffer>
-	void ConstantBuffer<CBuffer>::Update(ID3D11DeviceContext* context, void const* data, uint32 data_size)
+	void GfxConstantBuffer<CBuffer>::Update(ID3D11DeviceContext* context, void const* data, uint32 data_size)
 	{
 		D3D11_BUFFER_DESC desc{};
 		buffer->GetDesc(&desc);
@@ -90,32 +88,32 @@ namespace adria
 	}
 
 	template<typename CBuffer>
-	void ConstantBuffer<CBuffer>::Update(ID3D11DeviceContext* context, CBuffer const& buffer_data)
+	void GfxConstantBuffer<CBuffer>::Update(ID3D11DeviceContext* context, CBuffer const& buffer_data)
 	{
 		Update(context, &buffer_data, sizeof(CBuffer));
 	}
 
 	template<typename CBuffer>
-	void ConstantBuffer<CBuffer>::Bind(ID3D11DeviceContext* context, EShaderStage stage, uint32 slot) const
+	void GfxConstantBuffer<CBuffer>::Bind(ID3D11DeviceContext* context, GfxShaderStage stage, uint32 slot) const
 	{
 		switch (stage)
 		{
-		case EShaderStage::VS:
+		case GfxShaderStage::VS:
 			context->VSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
-		case EShaderStage::PS:
+		case GfxShaderStage::PS:
 			context->PSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
-		case EShaderStage::HS:
+		case GfxShaderStage::HS:
 			context->HSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
-		case EShaderStage::DS:
+		case GfxShaderStage::DS:
 			context->DSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
-		case EShaderStage::GS:
+		case GfxShaderStage::GS:
 			context->GSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
-		case EShaderStage::CS:
+		case GfxShaderStage::CS:
 			context->CSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
 			break;
 		default:

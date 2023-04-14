@@ -7,7 +7,7 @@
 
 namespace adria
 {
-	struct ShaderBlob
+	struct GfxShaderBlob
 	{
 		std::vector<uint8> bytecode;
 
@@ -21,12 +21,12 @@ namespace adria
 			return bytecode.size();
 		}
 	};
-	struct ShaderMacro
+	struct GfxShaderMacro
 	{
 		std::string name;
 		std::string definition;
 	};
-	enum class EShaderStage
+	enum class GfxShaderStage
 	{
 		VS,
 		PS,
@@ -37,31 +37,31 @@ namespace adria
 		StageCount
 	};
 
-	struct ShaderCompileInput
+	struct GfxShaderCompileInput
 	{
-		enum EShaderCompileFlags
+		enum GfxShaderCompileFlags
 		{
 			FlagNone = 0,
 			FlagDebug = 1 << 0,
 			FlagDisableOptimization = 1 << 1,
 		};
-		EShaderStage stage = EShaderStage::StageCount;
+		GfxShaderStage stage = GfxShaderStage::StageCount;
 		std::string source_file = "";
 		std::string entrypoint = "";
-		std::vector<ShaderMacro> macros;
+		std::vector<GfxShaderMacro> macros;
 		uint64 flags = FlagNone;
 	};
 
-	struct ShaderCompileOutput
+	struct GfxShaderCompileOutput
 	{
-		ShaderBlob blob;
+		GfxShaderBlob blob;
 		std::vector<std::string> dependent_files;
 	};
 	
-	namespace ShaderCompiler
+	namespace GfxShaderCompiler
 	{
-		void CompileShader(ShaderCompileInput const& input, ShaderCompileOutput& output);
-		void GetBlobFromCompiledShader(char const* filename, ShaderBlob& blob);
-		void CreateInputLayoutWithReflection(ID3D11Device* device, ShaderBlob const& blob, ID3D11InputLayout** il);
+		void CompileShader(GfxShaderCompileInput const& input, GfxShaderCompileOutput& output);
+		void GetBlobFromCompiledShader(char const* filename, GfxShaderBlob& blob);
+		void CreateInputLayoutWithReflection(ID3D11Device* device, GfxShaderBlob const& blob, ID3D11InputLayout** il);
 	}
 }

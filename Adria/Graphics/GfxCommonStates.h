@@ -5,7 +5,7 @@ namespace adria
 {
 
     //use namespaces
-    class CommonStates
+    class GfxCommonStates
     {
     public:
         static D3D11_BLEND_DESC Opaque();

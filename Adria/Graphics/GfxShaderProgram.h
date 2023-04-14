@@ -1,36 +1,36 @@
 #pragma once
 #include <wrl.h>
-#include "ShaderCompiler.h"
+#include "GfxShaderCompiler.h"
 #include "../Core/Macros.h" 
 
 namespace adria
 {
-	class Shader
+	class GfxShader
 	{
 	public:
-		Shader(ShaderBlob const& blob, EShaderStage stage)
+		GfxShader(GfxShaderBlob const& blob, GfxShaderStage stage)
 			: blob(blob), stage(stage)
 		{}
 
-		ShaderBlob& GetBlob() { return blob; }
-		EShaderStage GetStage() const { return stage; }
+		GfxShaderBlob& GetBlob() { return blob; }
+		GfxShaderStage GetStage() const { return stage; }
 
-		virtual ~Shader() = default;
+		virtual ~GfxShader() = default;
 		virtual void Bind(ID3D11DeviceContext* context) = 0;
 		virtual void Unbind(ID3D11DeviceContext* context) = 0;
-		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) = 0;
+		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) = 0;
 	private:
-		ShaderBlob blob;
-		EShaderStage stage;
+		GfxShaderBlob blob;
+		GfxShaderStage stage;
 	};
-	class VertexShader final : public Shader
+	class GfxVertexShader final : public GfxShader
 	{
-		friend struct ShaderProgram;
+		friend struct GfxShaderProgram;
 
 	public:
-		VertexShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::VS)
+		GfxVertexShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::VS)
 		{
-			ShaderBlob const& vs_blob = GetBlob();
+			GfxShaderBlob const& vs_blob = GetBlob();
 			HRESULT hr = device->CreateVertexShader(vs_blob.GetPointer(), vs_blob.GetLength(), nullptr, vs.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
@@ -42,7 +42,7 @@ namespace adria
 		{
 			context->VSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
 		{
 			GetBlob() = blob;
 			HRESULT hr = device->CreateVertexShader(blob.GetPointer(), blob.GetLength(), nullptr, vs.ReleaseAndGetAddressOf());
@@ -51,14 +51,14 @@ namespace adria
 	private:
 		Microsoft::WRL::ComPtr<ID3D11VertexShader> vs = nullptr;
 	};
-	class PixelShader final : public Shader
+	class GfxPixelShader final : public GfxShader
 	{
-		friend struct ShaderProgram;
+		friend struct GfxShaderProgram;
 
 	public:
-		PixelShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::PS)
+		GfxPixelShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::PS)
 		{
-			ShaderBlob const& ps_blob = GetBlob();
+			GfxShaderBlob const& ps_blob = GetBlob();
 			HRESULT hr = device->CreatePixelShader(ps_blob.GetPointer(), ps_blob.GetLength(), nullptr, ps.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
@@ -71,7 +71,7 @@ namespace adria
 		{
 			context->PSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
 		{
 			GetBlob() = blob;
 			HRESULT hr = device->CreatePixelShader(blob.GetPointer(), blob.GetLength(), nullptr, ps.ReleaseAndGetAddressOf());
@@ -80,14 +80,14 @@ namespace adria
 	private:
 		Microsoft::WRL::ComPtr<ID3D11PixelShader> ps = nullptr;
 	};
-	class GeometryShader final : public Shader
+	class GfxGeometryShader final : public GfxShader
 	{
-		friend struct ShaderProgram;
+		friend struct GfxShaderProgram;
 
 	public:
-		GeometryShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::GS)
+		GfxGeometryShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::GS)
 		{
-			ShaderBlob const& gs_blob = GetBlob();
+			GfxShaderBlob const& gs_blob = GetBlob();
 			HRESULT hr = device->CreateGeometryShader(gs_blob.GetPointer(), gs_blob.GetLength(), nullptr, gs.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
@@ -100,7 +100,7 @@ namespace adria
 		{
 			context->GSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
 		{
 			GetBlob() = blob;
 			HRESULT hr = device->CreateGeometryShader(blob.GetPointer(), blob.GetLength(), nullptr, gs.ReleaseAndGetAddressOf());
@@ -109,14 +109,14 @@ namespace adria
 	private:
 		Microsoft::WRL::ComPtr<ID3D11GeometryShader> gs = nullptr;
 	};
-	class DomainShader final : public Shader
+	class GfxDomainShader final : public GfxShader
 	{
-		friend struct ShaderProgram;
+		friend struct GfxShaderProgram;
 
 	public:
-		DomainShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::DS)
+		GfxDomainShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::DS)
 		{
-			ShaderBlob const& ds_blob = GetBlob();
+			GfxShaderBlob const& ds_blob = GetBlob();
 			HRESULT hr = device->CreateDomainShader(ds_blob.GetPointer(), ds_blob.GetLength(), nullptr, ds.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
@@ -128,7 +128,7 @@ namespace adria
 		{
 			context->DSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
 		{
 			GetBlob() = blob;
 			HRESULT hr = device->CreateDomainShader(blob.GetPointer(), blob.GetLength(), nullptr, ds.ReleaseAndGetAddressOf());
@@ -137,14 +137,14 @@ namespace adria
 	private:
 		Microsoft::WRL::ComPtr<ID3D11DomainShader> ds = nullptr;
 	};
-	class HullShader final : public Shader
+	class GfxHullShader final : public GfxShader
 	{
-		friend struct ShaderProgram;
+		friend struct GfxShaderProgram;
 
 	public:
-		HullShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::HS)
+		GfxHullShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::HS)
 		{
-			ShaderBlob const& hs_blob = GetBlob();
+			GfxShaderBlob const& hs_blob = GetBlob();
 			HRESULT hr = device->CreateHullShader(hs_blob.GetPointer(), hs_blob.GetLength(), nullptr, hs.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
@@ -156,7 +156,7 @@ namespace adria
 		{
 			context->HSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
 		{
 			GetBlob() = blob;
 			HRESULT hr = device->CreateHullShader(blob.GetPointer(), blob.GetLength(), nullptr, hs.ReleaseAndGetAddressOf());
@@ -165,14 +165,14 @@ namespace adria
 	private:
 		Microsoft::WRL::ComPtr<ID3D11HullShader> hs = nullptr;
 	};
-	class ComputeShader final : public Shader
+	class GfxComputeShader final : public GfxShader
 	{
-		friend struct ShaderProgram;
+		friend struct GfxShaderProgram;
 
 	public:
-		ComputeShader(ID3D11Device* device, ShaderBlob const& blob) : Shader(blob, EShaderStage::CS)
+		GfxComputeShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::CS)
 		{
-			ShaderBlob const& cs_blob = GetBlob();
+			GfxShaderBlob const& cs_blob = GetBlob();
 			HRESULT hr = device->CreateComputeShader(cs_blob.GetPointer(), cs_blob.GetLength(), nullptr, cs.GetAddressOf());
 			BREAK_IF_FAILED(hr);
 		}
@@ -184,7 +184,7 @@ namespace adria
 		{
 			context->CSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, ShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
 		{
 			GetBlob() = blob;
 			HRESULT hr = device->CreateComputeShader(blob.GetPointer(), blob.GetLength(), nullptr, cs.ReleaseAndGetAddressOf());
@@ -194,17 +194,17 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11ComputeShader> cs = nullptr;
 	};
 
-	class InputLayout
+	class GfxInputLayout
 	{
 	public:
-		InputLayout() {}
+		GfxInputLayout() {}
 
-		InputLayout(ID3D11Device* device, ShaderBlob const& vs_blob, std::vector<D3D11_INPUT_ELEMENT_DESC> const& desc = {})
+		GfxInputLayout(ID3D11Device* device, GfxShaderBlob const& vs_blob, std::vector<D3D11_INPUT_ELEMENT_DESC> const& desc = {})
 		{
 			if (!desc.empty()) device->CreateInputLayout(desc.data(), (UINT)desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(),
 				layout.GetAddressOf());
 			else
-				ShaderCompiler::CreateInputLayoutWithReflection(device, vs_blob, layout.GetAddressOf());
+				GfxShaderCompiler::CreateInputLayoutWithReflection(device, vs_blob, layout.GetAddressOf());
 		}
 
 		void Bind(ID3D11DeviceContext* context)
@@ -219,16 +219,16 @@ namespace adria
 		Microsoft::WRL::ComPtr<ID3D11InputLayout> layout;
 	};
 
-	struct ShaderProgram
+	struct GfxShaderProgram
 	{
-		virtual ~ShaderProgram() = default;
+		virtual ~GfxShaderProgram() = default;
 		virtual void Bind(ID3D11DeviceContext* context) = 0;
 		virtual void Unbind(ID3D11DeviceContext* context) = 0;
 	};
 
-	class GraphicsShaderProgram final : public ShaderProgram
+	class GfxGraphicsShaderProgram final : public GfxShaderProgram
 	{
-		enum ShaderSlot
+		enum GfxShaderSlot
 		{
 			VS = 0,
 			PS = 1,
@@ -239,33 +239,33 @@ namespace adria
 		};
 
 	public:
-		GraphicsShaderProgram() = default;
-		GraphicsShaderProgram& SetVertexShader(VertexShader* vs)
+		GfxGraphicsShaderProgram() = default;
+		GfxGraphicsShaderProgram& SetVertexShader(GfxVertexShader* vs)
 		{
 			shaders[VS] = vs;
 			return *this;
 		}
-		GraphicsShaderProgram& SetPixelShader(PixelShader* ps)
+		GfxGraphicsShaderProgram& SetPixelShader(GfxPixelShader* ps)
 		{
 			shaders[PS] = ps;
 			return *this;
 		}
-		GraphicsShaderProgram& SetDomainShader(DomainShader* ds)
+		GfxGraphicsShaderProgram& SetDomainShader(GfxDomainShader* ds)
 		{
 			shaders[DS] = ds;
 			return *this;
 		}
-		GraphicsShaderProgram& SetHullShader(HullShader* hs)
+		GfxGraphicsShaderProgram& SetHullShader(GfxHullShader* hs)
 		{
 			shaders[HS] = hs;
 			return *this;
 		}
-		GraphicsShaderProgram& SetGeometryShader(GeometryShader* gs)
+		GfxGraphicsShaderProgram& SetGeometryShader(GfxGeometryShader* gs)
 		{
 			shaders[GS] = gs;
 			return *this;
 		}
-		GraphicsShaderProgram& SetInputLayout(InputLayout* il)
+		GfxGraphicsShaderProgram& SetInputLayout(GfxInputLayout* il)
 		{
 			input_layout = il;
 			return *this;
@@ -285,15 +285,15 @@ namespace adria
 		}
 
 	private:
-		Shader* shaders[ShaderCount] = { nullptr };
-		InputLayout* input_layout = nullptr;
+		GfxShader* shaders[ShaderCount] = { nullptr };
+		GfxInputLayout* input_layout = nullptr;
 	};
-	class ComputeShaderProgram final : public ShaderProgram
+	class GfxComputeShaderProgram final : public GfxShaderProgram
 	{
 	public:
-		ComputeShaderProgram() = default;
+		GfxComputeShaderProgram() = default;
 
-		void SetComputeShader(ComputeShader* cs)
+		void SetComputeShader(GfxComputeShader* cs)
 		{
 			shader = cs;
 		}
@@ -306,6 +306,6 @@ namespace adria
 			if (shader) shader->Unbind(context);
 		}
 	private:
-		ComputeShader* shader = nullptr;
+		GfxComputeShader* shader = nullptr;
 	};
 }

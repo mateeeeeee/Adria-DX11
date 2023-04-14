@@ -1,7 +1,7 @@
 #include "Editor.h"
 #include <nfd.h>
 #include "../Rendering/Renderer.h"
-#include "../Graphics/GraphicsDeviceDX11.h"
+#include "../Graphics/GfxDevice.h"
 #include "../Rendering/ModelImporter.h"
 #include "../Logging/Logger.h"
 #include "../Utilities/FilesUtil.h"

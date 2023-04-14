@@ -11,7 +11,7 @@
 namespace adria
 {
 	struct WindowMessage;
-	class GraphicsDevice;
+	class GfxDevice;
 	class Renderer;
 	class ModelImporter;
 	class GUI;
@@ -45,7 +45,7 @@ namespace adria
 		bool vsync;
 		tecs::registry reg;
 		std::unique_ptr<Camera> camera;
-		std::unique_ptr<GraphicsDevice> gfx;
+		std::unique_ptr<GfxDevice> gfx;
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<ModelImporter> model_importer;
 

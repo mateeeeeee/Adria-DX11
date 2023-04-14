@@ -1,11 +1,11 @@
 #include "../Utilities/Random.h"
-#include "../Graphics/ScopedAnnotation.h"
+#include "../Graphics/GfxScopedAnnotation.h"
 #include "ParticleRenderer.h"
 #include "ShaderManager.h"
 
 namespace adria
 {
-	ParticleRenderer::ParticleRenderer(GraphicsDevice* gfx) : gfx{ gfx },
+	ParticleRenderer::ParticleRenderer(GfxDevice* gfx) : gfx{ gfx },
 		dead_list_buffer(gfx, AppendBufferDesc(MAX_PARTICLES, sizeof(uint32))),
 		particle_bufferA(gfx, StructuredBufferDesc<GPUParticleA>(MAX_PARTICLES)),
 		particle_bufferB(gfx, StructuredBufferDesc<GPUParticleB>(MAX_PARTICLES)),
@@ -59,7 +59,7 @@ namespace adria
 
 	void ParticleRenderer::CreateViews()
 	{
-		BufferSubresourceDesc uav_desc{ .uav_flags = UAV_Append };
+		GfxBufferSubresourceDesc uav_desc{ .uav_flags = UAV_Append };
 		dead_list_buffer.CreateUAV(&uav_desc);
 
 		uav_desc.uav_flags = UAV_Counter;
@@ -94,12 +94,12 @@ namespace adria
 			base += 4;
 			offset += 6;
 		}
-		index_buffer = std::make_unique<Buffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
+		index_buffer = std::make_unique<GfxBuffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
 	}
 
 	void ParticleRenderer::CreateRandomTexture()
 	{
-		TextureDesc desc{};
+		GfxTextureDesc desc{};
 		desc.width = 1024;
 		desc.height = 1024;
 		desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -115,11 +115,11 @@ namespace adria
 			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
 			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
 		}
-		TextureInitialData init_data{};
+		GfxTextureInitialData init_data{};
 		init_data.pSysMem = (void*)random_texture_data.data();
 		init_data.SysMemPitch = desc.width * 4 * sizeof(float32);
 
-		random_texture = std::make_unique<Texture>(gfx, desc, &init_data);
+		random_texture = std::make_unique<GfxTexture>(gfx, desc, &init_data);
 		random_texture->CreateSRV();
 	}
 
@@ -186,8 +186,8 @@ namespace adria
 			emitter_cbuffer_data.CollisionThickness = emitter_params.collision_thickness;
 			emitter_cbuffer.Update(context, emitter_cbuffer_data);
 
-			dead_list_count_cbuffer.Bind(context, EShaderStage::CS, 11);
-			emitter_cbuffer.Bind(context, EShaderStage::CS, 13);
+			dead_list_count_cbuffer.Bind(context, GfxShaderStage::CS, 11);
+			emitter_cbuffer.Bind(context, GfxShaderStage::CS, 13);
 
 			context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.UAV());
 			uint32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
@@ -235,7 +235,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Rasterize Pass");
 
-		active_list_count_cbuffer.Bind(context, EShaderStage::VS, 12);
+		active_list_count_cbuffer.Bind(context, GfxShaderStage::VS, 12);
 
 		BindNullVertexBuffer(context);
 		BindIndexBuffer(context, index_buffer.get());
@@ -260,8 +260,8 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Particles Sort Pass");
 
-		active_list_count_cbuffer.Bind(context, EShaderStage::CS, 11);
-		sort_dispatch_info_cbuffer.Bind(context, EShaderStage::CS, 12);
+		active_list_count_cbuffer.Bind(context, GfxShaderStage::CS, 11);
+		sort_dispatch_info_cbuffer.Bind(context, GfxShaderStage::CS, 12);
 
 		// Write the indirect args to a UAV
 		ID3D11UnorderedAccessView* indirect_sort_args_uav = indirect_sort_args_buffer.UAV();

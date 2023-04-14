@@ -2,9 +2,9 @@
 #include <memory>
 #include <DirectXMath.h>
 #include "ShaderManager.h"
-#include "../Graphics/Buffer.h"
-#include "../Graphics/GraphicsDeviceDX11.h" 
-#include "../Graphics/ShaderProgram.h" 
+#include "../Graphics/GfxBuffer.h"
+#include "../Graphics/GfxDevice.h" 
+#include "../Graphics/GfxShaderProgram.h" 
 #include "../Logging/Logger.h"
 
 namespace adria
@@ -22,16 +22,16 @@ namespace adria
 		
 	private:
 
-		Picker(GraphicsDevice* gfx) : gfx(gfx), picking_buffer(nullptr)
+		Picker(GfxDevice* gfx) : gfx(gfx), picking_buffer(nullptr)
 		{
-			BufferDesc desc{};
+			GfxBufferDesc desc{};
 			desc.size = sizeof(PickingData);
 			desc.stride = sizeof(PickingData);
 			desc.cpu_access = ECpuAccess::Read;
 			desc.misc_flags = EBufferMiscFlag::BufferStructured;
 			desc.resource_usage = EResourceUsage::Default;
 			desc.bind_flags = EBindFlag::UnorderedAccess;
-			picking_buffer = std::make_unique<Buffer>(gfx, desc);
+			picking_buffer = std::make_unique<GfxBuffer>(gfx, desc);
 			picking_buffer->CreateUAV();
 		}
 
@@ -59,7 +59,7 @@ namespace adria
 
 	private:
 
-		GraphicsDevice* gfx;
-		std::unique_ptr<Buffer> picking_buffer;
+		GfxDevice* gfx;
+		std::unique_ptr<GfxBuffer> picking_buffer;
 	};
 }

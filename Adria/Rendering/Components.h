@@ -5,8 +5,8 @@
 #include "Terrain.h"
 #include "../Core/Definitions.h"
 #include "../Math/Constants.h"
-#include "../Graphics/VertexTypes.h"
-#include "../Graphics/Buffer.h"
+#include "../Graphics/GfxVertexTypes.h"
+#include "../Graphics/GfxBuffer.h"
 #include "../Graphics/TextureManager.h"
 #include "../tecs/entity.h"
 
@@ -30,9 +30,9 @@ namespace adria
 
 	struct COMPONENT Mesh
 	{
-		std::shared_ptr<Buffer>	vertex_buffer = nullptr;
-		std::shared_ptr<Buffer>	index_buffer = nullptr;
-		std::shared_ptr<Buffer>   instance_buffer = nullptr;
+		std::shared_ptr<GfxBuffer>	vertex_buffer = nullptr;
+		std::shared_ptr<GfxBuffer>	index_buffer = nullptr;
+		std::shared_ptr<GfxBuffer>   instance_buffer = nullptr;
 
 		//only vb
 		uint32 vertex_count = 0;
@@ -157,9 +157,9 @@ namespace adria
 		bool light_visible = true;
 		bool skip_culling = false;
 		bool draw_aabb = false;
-		std::shared_ptr<Buffer> aabb_vb = nullptr;
+		std::shared_ptr<GfxBuffer> aabb_vb = nullptr;
 
-		void UpdateBuffer(GraphicsDevice* gfx)
+		void UpdateBuffer(GfxDevice* gfx)
 		{
 			DirectX::XMFLOAT3 corners[8];
 			bounding_box.GetCorners(corners);
@@ -174,7 +174,7 @@ namespace adria
 				SimpleVertex{corners[6]},
 				SimpleVertex{corners[7]}
 			}; 
-			aabb_vb = std::make_unique<Buffer>(gfx, VertexBufferDesc(ARRAYSIZE(vertices), sizeof(SimpleVertex)), vertices);
+			aabb_vb = std::make_unique<GfxBuffer>(gfx, VertexBufferDesc(ARRAYSIZE(vertices), sizeof(SimpleVertex)), vertices);
 		}
 	};
 

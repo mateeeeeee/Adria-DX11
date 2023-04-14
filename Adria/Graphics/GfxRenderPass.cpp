@@ -1,9 +1,9 @@
-#include "RenderPass.h"
+#include "GfxRenderPass.h"
 
 namespace adria
 {
 
-	RenderPass::RenderPass(RenderPassDesc const& desc) : width(desc.width), height(desc.height)
+	GfxRenderPass::GfxRenderPass(RenderPassDesc const& desc) : width(desc.width), height(desc.height)
 	{
 		for (uint32 i = 0; i < desc.rtv_attachments.size(); ++i)
 		{
@@ -29,7 +29,7 @@ namespace adria
 		}
 	}
 
-	void RenderPass::Begin(ID3D11DeviceContext* context)
+	void GfxRenderPass::Begin(ID3D11DeviceContext* context)
 	{
 		for (auto const& [index, clear_value] : clear_values)
 			context->ClearRenderTargetView(render_targets[index], clear_value.data());
@@ -50,7 +50,7 @@ namespace adria
 		context->RSSetViewports(1, &vp);
 	}
 
-	void RenderPass::End(ID3D11DeviceContext* context)
+	void GfxRenderPass::End(ID3D11DeviceContext* context)
 	{
 		context->OMSetRenderTargets(0, nullptr, nullptr);
 	}

@@ -40,7 +40,7 @@ namespace adria
 		return "";
 	}
 
-	struct ProfilerSettings
+	struct GPUProfilerSettings
 	{
 		bool profile_frame = false;
 		bool profile_gbuffer_pass = false;
@@ -51,6 +51,6 @@ namespace adria
 		bool profile_postprocessing = false;
 	};
 
-	inline constexpr ProfilerSettings NO_PROFILING = ProfilerSettings{};
+	inline constexpr GPUProfilerSettings NO_PROFILING = GPUProfilerSettings{};
 
 }

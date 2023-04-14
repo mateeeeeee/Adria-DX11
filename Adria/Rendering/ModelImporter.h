@@ -149,14 +149,14 @@ namespace adria
         class registry;
     }
     class TextureManager;
-	class GraphicsDevice;
+	class GfxDevice;
 
 	class ModelImporter
 	{
 
 	public:
         
-        ModelImporter(tecs::registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager);
+        ModelImporter(tecs::registry& reg, GfxDevice* gfx, TextureManager& texture_manager);
 
         [[maybe_unused]] std::vector<tecs::entity> ImportModel_GLTF(ModelParameters const&);
 
@@ -172,7 +172,7 @@ namespace adria
 	private:
         tecs::registry& reg;
 		TextureManager& texture_manager;
-        GraphicsDevice* gfx;
+        GfxDevice* gfx;
 
     private:
 

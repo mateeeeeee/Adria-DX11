@@ -1,6 +1,6 @@
 #include "TextureManager.h"
 #include <algorithm>
-#include "ShaderCompiler.h"
+#include "GfxShaderCompiler.h"
 #include "DDSTextureLoader.h"
 #include "WICTextureLoader.h"
 #include "../Logging/Logger.h"
@@ -172,13 +172,13 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 			BREAK_IF_FAILED(device->CreateUnorderedAccessView(cubemap_tex.Get(), &uavDesc, &cubemap_uav));
 			Microsoft::WRL::ComPtr<ID3D11ComputeShader> equirect_to_cube{};
 
-			ShaderBlob blob{};
-			ShaderCompileInput input{};
+			GfxShaderBlob blob{};
+			GfxShaderCompileInput input{};
 			input.source_file = "Resources\\Shaders\\Deferred\\Equirect2cubeCS.hlsl";
-			input.stage = EShaderStage::CS;
+			input.stage = GfxShaderStage::CS;
 			input.entrypoint = "cs_main";
-			ShaderCompileOutput output{};
-			ShaderCompiler::CompileShader(input, output);
+			GfxShaderCompileOutput output{};
+			GfxShaderCompiler::CompileShader(input, output);
 			device->CreateComputeShader(output.blob.GetPointer(), output.blob.GetLength(), nullptr, &equirect_to_cube);
 
 			D3D11_SAMPLER_DESC samp_desc{};

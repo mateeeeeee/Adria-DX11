@@ -5,7 +5,7 @@
 #include "../tecs/registry.h"
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/SceneViewport.h"
-#include "../Graphics/ProfilerSettings.h"
+#include "../Graphics/GPUProfilerSettings.h"
 #include "../ImGui/imgui_internal.h"
 #include "../ImGui/ImGuizmo.h"
 
@@ -52,7 +52,7 @@ namespace adria
         bool scene_focused = false;
         ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
         RendererSettings renderer_settings{};
-        ProfilerSettings profiler_settings{};
+        GPUProfilerSettings profiler_settings{};
         SceneViewport scene_viewport_data;
 
         std::array<bool, Flag_Count> window_flags = { false };

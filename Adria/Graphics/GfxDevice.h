@@ -12,15 +12,15 @@
 
 namespace adria
 {
-	class GraphicsDevice
+	class GfxDevice
 	{
 	public:
-		GraphicsDevice(void* handle);
-		GraphicsDevice(GraphicsDevice const&) = delete;
-		GraphicsDevice(GraphicsDevice&&) = default;
-		GraphicsDevice& operator=(GraphicsDevice const&) = delete;
-		GraphicsDevice& operator=(GraphicsDevice&&) = default;
-		~GraphicsDevice();
+		GfxDevice(void* handle);
+		GfxDevice(GfxDevice const&) = delete;
+		GfxDevice(GfxDevice&&) = default;
+		GfxDevice& operator=(GfxDevice const&) = delete;
+		GfxDevice& operator=(GfxDevice&&) = default;
+		~GfxDevice();
 
 		void ResizeBackbuffer(uint32 w, uint32 h);
 		void ClearBackbuffer();
@@ -43,7 +43,6 @@ namespace adria
 	private:
 
 		void WaitForGPU();
-
 		void CreateBackBufferResources(uint32 w, uint32 h);
 	};
 }

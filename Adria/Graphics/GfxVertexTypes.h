@@ -1,5 +1,4 @@
 #pragma once
-
 #include <DirectXMath.h>
 #include <array>
 #include <d3d11.h>

@@ -1,14 +1,14 @@
 #include "GUI.h"
 #include "IconsFontAwesome4.h"
 #include "../Core/Window.h"
-#include "../Graphics/GraphicsDeviceDX11.h"
+#include "../Graphics/GfxDevice.h"
 #include "../ImGui/ImGuizmo.h"
 
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 namespace adria
 {
-	GUI::GUI(GraphicsDevice* gfx)
+	GUI::GUI(GfxDevice* gfx)
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();

@@ -4,11 +4,11 @@
 #include "Enums.h"
 #include "Components.h"
 #include "../tecs/registry.h"
-#include "../Graphics/ShaderProgram.h"
-#include "../Graphics/ConstantBuffer.h"
-#include "../Graphics/Buffer.h"
-#include "../Graphics/Texture.h"
-#include "../Graphics/GraphicsDeviceDX11.h"
+#include "../Graphics/GfxShaderProgram.h"
+#include "../Graphics/GfxConstantBuffer.h"
+#include "../Graphics/GfxBuffer.h"
+#include "../Graphics/GfxTexture.h"
+#include "../Graphics/GfxDevice.h"
 
 namespace adria
 {
@@ -70,7 +70,7 @@ namespace adria
 			int32 x, y, z, w;
 		};
 	public:
-		ParticleRenderer(GraphicsDevice* gfx);
+		ParticleRenderer(GfxDevice* gfx);
 
 		void Update(float32 dt, Emitter& emitter_params);
 
@@ -79,23 +79,23 @@ namespace adria
 					ID3D11ShaderResourceView* particle_srv);
 
 	private:
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 
-		std::unique_ptr<Texture> random_texture;
-		Buffer dead_list_buffer;
-		Buffer particle_bufferA;
-		Buffer particle_bufferB;
-		Buffer view_space_positions_buffer;
-		Buffer alive_index_buffer;
+		std::unique_ptr<GfxTexture> random_texture;
+		GfxBuffer dead_list_buffer;
+		GfxBuffer particle_bufferA;
+		GfxBuffer particle_bufferB;
+		GfxBuffer view_space_positions_buffer;
+		GfxBuffer alive_index_buffer;
 
-		ConstantBuffer<uint32> dead_list_count_cbuffer;
-		ConstantBuffer<uint32> active_list_count_cbuffer;
-		ConstantBuffer<EmitterCBuffer> emitter_cbuffer;
-		ConstantBuffer<SortDispatchInfo> sort_dispatch_info_cbuffer;
+		GfxConstantBuffer<uint32> dead_list_count_cbuffer;
+		GfxConstantBuffer<uint32> active_list_count_cbuffer;
+		GfxConstantBuffer<EmitterCBuffer> emitter_cbuffer;
+		GfxConstantBuffer<SortDispatchInfo> sort_dispatch_info_cbuffer;
 
-		Buffer indirect_render_args_buffer;
-		Buffer indirect_sort_args_buffer;
-		std::unique_ptr<Buffer> index_buffer;
+		GfxBuffer indirect_render_args_buffer;
+		GfxBuffer indirect_sort_args_buffer;
+		std::unique_ptr<GfxBuffer> index_buffer;
 
 	private:
 		void CreateViews();

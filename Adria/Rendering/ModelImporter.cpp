@@ -10,8 +10,8 @@
 
 #include "ModelImporter.h"
 #include "../tecs/registry.h"
-#include "../Graphics/GraphicsDeviceDX11.h"
-#include "../Graphics/VertexTypes.h"
+#include "../Graphics/GfxDevice.h"
+#include "../Graphics/GfxVertexTypes.h"
 #include "../Graphics/TextureManager.h"
 #include "../Logging/Logger.h"
 #include "../Math/BoundingVolumeHelpers.h"
@@ -173,8 +173,8 @@ namespace adria
 
             entity grid = reg.create();
             Mesh mesh{};
-			mesh.vertex_buffer = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedNormalVertex)), vertices.data());
-			mesh.index_buffer = std::make_shared<Buffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
+			mesh.vertex_buffer = std::make_shared<GfxBuffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedNormalVertex)), vertices.data());
+			mesh.index_buffer = std::make_shared<GfxBuffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
             mesh.indices_count = (uint32)indices.size();
  
             reg.emplace<Mesh>(grid, mesh);
@@ -241,8 +241,8 @@ namespace adria
                 }
             }
             ComputeNormals(params.normal_type, vertices, indices);
-			std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedNormalVertex)), vertices.data());
-			std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
+			std::shared_ptr<GfxBuffer> vb = std::make_shared<GfxBuffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedNormalVertex)), vertices.data());
+			std::shared_ptr<GfxBuffer> ib = std::make_shared<GfxBuffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
             for (entity chunk : chunks)
             {
                 auto& mesh = reg.get<Mesh>(chunk);
@@ -332,7 +332,7 @@ namespace adria
                 index_offset += fv;
 			}
 
-			std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedNormalVertex)), vertices.data());
+			std::shared_ptr<GfxBuffer> vb = std::make_shared<GfxBuffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedNormalVertex)), vertices.data());
 
 			Mesh mesh_component{};
 			mesh_component.base_vertex_location = 0;
@@ -356,7 +356,7 @@ namespace adria
 		return entities;
 	}
 
-	ModelImporter::ModelImporter(registry& reg, GraphicsDevice* gfx, TextureManager& texture_manager) : reg(reg),
+	ModelImporter::ModelImporter(registry& reg, GfxDevice* gfx, TextureManager& texture_manager) : reg(reg),
         texture_manager(texture_manager), gfx(gfx)
     {}
 
@@ -734,8 +734,8 @@ namespace adria
 			LoadNode(scene.nodes[i], params.model_matrix);
 		}
 
-		std::shared_ptr<Buffer> vb = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(CompleteVertex)), vertices.data());
-		std::shared_ptr<Buffer> ib = std::make_shared<Buffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
+		std::shared_ptr<GfxBuffer> vb = std::make_shared<GfxBuffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(CompleteVertex)), vertices.data());
+		std::shared_ptr<GfxBuffer> ib = std::make_shared<GfxBuffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
 
 		entity root = reg.create();
 		reg.emplace<Transform>(root);
@@ -804,8 +804,8 @@ namespace adria
             };
 
 			Mesh mesh{};
-			mesh.vertex_buffer = std::make_shared<Buffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedVertex)), vertices.data());
-			mesh.index_buffer = std::make_shared<Buffer>(gfx, IndexBufferDesc(indices.size(), true), indices.data());
+			mesh.vertex_buffer = std::make_shared<GfxBuffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedVertex)), vertices.data());
+			mesh.index_buffer = std::make_shared<GfxBuffer>(gfx, IndexBufferDesc(indices.size(), true), indices.data());
             mesh.indices_count = static_cast<uint32>(indices.size());
 
             reg.emplace<Mesh>(light, mesh);
@@ -1022,7 +1022,7 @@ namespace adria
 		}
 
 		auto& mesh_component = reg.get<Mesh>(foliage);
-		mesh_component.instance_buffer = std::make_shared<Buffer>(gfx, VertexBufferDesc(instance_data.size(), sizeof(FoliageInstance)), instance_data.data());
+		mesh_component.instance_buffer = std::make_shared<GfxBuffer>(gfx, VertexBufferDesc(instance_data.size(), sizeof(FoliageInstance)), instance_data.data());
 		mesh_component.start_instance_location = 0;
 		mesh_component.instance_count = (uint32)instance_data.size();
 
@@ -1103,7 +1103,7 @@ namespace adria
             auto tree = trees[i];
 			auto& mesh_component = reg.get<Mesh>(tree);
 
-			mesh_component.instance_buffer = std::make_shared<Buffer>(gfx, VertexBufferDesc(instance_data.size(), sizeof(TreeInstance)), instance_data.data());
+			mesh_component.instance_buffer = std::make_shared<GfxBuffer>(gfx, VertexBufferDesc(instance_data.size(), sizeof(TreeInstance)), instance_data.data());
 			mesh_component.start_instance_location = 0;
 			mesh_component.instance_count = (uint32)instance_data.size();
 			

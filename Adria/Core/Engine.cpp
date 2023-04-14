@@ -4,7 +4,7 @@
 #include "../Logging/Logger.h"
 #include "../Tasks/TaskManager.h"
 #include "../Editor/GUI.h"
-#include "../Graphics/GraphicsDeviceDX11.h"
+#include "../Graphics/GfxDevice.h"
 #include "../Rendering/Renderer.h"
 #include "../Rendering/ModelImporter.h"
 #include "../Rendering/ShaderManager.h"
@@ -204,14 +204,14 @@ namespace adria
 	{
 		g_TaskManager.Initialize();
 
-		gfx = std::make_unique<GraphicsDevice>(Window::Handle());
+		gfx = std::make_unique<GfxDevice>(Window::Handle());
 		ShaderManager::Initialize(gfx->Device());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		model_importer = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
 
 		InputEvents& input_events = g_Input.GetInputEvents();
 
-		std::ignore = input_events.window_resized_event.AddMember(&GraphicsDevice::ResizeBackbuffer, *gfx);
+		std::ignore = input_events.window_resized_event.AddMember(&GfxDevice::ResizeBackbuffer, *gfx);
 		std::ignore = input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
 		std::ignore = input_events.left_mouse_clicked_event.Add([this](int32 mx, int32 my) { renderer->OnLeftMouseClicked(); });
 		std::ignore = input_events.f5_pressed_event.Add(ShaderManager::CheckIfShadersHaveChanged);

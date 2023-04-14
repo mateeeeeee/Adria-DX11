@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <string>
 #include <array>
-#include "ProfilerSettings.h"
+#include "GPUProfilerSettings.h"
 
 namespace adria
 {

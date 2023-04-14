@@ -10,18 +10,18 @@
 #include "../tecs/Registry.h"
 #include "../Graphics/TextureManager.h"
 
-#include "../Graphics/ConstantBuffer.h"
-#include "../Graphics/ShaderProgram.h"
-#include "../Graphics/RenderPass.h"
+#include "../Graphics/GfxConstantBuffer.h"
+#include "../Graphics/GfxShaderProgram.h"
+#include "../Graphics/GfxRenderPass.h"
 #include "../Graphics/GPUProfiler.h"
-#include "../Graphics/Buffer.h"
+#include "../Graphics/GfxBuffer.h"
 
 
 namespace adria
 {
 
 	class Camera;
-	class GraphicsDevice;
+	class GfxDevice;
 	class Input;
 	struct Light;
 	struct RenderState;
@@ -41,14 +41,14 @@ namespace adria
 
 	public:
 
-		Renderer(tecs::registry& reg, GraphicsDevice* gfx, uint32 width, uint32 height); 
+		Renderer(tecs::registry& reg, GfxDevice* gfx, uint32 width, uint32 height); 
 		~Renderer();
 
 		void NewFrame(Camera const*);
 		void Update(float32 dt);
 		
 		void SetSceneViewportData(SceneViewport&&);
-		void SetProfilerSettings(ProfilerSettings const&);
+		void SetProfilerSettings(GPUProfilerSettings const&);
 		void Render(RendererSettings const&);
 
 		void ResolveToOffscreenFramebuffer();
@@ -57,7 +57,7 @@ namespace adria
 		void OnResize(uint32 width, uint32 height);
 		void OnLeftMouseClicked();
 
-		Texture const* GetOffscreenTexture() const;
+		GfxTexture const* GetOffscreenTexture() const;
 		TextureManager& GetTextureManager();
 		PickingData GetLastPickingData() const;
 		std::vector<Timestamp> GetProfilerResults();
@@ -65,12 +65,12 @@ namespace adria
 	private:
 		uint32 width, height;
 		tecs::registry& reg;
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 		TextureManager texture_manager;
 		Camera const* camera;
 		RendererSettings renderer_settings;
 		GPUProfiler profiler;
-		ProfilerSettings profiler_settings;
+		GPUProfilerSettings profiler_settings;
 		ParticleRenderer particle_renderer;
 
 		SceneViewport current_scene_viewport;
@@ -79,62 +79,62 @@ namespace adria
 		PickingData last_picking_data;
 
 		//textures
-		std::vector<std::unique_ptr<Texture>> gbuffer;
-		std::unique_ptr<Texture> depth_target;
+		std::vector<std::unique_ptr<GfxTexture>> gbuffer;
+		std::unique_ptr<GfxTexture> depth_target;
 
-		std::unique_ptr<Texture> hdr_render_target;
-		std::unique_ptr<Texture> prev_hdr_render_target;
-		std::unique_ptr<Texture> uav_target;
-		std::unique_ptr<Texture> fxaa_texture;
-		std::unique_ptr<Texture> offscreen_ldr_render_target;
+		std::unique_ptr<GfxTexture> hdr_render_target;
+		std::unique_ptr<GfxTexture> prev_hdr_render_target;
+		std::unique_ptr<GfxTexture> uav_target;
+		std::unique_ptr<GfxTexture> fxaa_texture;
+		std::unique_ptr<GfxTexture> offscreen_ldr_render_target;
 		
-		std::unique_ptr<Texture> shadow_depth_map;
-		std::unique_ptr<Texture> shadow_depth_cubemap;
-		std::unique_ptr<Texture> shadow_cascade_maps;
-		std::unique_ptr<Texture> ao_texture;
-		std::unique_ptr<Texture> debug_tiled_texture;
-		std::unique_ptr<Texture> ssao_random_texture;
-		std::unique_ptr<Texture> hbao_random_texture;
-		std::unique_ptr<Texture> blur_texture_intermediate;
-		std::unique_ptr<Texture> blur_texture_final;
-		std::unique_ptr<Texture> bloom_extract_texture;
-		std::array<std::unique_ptr<Texture>, 2> postprocess_textures;
+		std::unique_ptr<GfxTexture> shadow_depth_map;
+		std::unique_ptr<GfxTexture> shadow_depth_cubemap;
+		std::unique_ptr<GfxTexture> shadow_cascade_maps;
+		std::unique_ptr<GfxTexture> ao_texture;
+		std::unique_ptr<GfxTexture> debug_tiled_texture;
+		std::unique_ptr<GfxTexture> ssao_random_texture;
+		std::unique_ptr<GfxTexture> hbao_random_texture;
+		std::unique_ptr<GfxTexture> blur_texture_intermediate;
+		std::unique_ptr<GfxTexture> blur_texture_final;
+		std::unique_ptr<GfxTexture> bloom_extract_texture;
+		std::array<std::unique_ptr<GfxTexture>, 2> postprocess_textures;
 		bool postprocess_index = false;
 
-		std::array<std::unique_ptr<Texture>, 2> ping_pong_phase_textures;
+		std::array<std::unique_ptr<GfxTexture>, 2> ping_pong_phase_textures;
 		bool pong_phase = false;
-		std::array<std::unique_ptr<Texture>, 2> ping_pong_spectrum_textures;
+		std::array<std::unique_ptr<GfxTexture>, 2> ping_pong_spectrum_textures;
 		bool pong_spectrum = false;
-		std::unique_ptr<Texture> ocean_normal_map;
-		std::unique_ptr<Texture> ocean_initial_spectrum;
+		std::unique_ptr<GfxTexture> ocean_normal_map;
+		std::unique_ptr<GfxTexture> ocean_initial_spectrum;
 
-		std::unique_ptr<Texture> voxel_texture;
-		std::unique_ptr<Texture> voxel_texture_second_bounce;
-		std::unique_ptr<Texture> sun_target;
-		std::unique_ptr<Texture> velocity_buffer;
+		std::unique_ptr<GfxTexture> voxel_texture;
+		std::unique_ptr<GfxTexture> voxel_texture_second_bounce;
+		std::unique_ptr<GfxTexture> sun_target;
+		std::unique_ptr<GfxTexture> velocity_buffer;
 
-		std::unique_ptr<Buffer> bokeh_buffer;
-		std::unique_ptr<Buffer> bokeh_indirect_draw_buffer;
+		std::unique_ptr<GfxBuffer> bokeh_buffer;
+		std::unique_ptr<GfxBuffer> bokeh_indirect_draw_buffer;
 
 		//render passes
-		RenderPass gbuffer_pass;
-		RenderPass deep_gbuffer_pass;
-		RenderPass ambient_pass;
-		RenderPass lighting_pass;
-		RenderPass forward_pass;
-		RenderPass fxaa_pass;
-		RenderPass velocity_buffer_pass;
-		RenderPass taa_pass;
-		RenderPass shadow_map_pass;
-		RenderPass ssao_pass;
-		RenderPass hbao_pass;
-		RenderPass voxel_debug_pass;
-		RenderPass offscreen_resolve_pass;
-		RenderPass particle_pass;
-		RenderPass decal_pass;
-		std::array<RenderPass, 6> shadow_cubemap_pass;
-		std::vector<RenderPass> cascade_shadow_pass;
-		std::array<RenderPass, 2> postprocess_passes; 
+		GfxRenderPass gbuffer_pass;
+		GfxRenderPass deep_gbuffer_pass;
+		GfxRenderPass ambient_pass;
+		GfxRenderPass lighting_pass;
+		GfxRenderPass forward_pass;
+		GfxRenderPass fxaa_pass;
+		GfxRenderPass velocity_buffer_pass;
+		GfxRenderPass taa_pass;
+		GfxRenderPass shadow_map_pass;
+		GfxRenderPass ssao_pass;
+		GfxRenderPass hbao_pass;
+		GfxRenderPass voxel_debug_pass;
+		GfxRenderPass offscreen_resolve_pass;
+		GfxRenderPass particle_pass;
+		GfxRenderPass decal_pass;
+		std::array<GfxRenderPass, 6> shadow_cubemap_pass;
+		std::vector<GfxRenderPass> cascade_shadow_pass;
+		std::array<GfxRenderPass, 2> postprocess_passes; 
 		
 		//other
 		//////////////////////////////////////////////////////////////////
@@ -160,36 +160,36 @@ namespace adria
 
 		//constant buffers
 		FrameCBuffer frame_cbuf_data{};
-		std::unique_ptr<ConstantBuffer<FrameCBuffer>> frame_cbuffer = nullptr;
+		std::unique_ptr<GfxConstantBuffer<FrameCBuffer>> frame_cbuffer = nullptr;
 		LightCBuffer light_cbuf_data{};
-		std::unique_ptr<ConstantBuffer<LightCBuffer>> light_cbuffer = nullptr;
+		std::unique_ptr<GfxConstantBuffer<LightCBuffer>> light_cbuffer = nullptr;
 		ObjectCBuffer object_cbuf_data{};
-		std::unique_ptr<ConstantBuffer<ObjectCBuffer>> object_cbuffer = nullptr;
+		std::unique_ptr<GfxConstantBuffer<ObjectCBuffer>> object_cbuffer = nullptr;
 		MaterialCBuffer material_cbuf_data{};
-		std::unique_ptr<ConstantBuffer<MaterialCBuffer>> material_cbuffer = nullptr;
+		std::unique_ptr<GfxConstantBuffer<MaterialCBuffer>> material_cbuffer = nullptr;
 		ShadowCBuffer shadow_cbuf_data{};
-		std::unique_ptr<ConstantBuffer<ShadowCBuffer>> shadow_cbuffer = nullptr;
+		std::unique_ptr<GfxConstantBuffer<ShadowCBuffer>> shadow_cbuffer = nullptr;
 		PostprocessCBuffer postprocess_cbuf_data{};
-		std::unique_ptr<ConstantBuffer<PostprocessCBuffer>> postprocess_cbuffer = nullptr;
+		std::unique_ptr<GfxConstantBuffer<PostprocessCBuffer>> postprocess_cbuffer = nullptr;
 		ComputeCBuffer compute_cbuf_data{};
-		std::unique_ptr<ConstantBuffer<ComputeCBuffer>> compute_cbuffer = nullptr;
+		std::unique_ptr<GfxConstantBuffer<ComputeCBuffer>> compute_cbuffer = nullptr;
 		WeatherCBuffer weather_cbuf_data{};
-		std::unique_ptr<ConstantBuffer<WeatherCBuffer>> weather_cbuffer = nullptr;
+		std::unique_ptr<GfxConstantBuffer<WeatherCBuffer>> weather_cbuffer = nullptr;
 		VoxelCBuffer voxel_cbuf_data{};
-		std::unique_ptr<ConstantBuffer<VoxelCBuffer>> voxel_cbuffer = nullptr;
+		std::unique_ptr<GfxConstantBuffer<VoxelCBuffer>> voxel_cbuffer = nullptr;
 		TerrainCBuffer terrain_cbuf_data{};
-		std::unique_ptr<ConstantBuffer<TerrainCBuffer>> terrain_cbuffer = nullptr;
+		std::unique_ptr<GfxConstantBuffer<TerrainCBuffer>> terrain_cbuffer = nullptr;
 
-		std::unique_ptr<Buffer> lights = nullptr;
-		std::unique_ptr<Buffer>	voxels = nullptr;
-		std::unique_ptr<Buffer> clusters = nullptr;
-		std::unique_ptr<Buffer>	light_counter = nullptr;
-		std::unique_ptr<Buffer>	light_list = nullptr;
-		std::unique_ptr<Buffer>	light_grid = nullptr;
+		std::unique_ptr<GfxBuffer> lights = nullptr;
+		std::unique_ptr<GfxBuffer>	voxels = nullptr;
+		std::unique_ptr<GfxBuffer> clusters = nullptr;
+		std::unique_ptr<GfxBuffer>	light_counter = nullptr;
+		std::unique_ptr<GfxBuffer>	light_list = nullptr;
+		std::unique_ptr<GfxBuffer>	light_grid = nullptr;
 
-		std::unique_ptr<Buffer> cube_vb;
-		std::unique_ptr<Buffer> cube_ib;
-		std::unique_ptr<Buffer> aabb_wireframe_ib;
+		std::unique_ptr<GfxBuffer> cube_vb;
+		std::unique_ptr<GfxBuffer> cube_ib;
+		std::unique_ptr<GfxBuffer> aabb_wireframe_ib;
 
 		//samplers
 		Microsoft::WRL::ComPtr<ID3D11SamplerState>			linear_wrap_sampler;
@@ -289,11 +289,11 @@ namespace adria
 		//result is in sun texture
 		void DrawSun(tecs::entity sun);
 		//result is in final compute texture
-		void BlurTexture(Texture const* src);
+		void BlurTexture(GfxTexture const* src);
 		//result is in currently set render target
-		void CopyTexture(Texture const* src);
+		void CopyTexture(GfxTexture const* src);
 		//result is in currently set render target
-		void AddTextures(Texture const* src1, Texture const* src2);
+		void AddTextures(GfxTexture const* src1, GfxTexture const* src2);
 
 		void ResolveCustomRenderState(RenderState const&, bool);
 	};

@@ -1,19 +1,19 @@
 #pragma once
 #include <vector>
-#include "ResourceCommon.h"
+#include "GfxResourceCommon.h"
 
 namespace adria
 {
-	enum ETextureType : uint8
+	enum GfxTextureType : uint8
 	{
 		TextureType_1D,
 		TextureType_2D,
 		TextureType_3D
 	};
 
-	struct TextureDesc
+	struct GfxTextureDesc
 	{
-		ETextureType type = TextureType_2D;
+		GfxTextureType type = TextureType_2D;
 		uint32 width = 0;
 		uint32 height = 0;
 		uint32 depth = 0;
@@ -25,24 +25,24 @@ namespace adria
 		ETextureMiscFlag misc_flags = ETextureMiscFlag::None;
 		ECpuAccess cpu_access = ECpuAccess::None;
 		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
-		std::strong_ordering operator<=>(TextureDesc const& other) const = default;
+		std::strong_ordering operator<=>(GfxTextureDesc const& other) const = default;
 	};
 
-	struct TextureSubresourceDesc
+	struct GfxTextureSubresourceDesc
 	{
 		uint32 first_slice = 0;
 		uint32 slice_count = static_cast<uint32>(-1);
 		uint32 first_mip = 0;
 		uint32 mip_count = static_cast<uint32>(-1);
 
-		std::strong_ordering operator<=>(TextureSubresourceDesc const& other) const = default;
+		std::strong_ordering operator<=>(GfxTextureSubresourceDesc const& other) const = default;
 	};
 
-	using TextureInitialData = D3D11_SUBRESOURCE_DATA;
+	using GfxTextureInitialData = D3D11_SUBRESOURCE_DATA;
 
-	class Texture
+	class GfxTexture
 	{
-		constexpr static D3D11_TEXTURE1D_DESC ConvertTextureDesc1D(TextureDesc const& desc)
+		constexpr static D3D11_TEXTURE1D_DESC ConvertTextureDesc1D(GfxTextureDesc const& desc)
 		{
 			ADRIA_ASSERT(desc.type == TextureType_1D);
 
@@ -57,7 +57,7 @@ namespace adria
 			tex_desc.MiscFlags = ParseMiscFlags(desc.misc_flags);
 			return tex_desc;
 		}
-		constexpr static D3D11_TEXTURE2D_DESC ConvertTextureDesc2D(TextureDesc const& desc)
+		constexpr static D3D11_TEXTURE2D_DESC ConvertTextureDesc2D(GfxTextureDesc const& desc)
 		{
 			ADRIA_ASSERT(desc.type == TextureType_2D);
 
@@ -75,7 +75,7 @@ namespace adria
 			tex_desc.MiscFlags = ParseMiscFlags(desc.misc_flags);
 			return tex_desc;
 		}
-		constexpr static D3D11_TEXTURE3D_DESC ConvertTextureDesc3D(TextureDesc const& desc)
+		constexpr static D3D11_TEXTURE3D_DESC ConvertTextureDesc3D(GfxTextureDesc const& desc)
 		{
 			ADRIA_ASSERT(desc.type == TextureType_3D);
 
@@ -92,7 +92,7 @@ namespace adria
 			return tex_desc;
 		}
 	public:
-		Texture(GraphicsDevice* gfx, TextureDesc const& desc, TextureInitialData* initial_data = nullptr)
+		GfxTexture(GfxDevice* gfx, GfxTextureDesc const& desc, GfxTextureInitialData* initial_data = nullptr)
 			: gfx(gfx), desc(desc)
 		{
 			HRESULT hr = S_OK;
@@ -125,7 +125,7 @@ namespace adria
 
 			if (desc.mip_levels == 0)
 			{
-				const_cast<TextureDesc&>(desc).mip_levels = (uint32)log2(std::max(desc.width, desc.height)) + 1;
+				const_cast<GfxTextureDesc&>(desc).mip_levels = (uint32)log2(std::max(desc.width, desc.height)) + 1;
 			}
 
 			if (HasAnyFlag(desc.bind_flags, EBindFlag::RenderTarget)) CreateRTV();
@@ -133,30 +133,30 @@ namespace adria
 			if (HasAnyFlag(desc.bind_flags, EBindFlag::DepthStencil)) CreateDSV();
 			if (HasAnyFlag(desc.bind_flags, EBindFlag::UnorderedAccess)) CreateUAV();
 		}
-		Texture(Texture const&) = delete;
-		Texture& operator=(Texture const&) = delete;
-		Texture(Texture&&) = delete;
-		Texture& operator=(Texture&&) = delete;
-		~Texture() = default;
+		GfxTexture(GfxTexture const&) = delete;
+		GfxTexture& operator=(GfxTexture const&) = delete;
+		GfxTexture(GfxTexture&&) = delete;
+		GfxTexture& operator=(GfxTexture&&) = delete;
+		~GfxTexture() = default;
 
-		[[maybe_unused]] size_t CreateSRV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateSRV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_SRV, _desc);
 		}
-		[[maybe_unused]] size_t CreateUAV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateUAV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_UAV, _desc);
 		}
-		[[maybe_unused]] size_t CreateRTV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateRTV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_RTV, _desc);
 		}
-		[[maybe_unused]] size_t CreateDSV(TextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] size_t CreateDSV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
-			TextureSubresourceDesc _desc = desc ? *desc : TextureSubresourceDesc{};
+			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 			return CreateSubresource(SubresourceType_DSV, _desc);
 		}
 
@@ -167,19 +167,19 @@ namespace adria
 
 		ID3D11Resource* GetNative() const { return resource.Get(); }
 		ID3D11Resource* Detach() { return resource.Detach(); }
-		TextureDesc const& GetDesc() const { return desc; }
+		GfxTextureDesc const& GetDesc() const { return desc; }
 
 	private:
-		GraphicsDevice* gfx;
+		GfxDevice* gfx;
 		Microsoft::WRL::ComPtr<ID3D11Resource> resource;
-		TextureDesc desc;
+		GfxTextureDesc desc;
 		std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> srvs;
 		std::vector<Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>> uavs;
 		std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> rtvs;
 		std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> dsvs;
 
 	private:
-		[[maybe_unused]] size_t CreateSubresource(ESubresourceType type, TextureSubresourceDesc const& view_desc)
+		[[maybe_unused]] size_t CreateSubresource(ESubresourceType type, GfxTextureSubresourceDesc const& view_desc)
 		{
 			uint32 first_slice = view_desc.first_slice;
 			uint32 slice_count = view_desc.slice_count;

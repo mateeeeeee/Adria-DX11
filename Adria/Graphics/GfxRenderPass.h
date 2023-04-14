@@ -41,11 +41,11 @@ namespace adria
 		uint32 width, height;
 	};
 
-	class RenderPass
+	class GfxRenderPass
 	{
 	public:
-		RenderPass() = default;
-		RenderPass(RenderPassDesc const& desc);
+		GfxRenderPass() = default;
+		GfxRenderPass(RenderPassDesc const& desc);
 		void Begin(ID3D11DeviceContext* context);
 		void End(ID3D11DeviceContext* context);
 	private:

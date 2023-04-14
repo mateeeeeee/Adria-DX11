@@ -4,16 +4,16 @@
 
 namespace adria
 {
-	class ScopedAnnotation
+	class GfxScopedAnnotation
 	{
 	public:
-		ScopedAnnotation(ID3DUserDefinedAnnotation* annotation, LPCWSTR name)
+		GfxScopedAnnotation(ID3DUserDefinedAnnotation* annotation, LPCWSTR name)
 			: annotation(annotation)
 		{
 			if(annotation) annotation->BeginEvent(name);
 		}
 
-		~ScopedAnnotation()
+		~GfxScopedAnnotation()
 		{
 			if (annotation) annotation->EndEvent();
 		}
@@ -22,5 +22,5 @@ namespace adria
 		ID3DUserDefinedAnnotation* annotation;
 	};
 
-#define SCOPED_ANNOTATION(annotation, name) ScopedAnnotation _annotation(annotation, name)
+	#define SCOPED_ANNOTATION(annotation, name) GfxScopedAnnotation _annotation(annotation, name)
 }
