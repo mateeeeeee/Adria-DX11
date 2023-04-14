@@ -102,9 +102,9 @@ namespace adria
 		GfxTextureDesc desc{};
 		desc.width = 1024;
 		desc.height = 1024;
-		desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		desc.usage = EResourceUsage::Immutable;
-		desc.bind_flags = EBindFlag::ShaderResource;
+		desc.format = GfxFormat::R32G32B32A32_FLOAT;
+		desc.usage = GfxResourceUsage::Immutable;
+		desc.bind_flags = GfxBindFlag::ShaderResource;
 
 		std::vector<float32> random_texture_data;
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };

@@ -35,7 +35,7 @@ namespace adria
 		static constexpr uint32 CLUSTER_SIZE_Y = 16;
 		static constexpr uint32 CLUSTER_SIZE_Z = 16;
 		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
-		static constexpr DXGI_FORMAT GBUFFER_FORMAT[EGBufferSlot_Count] = { DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_R8G8B8A8_UNORM };
+		static constexpr GfxFormat GBUFFER_FORMAT[EGBufferSlot_Count] = { GfxFormat::R8G8B8A8_UNORM, GfxFormat::R8G8B8A8_UNORM, GfxFormat::R8G8B8A8_UNORM };
 
 	public:
 

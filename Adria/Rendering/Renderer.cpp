@@ -563,7 +563,7 @@ namespace adria
 
 		GfxBufferDesc bokeh_indirect_draw_buffer_desc{};
 		bokeh_indirect_draw_buffer_desc.size = 4 * sizeof(uint32);
-		bokeh_indirect_draw_buffer_desc.misc_flags = EBufferMiscFlag::IndirectArgs;
+		bokeh_indirect_draw_buffer_desc.misc_flags = GfxBufferMiscFlag::IndirectArgs;
 		uint32 buffer_init[4] = { 0, 1, 0, 0 };
 		bokeh_indirect_draw_buffer = std::make_unique<GfxBuffer>(gfx, bokeh_indirect_draw_buffer_desc, buffer_init);
 
@@ -817,17 +817,17 @@ namespace adria
 			GfxTextureDesc depth_map_desc{};
 			depth_map_desc.width = SHADOW_MAP_SIZE;
 			depth_map_desc.height = SHADOW_MAP_SIZE;
-			depth_map_desc.format = DXGI_FORMAT_R32_TYPELESS;
-			depth_map_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
+			depth_map_desc.format = GfxFormat::R32_TYPELESS;
+			depth_map_desc.bind_flags = GfxBindFlag::DepthStencil | GfxBindFlag::ShaderResource;
 			shadow_depth_map = std::make_unique<GfxTexture>(gfx, depth_map_desc);
 
 			GfxTextureDesc depth_cubemap_desc{};
 			depth_cubemap_desc.width = SHADOW_CUBE_SIZE;
 			depth_cubemap_desc.height = SHADOW_CUBE_SIZE;
 			depth_cubemap_desc.array_size = 6;
-			depth_cubemap_desc.format = DXGI_FORMAT_R32_TYPELESS;
-			depth_cubemap_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
-			depth_cubemap_desc.misc_flags = ETextureMiscFlag::TextureCube;
+			depth_cubemap_desc.format = GfxFormat::R32_TYPELESS;
+			depth_cubemap_desc.bind_flags = GfxBindFlag::DepthStencil | GfxBindFlag::ShaderResource;
+			depth_cubemap_desc.misc_flags = GfxTextureMiscFlag::TextureCube;
 			shadow_depth_cubemap = std::make_unique<GfxTexture>(gfx, depth_cubemap_desc);
 			for (uint32 i = 0; i < 6; ++i)
 			{
@@ -843,8 +843,8 @@ namespace adria
 			depth_cascade_maps_desc.width = SHADOW_CASCADE_SIZE;
 			depth_cascade_maps_desc.height = SHADOW_CASCADE_SIZE;
 			depth_cascade_maps_desc.array_size = CASCADE_COUNT;
-			depth_cascade_maps_desc.format = DXGI_FORMAT_R32_TYPELESS;
-			depth_cascade_maps_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
+			depth_cascade_maps_desc.format = GfxFormat::R32_TYPELESS;
+			depth_cascade_maps_desc.bind_flags = GfxBindFlag::DepthStencil | GfxBindFlag::ShaderResource;
 			shadow_cascade_maps = std::make_unique<GfxTexture>(gfx, depth_cascade_maps_desc);
 			for (size_t i = 0; i < CASCADE_COUNT; ++i)
 			{
@@ -885,7 +885,7 @@ namespace adria
 			GfxTextureDesc random_tex_desc{};
 			random_tex_desc.width = AO_NOISE_DIM;
 			random_tex_desc.height = AO_NOISE_DIM;
-			random_tex_desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			random_tex_desc.format = GfxFormat::R32G32B32A32_FLOAT;
 
 			GfxTextureInitialData init_data{};
 			init_data.pSysMem = (void*)random_texture_data.data();
@@ -910,8 +910,8 @@ namespace adria
 			GfxTextureDesc desc{};
 			desc.width = RESOLUTION;
 			desc.height = RESOLUTION;
-			desc.format = DXGI_FORMAT_R32_FLOAT;
-			desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
+			desc.format = GfxFormat::R32_FLOAT;
+			desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 			ocean_initial_spectrum = std::make_unique<GfxTexture>(gfx, desc);
 
 			std::vector<float32> ping_array(RESOLUTION * RESOLUTION);
@@ -924,7 +924,7 @@ namespace adria
 			init_data.SysMemPitch = RESOLUTION * sizeof(float32);
 			ping_pong_phase_textures[pong_phase] = std::make_unique<GfxTexture>(gfx, desc, &init_data);
 
-			desc.format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+			desc.format = GfxFormat::R32G32B32A32_FLOAT;
 			ping_pong_spectrum_textures[pong_spectrum] = std::make_unique<GfxTexture>(gfx, desc);
 			ping_pong_spectrum_textures[!pong_spectrum] = std::make_unique<GfxTexture>(gfx, desc);
 			ocean_normal_map = std::make_unique<GfxTexture>(gfx, desc);
@@ -937,10 +937,10 @@ namespace adria
 			voxel_desc.width = VOXEL_RESOLUTION;
 			voxel_desc.height = VOXEL_RESOLUTION;
 			voxel_desc.depth = VOXEL_RESOLUTION;
-			voxel_desc.misc_flags = ETextureMiscFlag::GenerateMips;
+			voxel_desc.misc_flags = GfxTextureMiscFlag::GenerateMips;
 			voxel_desc.mip_levels = 0;
-			voxel_desc.bind_flags = EBindFlag::UnorderedAccess | EBindFlag::ShaderResource | EBindFlag::RenderTarget;
-			voxel_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+			voxel_desc.bind_flags = GfxBindFlag::UnorderedAccess | GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
+			voxel_desc.format = GfxFormat::R16G16B16A16_FLOAT;
 
 			voxel_texture = std::make_unique<GfxTexture>(gfx, voxel_desc);
 			voxel_texture_second_bounce = std::make_unique<GfxTexture>(gfx, voxel_desc);
@@ -956,9 +956,9 @@ namespace adria
 		GfxBufferDesc bokeh_buffer_desc{};
 		bokeh_buffer_desc.stride = 8 * sizeof(float32);
 		bokeh_buffer_desc.size = bokeh_buffer_desc.stride * max_bokeh;
-		bokeh_buffer_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
-		bokeh_buffer_desc.misc_flags = EBufferMiscFlag::BufferStructured;
-		bokeh_buffer_desc.resource_usage = EResourceUsage::Default;
+		bokeh_buffer_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
+		bokeh_buffer_desc.misc_flags = GfxBufferMiscFlag::BufferStructured;
+		bokeh_buffer_desc.resource_usage = GfxResourceUsage::Default;
 
 		bokeh_buffer = std::make_unique<GfxBuffer>(gfx, bokeh_buffer_desc);
 
@@ -974,29 +974,29 @@ namespace adria
 		GfxTextureDesc render_target_desc{};
 		render_target_desc.width = width;
 		render_target_desc.height = height;
-		render_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		render_target_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
+		render_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+		render_target_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 
 		hdr_render_target = std::make_unique<GfxTexture>(gfx, render_target_desc);
 		prev_hdr_render_target = std::make_unique<GfxTexture>(gfx, render_target_desc);
 		sun_target = std::make_unique<GfxTexture>(gfx, render_target_desc);
 
-		render_target_desc.bind_flags |= EBindFlag::UnorderedAccess;
+		render_target_desc.bind_flags |= GfxBindFlag::UnorderedAccess;
 		postprocess_textures[0] = std::make_unique<GfxTexture>(gfx, render_target_desc);
 		postprocess_textures[1] = std::make_unique<GfxTexture>(gfx, render_target_desc);
 
 		GfxTextureDesc depth_target_desc{};
 		depth_target_desc.width = width;
 		depth_target_desc.height = height;
-		depth_target_desc.format = DXGI_FORMAT_R32_TYPELESS;
-		depth_target_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::DepthStencil;
+		depth_target_desc.format = GfxFormat::R32_TYPELESS;
+		depth_target_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::DepthStencil;
 		depth_target = std::make_unique<GfxTexture>(gfx, depth_target_desc);
 		
 		GfxTextureDesc fxaa_source_desc{};
 		fxaa_source_desc.width = width;
 		fxaa_source_desc.height = height;
-		fxaa_source_desc.format = DXGI_FORMAT_R8G8B8A8_UNORM;
-		fxaa_source_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
+		fxaa_source_desc.format = GfxFormat::R8G8B8A8_UNORM;
+		fxaa_source_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 		fxaa_texture = std::make_unique<GfxTexture>(gfx, fxaa_source_desc);
 
 		GfxTextureDesc offscreeen_desc = fxaa_source_desc;
@@ -1005,22 +1005,22 @@ namespace adria
 		GfxTextureDesc uav_target_desc{};
 		uav_target_desc.width = width;
 		uav_target_desc.height = height;
-		uav_target_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		uav_target_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
+		uav_target_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+		uav_target_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 		uav_target = std::make_unique<GfxTexture>(gfx, uav_target_desc);
 
 		GfxTextureDesc tiled_debug_desc{};
 		tiled_debug_desc.width = width;
 		tiled_debug_desc.height = height;
-		tiled_debug_desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		tiled_debug_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
+		tiled_debug_desc.format = GfxFormat::R16G16B16A16_FLOAT;
+		tiled_debug_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 		debug_tiled_texture = std::make_unique<GfxTexture>(gfx, tiled_debug_desc);
 
 		GfxTextureDesc velocity_buffer_desc{};
 		velocity_buffer_desc.width = width;
 		velocity_buffer_desc.height = height;
-		velocity_buffer_desc.format = DXGI_FORMAT_R16G16_FLOAT;
-		velocity_buffer_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
+		velocity_buffer_desc.format = GfxFormat::R16G16_FLOAT;
+		velocity_buffer_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 		velocity_buffer = std::make_unique<GfxTexture>(gfx, velocity_buffer_desc);
 	}
 	void Renderer::CreateGBuffer(uint32 width, uint32 height)
@@ -1030,7 +1030,7 @@ namespace adria
 		GfxTextureDesc render_target_desc{};
 		render_target_desc.width = width;
 		render_target_desc.height = height;
-		render_target_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
+		render_target_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 		
 		for (uint32 i = 0; i < EGBufferSlot_Count; ++i)
 		{
@@ -1043,8 +1043,8 @@ namespace adria
 		GfxTextureDesc ao_tex_desc{};
 		ao_tex_desc.width = width;
 		ao_tex_desc.height = height;
-		ao_tex_desc.format = DXGI_FORMAT_R8_UNORM;
-		ao_tex_desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::RenderTarget;
+		ao_tex_desc.format = GfxFormat::R8_UNORM;
+		ao_tex_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 		ao_texture = std::make_unique<GfxTexture>(gfx, ao_tex_desc);
 	}
 	void Renderer::CreateRenderPasses(uint32 width, uint32 height)
@@ -1299,13 +1299,13 @@ namespace adria
 		GfxTextureDesc desc{};
 		desc.width = width;
 		desc.height = height;
-		desc.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		desc.bind_flags = EBindFlag::ShaderResource | EBindFlag::UnorderedAccess;
+		desc.format = GfxFormat::R16G16B16A16_FLOAT;
+		desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 		
 		blur_texture_intermediate = std::make_unique<GfxTexture>(gfx, desc);
 		blur_texture_final = std::make_unique<GfxTexture>(gfx, desc);
-		desc.misc_flags = ETextureMiscFlag::GenerateMips;
-		desc.bind_flags |= EBindFlag::RenderTarget;
+		desc.misc_flags = GfxTextureMiscFlag::GenerateMips;
+		desc.bind_flags |= GfxBindFlag::RenderTarget;
 		bloom_extract_texture = std::make_unique<GfxTexture>(gfx, desc);
 	}
 	void Renderer::CreateIBLTextures()

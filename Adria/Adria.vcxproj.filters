@@ -452,6 +452,9 @@
     <ClInclude Include="..\ThirdParty\gfx-external\WICTextureLoader.h">
       <Filter>gfx-external</Filter>
     </ClInclude>
+    <ClInclude Include="Graphics\GfxFormat.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">

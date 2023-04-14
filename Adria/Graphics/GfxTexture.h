@@ -20,11 +20,11 @@ namespace adria
 		uint32 array_size = 1;
 		uint32 mip_levels = 1;
 		uint32 sample_count = 1;
-		EResourceUsage usage = EResourceUsage::Default;
-		EBindFlag bind_flags = EBindFlag::None;
-		ETextureMiscFlag misc_flags = ETextureMiscFlag::None;
-		ECpuAccess cpu_access = ECpuAccess::None;
-		DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN;
+		GfxResourceUsage usage = GfxResourceUsage::Default;
+		GfxBindFlag bind_flags = GfxBindFlag::None;
+		GfxTextureMiscFlag misc_flags = GfxTextureMiscFlag::None;
+		GfxCpuAccess cpu_access = GfxCpuAccess::None;
+		GfxFormat format = GfxFormat::UNKNOWN;
 		std::strong_ordering operator<=>(GfxTextureDesc const& other) const = default;
 	};
 
@@ -50,7 +50,7 @@ namespace adria
 			tex_desc.Width = desc.width;
 			tex_desc.MipLevels = desc.mip_levels;
 			tex_desc.ArraySize = desc.array_size;
-			tex_desc.Format = desc.format;
+			tex_desc.Format = ConvertGfxFormat(desc.format);
 			tex_desc.Usage = ConvertUsage(desc.usage);
 			tex_desc.BindFlags = ParseBindFlags(desc.bind_flags);
 			tex_desc.CPUAccessFlags = ParseCPUAccessFlags(desc.cpu_access);
@@ -66,7 +66,7 @@ namespace adria
 			tex_desc.Height = desc.height;
 			tex_desc.MipLevels = desc.mip_levels;
 			tex_desc.ArraySize = desc.array_size;
-			tex_desc.Format = desc.format;
+			tex_desc.Format = ConvertGfxFormat(desc.format);
 			tex_desc.SampleDesc.Count = desc.sample_count;
 			tex_desc.SampleDesc.Quality = 0;
 			tex_desc.Usage = ConvertUsage(desc.usage);
@@ -84,7 +84,7 @@ namespace adria
 			tex_desc.Height = desc.height;
 			tex_desc.Depth = desc.depth;
 			tex_desc.MipLevels = desc.mip_levels;
-			tex_desc.Format = desc.format;
+			tex_desc.Format = ConvertGfxFormat(desc.format);
 			tex_desc.Usage = ConvertUsage(desc.usage);
 			tex_desc.BindFlags = ParseBindFlags(desc.bind_flags);
 			tex_desc.CPUAccessFlags = ParseCPUAccessFlags(desc.cpu_access);
@@ -128,10 +128,10 @@ namespace adria
 				const_cast<GfxTextureDesc&>(desc).mip_levels = (uint32)log2(std::max(desc.width, desc.height)) + 1;
 			}
 
-			if (HasAnyFlag(desc.bind_flags, EBindFlag::RenderTarget)) CreateRTV();
-			if (HasAnyFlag(desc.bind_flags, EBindFlag::ShaderResource)) CreateSRV();
-			if (HasAnyFlag(desc.bind_flags, EBindFlag::DepthStencil)) CreateDSV();
-			if (HasAnyFlag(desc.bind_flags, EBindFlag::UnorderedAccess)) CreateUAV();
+			if (HasAnyFlag(desc.bind_flags, GfxBindFlag::RenderTarget)) CreateRTV();
+			if (HasAnyFlag(desc.bind_flags, GfxBindFlag::ShaderResource)) CreateSRV();
+			if (HasAnyFlag(desc.bind_flags, GfxBindFlag::DepthStencil)) CreateDSV();
+			if (HasAnyFlag(desc.bind_flags, GfxBindFlag::UnorderedAccess)) CreateUAV();
 		}
 		GfxTexture(GfxTexture const&) = delete;
 		GfxTexture& operator=(GfxTexture const&) = delete;
@@ -179,7 +179,7 @@ namespace adria
 		std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> dsvs;
 
 	private:
-		[[maybe_unused]] size_t CreateSubresource(ESubresourceType type, GfxTextureSubresourceDesc const& view_desc)
+		[[maybe_unused]] size_t CreateSubresource(GfxSubresourceType type, GfxTextureSubresourceDesc const& view_desc)
 		{
 			uint32 first_slice = view_desc.first_slice;
 			uint32 slice_count = view_desc.slice_count;
@@ -187,12 +187,13 @@ namespace adria
 			uint32 mip_count = view_desc.mip_count;
 
 			ID3D11Device* device = gfx->Device();
+			DXGI_FORMAT format = ConvertGfxFormat(desc.format);
 			switch (type)
 			{
 			case SubresourceType_SRV:
 			{
 				D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc{};
-				switch (desc.format)
+				switch (format)
 				{
 				case DXGI_FORMAT_R16_TYPELESS:
 					srv_desc.Format = DXGI_FORMAT_R16_UNORM;
@@ -207,7 +208,7 @@ namespace adria
 					srv_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 					break;
 				default:
-					srv_desc.Format = desc.format;
+					srv_desc.Format = format;
 					break;
 				}
 
@@ -232,7 +233,7 @@ namespace adria
 				{
 					if (desc.array_size > 1)
 					{
-						if (HasAnyFlag(desc.misc_flags, ETextureMiscFlag::TextureCube))
+						if (HasAnyFlag(desc.misc_flags, GfxTextureMiscFlag::TextureCube))
 						{
 							if (desc.array_size > 6)
 							{
@@ -301,8 +302,7 @@ namespace adria
 			case SubresourceType_UAV:
 			{
 				D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
-
-				switch (desc.format)
+				switch (format)
 				{
 				case DXGI_FORMAT_R16_TYPELESS:
 					uav_desc.Format = DXGI_FORMAT_R16_UNORM;
@@ -317,7 +317,7 @@ namespace adria
 					uav_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 					break;
 				default:
-					uav_desc.Format = desc.format;
+					uav_desc.Format = format;
 					break;
 				}
 
@@ -372,7 +372,7 @@ namespace adria
 			case SubresourceType_RTV:
 			{
 				D3D11_RENDER_TARGET_VIEW_DESC rtv_desc{};
-				switch (desc.format)
+				switch (format)
 				{
 				case DXGI_FORMAT_R16_TYPELESS:
 					rtv_desc.Format = DXGI_FORMAT_R16_UNORM;
@@ -387,7 +387,7 @@ namespace adria
 					rtv_desc.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
 					break;
 				default:
-					rtv_desc.Format = desc.format;
+					rtv_desc.Format = format;
 					break;
 				}
 
@@ -458,7 +458,7 @@ namespace adria
 			case SubresourceType_DSV:
 			{
 				D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
-				switch (desc.format)
+				switch (format)
 				{
 				case DXGI_FORMAT_R16_TYPELESS:
 					dsv_desc.Format = DXGI_FORMAT_D16_UNORM;
@@ -473,7 +473,7 @@ namespace adria
 					dsv_desc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 					break;
 				default:
-					dsv_desc.Format = desc.format;
+					dsv_desc.Format = format;
 					break;
 				}
 

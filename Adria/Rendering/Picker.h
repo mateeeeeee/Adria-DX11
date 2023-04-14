@@ -27,10 +27,10 @@ namespace adria
 			GfxBufferDesc desc{};
 			desc.size = sizeof(PickingData);
 			desc.stride = sizeof(PickingData);
-			desc.cpu_access = ECpuAccess::Read;
-			desc.misc_flags = EBufferMiscFlag::BufferStructured;
-			desc.resource_usage = EResourceUsage::Default;
-			desc.bind_flags = EBindFlag::UnorderedAccess;
+			desc.cpu_access = GfxCpuAccess::Read;
+			desc.misc_flags = GfxBufferMiscFlag::BufferStructured;
+			desc.resource_usage = GfxResourceUsage::Default;
+			desc.bind_flags = GfxBindFlag::UnorderedAccess;
 			picking_buffer = std::make_unique<GfxBuffer>(gfx, desc);
 			picking_buffer->CreateUAV();
 		}

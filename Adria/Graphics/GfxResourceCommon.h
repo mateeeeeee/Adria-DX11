@@ -2,6 +2,7 @@
 #include <memory>
 #include <optional>
 #include "GfxDevice.h"
+#include "GfxFormat.h"
 #include "../Utilities/EnumUtil.h"
 #include "../Utilities/StringUtil.h"
 #include "../Core/Defines.h"
@@ -9,94 +10,7 @@
 
 namespace adria
 {
-	inline constexpr uint32_t GetFormatStride(DXGI_FORMAT format)
-	{
-		switch (format)
-		{
-		case DXGI_FORMAT_BC1_UNORM:
-		case DXGI_FORMAT_BC1_UNORM_SRGB:
-		case DXGI_FORMAT_BC4_SNORM:
-		case DXGI_FORMAT_BC4_UNORM:
-			return 8u;
-		case DXGI_FORMAT_R32G32B32A32_FLOAT:
-		case DXGI_FORMAT_R32G32B32A32_UINT:
-		case DXGI_FORMAT_R32G32B32A32_SINT:
-		case DXGI_FORMAT_BC2_UNORM:
-		case DXGI_FORMAT_BC2_UNORM_SRGB:
-		case DXGI_FORMAT_BC3_UNORM:
-		case DXGI_FORMAT_BC3_UNORM_SRGB:
-		case DXGI_FORMAT_BC5_SNORM:
-		case DXGI_FORMAT_BC5_UNORM:
-		case DXGI_FORMAT_BC6H_UF16:
-		case DXGI_FORMAT_BC6H_SF16:
-		case DXGI_FORMAT_BC7_UNORM:
-		case DXGI_FORMAT_BC7_UNORM_SRGB:
-			return 16u;
-		case DXGI_FORMAT_R32G32B32_FLOAT:
-		case DXGI_FORMAT_R32G32B32_UINT:
-		case DXGI_FORMAT_R32G32B32_SINT:
-			return 12u;
-		case DXGI_FORMAT_R16G16B16A16_FLOAT:
-		case DXGI_FORMAT_R16G16B16A16_UNORM:
-		case DXGI_FORMAT_R16G16B16A16_UINT:
-		case DXGI_FORMAT_R16G16B16A16_SNORM:
-		case DXGI_FORMAT_R16G16B16A16_SINT:
-			return 8u;
-		case DXGI_FORMAT_R32G32_FLOAT:
-		case DXGI_FORMAT_R32G32_UINT:
-		case DXGI_FORMAT_R32G32_SINT:
-		case DXGI_FORMAT_R32G8X24_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT_S8X24_UINT:
-			return 8u;
-		case DXGI_FORMAT_R10G10B10A2_UNORM:
-		case DXGI_FORMAT_R10G10B10A2_UINT:
-		case DXGI_FORMAT_R11G11B10_FLOAT:
-		case DXGI_FORMAT_R8G8B8A8_UNORM:
-		case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-		case DXGI_FORMAT_R8G8B8A8_UINT:
-		case DXGI_FORMAT_R8G8B8A8_SNORM:
-		case DXGI_FORMAT_R8G8B8A8_SINT:
-		case DXGI_FORMAT_B8G8R8A8_UNORM:
-		case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-		case DXGI_FORMAT_R16G16_FLOAT:
-		case DXGI_FORMAT_R16G16_UNORM:
-		case DXGI_FORMAT_R16G16_UINT:
-		case DXGI_FORMAT_R16G16_SNORM:
-		case DXGI_FORMAT_R16G16_SINT:
-		case DXGI_FORMAT_R32_TYPELESS:
-		case DXGI_FORMAT_D32_FLOAT:
-		case DXGI_FORMAT_R32_FLOAT:
-		case DXGI_FORMAT_R32_UINT:
-		case DXGI_FORMAT_R32_SINT:
-		case DXGI_FORMAT_R24G8_TYPELESS:
-		case DXGI_FORMAT_D24_UNORM_S8_UINT:
-			return 4u;
-		case DXGI_FORMAT_R8G8_UNORM:
-		case DXGI_FORMAT_R8G8_UINT:
-		case DXGI_FORMAT_R8G8_SNORM:
-		case DXGI_FORMAT_R8G8_SINT:
-		case DXGI_FORMAT_R16_TYPELESS:
-		case DXGI_FORMAT_R16_FLOAT:
-		case DXGI_FORMAT_D16_UNORM:
-		case DXGI_FORMAT_R16_UNORM:
-		case DXGI_FORMAT_R16_UINT:
-		case DXGI_FORMAT_R16_SNORM:
-		case DXGI_FORMAT_R16_SINT:
-			return 2u;
-		case DXGI_FORMAT_R8_UNORM:
-		case DXGI_FORMAT_R8_UINT:
-		case DXGI_FORMAT_R8_SNORM:
-		case DXGI_FORMAT_R8_SINT:
-			return 1u;
-		default:
-			ADRIA_ASSERT(false);
-			break;
-		}
-
-		return 16u;
-	}
-
-	enum ESubresourceType : uint8
+	enum GfxSubresourceType : uint8
 	{
 		SubresourceType_SRV,
 		SubresourceType_UAV,
@@ -105,7 +19,7 @@ namespace adria
 		SubresourceType_Invalid
 	};
 
-	enum class EBindFlag : uint32
+	enum class GfxBindFlag : uint32
 	{
 		None = 0,
 		ShaderResource = 1 << 0,
@@ -116,49 +30,49 @@ namespace adria
 		IndexBuffer = 1 << 5,
 		ConstantBuffer = 1 << 6
 	};
-	DEFINE_ENUM_BIT_OPERATORS(EBindFlag);
+	DEFINE_ENUM_BIT_OPERATORS(GfxBindFlag);
 
-	inline constexpr uint32 ParseBindFlags(EBindFlag flags)
+	inline constexpr uint32 ParseBindFlags(GfxBindFlag flags)
 	{
 		uint32 result = 0;
-		if (HasAnyFlag(flags, EBindFlag::VertexBuffer))
+		if (HasAnyFlag(flags, GfxBindFlag::VertexBuffer))
 			result |= D3D11_BIND_VERTEX_BUFFER;
-		if (HasAnyFlag(flags, EBindFlag::IndexBuffer))
+		if (HasAnyFlag(flags, GfxBindFlag::IndexBuffer))
 			result |= D3D11_BIND_INDEX_BUFFER;
-		if (HasAnyFlag(flags, EBindFlag::ConstantBuffer))
+		if (HasAnyFlag(flags, GfxBindFlag::ConstantBuffer))
 			result |= D3D11_BIND_CONSTANT_BUFFER;
-		if (HasAnyFlag(flags, EBindFlag::ShaderResource))
+		if (HasAnyFlag(flags, GfxBindFlag::ShaderResource))
 			result |= D3D11_BIND_SHADER_RESOURCE;
-		if (HasAnyFlag(flags, EBindFlag::RenderTarget))
+		if (HasAnyFlag(flags, GfxBindFlag::RenderTarget))
 			result |= D3D11_BIND_RENDER_TARGET;
-		if (HasAnyFlag(flags, EBindFlag::DepthStencil))
+		if (HasAnyFlag(flags, GfxBindFlag::DepthStencil))
 			result |= D3D11_BIND_DEPTH_STENCIL;
-		if (HasAnyFlag(flags, EBindFlag::UnorderedAccess))
+		if (HasAnyFlag(flags, GfxBindFlag::UnorderedAccess))
 			result |= D3D11_BIND_UNORDERED_ACCESS;
 		return result;
 	}
 
-	enum class EResourceUsage : uint8
+	enum class GfxResourceUsage : uint8
 	{
 		Default,
 		Immutable,
 		Dynamic,
 		Staging,
 	};
-	inline constexpr D3D11_USAGE ConvertUsage(EResourceUsage value)
+	inline constexpr D3D11_USAGE ConvertUsage(GfxResourceUsage value)
 	{
 		switch (value)
 		{
-		case EResourceUsage::Default:
+		case GfxResourceUsage::Default:
 			return D3D11_USAGE_DEFAULT;
 			break;
-		case EResourceUsage::Immutable:
+		case GfxResourceUsage::Immutable:
 			return D3D11_USAGE_IMMUTABLE;
 			break;
-		case EResourceUsage::Dynamic:
+		case GfxResourceUsage::Dynamic:
 			return D3D11_USAGE_DYNAMIC;
 			break;
-		case EResourceUsage::Staging:
+		case GfxResourceUsage::Staging:
 			return D3D11_USAGE_STAGING;
 			break;
 		default:
@@ -167,60 +81,60 @@ namespace adria
 		return D3D11_USAGE_DEFAULT;
 	}
 
-	enum class ECpuAccess : uint8
+	enum class GfxCpuAccess : uint8
 	{
 		None = 0b00,
 		Write = 0b01,
 		Read = 0b10,
 		ReadWrite = 0b11
 	};
-	DEFINE_ENUM_BIT_OPERATORS(ECpuAccess);
+	DEFINE_ENUM_BIT_OPERATORS(GfxCpuAccess);
 
-	inline constexpr uint32 ParseCPUAccessFlags(ECpuAccess value)
+	inline constexpr uint32 ParseCPUAccessFlags(GfxCpuAccess value)
 	{
 		uint32_t result = 0;
-		if (HasAnyFlag(value, ECpuAccess::Write))
+		if (HasAnyFlag(value, GfxCpuAccess::Write))
 			result |= D3D11_CPU_ACCESS_WRITE;
-		if (HasAnyFlag(value, ECpuAccess::Read))
+		if (HasAnyFlag(value, GfxCpuAccess::Read))
 			result |= D3D11_CPU_ACCESS_READ;
 		return result;
 	}
 
-	enum class ETextureMiscFlag : uint32
+	enum class GfxTextureMiscFlag : uint32
 	{
 		None = 0,
 		TextureCube = 1 << 0,
 		GenerateMips = 1 << 1
 	};
-	DEFINE_ENUM_BIT_OPERATORS(ETextureMiscFlag);
+	DEFINE_ENUM_BIT_OPERATORS(GfxTextureMiscFlag);
 
-	inline constexpr uint32 ParseMiscFlags(ETextureMiscFlag value)
+	inline constexpr uint32 ParseMiscFlags(GfxTextureMiscFlag value)
 	{
 		uint32 result = 0;
-		if (HasAnyFlag(value, ETextureMiscFlag::TextureCube))
+		if (HasAnyFlag(value, GfxTextureMiscFlag::TextureCube))
 			result |= D3D11_RESOURCE_MISC_TEXTURECUBE;
-		if (HasAnyFlag(value, ETextureMiscFlag::GenerateMips))
+		if (HasAnyFlag(value, GfxTextureMiscFlag::GenerateMips))
 			result |= D3D11_RESOURCE_MISC_GENERATE_MIPS;
 		return result;
 	}
 
-	enum class EBufferMiscFlag : uint32
+	enum class GfxBufferMiscFlag : uint32
 	{
 		None,
 		IndirectArgs = 1 << 0,
 		BufferRaw = 1 << 1,
 		BufferStructured = 1 << 2
 	};
-	DEFINE_ENUM_BIT_OPERATORS(EBufferMiscFlag);
+	DEFINE_ENUM_BIT_OPERATORS(GfxBufferMiscFlag);
 
-	inline constexpr uint32 ParseMiscFlags(EBufferMiscFlag value)
+	inline constexpr uint32 ParseMiscFlags(GfxBufferMiscFlag value)
 	{
 		uint32 result = 0;
-		if (HasAnyFlag(value, EBufferMiscFlag::IndirectArgs))
+		if (HasAnyFlag(value, GfxBufferMiscFlag::IndirectArgs))
 			result |= D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
-		if (HasAnyFlag(value, EBufferMiscFlag::BufferRaw))
+		if (HasAnyFlag(value, GfxBufferMiscFlag::BufferRaw))
 			result |= D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS;
-		if (HasAnyFlag(value, EBufferMiscFlag::BufferStructured))
+		if (HasAnyFlag(value, GfxBufferMiscFlag::BufferStructured))
 			result |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 		return result;
 	}

@@ -223,6 +223,7 @@
     <ClInclude Include="Graphics\GfxCommonStates.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
     <ClInclude Include="Graphics\GfxDevice.h" />
+    <ClInclude Include="Graphics\GfxFormat.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\GPUProfilerSettings.h" />
     <ClInclude Include="Graphics\GfxRenderPass.h" />
