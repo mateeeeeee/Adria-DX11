@@ -247,7 +247,6 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="Tasks\Task.h" />
     <ClInclude Include="Tasks\TaskManager.h" />
-    <ClInclude Include="Tasks\TaskSystem.h" />
     <ClInclude Include="Tasks\ThreadPool.h" />
     <ClInclude Include="tecs\component_pool.h" />
     <ClInclude Include="tecs\entity.h" />

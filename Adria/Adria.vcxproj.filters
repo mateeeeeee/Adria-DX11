@@ -400,9 +400,6 @@
     <ClInclude Include="Tasks\TaskManager.h">
       <Filter>Threading</Filter>
     </ClInclude>
-    <ClInclude Include="Tasks\TaskSystem.h">
-      <Filter>Threading</Filter>
-    </ClInclude>
     <ClInclude Include="Tasks\ThreadPool.h">
       <Filter>Threading</Filter>
     </ClInclude>

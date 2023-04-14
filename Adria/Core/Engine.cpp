@@ -2,7 +2,7 @@
 #include "Window.h"
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
-#include "../Tasks/TaskSystem.h"
+#include "../Tasks/TaskManager.h"
 #include "../Editor/GUI.h"
 #include "../Graphics/GraphicsDeviceDX11.h"
 #include "../Rendering/Renderer.h"
@@ -202,14 +202,14 @@ namespace adria
 
 	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }, scene_viewport_data{}
 	{
-		TaskSystem::Initialize();
+		g_TaskManager.Initialize();
 
 		gfx = std::make_unique<GraphicsDevice>(Window::Handle());
 		ShaderManager::Initialize(gfx->Device());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		model_importer = std::make_unique<ModelImporter>(reg, gfx.get(), renderer->GetTextureManager());
 
-		InputEvents& input_events = Input::GetInstance().GetInputEvents();
+		InputEvents& input_events = g_Input.GetInputEvents();
 
 		std::ignore = input_events.window_resized_event.AddMember(&GraphicsDevice::ResizeBackbuffer, *gfx);
 		std::ignore = input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
@@ -235,12 +235,12 @@ namespace adria
 		renderer = nullptr;
 		ShaderManager::Destroy();
 		gfx = nullptr;
-		TaskSystem::Destroy();
+		g_TaskManager.Destroy();
 	}
 
 	void Engine::HandleWindowMessage(WindowMessage const& msg_data)
 	{
-		Input::GetInstance().HandleWindowMessage(msg_data);
+		g_Input.HandleWindowMessage(msg_data);
 	}
 
 	void Engine::Run(RendererSettings const& settings)
@@ -248,7 +248,7 @@ namespace adria
 		static AdriaTimer timer;
 		float32 const dt = timer.MarkInSeconds();
 
-		Input::GetInstance().NewFrame();
+		g_Input.NewFrame();
 		if (Window::IsActive())
 		{
 			Update(dt);
@@ -289,8 +289,8 @@ namespace adria
 		{
 			editor_active = false;
 			scene_viewport_data.scene_viewport_focused = true;
-			scene_viewport_data.mouse_position_x = Input::GetInstance().GetMousePositionX();
-			scene_viewport_data.mouse_position_y = Input::GetInstance().GetMousePositionY();
+			scene_viewport_data.mouse_position_x = g_Input.GetMousePositionX();
+			scene_viewport_data.mouse_position_y = g_Input.GetMousePositionY();
 			
 			auto [pos_x, pos_y] = Window::Position();
 			scene_viewport_data.scene_viewport_pos_x = static_cast<float32>(pos_x);

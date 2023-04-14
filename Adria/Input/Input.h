@@ -4,6 +4,7 @@
 #include "../Core/Definitions.h"
 #include "../Core/Windows.h"
 #include "../Events/Delegate.h"
+#include "../Utilities/Singleton.h"
 
 namespace adria
 {
@@ -51,15 +52,10 @@ namespace adria
         F5PressedEvent f5_pressed_event;
     };
 
-    class Input
+    class Input : public Singleton<Input>
     {
+        friend class Singleton<Input>;
     public:
-        static Input& GetInstance()
-		{
-			static Input input;
-			return input;
-		}
-
         void NewFrame();
         void HandleWindowMessage(WindowMessage const&);
 
@@ -98,4 +94,5 @@ namespace adria
     private:
 		Input();
     };
+    #define g_Input Input::Get()
 }

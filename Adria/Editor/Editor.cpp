@@ -285,13 +285,13 @@ namespace adria
 
     void Editor::HandleInput()
     {
-		if (scene_focused && Input::GetInstance().IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
-		if (scene_focused && Input::GetInstance().IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
+		if (scene_focused && g_Input.IsKeyDown(EKeyCode::I)) gui->ToggleVisibility();
+		if (scene_focused && g_Input.IsKeyDown(EKeyCode::G)) gizmo_enabled = !gizmo_enabled;
         if (gizmo_enabled && gui->IsVisible())
         {
-            if ( Input::GetInstance().IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
-            if ( Input::GetInstance().IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
-            if ( Input::GetInstance().IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE; //e because s is for camera movement and its close to wasd and tr
+            if ( g_Input.IsKeyDown(EKeyCode::T)) gizmo_op = ImGuizmo::TRANSLATE;
+            if ( g_Input.IsKeyDown(EKeyCode::R)) gizmo_op = ImGuizmo::ROTATE;
+            if ( g_Input.IsKeyDown(EKeyCode::E)) gizmo_op = ImGuizmo::SCALE; //e because s is for camera movement and its close to wasd and tr
         }
         engine->camera->Enable(scene_focused);
     }
