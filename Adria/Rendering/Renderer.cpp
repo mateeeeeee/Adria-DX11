@@ -836,7 +836,7 @@ namespace adria
 			depth_cubemap_desc.bind_flags = EBindFlag::DepthStencil | EBindFlag::ShaderResource;
 			depth_cubemap_desc.misc_flags = ETextureMiscFlag::TextureCube;
 			shadow_depth_cubemap = std::make_unique<Texture>(gfx, depth_cubemap_desc);
-			for (size_t i = 0; i < 6; ++i)
+			for (uint32 i = 0; i < 6; ++i)
 			{
 				TextureSubresourceDesc dsv_desc{};
 				dsv_desc.first_mip = 0;
@@ -858,7 +858,7 @@ namespace adria
 				TextureSubresourceDesc dsv_desc{};
 				dsv_desc.first_mip = 0;
 				dsv_desc.slice_count = 1;
-				dsv_desc.first_slice = i;
+				dsv_desc.first_slice = (uint32)i;
 				size_t j = shadow_cascade_maps->CreateDSV(&dsv_desc);
 				ADRIA_ASSERT(j == i + 1);
 			}

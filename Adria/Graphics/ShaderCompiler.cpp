@@ -46,7 +46,7 @@ namespace adria
 					char* buf = new char[contents.size()];
 					contents.copy(buf, contents.size());
 					*ppData = buf;
-					*pBytes = contents.size();
+					*pBytes = (UINT)contents.size();
 				}
 				else
 				{
