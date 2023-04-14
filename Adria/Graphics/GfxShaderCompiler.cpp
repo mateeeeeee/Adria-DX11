@@ -6,12 +6,19 @@
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
 #include "Core/Defines.h" 
+#include "Logging/Logger.h" 
+#include "cereal/archives/binary.hpp"
+#include "cereal/types/string.hpp"
+#include "cereal/types/vector.hpp"
+
 
 namespace adria
 {
 
 	namespace 
 	{
+		char const* shaders_cache_directory = "Resources/ShaderCache/";
+
 		class CShaderInclude : public ID3DInclude
 		{
 		public:
@@ -69,6 +76,34 @@ namespace adria
 			std::string shader_dir;
 			std::vector<std::string> includes;
 		};
+
+		bool CheckCache(char const* cache_path, GfxShaderCompileInput const& input, GfxShaderCompileOutput& output)
+		{
+			if (!FileExists(cache_path)) return false;
+			if (GetFileLastWriteTime(cache_path) < GetFileLastWriteTime(input.source_file)) return false;
+
+			std::ifstream is(cache_path, std::ios::binary);
+			cereal::BinaryInputArchive archive(is);
+
+			archive(output.hash);
+			archive(output.includes);
+			size_t binary_size = 0;
+			archive(binary_size);
+			std::unique_ptr<char[]> binary_data(new char[binary_size]);
+			archive.loadBinary(binary_data.get(), binary_size);
+			output.blob.SetBytecode(binary_data.get(), binary_size);
+			return true;
+		}
+		bool SaveToCache(char const* cache_path, GfxShaderCompileOutput const& output)
+		{
+			std::ofstream os(cache_path, std::ios::binary);
+			cereal::BinaryOutputArchive archive(os);
+			archive(output.hash);
+			archive(output.includes);
+			archive(output.blob.GetLength());
+			archive.saveBinary(output.blob.GetPointer(), output.blob.GetLength());
+			return true;
+		}
 	}
 
 	namespace GfxShaderCompiler
@@ -120,55 +155,65 @@ namespace adria
 			default:
 				ADRIA_ASSERT(false && "Unsupported Shader Stage!");
 			}
-
 			entrypoint = input.entrypoint.empty() ? entrypoint : input.entrypoint;
 
+			//do cache thing
+			std::string macro_key;
+			for (GfxShaderMacro const& macro : input.macros)
+			{
+				macro_key += macro.name;
+				macro_key += macro.value;
+			}
+			uint64 macro_hash = crc64(macro_key.c_str(), macro_key.size());
+
+			std::string build_string = input.flags & GfxShaderCompileInput::FlagDebug ? "debug" : "release";
+			char cache_path[256];
+			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", shaders_cache_directory, 
+				GetFilenameWithoutExtension(input.source_file).c_str(), entrypoint.c_str(), macro_hash, build_string.c_str());
+
+			if (CheckCache(cache_path, input, output)) return;
+			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.source_file.c_str(), entrypoint.c_str());
+
 			UINT shader_compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
-			if (input.flags & GfxShaderCompileInput::FlagDisableOptimization)
-			{
-				shader_compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-			}
-
-			if (input.flags & GfxShaderCompileInput::FlagDebug)
-			{
-				shader_compile_flags |= D3DCOMPILE_DEBUG;
-			}
-
+			if (input.flags & GfxShaderCompileInput::FlagDisableOptimization) shader_compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+			if (input.flags & GfxShaderCompileInput::FlagDebug) shader_compile_flags |= D3DCOMPILE_DEBUG;
 			std::vector<D3D_SHADER_MACRO> defines{};
 			defines.resize(input.macros.size());
 			
 			for (uint32_t i = 0; i < input.macros.size(); ++i)
 			{
 				defines[i].Name = (char*)malloc(sizeof(input.macros[i].name));
-				defines[i].Definition = (char*)malloc(sizeof(input.macros[i].definition));
+				defines[i].Definition = (char*)malloc(sizeof(input.macros[i].value));
 
 				strcpy(const_cast<char*>(defines[i].Name), input.macros[i].name.c_str());
-				strcpy(const_cast<char*>(defines[i].Definition), input.macros[i].definition.c_str());
+				strcpy(const_cast<char*>(defines[i].Definition), input.macros[i].value.c_str());
 			}
 			defines.push_back({ NULL,NULL });
 
-			Microsoft::WRL::ComPtr<ID3DBlob> pBytecodeBlob = nullptr;
-			Microsoft::WRL::ComPtr<ID3DBlob> pErrorBlob = nullptr;
+			Microsoft::WRL::ComPtr<ID3DBlob> bytecode_blob = nullptr;
+			Microsoft::WRL::ComPtr<ID3DBlob> error_blob = nullptr;
 
 			CShaderInclude includer(GetParentPath(input.source_file).c_str());
-			HRESULT hr = D3DCompileFromFile(ToWideString(input.source_file).c_str(), 
-				defines.data(),
-				&includer, entrypoint.c_str(), model.c_str(),
-				shader_compile_flags, 0, &pBytecodeBlob, &pErrorBlob);
+			HRESULT hr = D3DCompileFromFile(ToWideString(input.source_file).c_str(), defines.data(),
+				&includer, entrypoint.c_str(), model.c_str(), shader_compile_flags, 0, 
+				&bytecode_blob, &error_blob);
+
 			auto const& includes = includer.GetIncludes();
-
-			if (FAILED(hr) && pErrorBlob) OutputDebugStringA(reinterpret_cast<const char*>(pErrorBlob->GetBufferPointer()));
-
+			if (FAILED(hr) && error_blob) OutputDebugStringA(reinterpret_cast<const char*>(error_blob->GetBufferPointer()));
 			for (auto& define : defines)
 			{
 				if (define.Name)		free((void*)define.Name);
 				if (define.Definition)  free((void*)define.Definition); //change malloc and free to new and delete
 			}
-			BREAK_IF_FAILED(hr);
-			output.blob.bytecode.resize(pBytecodeBlob->GetBufferSize());
-			std::memcpy(output.blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), pBytecodeBlob->GetBufferSize());
-			output.dependent_files = includes;
-			output.dependent_files.push_back(input.source_file);
+
+			uint64 shader_hash = crc64((char*)bytecode_blob->GetBufferPointer(), bytecode_blob->GetBufferSize());
+			
+			output.blob.bytecode.resize(bytecode_blob->GetBufferSize());
+			std::memcpy(output.blob.GetPointer(), bytecode_blob->GetBufferPointer(), bytecode_blob->GetBufferSize());
+			output.includes = includes;
+			output.includes.push_back(input.source_file);
+			output.hash = shader_hash;
+			SaveToCache(cache_path, output);
 		}
 
 		void CreateInputLayoutWithReflection(ID3D11Device* device, GfxShaderBlob const& blob, ID3D11InputLayout** il)
@@ -230,6 +275,5 @@ namespace adria
 			HRESULT hr = device->CreateInputLayout(inputLayoutDesc.data(), static_cast<UINT>(inputLayoutDesc.size()), blob.GetPointer(), blob.GetLength(), il);
 			BREAK_IF_FAILED(hr);
 		}
-
 	}
 }

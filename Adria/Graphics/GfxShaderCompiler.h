@@ -11,11 +11,15 @@ namespace adria
 	{
 		std::vector<uint8> bytecode;
 
+		void SetBytecode(void* data, size_t data_size)
+		{
+			bytecode.resize(data_size);
+			memcpy(bytecode.data(), data, data_size);
+		}
 		void* GetPointer() const
 		{
 			return (void*)bytecode.data();
 		}
-
 		size_t GetLength() const
 		{
 			return bytecode.size();
@@ -24,7 +28,7 @@ namespace adria
 	struct GfxShaderMacro
 	{
 		std::string name;
-		std::string definition;
+		std::string value;
 	};
 	enum class GfxShaderStage
 	{
@@ -55,7 +59,8 @@ namespace adria
 	struct GfxShaderCompileOutput
 	{
 		GfxShaderBlob blob;
-		std::vector<std::string> dependent_files;
+		std::vector<std::string> includes;
+		uint64 hash;
 	};
 	
 	namespace GfxShaderCompiler

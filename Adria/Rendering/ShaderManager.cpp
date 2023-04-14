@@ -420,7 +420,7 @@ namespace adria
 				ADRIA_ASSERT(false);
 			}
 			dependent_files_map[shader].clear();
-			dependent_files_map[shader].insert(output.dependent_files.begin(), output.dependent_files.end());
+			dependent_files_map[shader].insert(output.includes.begin(), output.includes.end());
 		}
 		void CreateAllPrograms()
 		{
@@ -537,6 +537,7 @@ namespace adria
 		}
 		void CompileAllShaders()
 		{
+			Timer t;
 			ADRIA_LOG(INFO, "Compiling all shaders...");
 			using UnderlyingType = std::underlying_type_t<EShader>;
 
@@ -551,7 +552,7 @@ namespace adria
 					CompileShader((EShader)s, true);
 				});
 			CreateAllPrograms();
-			ADRIA_LOG(INFO, "Compilation done!");
+			ADRIA_LOG(INFO, "Compilation done in %f seconds!", t.ElapsedInSeconds());
 		}
 		void OnShaderFileChanged(std::string const& filename)
 		{

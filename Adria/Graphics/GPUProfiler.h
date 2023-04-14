@@ -17,7 +17,6 @@ namespace adria
 	class GPUProfiler
 	{
 		static constexpr UINT64 FRAME_COUNT = 3;
-
 		struct QueryData
 		{
 			Microsoft::WRL::ComPtr<ID3D11Query> disjoint_query;
@@ -31,9 +30,7 @@ namespace adria
 		GPUProfiler(ID3D11Device* device);
 
 		void BeginProfileBlock(ID3D11DeviceContext* context, EProfilerBlock block);
-		
 		void EndProfileBlock(ID3D11DeviceContext* context, EProfilerBlock block);
-
 		[[maybe_unused]] std::vector<Timestamp> GetProfilingResults(ID3D11DeviceContext* context);
 
 	private:
