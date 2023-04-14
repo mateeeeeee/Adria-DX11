@@ -1,8 +1,8 @@
-#include "../Tasks/TaskSystem.h"
 #include "Engine.h"
 #include "Window.h"
 #include "../Math/Constants.h"
 #include "../Logging/Logger.h"
+#include "../Tasks/TaskSystem.h"
 #include "../Editor/GUI.h"
 #include "../Graphics/GraphicsDeviceDX11.h"
 #include "../Rendering/Renderer.h"
@@ -13,7 +13,7 @@
 #include "../Utilities/JsonUtil.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/FilesUtil.h"
-#include "../Audio/AudioSystem.h"
+
 #include "nlohmann/json.hpp"
 
 using json = nlohmann::json;
