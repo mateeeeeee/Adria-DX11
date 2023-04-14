@@ -12,11 +12,11 @@ namespace adria
 {
 	enum GfxSubresourceType : uint8
 	{
-		SubresourceType_SRV,
-		SubresourceType_UAV,
-		SubresourceType_RTV,
-		SubresourceType_DSV,
-		SubresourceType_Invalid
+		GfxSubresourceType_SRV,
+		GfxSubresourceType_UAV,
+		GfxSubresourceType_RTV,
+		GfxSubresourceType_DSV,
+		GfxSubresourceType_Invalid
 	};
 
 	enum class GfxBindFlag : uint32

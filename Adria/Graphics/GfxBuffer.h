@@ -137,12 +137,12 @@ namespace adria
 		[[maybe_unused]] size_t CreateSRV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
 			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
-			return CreateSubresource(SubresourceType_SRV, _desc);
+			return CreateSubresource(GfxSubresourceType_SRV, _desc);
 		}
 		[[maybe_unused]] size_t CreateUAV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
 			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
-			return CreateSubresource(SubresourceType_UAV, _desc);
+			return CreateSubresource(GfxSubresourceType_UAV, _desc);
 		}
 
 		ID3D11Buffer* GetNative() const { return resource.Get(); }
@@ -223,7 +223,7 @@ namespace adria
 			ID3D11Device* device = gfx->Device();
 			switch (type)
 			{
-			case SubresourceType_SRV:
+			case GfxSubresourceType_SRV:
 			{
 				D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 				if (HasAnyFlag(desc.misc_flags, GfxBufferMiscFlag::BufferRaw))
@@ -264,7 +264,7 @@ namespace adria
 				else ADRIA_ASSERT(false && "Failed SRV Creation");
 			}
 			break;
-			case SubresourceType_UAV:
+			case GfxSubresourceType_UAV:
 			{
 				D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				uav_desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;

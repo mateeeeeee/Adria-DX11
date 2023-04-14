@@ -2,7 +2,7 @@
 #if _DEBUG
 #include <unordered_map>
 #else 
-#include "tsl/robin_map.h"
+#include <unordered_map>
 #endif
 
 namespace adria
@@ -12,6 +12,6 @@ namespace adria
 	using HashMap = std::unordered_map<K, V>;
 #else 
 	template<typename K, typename V>
-	using HashMap = tsl::robin_map<K, V>;
+	using HashMap = std::unordered_map<K, V>;
 #endif
 }

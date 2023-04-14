@@ -142,22 +142,22 @@ namespace adria
 		[[maybe_unused]] size_t CreateSRV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
-			return CreateSubresource(SubresourceType_SRV, _desc);
+			return CreateSubresource(GfxSubresourceType_SRV, _desc);
 		}
 		[[maybe_unused]] size_t CreateUAV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
-			return CreateSubresource(SubresourceType_UAV, _desc);
+			return CreateSubresource(GfxSubresourceType_UAV, _desc);
 		}
 		[[maybe_unused]] size_t CreateRTV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
-			return CreateSubresource(SubresourceType_RTV, _desc);
+			return CreateSubresource(GfxSubresourceType_RTV, _desc);
 		}
 		[[maybe_unused]] size_t CreateDSV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
-			return CreateSubresource(SubresourceType_DSV, _desc);
+			return CreateSubresource(GfxSubresourceType_DSV, _desc);
 		}
 
 		ID3D11ShaderResourceView* SRV(size_t i = 0) const { return srvs[i].Get(); }
@@ -190,7 +190,7 @@ namespace adria
 			DXGI_FORMAT format = ConvertGfxFormat(desc.format);
 			switch (type)
 			{
-			case SubresourceType_SRV:
+			case GfxSubresourceType_SRV:
 			{
 				D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 				switch (format)
@@ -299,7 +299,7 @@ namespace adria
 				else ADRIA_ASSERT(false && "Failed SRV Creation");
 			}
 			break;
-			case SubresourceType_UAV:
+			case GfxSubresourceType_UAV:
 			{
 				D3D11_UNORDERED_ACCESS_VIEW_DESC uav_desc{};
 				switch (format)
@@ -369,7 +369,7 @@ namespace adria
 				else ADRIA_ASSERT(false && "Failed UAV Creation");
 			}
 			break;
-			case SubresourceType_RTV:
+			case GfxSubresourceType_RTV:
 			{
 				D3D11_RENDER_TARGET_VIEW_DESC rtv_desc{};
 				switch (format)
@@ -455,7 +455,7 @@ namespace adria
 				else ADRIA_ASSERT(false && "Failed RTV Creation");
 			}
 			break;
-			case SubresourceType_DSV:
+			case GfxSubresourceType_DSV:
 			{
 				D3D11_DEPTH_STENCIL_VIEW_DESC dsv_desc{};
 				switch (format)
