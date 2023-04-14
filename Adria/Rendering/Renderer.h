@@ -8,12 +8,12 @@
 #include "SceneViewport.h"
 #include "ConstantBuffers.h"
 #include "TextureManager.h"
-#include "../Graphics/GfxConstantBuffer.h"
-#include "../Graphics/GfxShaderProgram.h"
-#include "../Graphics/GfxRenderPass.h"
-#include "../Graphics/GPUProfiler.h"
-#include "../Graphics/GfxBuffer.h"
-#include "../tecs/Registry.h"
+#include "Graphics/GfxConstantBuffer.h"
+#include "Graphics/GfxShaderProgram.h"
+#include "Graphics/GfxRenderPass.h"
+#include "Graphics/GPUProfiler.h"
+#include "Graphics/GfxBuffer.h"
+#include "tecs/Registry.h"
 
 namespace adria
 {

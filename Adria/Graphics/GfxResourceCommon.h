@@ -3,9 +3,9 @@
 #include <optional>
 #include "GfxDevice.h"
 #include "GfxFormat.h"
-#include "../Utilities/EnumUtil.h"
-#include "../Utilities/StringUtil.h"
-#include "../Core/Defines.h"
+#include "Utilities/EnumUtil.h"
+#include "Utilities/StringUtil.h"
+#include "Core/Defines.h"
 
 
 namespace adria

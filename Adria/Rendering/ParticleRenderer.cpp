@@ -1,5 +1,5 @@
-#include "../Utilities/Random.h"
-#include "../Graphics/GfxScopedAnnotation.h"
+#include "Utilities/Random.h"
+#include "Graphics/GfxScopedAnnotation.h"
 #include "ParticleRenderer.h"
 #include "ShaderManager.h"
 

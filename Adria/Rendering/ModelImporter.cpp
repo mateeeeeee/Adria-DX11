@@ -10,17 +10,17 @@
 
 #include "ModelImporter.h"
 #include "TextureManager.h"
-#include "../tecs/registry.h"
-#include "../Graphics/GfxDevice.h"
-#include "../Graphics/GfxVertexTypes.h"
-#include "../Logging/Logger.h"
-#include "../Math/BoundingVolumeHelpers.h"
-#include "../Math/ComputeTangentFrame.h"
-#include "../Utilities/FilesUtil.h"
-#include "../Utilities/Random.h"
-#include "../Utilities/Heightmap.h"
-#include "../Utilities/Image.h"
-#include "../Utilities/HashMap.h"
+#include "tecs/registry.h"
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxVertexTypes.h"
+#include "Logging/Logger.h"
+#include "Math/BoundingVolumeHelpers.h"
+#include "Math/ComputeTangentFrame.h"
+#include "Utilities/FilesUtil.h"
+#include "Utilities/Random.h"
+#include "Utilities/Heightmap.h"
+#include "Utilities/Image.h"
+#include "Utilities/HashMap.h"
 
 using namespace DirectX;
 namespace adria 

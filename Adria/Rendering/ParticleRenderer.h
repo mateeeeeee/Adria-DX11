@@ -3,12 +3,12 @@
 #include <DirectXMath.h>
 #include "Enums.h"
 #include "Components.h"
-#include "../tecs/registry.h"
-#include "../Graphics/GfxShaderProgram.h"
-#include "../Graphics/GfxConstantBuffer.h"
-#include "../Graphics/GfxBuffer.h"
-#include "../Graphics/GfxTexture.h"
-#include "../Graphics/GfxDevice.h"
+#include "tecs/registry.h"
+#include "Graphics/GfxShaderProgram.h"
+#include "Graphics/GfxConstantBuffer.h"
+#include "Graphics/GfxBuffer.h"
+#include "Graphics/GfxTexture.h"
+#include "Graphics/GfxDevice.h"
 
 namespace adria
 {

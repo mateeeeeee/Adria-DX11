@@ -1,6 +1,6 @@
 #include "GPUProfiler.h"
-#include "../Core/Defines.h"
-#include "../Logging/Logger.h"
+#include "Core/Defines.h"
+#include "Logging/Logger.h"
 
 
 

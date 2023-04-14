@@ -2,12 +2,12 @@
 #include "TextureManager.h"
 #include "DDSTextureLoader.h"
 #include "WICTextureLoader.h"
-#include "../Graphics/GfxShaderCompiler.h"
-#include "../Logging/Logger.h"
-#include "../Utilities/StringUtil.h"
-#include "../Utilities/Image.h"
-#include "../Utilities/FilesUtil.h"
-#include "../Core/Defines.h"
+#include "Graphics/GfxShaderCompiler.h"
+#include "Logging/Logger.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/Image.h"
+#include "Utilities/FilesUtil.h"
+#include "Core/Defines.h"
 
 namespace adria
 {

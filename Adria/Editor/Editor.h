@@ -1,11 +1,11 @@
 #pragma once
 #include <memory>
-#include "../Core/Engine.h"
+#include "Core/Engine.h"
 #include "GUI.h"
-#include "../tecs/registry.h"
-#include "../Rendering/RendererSettings.h"
-#include "../Rendering/SceneViewport.h"
-#include "../Graphics/GPUProfilerSettings.h"
+#include "tecs/registry.h"
+#include "Rendering/RendererSettings.h"
+#include "Rendering/SceneViewport.h"
+#include "Graphics/GPUProfilerSettings.h"
 #include "ImGui/imgui_internal.h"
 #include "ImGui/ImGuizmo.h"
 

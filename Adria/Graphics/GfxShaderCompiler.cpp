@@ -2,10 +2,10 @@
 #include <d3dcompiler.h> 
 #include <fstream> 
 #include "GfxShaderCompiler.h"
-#include "../Utilities/HashUtil.h"
-#include "../Utilities/StringUtil.h"
-#include "../Utilities/FilesUtil.h"
-#include "../Core/Defines.h" 
+#include "Utilities/HashUtil.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/FilesUtil.h"
+#include "Core/Defines.h" 
 
 namespace adria
 {

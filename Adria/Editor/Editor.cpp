@@ -1,14 +1,14 @@
 #include "Editor.h"
 #include <nfd.h>
-#include "../Rendering/Renderer.h"
-#include "../Graphics/GfxDevice.h"
-#include "../Rendering/ModelImporter.h"
-#include "../Logging/Logger.h"
-#include "../Utilities/FilesUtil.h"
-#include "../Utilities/StringUtil.h"
-#include "../Utilities/Image.h"
-#include "../Utilities/Random.h"
-#include "../Math/BoundingVolumeHelpers.h"
+#include "Rendering/Renderer.h"
+#include "Graphics/GfxDevice.h"
+#include "Rendering/ModelImporter.h"
+#include "Logging/Logger.h"
+#include "Utilities/FilesUtil.h"
+#include "Utilities/StringUtil.h"
+#include "Utilities/Image.h"
+#include "Utilities/Random.h"
+#include "Math/BoundingVolumeHelpers.h"
 
 using namespace DirectX;
 

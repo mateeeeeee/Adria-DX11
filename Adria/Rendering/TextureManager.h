@@ -3,8 +3,8 @@
 #include <array>
 #include <unordered_map>
 #include <variant>
-#include "../Graphics/GfxDevice.h"
-#include "../Utilities/Singleton.h"
+#include "Graphics/GfxDevice.h"
+#include "Utilities/Singleton.h"
 
 namespace adria
 {

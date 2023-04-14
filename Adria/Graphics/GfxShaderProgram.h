@@ -1,7 +1,7 @@
 #pragma once
 #include <wrl.h>
 #include "GfxShaderCompiler.h"
-#include "../Core/Defines.h" 
+#include "Core/Defines.h" 
 
 namespace adria
 {

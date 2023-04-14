@@ -5,10 +5,10 @@
 #include <array>
 #include <vector>
 #include "Components.h"
-#include "../Core/CoreTypes.h"
-#include "../Math/ComputeNormals.h"
-#include "../Utilities/Heightmap.h"
-#include "../tecs/entity.h"
+#include "Core/CoreTypes.h"
+#include "Math/ComputeNormals.h"
+#include "Utilities/Heightmap.h"
+#include "tecs/entity.h"
 
 namespace adria
 {

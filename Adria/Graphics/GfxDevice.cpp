@@ -1,7 +1,7 @@
 #include "GfxDevice.h"
 #include <dxgidebug.h>
 #include <cstdlib>
-#include "../Core/Defines.h"
+#include "Core/Defines.h"
 
 static inline void ReportLiveObjects()
 {

@@ -3,8 +3,8 @@
 #include <chrono>
 #include <thread>
 #include "HashMap.h"
-#include "../Core/CoreTypes.h"
-#include "../Events/Delegate.h"
+#include "Core/CoreTypes.h"
+#include "Events/Delegate.h"
 
 namespace adria
 {

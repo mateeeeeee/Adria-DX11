@@ -1,8 +1,8 @@
 #pragma once
 #include <vector>
 #include <DirectXMath.h>
-#include "../Core/CoreTypes.h"
-#include "../Graphics/GfxVertexTypes.h"
+#include "Core/CoreTypes.h"
+#include "Graphics/GfxVertexTypes.h"
 
 namespace adria
 {

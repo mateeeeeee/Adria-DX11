@@ -2,10 +2,10 @@
 #include <memory>
 #include <DirectXMath.h>
 #include "ShaderManager.h"
-#include "../Graphics/GfxBuffer.h"
-#include "../Graphics/GfxDevice.h" 
-#include "../Graphics/GfxShaderProgram.h" 
-#include "../Logging/Logger.h"
+#include "Graphics/GfxBuffer.h"
+#include "Graphics/GfxDevice.h" 
+#include "Graphics/GfxShaderProgram.h" 
+#include "Logging/Logger.h"
 
 namespace adria
 {

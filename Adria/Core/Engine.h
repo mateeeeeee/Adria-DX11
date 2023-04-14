@@ -1,12 +1,12 @@
 #pragma once
 #include <memory>
 #include <optional>
-#include "../Events/EventQueue.h"
-#include "../Input/Input.h"
-#include "../tecs/registry.h"
-#include "../Rendering/Camera.h"
-#include "../Rendering/RendererSettings.h"
-#include "../Rendering/SceneViewport.h"
+#include "Events/EventQueue.h"
+#include "Input/Input.h"
+#include "tecs/registry.h"
+#include "Rendering/Camera.h"
+#include "Rendering/RendererSettings.h"
+#include "Rendering/SceneViewport.h"
 
 namespace adria
 {

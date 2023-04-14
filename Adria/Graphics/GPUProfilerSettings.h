@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "../Utilities/EnumUtil.h"
+#include "Utilities/EnumUtil.h"
 
 namespace adria
 {

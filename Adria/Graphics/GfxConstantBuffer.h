@@ -3,8 +3,8 @@
 #include <d3d11.h>
 #include <wrl.h>
 #include "GfxShaderCompiler.h"
-#include "../Core/CoreTypes.h" 
-#include "../Core/Defines.h" 
+#include "Core/CoreTypes.h" 
+#include "Core/Defines.h" 
 
 
 namespace adria

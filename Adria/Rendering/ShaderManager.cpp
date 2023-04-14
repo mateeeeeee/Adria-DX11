@@ -5,13 +5,13 @@
 #include <execution>
 #include <filesystem>
 #include "ShaderManager.h"
-#include "../Graphics/GfxShaderProgram.h"
-#include "../Graphics/GfxShaderCompiler.h"
-#include "../Logging/Logger.h"
-#include "../Utilities/Timer.h"
-#include "../Utilities/HashMap.h"
-#include "../Utilities/HashSet.h"
-#include "../Utilities/FileWatcher.h"
+#include "Graphics/GfxShaderProgram.h"
+#include "Graphics/GfxShaderCompiler.h"
+#include "Logging/Logger.h"
+#include "Utilities/Timer.h"
+#include "Utilities/HashMap.h"
+#include "Utilities/HashSet.h"
+#include "Utilities/FileWatcher.h"
 
 namespace fs = std::filesystem;
 
