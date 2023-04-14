@@ -2,7 +2,7 @@
 #include <string_view>
 #include <memory>
 #include <vector>
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 
 namespace adria
 {

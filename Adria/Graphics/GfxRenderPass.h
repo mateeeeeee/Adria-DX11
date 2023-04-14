@@ -4,7 +4,7 @@
 #include <array>
 #include <unordered_map>
 #include <d3d11.h>
-#include "../Core/Definitions.h" 
+#include "../Core/CoreTypes.h" 
 
 namespace adria
 {

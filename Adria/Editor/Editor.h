@@ -6,8 +6,8 @@
 #include "../Rendering/RendererSettings.h"
 #include "../Rendering/SceneViewport.h"
 #include "../Graphics/GPUProfilerSettings.h"
-#include "../ImGui/imgui_internal.h"
-#include "../ImGui/ImGuizmo.h"
+#include "ImGui/imgui_internal.h"
+#include "ImGui/ImGuizmo.h"
 
 namespace adria
 {

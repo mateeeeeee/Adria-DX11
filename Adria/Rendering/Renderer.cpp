@@ -1,7 +1,6 @@
 #include <algorithm>
 #include <iterator>
 #include <map>
-#include "../Utilities/Random.h"
 #include "Renderer.h"
 #include "Camera.h"
 #include "Components.h"
@@ -15,8 +14,9 @@
 #include "../Graphics/GfxCommonStates.h"
 #include "../Graphics/GfxScopedAnnotation.h"
 #include "../Math/Constants.h"
-#include "../Graphics/DDSTextureLoader.h"
 #include "../Utilities/Timer.h"
+#include "../Utilities/Random.h"
+#include "DDSTextureLoader.h"
 
 using namespace DirectX;
 
@@ -503,7 +503,6 @@ namespace adria
 
 	void Renderer::LoadTextures()
 	{
-		//make for loop
 		TextureHandle tex_handle{};
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare0.jpg");
 		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
@@ -814,7 +813,6 @@ namespace adria
 	void Renderer::CreateOtherResources()
 	{
 		ID3D11Device* device = gfx->Device();
-
 		{
 			GfxTextureDesc depth_map_desc{};
 			depth_map_desc.width = SHADOW_MAP_SIZE;

@@ -5,7 +5,7 @@
 #include <array>
 #include <vector>
 #include "Components.h"
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 #include "../Math/ComputeNormals.h"
 #include "../Utilities/Heightmap.h"
 #include "../tecs/entity.h"

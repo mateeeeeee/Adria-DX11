@@ -3,7 +3,7 @@
 #include <vector>
 #include <span>
 #include <d3d11.h>
-#include "../Core/Definitions.h" 
+#include "../Core/CoreTypes.h" 
 
 namespace adria
 {

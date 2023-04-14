@@ -5,7 +5,7 @@
 #include "../Utilities/HashUtil.h"
 #include "../Utilities/StringUtil.h"
 #include "../Utilities/FilesUtil.h"
-#include "../Core/Macros.h" 
+#include "../Core/Defines.h" 
 
 namespace adria
 {

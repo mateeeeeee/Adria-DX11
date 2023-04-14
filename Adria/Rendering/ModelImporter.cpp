@@ -9,10 +9,10 @@
 #include "tiny_obj_loader.h"
 
 #include "ModelImporter.h"
+#include "TextureManager.h"
 #include "../tecs/registry.h"
 #include "../Graphics/GfxDevice.h"
 #include "../Graphics/GfxVertexTypes.h"
-#include "../Graphics/TextureManager.h"
 #include "../Logging/Logger.h"
 #include "../Math/BoundingVolumeHelpers.h"
 #include "../Math/ComputeTangentFrame.h"

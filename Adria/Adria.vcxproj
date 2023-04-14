@@ -118,8 +118,12 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;$(SolutionDir)ThirdParty\cereal;$(SolutionDir)ThirdParty\ImGui;$(SolutionDir)ThirdParty\gfx-external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -138,8 +142,12 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\FMOD\inc;$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\robin-map\include;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;$(SolutionDir)ThirdParty\cereal;$(SolutionDir)ThirdParty\ImGui;$(SolutionDir)ThirdParty\gfx-external;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
+      <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -151,27 +159,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\ThirdParty\ImGui\imgui.cpp" />
-    <ClCompile Include="..\ThirdParty\ImGui\ImGuizmo.cpp" />
-    <ClCompile Include="..\ThirdParty\ImGui\imgui_demo.cpp" />
-    <ClCompile Include="..\ThirdParty\ImGui\imgui_draw.cpp" />
-    <ClCompile Include="..\ThirdParty\ImGui\imgui_impl_dx11.cpp" />
-    <ClCompile Include="..\ThirdParty\ImGui\imgui_impl_win32.cpp" />
-    <ClCompile Include="..\ThirdParty\ImGui\imgui_tables.cpp" />
-    <ClCompile Include="..\ThirdParty\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="..\ThirdParty\gfx-external\DDSTextureLoader.cpp" />
+    <ClCompile Include="..\ThirdParty\gfx-external\WICTextureLoader.cpp" />
+    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui.cpp" />
+    <ClCompile Include="..\ThirdParty\ImGui\ImGui\ImGuizmo.cpp" />
+    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_impl_win32.cpp" />
+    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\GUI.cpp" />
     <ClCompile Include="Events\EventQueue.cpp" />
     <ClCompile Include="Graphics\GfxCommonStates.cpp" />
-    <ClCompile Include="Graphics\DDSTextureLoader.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
     <ClCompile Include="Graphics\GPUProfiler.cpp" />
     <ClCompile Include="Graphics\GfxRenderPass.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
-    <ClCompile Include="Graphics\TextureManager.cpp" />
-    <ClCompile Include="Graphics\WICTextureLoader.cpp" />
     <ClCompile Include="Input\Input.cpp" />
     <ClCompile Include="Logging\Logger.cpp" />
     <ClCompile Include="main.cpp" />
@@ -182,6 +189,7 @@
     <ClCompile Include="Rendering\ShaderManager.cpp" />
     <ClCompile Include="Rendering\SkyModel.cpp" />
     <ClCompile Include="Rendering\Terrain.cpp" />
+    <ClCompile Include="Rendering\TextureManager.cpp" />
     <ClCompile Include="Utilities\AdriaException.cpp" />
     <ClCompile Include="Utilities\CPUProfiler.cpp" />
     <ClCompile Include="Utilities\Heightmap.cpp" />
@@ -190,18 +198,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\ThirdParty\FontAwesome\IconsFontAwesome4.h" />
-    <ClInclude Include="..\ThirdParty\ImGui\imconfig.h" />
-    <ClInclude Include="..\ThirdParty\ImGui\imgui.h" />
-    <ClInclude Include="..\ThirdParty\ImGui\ImGuizmo.h" />
-    <ClInclude Include="..\ThirdParty\ImGui\imgui_impl_dx11.h" />
-    <ClInclude Include="..\ThirdParty\ImGui\imgui_impl_win32.h" />
-    <ClInclude Include="..\ThirdParty\ImGui\imgui_internal.h" />
-    <ClInclude Include="..\ThirdParty\ImGui\imstb_rectpack.h" />
-    <ClInclude Include="..\ThirdParty\ImGui\imstb_textedit.h" />
-    <ClInclude Include="..\ThirdParty\ImGui\imstb_truetype.h" />
-    <ClInclude Include="Core\Definitions.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\DDSTextureLoader.h" />
+    <ClInclude Include="..\ThirdParty\gfx-external\WICTextureLoader.h" />
+    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imconfig.h" />
+    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui.h" />
+    <ClInclude Include="..\ThirdParty\ImGui\ImGui\ImGuizmo.h" />
+    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui_impl_dx11.h" />
+    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui_impl_win32.h" />
+    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui_internal.h" />
+    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_textedit.h" />
+    <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Core\CoreTypes.h" />
     <ClInclude Include="Core\Engine.h" />
-    <ClInclude Include="Core\Macros.h" />
+    <ClInclude Include="Core\Defines.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\Windows.h" />
     <ClInclude Include="Editor\Editor.h" />
@@ -212,7 +222,6 @@
     <ClInclude Include="Graphics\GfxBuffer.h" />
     <ClInclude Include="Graphics\GfxCommonStates.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
-    <ClInclude Include="Graphics\DDSTextureLoader.h" />
     <ClInclude Include="Graphics\GfxDevice.h" />
     <ClInclude Include="Graphics\GPUProfiler.h" />
     <ClInclude Include="Graphics\GPUProfilerSettings.h" />
@@ -222,15 +231,14 @@
     <ClInclude Include="Graphics\GfxShaderProgram.h" />
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />
     <ClInclude Include="Graphics\GfxTexture.h" />
-    <ClInclude Include="Graphics\TextureManager.h" />
     <ClInclude Include="Graphics\GfxVertexTypes.h" />
-    <ClInclude Include="Graphics\WICTextureLoader.h" />
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Logging\Logger.h" />
     <ClInclude Include="Math\BoundingVolumeHelpers.h" />
     <ClInclude Include="Math\ComputeNormals.h" />
     <ClInclude Include="Math\ComputeTangentFrame.h" />
     <ClInclude Include="Math\Constants.h" />
+    <ClInclude Include="pch.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\Components.h" />
     <ClInclude Include="Rendering\ConstantBuffers.h" />
@@ -244,6 +252,7 @@
     <ClInclude Include="Rendering\ShaderManager.h" />
     <ClInclude Include="Rendering\SkyModel.h" />
     <ClInclude Include="Rendering\Terrain.h" />
+    <ClInclude Include="Rendering\TextureManager.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Tasks\Task.h" />
     <ClInclude Include="Tasks\TaskManager.h" />

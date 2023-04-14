@@ -3,7 +3,7 @@
 #include <ctime>   
 #include <iostream>
 
-#include "../Core/Macros.h"
+#include "../Core/Defines.h"
 #include "../Core/Windows.h"
 
 namespace adria

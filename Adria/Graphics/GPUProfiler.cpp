@@ -1,5 +1,5 @@
 #include "GPUProfiler.h"
-#include "../Core/Macros.h"
+#include "../Core/Defines.h"
 #include "../Logging/Logger.h"
 
 

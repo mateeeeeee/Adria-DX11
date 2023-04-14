@@ -1,7 +1,7 @@
 #pragma once
 #include <array>
 #include <unordered_map>
-#include "../Core/Definitions.h"
+#include "../Core/CoreTypes.h"
 #include "../Core/Windows.h"
 #include "../Events/Delegate.h"
 #include "../Utilities/Singleton.h"

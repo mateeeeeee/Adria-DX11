@@ -3,11 +3,11 @@
 #include <DirectXCollision.h>
 #include "Enums.h"
 #include "Terrain.h"
-#include "../Core/Definitions.h"
+#include "TextureManager.h"
+#include "../Core/CoreTypes.h"
 #include "../Math/Constants.h"
 #include "../Graphics/GfxVertexTypes.h"
 #include "../Graphics/GfxBuffer.h"
-#include "../Graphics/TextureManager.h"
 #include "../tecs/entity.h"
 
 #define COMPONENT 
