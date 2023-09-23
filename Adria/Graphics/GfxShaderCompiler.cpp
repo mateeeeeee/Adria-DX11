@@ -1,6 +1,4 @@
-#include <wrl.h>
 #include <d3dcompiler.h> 
-#include <fstream> 
 #include "GfxShaderCompiler.h"
 #include "Utilities/HashUtil.h"
 #include "Utilities/StringUtil.h"
@@ -8,17 +6,12 @@
 #include "Core/Defines.h" 
 #include "Logging/Logger.h" 
 #include "cereal/archives/binary.hpp"
-#include "cereal/types/string.hpp"
-#include "cereal/types/vector.hpp"
-
 
 namespace adria
 {
-
 	namespace 
 	{
 		char const* shaders_cache_directory = "Resources/ShaderCache/";
-
 		class CShaderInclude : public ID3DInclude
 		{
 		public:
@@ -115,7 +108,7 @@ namespace adria
 
 			std::wstring wide_filename = ToWideString(std::string(filename));
 			HRESULT hr = D3DReadFileToBlob(wide_filename.c_str(), &pBytecodeBlob);
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 
 			blob.bytecode.resize(pBytecodeBlob->GetBufferSize());
 			std::memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
@@ -220,7 +213,7 @@ namespace adria
 		{
 			// Reflect shader info
 			Microsoft::WRL::ComPtr<ID3D11ShaderReflection> pVertexShaderReflection = nullptr;
-			BREAK_IF_FAILED(D3DReflect(blob.GetPointer(), blob.GetLength(), IID_ID3D11ShaderReflection, (void**)pVertexShaderReflection.GetAddressOf()));
+			GFX_CHECK_HR(D3DReflect(blob.GetPointer(), blob.GetLength(), IID_ID3D11ShaderReflection, (void**)pVertexShaderReflection.GetAddressOf()));
 
 			// Get shader info
 			D3D11_SHADER_DESC shaderDesc;
@@ -273,7 +266,7 @@ namespace adria
 
 			if (inputLayoutDesc.empty()) return;
 			HRESULT hr = device->CreateInputLayout(inputLayoutDesc.data(), static_cast<UINT>(inputLayoutDesc.size()), blob.GetPointer(), blob.GetLength(), il);
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 		}
 	}
 }

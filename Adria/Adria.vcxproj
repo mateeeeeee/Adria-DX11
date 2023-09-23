@@ -174,7 +174,7 @@
     <ClCompile Include="Events\EventQueue.cpp" />
     <ClCompile Include="Graphics\GfxCommonStates.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
-    <ClCompile Include="Graphics\GPUProfiler.cpp" />
+    <ClCompile Include="Graphics\GfxProfiler.cpp" />
     <ClCompile Include="Graphics\GfxRenderPass.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
     <ClCompile Include="Input\Input.cpp" />
@@ -226,10 +226,11 @@
     <ClInclude Include="Graphics\GfxBuffer.h" />
     <ClInclude Include="Graphics\GfxCommonStates.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
+    <ClInclude Include="Graphics\GfxDefines.h" />
     <ClInclude Include="Graphics\GfxDevice.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
-    <ClInclude Include="Graphics\GPUProfiler.h" />
-    <ClInclude Include="Graphics\GPUProfilerSettings.h" />
+    <ClInclude Include="Graphics\GfxProfiler.h" />
+    <ClInclude Include="Graphics\GfxProfilerSettings.h" />
     <ClInclude Include="Graphics\GfxRenderPass.h" />
     <ClInclude Include="Graphics\GfxResourceCommon.h" />
     <ClInclude Include="Graphics\GfxScopedAnnotation.h" />
@@ -268,6 +269,7 @@
     <ClInclude Include="tecs\registry.h" />
     <ClInclude Include="tecs\sparse_set.h" />
     <ClInclude Include="Utilities\AllocatorUtil.h" />
+    <ClInclude Include="Utilities\AutoRefCountPtr.h" />
     <ClInclude Include="Utilities\CLIParser.h" />
     <ClInclude Include="Utilities\CPUProfiler.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
@@ -1342,6 +1344,9 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="todo.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

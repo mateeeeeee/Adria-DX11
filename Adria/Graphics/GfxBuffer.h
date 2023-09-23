@@ -124,7 +124,7 @@ namespace adria
 			}
 			ID3D11Device* device = gfx->Device();
 			HRESULT hr = device->CreateBuffer(&buffer_desc, initial_data == nullptr ? nullptr : &data, resource.ReleaseAndGetAddressOf());
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 		}
 
 		GfxBuffer(GfxBuffer const&) = delete;
@@ -165,7 +165,7 @@ namespace adria
 			{
 				D3D11_MAPPED_SUBRESOURCE mapped_buffer{};
 				HRESULT hr = ctx->Map(resource.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mapped_buffer);
-				BREAK_IF_FAILED(hr);
+				GFX_CHECK_HR(hr);
 				return mapped_buffer.pData;
 			}
 			ADRIA_ASSERT(false);
@@ -178,7 +178,7 @@ namespace adria
 			{
 				D3D11_MAPPED_SUBRESOURCE mapped_buffer{};
 				HRESULT hr = ctx->Map(resource.Get(), 0u, D3D11_MAP_READ, 0u, &mapped_buffer);
-				BREAK_IF_FAILED(hr);
+				GFX_CHECK_HR(hr);
 				return mapped_buffer.pData;
 			}
 			ADRIA_ASSERT(false);
@@ -197,7 +197,7 @@ namespace adria
 				D3D11_MAPPED_SUBRESOURCE mapped_buffer{};
 				ZeroMemory(&mapped_buffer, sizeof(D3D11_MAPPED_SUBRESOURCE));
 				HRESULT hr = ctx->Map(resource.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mapped_buffer);
-				BREAK_IF_FAILED(hr);
+				GFX_CHECK_HR(hr);
 				memcpy(mapped_buffer.pData, src_data, data_size);
 				ctx->Unmap(resource.Get(), 0);
 			}

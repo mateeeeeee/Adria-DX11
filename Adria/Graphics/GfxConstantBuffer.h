@@ -1,7 +1,5 @@
 #pragma once
-#include <vector>
 #include <d3d11.h>
-#include <wrl.h>
 #include "GfxShaderCompiler.h"
 #include "Core/CoreTypes.h" 
 #include "Core/Defines.h" 
@@ -52,7 +50,7 @@ namespace adria
 		ZeroMemory(&sd, sizeof(sd));
 		sd.pSysMem = (void*)&initialdata;
 		HRESULT hr = device->CreateBuffer(&bd, &sd, buffer.GetAddressOf());
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 	}
 
 	template<typename CBuffer>
@@ -66,7 +64,7 @@ namespace adria
 		bd.CPUAccessFlags = dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
 
 		HRESULT hr = device->CreateBuffer(&bd, nullptr, buffer.GetAddressOf());
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 	}
 
 	template<typename CBuffer>
@@ -80,7 +78,7 @@ namespace adria
 			D3D11_MAPPED_SUBRESOURCE mapped_buffer = {};
 			ZeroMemory(&mapped_buffer, sizeof(D3D11_MAPPED_SUBRESOURCE));
 			HRESULT hr = context->Map(buffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mapped_buffer);
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 			memcpy(mapped_buffer.pData, data, data_size);
 			context->Unmap(buffer.Get(), 0);
 		}

@@ -1,12 +1,11 @@
 #pragma once
 #include <DirectXMath.h>
-#include <array>
 #include <d3d11.h>
 #include <vector>
 
 namespace adria
 {
-	constexpr uint16_t NUMBER_OF_LAYOUTS = 7U;
+	constexpr uint16 NUMBER_OF_LAYOUTS = 7U;
 	static std::vector<D3D11_INPUT_ELEMENT_DESC> Layouts[NUMBER_OF_LAYOUTS] =
 	{
 		/*1.*/ {{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }},

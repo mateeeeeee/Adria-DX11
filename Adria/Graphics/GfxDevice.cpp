@@ -1,6 +1,5 @@
-#include "GfxDevice.h"
 #include <dxgidebug.h>
-#include <cstdlib>
+#include "GfxDevice.h"
 #include "Core/Defines.h"
 
 static inline void ReportLiveObjects()
@@ -58,7 +57,7 @@ namespace adria
 			nullptr,
 			&immediate_context
 		);
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 		immediate_context->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)annot.GetAddressOf());
 
 #if defined(_DEBUG) || defined(FORCE_DEBUG_LAYER)
@@ -102,19 +101,19 @@ namespace adria
 	}
 	void GfxDevice::ClearBackbuffer()
 	{
-		float32 clear_color[] = { 0.0f,0.0f, 0.0f,0.0f };
+		float clear_color[] = { 0.0f,0.0f, 0.0f,0.0f };
 		immediate_context->ClearRenderTargetView(backbuffer_rtv.Get(), clear_color);
 	}
 	void GfxDevice::SwapBuffers(bool vsync)
 	{
 		HRESULT hr = swapchain->Present(vsync, 0);
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 	}
 	void GfxDevice::SetBackbuffer()
 	{
 		D3D11_VIEWPORT vp = {};
-		vp.Width = static_cast<float32>(width);
-		vp.Height = static_cast<float32>(height);
+		vp.Width = static_cast<float>(width);
+		vp.Height = static_cast<float>(height);
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 		vp.TopLeftX = 0;
@@ -157,17 +156,17 @@ namespace adria
 		immediate_context->Flush();
 		if (backbuffer_rtv) backbuffer_rtv->Release();
 
-		BREAK_IF_FAILED(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0));
+		GFX_CHECK_HR(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0));
 
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> pBuffer = nullptr;
-		BREAK_IF_FAILED(swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)pBuffer.GetAddressOf()));
-		BREAK_IF_FAILED(device->CreateRenderTargetView(pBuffer.Get(), nullptr,
+		GFX_CHECK_HR(swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)pBuffer.GetAddressOf()));
+		GFX_CHECK_HR(device->CreateRenderTargetView(pBuffer.Get(), nullptr,
 			backbuffer_rtv.GetAddressOf()));
 
 		immediate_context->OMSetRenderTargets(1, backbuffer_rtv.GetAddressOf(), nullptr);
 		D3D11_VIEWPORT vp{};
-		vp.Width = static_cast<float32>(w);
-		vp.Height = static_cast<float32>(h);
+		vp.Width = static_cast<float>(w);
+		vp.Height = static_cast<float>(h);
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 		vp.TopLeftX = 0.0f;

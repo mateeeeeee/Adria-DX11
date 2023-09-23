@@ -32,7 +32,7 @@ namespace adria
 		bool mipmaps = true;
 		TextureHandle handle = INVALID_TEXTURE_HANDLE;
 		std::unordered_map<TextureHandle, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> texture_map{};
-		std::unordered_map<std::variant<std::wstring, std::string>, TextureHandle> loaded_textures{};
+		std::unordered_map<std::wstring, TextureHandle> loaded_textures{};
 
 	private:
 		TextureManager() = default;

@@ -21,21 +21,21 @@ namespace adria
 		struct GPUParticleA
 		{
 			DirectX::XMFLOAT4	TintAndAlpha;	
-			float32		Rotation;					
+			float		Rotation;					
 			uint32		IsSleeping;					
 		};
 		struct GPUParticleB
 		{
 			DirectX::XMFLOAT3	Position;		
-			float32		Mass;						
+			float		Mass;						
 
 			DirectX::XMFLOAT3	Velocity;		
-			float32		Lifespan;					
+			float		Lifespan;					
 
-			float32		DistanceToEye;				
-			float32		Age;						
-			float32		StartSize;					
-			float32		EndSize;					
+			float		DistanceToEye;				
+			float		Age;						
+			float		StartSize;					
+			float		EndSize;					
 		};
 		struct EmitterCBuffer
 		{
@@ -44,26 +44,26 @@ namespace adria
 			DirectX::XMFLOAT4	PositionVariance;
 
 			int32	MaxParticlesThisFrame;
-			float32	ParticleLifeSpan;
-			float32	StartSize;
-			float32	EndSize;
+			float	ParticleLifeSpan;
+			float	StartSize;
+			float	EndSize;
 			
-			float32	VelocityVariance;
-			float32	Mass;
-			float32	ElapsedTime;
+			float	VelocityVariance;
+			float	Mass;
+			float	ElapsedTime;
 			int32 Collisions;
 
 			int32 CollisionThickness;
 		};
 		struct IndexBufferElement
 		{
-			float32	distance;	
-			float32	index;		
+			float	distance;	
+			float	index;		
 		};
 		struct ViewSpacePositionRadius
 		{
 			DirectX::XMFLOAT3 viewspace_position;
-			float32 radius;
+			float radius;
 		};
 		struct SortDispatchInfo
 		{
@@ -72,7 +72,7 @@ namespace adria
 	public:
 		ParticleRenderer(GfxDevice* gfx);
 
-		void Update(float32 dt, Emitter& emitter_params);
+		void Update(float dt, Emitter& emitter_params);
 
 		void Render(Emitter const& emitter_params,
 					ID3D11ShaderResourceView* depth_srv, 

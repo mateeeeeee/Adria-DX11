@@ -11,7 +11,7 @@
 #include "Graphics/GfxConstantBuffer.h"
 #include "Graphics/GfxShaderProgram.h"
 #include "Graphics/GfxRenderPass.h"
-#include "Graphics/GPUProfiler.h"
+#include "Graphics/GfxProfiler.h"
 #include "Graphics/GfxBuffer.h"
 #include "tecs/Registry.h"
 
@@ -43,10 +43,10 @@ namespace adria
 		~Renderer();
 
 		void NewFrame(Camera const*);
-		void Update(float32 dt);
+		void Update(float dt);
 		
 		void SetSceneViewportData(SceneViewport&&);
-		void SetProfilerSettings(GPUProfilerSettings const&);
+		void SetProfilerSettings(GfxProfilerSettings const&);
 		void Render(RendererSettings const&);
 
 		void ResolveToOffscreenFramebuffer();
@@ -65,8 +65,8 @@ namespace adria
 		GfxDevice* gfx;
 		Camera const* camera;
 		RendererSettings renderer_settings;
-		GPUProfiler profiler;
-		GPUProfilerSettings profiler_settings;
+		GfxProfiler profiler;
+		GfxProfilerSettings profiler_settings;
 		ParticleRenderer particle_renderer;
 
 		SceneViewport current_scene_viewport;
@@ -226,10 +226,10 @@ namespace adria
 		//called in update
 		void BindGlobals();
 
-		void UpdateCBuffers(float32 dt);
-		void UpdateOcean(float32 dt);
-		void UpdateWeather(float32 dt);
-		void UpdateParticles(float32 dt);
+		void UpdateCBuffers(float dt);
+		void UpdateOcean(float dt);
+		void UpdateWeather(float dt);
+		void UpdateParticles(float dt);
 		void UpdateLights();
 		void UpdateTerrainData();
 		void UpdateVoxelData();

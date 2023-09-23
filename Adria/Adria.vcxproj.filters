@@ -71,11 +71,14 @@
     <Filter Include="Font">
       <UniqueIdentifier>{75fd7241-0f8e-4012-a9cc-e4969ddcb4df}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ImGui">
-      <UniqueIdentifier>{9b050724-2521-4cb8-8f19-46abe5f20554}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="gfx-external">
+    <Filter Include="External">
       <UniqueIdentifier>{7d8ba968-4ce4-4d24-81c2-e1b6b8d83726}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\TextureLoaders">
+      <UniqueIdentifier>{4d1d0875-4077-463b-908b-08792c54a2ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\ImGui">
+      <UniqueIdentifier>{9b050724-2521-4cb8-8f19-46abe5f20554}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -110,7 +113,7 @@
     <ClCompile Include="Rendering\Camera.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GPUProfiler.cpp">
+    <ClCompile Include="Graphics\GfxProfiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\AdriaException.cpp">
@@ -153,39 +156,39 @@
       <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_demo.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_draw.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_impl_dx11.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_impl_win32.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_tables.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_widgets.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\ImGuizmo.cpp">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\TextureManager.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\ThirdParty\gfx-external\DDSTextureLoader.cpp">
-      <Filter>gfx-external</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ThirdParty\gfx-external\WICTextureLoader.cpp">
-      <Filter>gfx-external</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp" />
+    <ClCompile Include="..\ThirdParty\gfx-external\WICTextureLoader.cpp">
+      <Filter>External\TextureLoaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\gfx-external\DDSTextureLoader.cpp">
+      <Filter>External\TextureLoaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -287,7 +290,7 @@
     <ClInclude Include="Rendering\Camera.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GPUProfiler.h">
+    <ClInclude Include="Graphics\GfxProfiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="tecs\component_pool.h">
@@ -341,7 +344,7 @@
     <ClInclude Include="Utilities\Heightmap.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GPUProfilerSettings.h">
+    <ClInclude Include="Graphics\GfxProfilerSettings.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\EnumUtil.h">
@@ -418,43 +421,49 @@
     </ClInclude>
     <ClInclude Include="pch.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imconfig.h">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui.h">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui_impl_dx11.h">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui_impl_win32.h">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imgui_internal.h">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\ImGuizmo.h">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_rectpack.h">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_textedit.h">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_truetype.h">
-      <Filter>ImGui</Filter>
+      <Filter>External\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\TextureManager.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\DDSTextureLoader.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ThirdParty\gfx-external\WICTextureLoader.h">
-      <Filter>gfx-external</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxFormat.h">
       <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\WICTextureLoader.h">
+      <Filter>External\TextureLoaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ThirdParty\gfx-external\DDSTextureLoader.h">
+      <Filter>External\TextureLoaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxDefines.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Utilities\AutoRefCountPtr.h">
+      <Filter>Utilities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -796,5 +805,8 @@
     <FxCompile Include="Resources\Shaders\Misc\DecalPS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="todo.txt" />
   </ItemGroup>
 </Project>

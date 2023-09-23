@@ -1,10 +1,11 @@
 #pragma once
 #include <filesystem>
 #include <chrono>
-#include <thread>
 #include "HashMap.h"
 #include "Core/CoreTypes.h"
 #include "Events/Delegate.h"
+
+namespace fs = std::filesystem;
 
 namespace adria
 {
@@ -30,16 +31,16 @@ namespace adria
 		{
 			if (recursive)
 			{
-				for (auto& path : std::filesystem::recursive_directory_iterator(path))
+				for (auto& path : fs::recursive_directory_iterator(path))
 				{
-					if(path.is_regular_file()) files_map[path.path().string()] = std::filesystem::last_write_time(path);
+					if(path.is_regular_file()) files_map[path.path().string()] = fs::last_write_time(path);
 				}
 			}
 			else
 			{
-				for (auto& path : std::filesystem::directory_iterator(path))
+				for (auto& path : fs::directory_iterator(path))
 				{
-					if (path.is_regular_file()) files_map[path.path().string()] = std::filesystem::last_write_time(path);
+					if (path.is_regular_file()) files_map[path.path().string()] = fs::last_write_time(path);
 				}
 			}
 		}
@@ -47,7 +48,7 @@ namespace adria
 		{
 			for (auto const& [file, ft] : files_map)
 			{
-				auto current_file_last_write_time = std::filesystem::last_write_time(file);
+				auto current_file_last_write_time = fs::last_write_time(file);
 				if (files_map[file] != current_file_last_write_time)
 				{
 					files_map[file] = current_file_last_write_time;
@@ -60,7 +61,7 @@ namespace adria
 
 	private:
 		std::vector<std::string> paths_to_watch;
-		HashMap<std::string, std::filesystem::file_time_type> files_map;
+		HashMap<std::string, fs::file_time_type> files_map;
 		FileModifiedEvent file_modified_event;
 	};
 }

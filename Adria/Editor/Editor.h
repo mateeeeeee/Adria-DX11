@@ -1,12 +1,10 @@
 #pragma once
 #include <memory>
-#include "Core/Engine.h"
 #include "GUI.h"
-#include "tecs/registry.h"
+#include "Core/Engine.h"
 #include "Rendering/RendererSettings.h"
 #include "Rendering/SceneViewport.h"
-#include "Graphics/GPUProfilerSettings.h"
-#include "ImGui/imgui_internal.h"
+#include "Graphics/GfxProfilerSettings.h"
 #include "ImGui/ImGuizmo.h"
 
 namespace adria
@@ -52,7 +50,7 @@ namespace adria
         bool scene_focused = false;
         ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
         RendererSettings renderer_settings{};
-        GPUProfilerSettings profiler_settings{};
+        GfxProfilerSettings profiler_settings{};
         SceneViewport scene_viewport_data;
 
         std::array<bool, Flag_Count> window_flags = { false };

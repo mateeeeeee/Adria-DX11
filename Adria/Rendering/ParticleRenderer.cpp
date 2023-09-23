@@ -23,7 +23,7 @@ namespace adria
 		CreateIndexBuffer();
 	}
 
-	void ParticleRenderer::Update(float32 dt, Emitter& emitter_params)
+	void ParticleRenderer::Update(float dt, Emitter& emitter_params)
 	{
 		emitter_params.elapsed_time += dt;
 		if (emitter_params.particles_per_second > 0.0f)
@@ -31,8 +31,8 @@ namespace adria
 			emitter_params.accumulation += emitter_params.particles_per_second * dt;
 			if (emitter_params.accumulation > 1.0f)
 			{
-				float64 integer_part = 0.0;
-				float32 fraction = (float32)modf(emitter_params.accumulation, &integer_part);
+				double integer_part = 0.0;
+				float fraction = (float)modf(emitter_params.accumulation, &integer_part);
 
 				emitter_params.number_to_emit = (int32)integer_part;
 				emitter_params.accumulation = fraction;
@@ -106,7 +106,7 @@ namespace adria
 		desc.usage = GfxResourceUsage::Immutable;
 		desc.bind_flags = GfxBindFlag::ShaderResource;
 
-		std::vector<float32> random_texture_data;
+		std::vector<float> random_texture_data;
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
 		for (uint32 i = 0; i < desc.width * desc.height; i++)
 		{
@@ -117,7 +117,7 @@ namespace adria
 		}
 		GfxTextureInitialData init_data{};
 		init_data.pSysMem = (void*)random_texture_data.data();
-		init_data.SysMemPitch = desc.width * 4 * sizeof(float32);
+		init_data.SysMemPitch = desc.width * 4 * sizeof(float);
 
 		random_texture = std::make_unique<GfxTexture>(gfx, desc, &init_data);
 		random_texture->CreateSRV();

@@ -63,25 +63,25 @@ namespace adria
 		noise.SetFrequency(desc.frequency);
 		hm.resize(desc.depth);
 
-		float32 max_height_achieved = std::numeric_limits<float32>::min();
-		float32 min_height_achieved = std::numeric_limits<float32>::max();
+		float max_height_achieved = std::numeric_limits<float>::min();
+		float min_height_achieved = std::numeric_limits<float>::max();
 
 		for (uint32 z = 0; z < desc.depth; z++)
 		{
 			hm[z].resize(desc.width);
 			for (uint32 x = 0; x < desc.width; x++)
 			{
-				float32 xf = x * desc.noise_scale / desc.width;
-				float32 zf = z * desc.noise_scale / desc.depth;
+				float xf = x * desc.noise_scale / desc.width;
+				float zf = z * desc.noise_scale / desc.depth;
 
-				float32 height = noise.GetNoise(xf, zf) * desc.max_height;
+				float height = noise.GetNoise(xf, zf) * desc.max_height;
 				if (height > max_height_achieved) max_height_achieved = height;
 				if (height < min_height_achieved) min_height_achieved = height;
 				hm[z][x] = height;
 			}
 		}
 
-		auto scale = [=](float32 h) -> float32
+		auto scale = [=](float h) -> float
 		{
 			return (h - min_height_achieved) / (max_height_achieved - min_height_achieved)
 				* 2 * desc.max_height - desc.max_height;
@@ -111,7 +111,7 @@ namespace adria
 			}
 		}
 	}
-	float32 Heightmap::HeightAt(uint64 x, uint64 z) const
+	float Heightmap::HeightAt(uint64 x, uint64 z) const
 	{
 		return hm[z][x];
 	}
@@ -126,10 +126,10 @@ namespace adria
 
 	void Heightmap::ApplyThermalErosion(ThermalErosionDesc const& desc)
 	{
-		float32 v1, v2, v3, v4, v5, v6, v7, v8, v9;	
-		float32 d1, d2, d3, d4, d5, d6, d7, d8;		
-		float32 talus = desc.talus;//4.0f / resolution
-		float32 c = desc.c; //0.5f;					
+		float v1, v2, v3, v4, v5, v6, v7, v8, v9;	
+		float d1, d2, d3, d4, d5, d6, d7, d8;		
+		float talus = desc.talus;//4.0f / resolution
+		float c = desc.c; //0.5f;					
 
 		for (size_t k = 0; k < desc.iterations; k++)
 		{
@@ -138,8 +138,8 @@ namespace adria
 				for (size_t i = 0; i < hm[j].size(); i++)
 				{
 
-					float32 max_diff = 0.0f;
-					float32 total_diff = 0.0f;
+					float max_diff = 0.0f;
+					float total_diff = 0.0f;
 
 					d1 = 0.0f;
 					d2 = 0.0f;
@@ -269,8 +269,8 @@ namespace adria
 						d8 = v2 - v9;
 					}
 
-					float32 d_array[] = { d1, d2, d3, d4, d5, d6, d7, d8 };
-					for (float32 d : d_array)
+					float d_array[] = { d1, d2, d3, d4, d5, d6, d7, d8 };
+					for (float d : d_array)
 					{
 						if (d > talus)
 						{
@@ -367,18 +367,18 @@ namespace adria
 			uint64 X = x_random();
 			uint64 Y = y_random();
 
-			float32 carryingAmount = 0.0f;
-			float32 minSlope = 1.15f;
+			float carryingAmount = 0.0f;
+			float minSlope = 1.15f;
 
 			if (hm[Y][X] > 0.0f)
 			{
 				for (int32 iter = 0; iter < desc.iterations; iter++)
 				{
-					float32 val = hm[Y][X];
-					float32 left = 1000.0f;
-					float32 right = 1000.0f;
-					float32 up = 1000.0f;
-					float32 down = 1000.0f;
+					float val = hm[Y][X];
+					float left = 1000.0f;
+					float right = 1000.0f;
+					float up = 1000.0f;
+					float down = 1000.0f;
 
 					if (X == 0 && Y == 0)
 					{
@@ -437,7 +437,7 @@ namespace adria
 						CENTER = -1, LEFT, RIGHT, UP, DOWN
 					};
 					
-					float32 minHeight = val;
+					float minHeight = val;
 					int32 minIndex = CENTER;
 
 					if (left < minHeight)
@@ -462,8 +462,8 @@ namespace adria
 					}
 					if (minHeight < val) 
 					{
-						float32 slope = std::min(minSlope, (val - minHeight));
-						float32 valueToSteal = desc.deposition_speed * slope;
+						float slope = std::min(minSlope, (val - minHeight));
+						float valueToSteal = desc.deposition_speed * slope;
 
 						if (carryingAmount > desc.carrying_capacity)
 						{
@@ -474,7 +474,7 @@ namespace adria
 						{
 							if (carryingAmount + valueToSteal > desc.carrying_capacity)
 							{
-								float32 delta = carryingAmount + valueToSteal - desc.carrying_capacity;
+								float delta = carryingAmount + valueToSteal - desc.carrying_capacity;
 								carryingAmount += delta;
 								hm[Y][X] -= delta;
 							}

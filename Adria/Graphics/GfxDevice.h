@@ -6,16 +6,13 @@
 #pragma comment(lib, "dxguid.lib")
 
 #include <d3d11_1.h>
-#include <wrl.h>
-#include <dxgi1_3.h>
-#include "Core/CoreTypes.h"
 
 namespace adria
 {
 	class GfxDevice
 	{
 	public:
-		GfxDevice(void* handle);
+		explicit GfxDevice(void* handle);
 		GfxDevice(GfxDevice const&) = delete;
 		GfxDevice(GfxDevice&&) = default;
 		GfxDevice& operator=(GfxDevice const&) = delete;

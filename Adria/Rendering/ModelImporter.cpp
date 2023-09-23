@@ -38,25 +38,25 @@ namespace adria
 			{
 				for (uint64 i = 0; i < width; ++i)
 				{
-					float32 x = i * tile_size_x;
-					float32 z = j * tile_size_z;
+					float x = i * tile_size_x;
+					float z = j * tile_size_z;
 
-					float32 height = terrain->HeightAt(x, z);
-					float32 normal_y = terrain->NormalAt(x, z).y;
+					float height = terrain->HeightAt(x, z);
+					float normal_y = terrain->NormalAt(x, z).y;
 
 					if (height > params.terrain_rocks_start)
 					{
-						float32 mix_multiplier = std::max(
+						float mix_multiplier = std::max(
 							(height - params.terrain_rocks_start) / params.height_mix_zone,
 							1.0f
 						);
-						float32 rock_slope_multiplier = std::clamp((normal_y - params.terrain_slope_rocks_start) / params.slope_mix_zone, 0.0f, 1.0f);
+						float rock_slope_multiplier = std::clamp((normal_y - params.terrain_slope_rocks_start) / params.slope_mix_zone, 0.0f, 1.0f);
 						temp_layer_data[(j * width + i) * 4 + 0] = (BYTE) (BYTE_MAX * mix_multiplier * rock_slope_multiplier);
 					}
 
 					if (height > params.terrain_sand_start && height <= params.terrain_sand_end)
 					{
-                        float32 mix_multiplier = std::min(
+                        float mix_multiplier = std::min(
                             (height-params.terrain_sand_start) / params.height_mix_zone,
                             (params.terrain_sand_end - height) / params.height_mix_zone
 						);
@@ -65,12 +65,12 @@ namespace adria
 
 					if (height > params.terrain_grass_start && height <= params.terrain_grass_end)
 					{
-						float32 mix_multiplier = std::min(
+						float mix_multiplier = std::min(
 							(height - params.terrain_grass_start) / params.height_mix_zone,
 							(params.terrain_grass_end - height) / params.height_mix_zone
 						);
 
-						float32 grass_slope_multiplier = std::clamp((normal_y - params.terrain_slope_grass_start) / params.slope_mix_zone, 0.0f, 1.0f);
+						float grass_slope_multiplier = std::clamp((normal_y - params.terrain_slope_grass_start) / params.slope_mix_zone, 0.0f, 1.0f);
                         temp_layer_data[(j * width + i) * 4 + 2] = (BYTE)(BYTE_MAX * mix_multiplier * grass_slope_multiplier);
 					}
 
@@ -128,7 +128,7 @@ namespace adria
             {
                 TexturedNormalVertex vertex{};
 
-                float32 height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
+                float height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
 
                 vertex.position = XMFLOAT3(i * params.tile_size_x + params.grid_offset.x, 
                     height + params.grid_offset.y, j * params.tile_size_z + params.grid_offset.z);
@@ -406,7 +406,7 @@ namespace adria
 					tinygltf::Image const& base_image = model.images[base_texture.source];
 					std::string texbase = params.textures_path + base_image.uri;
 					material.albedo_texture = g_TextureManager.LoadTexture(ToWideString(texbase));
-					material.albedo_factor = (float32)pbr_metallic_roughness.baseColorFactor[0];
+					material.albedo_factor = (float)pbr_metallic_roughness.baseColorFactor[0];
 				}
 				if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
 				{
@@ -414,8 +414,8 @@ namespace adria
 					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
 					material.metallic_roughness_texture = g_TextureManager.LoadTexture(ToWideString(texmetallicroughness));
-					material.metallic_factor = (float32)pbr_metallic_roughness.metallicFactor;
-					material.roughness_factor = (float32)pbr_metallic_roughness.roughnessFactor;
+					material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
+					material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
 				}
 				if (gltf_material.normalTexture.index >= 0)
 				{
@@ -430,7 +430,7 @@ namespace adria
 					tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 					std::string texemissive = params.textures_path + emissive_image.uri;
 					material.emissive_texture = g_TextureManager.LoadTexture(ToWideString(texemissive));
-					material.emissive_factor = (float32)gltf_material.emissiveFactor[0];
+					material.emissive_factor = (float)gltf_material.emissiveFactor[0];
 				}
 				material.shader = EShaderProgram::GBufferPBR;
 				material.alpha_cutoff = (float)gltf_material.alphaCutoff;
@@ -960,17 +960,17 @@ namespace adria
 	}
 	entity ModelImporter::LoadFoliage(FoliageParameters const& params)
 	{
-		const float32 size = params.foliage_scale;
+		const float size = params.foliage_scale;
 		
 		struct FoliageInstance
 		{
 			XMFLOAT3 position;
-            float32 rotation_y;
+            float rotation_y;
 		};
 
 		RealRandomGenerator<float> random_x(params.foliage_center.x - params.foliage_extents.x, params.foliage_center.x + params.foliage_extents.x);
 		RealRandomGenerator<float> random_z(params.foliage_center.y - params.foliage_extents.y, params.foliage_center.y + params.foliage_extents.y);
-        RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<float32>);
+        RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<float>);
 
 		std::vector<entity> foliages;
 
@@ -1038,17 +1038,17 @@ namespace adria
 	}
     std::vector<entity> ModelImporter::LoadTrees(TreeParameters const& params)
 	{
-		const float32 size = params.tree_scale;
+		const float size = params.tree_scale;
 
 		struct TreeInstance
 		{
 			XMFLOAT3 position;
-			float32 rotation_y;
+			float rotation_y;
 		};
 
 		RealRandomGenerator<float> random_x(params.tree_center.x - params.tree_extents.x, params.tree_center.x + params.tree_extents.x);
 		RealRandomGenerator<float> random_z(params.tree_center.y - params.tree_extents.y, params.tree_center.y + params.tree_extents.y);
-		RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<float32>);
+		RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<float>);
 
         std::vector<std::string> diffuse_textures{};
         std::vector<entity> trees;

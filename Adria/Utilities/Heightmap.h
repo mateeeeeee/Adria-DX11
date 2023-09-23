@@ -29,19 +29,19 @@ namespace adria
 		EFractalType fractal_type = EFractalType::None;
 		ENoiseType noise_type = ENoiseType::Perlin;
 		int32 seed = 1337;
-		float32 frequency = 0.01f;
-		float32 persistence = 0.5f;
-		float32 lacunarity = 2.0f;
+		float frequency = 0.01f;
+		float persistence = 0.5f;
+		float lacunarity = 2.0f;
 		int32 octaves = 3;
-		float32 noise_scale = 10;
+		float noise_scale = 10;
 	};
 
 
 	struct ThermalErosionDesc
 	{
 		int32 iterations;
-		float32 c;
-		float32 talus;
+		float c;
+		float talus;
 	};
 
 	
@@ -49,8 +49,8 @@ namespace adria
 	{
 		int32 iterations;
 		int32 drops;
-		float32 carrying_capacity;
-		float32 deposition_speed;
+		float carrying_capacity;
+		float deposition_speed;
 	};
 
 	class Heightmap
@@ -61,7 +61,7 @@ namespace adria
 
 		Heightmap(std::string_view heightmap_path, uint32 max_height);
 
-		float32 HeightAt(uint64 x, uint64 z) const;
+		float HeightAt(uint64 x, uint64 z) const;
 
 		uint64 Width() const;
 
@@ -72,7 +72,7 @@ namespace adria
 		void ApplyHydraulicErosion(HydraulicErosionDesc const& desc);
 
 	private:
-		std::vector<std::vector<float32>> hm;
+		std::vector<std::vector<float>> hm;
 	};
 }
 

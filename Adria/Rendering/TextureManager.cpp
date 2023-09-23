@@ -149,7 +149,7 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 			desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET;
 			desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
 
-			BREAK_IF_FAILED(device->CreateTexture2D(&desc, nullptr, &cubemap_tex));
+			GFX_CHECK_HR(device->CreateTexture2D(&desc, nullptr, &cubemap_tex));
 
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cubemap_srv = nullptr;
 			D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc{};
@@ -157,7 +157,7 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 			srvDesc.TextureCube.MostDetailedMip = 0;
 			srvDesc.TextureCube.MipLevels = -1;
-			BREAK_IF_FAILED(device->CreateShaderResourceView(cubemap_tex.Get(), &srvDesc, &cubemap_srv));
+			GFX_CHECK_HR(device->CreateShaderResourceView(cubemap_tex.Get(), &srvDesc, &cubemap_srv));
 
 			Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> cubemap_uav = nullptr;
 			D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc{};
@@ -167,7 +167,7 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 			uavDesc.Texture2DArray.FirstArraySlice = 0;
 			uavDesc.Texture2DArray.ArraySize = desc.ArraySize;
 
-			BREAK_IF_FAILED(device->CreateUnorderedAccessView(cubemap_tex.Get(), &uavDesc, &cubemap_uav));
+			GFX_CHECK_HR(device->CreateUnorderedAccessView(cubemap_tex.Get(), &uavDesc, &cubemap_uav));
 			Microsoft::WRL::ComPtr<ID3D11ComputeShader> equirect_to_cube{};
 
 			GfxShaderBlob blob{};
@@ -188,7 +188,7 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 			samp_desc.MinLOD = 0;
 			samp_desc.MaxLOD = D3D11_FLOAT32_MAX;
 			Microsoft::WRL::ComPtr<ID3D11SamplerState> linear_wrap_sampler;
-			BREAK_IF_FAILED(device->CreateSamplerState(&samp_desc, &linear_wrap_sampler));
+			GFX_CHECK_HR(device->CreateSamplerState(&samp_desc, &linear_wrap_sampler));
 			context->CSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 
 			Microsoft::WRL::ComPtr<ID3D11Texture2D> equirect_tex = nullptr;
@@ -203,7 +203,7 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 			equirect_desc.Usage = D3D11_USAGE_DEFAULT;
 			equirect_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 
-			BREAK_IF_FAILED(device->CreateTexture2D(&equirect_desc, nullptr, &equirect_tex));
+			GFX_CHECK_HR(device->CreateTexture2D(&equirect_desc, nullptr, &equirect_tex));
 
 			Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> equirect_srv = nullptr;
 			D3D11_SHADER_RESOURCE_VIEW_DESC equirect_srv_desc = {};
@@ -211,7 +211,7 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 			equirect_srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 			equirect_srv_desc.Texture2D.MostDetailedMip = 0;
 			equirect_srv_desc.Texture2D.MipLevels = -1;
-			BREAK_IF_FAILED(device->CreateShaderResourceView(equirect_tex.Get(), &equirect_srv_desc, &equirect_srv));
+			GFX_CHECK_HR(device->CreateShaderResourceView(equirect_tex.Get(), &equirect_srv_desc, &equirect_srv));
 
 
 			context->UpdateSubresource(equirect_tex.Get(), 0, nullptr, equirect_hdr_image.Data<void>(), equirect_hdr_image.Pitch(), 0);
@@ -275,7 +275,7 @@ TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cube
 
 	if (mipmaps)
 	{
-		BREAK_IF_FAILED(device->CreateTexture2D(&desc, nullptr, &tex_ptr));
+		GFX_CHECK_HR(device->CreateTexture2D(&desc, nullptr, &tex_ptr));
 		for (UINT i = 0; i < cubemap_textures.size(); ++i)
 			context->UpdateSubresource(tex_ptr.Get(), D3D11CalcSubresource(0, i, desc.MipLevels), nullptr,
 				subresource_data_array[i].pSysMem,
@@ -283,7 +283,7 @@ TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cube
 	}
 	else
 	{
-		BREAK_IF_FAILED(device->CreateTexture2D(&desc, subresource_data_array.data(), &tex_ptr));
+		GFX_CHECK_HR(device->CreateTexture2D(&desc, subresource_data_array.data(), &tex_ptr));
 	}
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc{};
@@ -295,7 +295,7 @@ TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cube
 	ID3D11ShaderResourceView* pSRV = nullptr;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> view_ptr;
 	HRESULT hr = device->CreateShaderResourceView(tex_ptr.Get(), &srv_desc, &view_ptr);
-	BREAK_IF_FAILED(hr);
+	GFX_CHECK_HR(hr);
 
 	if (mipmaps) context->GenerateMips(view_ptr.Get());
 	texture_map.insert({ handle, view_ptr });
@@ -325,12 +325,12 @@ TextureHandle TextureManager::LoadDDSTexture(std::wstring const& name)
 		if (mipmaps)
 		{
 			HRESULT hr = DirectX::CreateDDSTextureFromFile(device, context, name.c_str(), reinterpret_cast<ID3D11Resource**>(&tex_ptr), view_ptr.GetAddressOf());
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 		}
 		else
 		{
 			HRESULT hr = DirectX::CreateDDSTextureFromFile(device, name.c_str(), reinterpret_cast<ID3D11Resource**>(&tex_ptr), view_ptr.GetAddressOf());
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 		}
 
 		loaded_textures.insert({ name, handle });
@@ -355,12 +355,12 @@ TextureHandle TextureManager::LoadWICTexture(std::wstring const& name)
 		if (mipmaps)
 		{
 			HRESULT hr = DirectX::CreateWICTextureFromFile(device, context, name.c_str(), reinterpret_cast<ID3D11Resource**>(&tex_ptr), view_ptr.GetAddressOf());
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 		}
 		else
 		{
 			HRESULT hr = DirectX::CreateWICTextureFromFile(device, name.c_str(), reinterpret_cast<ID3D11Resource**>(&tex_ptr), view_ptr.GetAddressOf());
-			BREAK_IF_FAILED(hr);
+			GFX_CHECK_HR(hr);
 		}
 
 		loaded_textures.insert({ name, handle });
@@ -376,7 +376,8 @@ TextureHandle TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
 	ID3D11Device* device = gfx->Device();
 	ID3D11DeviceContext* context = gfx->Context();
 
-	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
+	std::wstring wide_name = ToWideString(name);
+	if (auto it = loaded_textures.find(wide_name); it == loaded_textures.end())
 	{
 		++handle;
 		Image img(name, 4);
@@ -398,7 +399,7 @@ TextureHandle TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
 		Microsoft::WRL::ComPtr<ID3D11Texture2D> tex_ptr = nullptr;
 
 		HRESULT hr = device->CreateTexture2D(&desc, nullptr, tex_ptr.GetAddressOf());
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc{};
 		srv_desc.Format = desc.Format;
@@ -408,13 +409,13 @@ TextureHandle TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
 
 		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> view_ptr = nullptr;
 		hr = device->CreateShaderResourceView(tex_ptr.Get(), &srv_desc, view_ptr.GetAddressOf());
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 		context->UpdateSubresource(tex_ptr.Get(), 0, nullptr, img.Data<void>(), img.Pitch(), 0);
 		if (mipmaps)
 		{
 			context->GenerateMips(view_ptr.Get());
 		}
-		loaded_textures.insert({ name, handle });
+		loaded_textures.insert({ wide_name, handle });
 		texture_map.insert({ handle, view_ptr });
 
 		return handle;

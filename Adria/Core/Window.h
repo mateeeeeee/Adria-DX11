@@ -12,10 +12,10 @@ namespace adria
 		void* handle	= nullptr;
         void* instance  = nullptr;
 		uint32 msg			= 0;
-        uint64 wparam      = 0;
-        int64 lparam      = 0;
-		float32 width		= 0;
-		float32 height		= 0;
+        uint64 wparam       = 0;
+        int64 lparam        = 0;
+		float width		    = 0;
+		float height		= 0;
 	};
 
     struct WindowInit

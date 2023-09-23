@@ -45,12 +45,12 @@ namespace adria
 			XMMATRIX V = XMMatrixLookAtLH(light_pos, target_pos, up);
 			XMFLOAT3 sphere_centerLS;
 			XMStoreFloat3(&sphere_centerLS, XMVector3TransformCoord(target_pos, V));
-			float32 l = sphere_centerLS.x - scene_bounding_sphere.Radius;
-			float32 b = sphere_centerLS.y - scene_bounding_sphere.Radius;
-			float32 n = sphere_centerLS.z - scene_bounding_sphere.Radius;
-			float32 r = sphere_centerLS.x + scene_bounding_sphere.Radius;
-			float32 t = sphere_centerLS.y + scene_bounding_sphere.Radius;
-			float32 f = sphere_centerLS.z + scene_bounding_sphere.Radius;
+			float l = sphere_centerLS.x - scene_bounding_sphere.Radius;
+			float b = sphere_centerLS.y - scene_bounding_sphere.Radius;
+			float n = sphere_centerLS.z - scene_bounding_sphere.Radius;
+			float r = sphere_centerLS.x + scene_bounding_sphere.Radius;
+			float t = sphere_centerLS.y + scene_bounding_sphere.Radius;
+			float f = sphere_centerLS.z + scene_bounding_sphere.Radius;
 
 			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
@@ -75,13 +75,13 @@ namespace adria
 			{
 				frustumCenter = frustumCenter + XMLoadFloat3(&corners[i]);
 			}
-			frustumCenter /= static_cast<float32>(corners.size());
+			frustumCenter /= static_cast<float>(corners.size());
 
-			float32 radius = 0.0f;
+			float radius = 0.0f;
 
 			for (uint32 i = 0; i < corners.size(); ++i)
 			{
-				float32 dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&corners[i]) - frustumCenter));
+				float dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&corners[i]) - frustumCenter));
 				radius = (std::max)(radius, dist);
 			}
 			radius = std::ceil(radius * 8.0f) / 8.0f;
@@ -101,12 +101,12 @@ namespace adria
 			XMStoreFloat3(&maxE, maxExtents);
 			XMStoreFloat3(&cascadeE, cascadeExtents);
 
-			float32 l = minE.x;
-			float32 b = minE.y;
-			float32 n = minE.z; // -farFactor * radius;
-			float32 r = maxE.x;
-			float32 t = maxE.y;
-			float32 f = maxE.z * 1.5f;
+			float l = minE.x;
+			float b = minE.y;
+			float n = minE.z; // -farFactor * radius;
+			float r = maxE.x;
+			float t = maxE.y;
+			float f = maxE.z * 1.5f;
 
 			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
@@ -142,8 +142,8 @@ namespace adria
 			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 			XMMATRIX V = XMMatrixLookAtLH(light_pos, target_pos, up);
-			static const float32 shadow_near = 0.5f;
-			float32 fov_angle = 2.0f * acos(light.outer_cosine);
+			static const float shadow_near = 0.5f;
+			float fov_angle = 2.0f * acos(light.outer_cosine);
 			XMMATRIX P = XMMatrixPerspectiveFovLH(fov_angle, 1.0f, shadow_near, light.range);
 
 			cull_frustum = BoundingFrustum(P);
@@ -154,7 +154,7 @@ namespace adria
 		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Point(Light const& light, uint32 face_index,
 			BoundingFrustum& cull_frustum)
 		{
-			static float32 const shadow_near = 0.5f;
+			static float const shadow_near = 0.5f;
 			XMMATRIX P = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, shadow_near, light.range);
 			XMVECTOR light_pos = light.position;
 			XMMATRIX V{};
@@ -200,18 +200,18 @@ namespace adria
 			return { V,P };
 		}
 
-		std::array<XMMATRIX, CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float32 split_lambda, std::array<float32, CASCADE_COUNT>& split_distances)
+		std::array<XMMATRIX, CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, CASCADE_COUNT>& split_distances)
 		{
-			float32 camera_near = camera.Near();
-			float32 camera_far = camera.Far();
-			float32 fov = camera.Fov();
-			float32 ar = camera.AspectRatio();
-			float32 f = 1.0f / CASCADE_COUNT;
+			float camera_near = camera.Near();
+			float camera_far = camera.Far();
+			float fov = camera.Fov();
+			float ar = camera.AspectRatio();
+			float f = 1.0f / CASCADE_COUNT;
 			for (uint32 i = 0; i < split_distances.size(); i++)
 			{
-				float32 fi = (i + 1) * f;
-				float32 l = camera_near * pow(camera_far / camera_near, fi);
-				float32 u = camera_near + (camera_far - camera_near) * fi;
+				float fi = (i + 1) * f;
+				float l = camera_near * pow(camera_far / camera_near, fi);
+				float u = camera_near + (camera_far - camera_near) * fi;
 				split_distances[i] = l * split_lambda + u * (1.0f - split_lambda);
 			}
 
@@ -226,8 +226,8 @@ namespace adria
 			XMMATRIX projection_matrix,
 			BoundingBox& cull_box)
 		{
-			static float32 const farFactor = 1.5f;
-			static float32 const lightDistanceFactor = 4.0f;
+			static float const farFactor = 1.5f;
+			static float const lightDistanceFactor = 4.0f;
 
 			//std::array<XMMATRIX, CASCADE_COUNT> projectionMatrices = RecalculateProjectionMatrices(camera);
 			std::array<XMMATRIX, CASCADE_COUNT> lightViewProjectionMatrices{};
@@ -244,12 +244,12 @@ namespace adria
 			{
 				frustumCenter = frustumCenter + XMLoadFloat3(&corners[i]);
 			}
-			frustumCenter /= static_cast<float32>(corners.size());
-			float32 radius = 0.0f;
+			frustumCenter /= static_cast<float>(corners.size());
+			float radius = 0.0f;
 
 			for (uint32 i = 0; i < corners.size(); ++i)
 			{
-				float32 dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&corners[i]) - frustumCenter));
+				float dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&corners[i]) - frustumCenter));
 				radius = (std::max)(radius, dist);
 			}
 			radius = std::ceil(radius * 8.0f) / 8.0f;
@@ -268,12 +268,12 @@ namespace adria
 			XMStoreFloat3(&maxE, maxExtents);
 			XMStoreFloat3(&cascadeE, cascadeExtents);
 
-			float32 l = minE.x;
-			float32 b = minE.y;
-			float32 n = minE.z - farFactor * radius;
-			float32 r = maxE.x;
-			float32 t = maxE.y;
-			float32 f = maxE.z * farFactor;
+			float l = minE.x;
+			float b = minE.y;
+			float n = minE.z - farFactor * radius;
+			float r = maxE.x;
+			float t = maxE.y;
+			float f = maxE.z * farFactor;
 
 			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 			XMMATRIX VP = V * P;
@@ -294,16 +294,16 @@ namespace adria
 		}
 
 
-		float32 GaussianDistribution(float32 x, float32 sigma)
+		float GaussianDistribution(float x, float sigma)
 		{
-			static const float32 square_root_of_two_pi = sqrt(pi_times_2<float32>);
+			static const float square_root_of_two_pi = sqrt(pi_times_2<float>);
 			return expf((-x * x) / (2 * sigma * sigma)) / (sigma * square_root_of_two_pi);
 		}
 		template<int16 N>
-		std::array<float32, 2 * N + 1> GaussKernel(float32 sigma)
+		std::array<float, 2 * N + 1> GaussKernel(float sigma)
 		{
-			std::array<float32, 2 * N + 1> gauss{};
-			float32 sum = 0.0f;
+			std::array<float, 2 * N + 1> gauss{};
+			float sum = 0.0f;
 			for (int16 i = -N; i <= N; ++i)
 			{
 				gauss[i + N] = GaussianDistribution(i * 1.0f, sigma);
@@ -337,7 +337,7 @@ namespace adria
 		for (auto& clouds_texture : clouds_textures) clouds_texture->Release();
 	}
 
-	void Renderer::Update(float32 dt)
+	void Renderer::Update(float dt)
 	{
 		UpdateLights();
 		UpdateTerrainData();
@@ -352,7 +352,7 @@ namespace adria
 	{
 		current_scene_viewport = std::move(vp);
 	}
-	void Renderer::SetProfilerSettings(GPUProfilerSettings const& _profiler_settings)
+	void Renderer::SetProfilerSettings(GfxProfilerSettings const& _profiler_settings)
 	{
 		profiler_settings = _profiler_settings;
 	}
@@ -468,8 +468,8 @@ namespace adria
 		frame_cbuf_data.inverse_view = XMMatrixInverse(nullptr, camera->View());
 		frame_cbuf_data.inverse_projection = XMMatrixInverse(nullptr, camera->Proj());
 		frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
-		frame_cbuf_data.screen_resolution_x = (float32)width;
-		frame_cbuf_data.screen_resolution_y = (float32)height;
+		frame_cbuf_data.screen_resolution_x = (float)width;
+		frame_cbuf_data.screen_resolution_y = (float)height;
 		frame_cbuf_data.mouse_normalized_coords_x = (current_scene_viewport.mouse_position_x - current_scene_viewport.scene_viewport_pos_x) / current_scene_viewport.scene_viewport_size_x;
 		frame_cbuf_data.mouse_normalized_coords_y = (current_scene_viewport.mouse_position_y - current_scene_viewport.scene_viewport_pos_y) / current_scene_viewport.scene_viewport_size_y;
 
@@ -481,7 +481,7 @@ namespace adria
 		frame_cbuf_data.previous_view_projection = camera->ViewProj(); 
 
 
-		static float32 _near = 0.0f, far_plane = 0.0f, _fov = 0.0f, _ar = 0.0f;
+		static float _near = 0.0f, far_plane = 0.0f, _fov = 0.0f, _ar = 0.0f;
 		if (fabs(_near - camera->Near()) > 1e-4 || fabs(far_plane - camera->Far()) > 1e-4 || fabs(_fov - camera->Fov()) > 1e-4
 			|| fabs(_ar - camera->AspectRatio()) > 1e-4)
 		{
@@ -531,11 +531,11 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 
 		HRESULT hr = CreateDDSTextureFromFile(device, context, L"Resources\\Textures\\clouds\\weather.dds", nullptr, &clouds_textures[0]);
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 		hr = CreateDDSTextureFromFile(device, context, L"Resources\\Textures\\clouds\\cloud.dds", nullptr, &clouds_textures[1]);
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 		hr = CreateDDSTextureFromFile(device, context, L"Resources\\Textures\\clouds\\worley.dds", nullptr, &clouds_textures[2]);
-		BREAK_IF_FAILED(hr);
+		GFX_CHECK_HR(hr);
 
 		foam_handle		= g_TextureManager.LoadTexture("Resources/Textures/foam.jpg");
 		perlin_handle	= g_TextureManager.LoadTexture("Resources/Textures/perlin.dds");
@@ -654,7 +654,7 @@ namespace adria
 		sampDesc.MinLOD = 0;
 		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-		BREAK_IF_FAILED(device->CreateSamplerState(&sampDesc, &linear_wrap_sampler));
+		GFX_CHECK_HR(device->CreateSamplerState(&sampDesc, &linear_wrap_sampler));
 
 		//point wrap sampler
 
@@ -667,7 +667,7 @@ namespace adria
 		pointWrapSampDesc.MinLOD = 0;
 		pointWrapSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-		BREAK_IF_FAILED(device->CreateSamplerState(&pointWrapSampDesc, &point_wrap_sampler));
+		GFX_CHECK_HR(device->CreateSamplerState(&pointWrapSampDesc, &point_wrap_sampler));
 
 		//point border sampler
 		D3D11_SAMPLER_DESC linearBorderSampDesc = {};
@@ -684,7 +684,7 @@ namespace adria
 		linearBorderSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
 		linearBorderSampDesc.MinLOD = 0;
 		linearBorderSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		BREAK_IF_FAILED(device->CreateSamplerState(&linearBorderSampDesc, &linear_border_sampler));
+		GFX_CHECK_HR(device->CreateSamplerState(&linearBorderSampDesc, &linear_border_sampler));
 
 		//comparison sampler
 		D3D11_SAMPLER_DESC comparisonSamplerDesc;
@@ -703,7 +703,7 @@ namespace adria
 		comparisonSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 		comparisonSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
 
-		BREAK_IF_FAILED(device->CreateSamplerState(&comparisonSamplerDesc, &shadow_sampler));
+		GFX_CHECK_HR(device->CreateSamplerState(&comparisonSamplerDesc, &shadow_sampler));
 
 		D3D11_SAMPLER_DESC linearClampSampDesc = {};
 		linearClampSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -714,7 +714,7 @@ namespace adria
 		linearClampSampDesc.MinLOD = 0;
 		linearClampSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-		BREAK_IF_FAILED(device->CreateSamplerState(&linearClampSampDesc, &linear_clamp_sampler));
+		GFX_CHECK_HR(device->CreateSamplerState(&linearClampSampDesc, &linear_clamp_sampler));
 
 		D3D11_SAMPLER_DESC pointClampSampDesc = {};
 		pointClampSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
@@ -725,7 +725,7 @@ namespace adria
 		pointClampSampDesc.MinLOD = 0;
 		pointClampSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-		BREAK_IF_FAILED(device->CreateSamplerState(&pointClampSampDesc, &point_clamp_sampler));
+		GFX_CHECK_HR(device->CreateSamplerState(&pointClampSampDesc, &point_clamp_sampler));
 
 		D3D11_SAMPLER_DESC anisotropicSampDesc = {};
 		anisotropicSampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -737,7 +737,7 @@ namespace adria
 		anisotropicSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 		anisotropicSampDesc.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;
 
-		BREAK_IF_FAILED(device->CreateSamplerState(&anisotropicSampDesc, &anisotropic_sampler));
+		GFX_CHECK_HR(device->CreateSamplerState(&anisotropicSampDesc, &anisotropic_sampler));
 	}
 	void Renderer::CreateRenderStates()
 	{
@@ -859,7 +859,7 @@ namespace adria
 
 		//ao random
 		{
-			std::vector<float32> random_texture_data;
+			std::vector<float> random_texture_data;
 			random_texture_data.reserve(AO_NOISE_DIM * AO_NOISE_DIM * 4);
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
 			for (uint32 i = 0; i < ssao_kernel.size(); i++)
@@ -868,7 +868,7 @@ namespace adria
 				XMVECTOR _offset = XMLoadFloat4(&offset);
 				_offset = XMVector4Normalize(_offset);
 				_offset *= rand_float();
-				float32 scale = static_cast<float32>(i) / ssao_kernel.size();
+				float scale = static_cast<float>(i) / ssao_kernel.size();
 				scale = std::lerp(0.1f, 1.0f, scale * scale);
 				_offset *= scale;
 				ssao_kernel[i] = _offset;
@@ -889,13 +889,13 @@ namespace adria
 
 			GfxTextureInitialData init_data{};
 			init_data.pSysMem = (void*)random_texture_data.data();
-			init_data.SysMemPitch = AO_NOISE_DIM * 4 * sizeof(float32);
+			init_data.SysMemPitch = AO_NOISE_DIM * 4 * sizeof(float);
 			ssao_random_texture = std::make_unique<GfxTexture>(gfx, random_tex_desc, &init_data);
 
 			random_texture_data.clear();
 			for (int32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
 			{
-				float32 rand = rand_float() * pi<float32> *2.0f;
+				float rand = rand_float() * pi<float> *2.0f;
 				random_texture_data.push_back(sin(rand));
 				random_texture_data.push_back(cos(rand));
 				random_texture_data.push_back(rand_float());
@@ -914,14 +914,14 @@ namespace adria
 			desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 			ocean_initial_spectrum = std::make_unique<GfxTexture>(gfx, desc);
 
-			std::vector<float32> ping_array(RESOLUTION * RESOLUTION);
+			std::vector<float> ping_array(RESOLUTION * RESOLUTION);
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
-			for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float() * 2.f * pi<float32>;
+			for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float() * 2.f * pi<float>;
 			ping_pong_phase_textures[!pong_phase] = std::make_unique<GfxTexture>(gfx, desc);
 
 			GfxTextureInitialData init_data{};
 			init_data.pSysMem = ping_array.data();
-			init_data.SysMemPitch = RESOLUTION * sizeof(float32);
+			init_data.SysMemPitch = RESOLUTION * sizeof(float);
 			ping_pong_phase_textures[pong_phase] = std::make_unique<GfxTexture>(gfx, desc, &init_data);
 
 			desc.format = GfxFormat::R32G32B32A32_FLOAT;
@@ -954,7 +954,7 @@ namespace adria
 		uint32 const max_bokeh = width * height;
 
 		GfxBufferDesc bokeh_buffer_desc{};
-		bokeh_buffer_desc.stride = 8 * sizeof(float32);
+		bokeh_buffer_desc.stride = 8 * sizeof(float);
 		bokeh_buffer_desc.size = bokeh_buffer_desc.stride * max_bokeh;
 		bokeh_buffer_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 		bokeh_buffer_desc.misc_flags = GfxBufferMiscFlag::BufferStructured;
@@ -1049,7 +1049,7 @@ namespace adria
 	}
 	void Renderer::CreateRenderPasses(uint32 width, uint32 height)
 	{
-		static constexpr std::array<float32, 4> clear_black = { 0.0f,0.0f,0.0f,0.0f };
+		static constexpr std::array<float, 4> clear_black = { 0.0f,0.0f,0.0f,0.0f };
 
 		RtvAttachmentDesc gbuffer_normal_attachment{};
 		gbuffer_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic]->RTV();
@@ -1344,14 +1344,14 @@ namespace adria
 			env_desc.Usage = D3D11_USAGE_DEFAULT;
 			env_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET;
 			env_desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
-			BREAK_IF_FAILED(device->CreateTexture2D(&env_desc, nullptr, &env_tex));
+			GFX_CHECK_HR(device->CreateTexture2D(&env_desc, nullptr, &env_tex));
 
 			D3D11_SHADER_RESOURCE_VIEW_DESC env_srv_desc = {};
 			env_srv_desc.Format = env_desc.Format;
 			env_srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 			env_srv_desc.TextureCube.MostDetailedMip = 0;
 			env_srv_desc.TextureCube.MipLevels = -1;
-			BREAK_IF_FAILED(device->CreateShaderResourceView(env_tex.Get(), &env_srv_desc, &env_srv));
+			GFX_CHECK_HR(device->CreateShaderResourceView(env_tex.Get(), &env_srv_desc, &env_srv));
 
 			//Copy 0th mipmap level into destination environment map.
 			for (uint32 arraySlice = 0; arraySlice < 6; ++arraySlice)
@@ -1362,8 +1362,8 @@ namespace adria
 
 			DECLSPEC_ALIGN(16) struct RoughnessCBuffer
 			{
-				float32 roughness;
-				float32 padding[3];
+				float roughness;
+				float padding[3];
 			};
 
 			GfxConstantBuffer<RoughnessCBuffer> roughness_cb(device);
@@ -1371,7 +1371,7 @@ namespace adria
 			roughness_cb.Bind(context, GfxShaderStage::CS, 0);
 			context->CSSetShaderResources(0, 1, &unfiltered_env_srv);
 
-			float32 const delta_roughness = 1.0f / (std::max)(float32(tex_desc.MipLevels - 1), 1.0f);
+			float const delta_roughness = 1.0f / (std::max)(float(tex_desc.MipLevels - 1), 1.0f);
 
 			uint32 size = (std::max)(tex_desc.Width, tex_desc.Height);
 			RoughnessCBuffer spmap_constants{};
@@ -1390,7 +1390,7 @@ namespace adria
 
 				env_uav_desc.Texture2DArray.MipSlice = level;
 
-				BREAK_IF_FAILED(device->CreateUnorderedAccessView(env_tex.Get(), &env_uav_desc, &env_uav));
+				GFX_CHECK_HR(device->CreateUnorderedAccessView(env_tex.Get(), &env_uav_desc, &env_uav));
 
 				spmap_constants = { level * delta_roughness };
 
@@ -1421,14 +1421,14 @@ namespace adria
 			irmap_desc.Usage = D3D11_USAGE_DEFAULT;
 			irmap_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 			irmap_desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-			BREAK_IF_FAILED(device->CreateTexture2D(&irmap_desc, nullptr, &irmap_tex));
+			GFX_CHECK_HR(device->CreateTexture2D(&irmap_desc, nullptr, &irmap_tex));
 
 			D3D11_SHADER_RESOURCE_VIEW_DESC irmap_srv_desc{};
 			irmap_srv_desc.Format = irmap_desc.Format;
 			irmap_srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 			irmap_srv_desc.TextureCube.MostDetailedMip = 0;
 			irmap_srv_desc.TextureCube.MipLevels = -1;
-			BREAK_IF_FAILED(device->CreateShaderResourceView(irmap_tex.Get(), &irmap_srv_desc, &irmap_srv));
+			GFX_CHECK_HR(device->CreateShaderResourceView(irmap_tex.Get(), &irmap_srv_desc, &irmap_srv));
 
 			Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> irmap_uav;
 
@@ -1439,7 +1439,7 @@ namespace adria
 			irmap_uav_desc.Texture2DArray.FirstArraySlice = 0;
 			irmap_uav_desc.Texture2DArray.ArraySize = irmap_desc.ArraySize;
 
-			BREAK_IF_FAILED(device->CreateUnorderedAccessView(irmap_tex.Get(), &irmap_uav_desc, &irmap_uav));
+			GFX_CHECK_HR(device->CreateUnorderedAccessView(irmap_tex.Get(), &irmap_uav_desc, &irmap_uav));
 
 
 			context->CSSetShaderResources(0, 1, env_srv.GetAddressOf());
@@ -1468,14 +1468,14 @@ namespace adria
 			brdf_desc.Usage = D3D11_USAGE_DEFAULT;
 			brdf_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
 
-			BREAK_IF_FAILED(device->CreateTexture2D(&brdf_desc, nullptr, &brdf_tex));
+			GFX_CHECK_HR(device->CreateTexture2D(&brdf_desc, nullptr, &brdf_tex));
 
 			D3D11_SHADER_RESOURCE_VIEW_DESC brdf_srv_desc = {};
 			brdf_srv_desc.Format = brdf_desc.Format;
 			brdf_srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 			brdf_srv_desc.Texture2D.MostDetailedMip = 0;
 			brdf_srv_desc.Texture2D.MipLevels = -1;
-			BREAK_IF_FAILED(device->CreateShaderResourceView(brdf_tex.Get(), &brdf_srv_desc, &brdf_srv));
+			GFX_CHECK_HR(device->CreateShaderResourceView(brdf_tex.Get(), &brdf_srv_desc, &brdf_srv));
 
 			Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> brdf_uav;
 
@@ -1484,7 +1484,7 @@ namespace adria
 			brdf_uav_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
 			brdf_uav_desc.Texture2D.MipSlice = 0;
 
-			BREAK_IF_FAILED(device->CreateUnorderedAccessView(brdf_tex.Get(), &brdf_uav_desc, &brdf_uav));
+			GFX_CHECK_HR(device->CreateUnorderedAccessView(brdf_tex.Get(), &brdf_uav_desc, &brdf_uav));
 
 			context->CSSetUnorderedAccessViews(0, 1, brdf_uav.GetAddressOf(), nullptr);
 
@@ -1557,7 +1557,7 @@ namespace adria
 
 	}
 
-	void Renderer::UpdateCBuffers(float32 dt)
+	void Renderer::UpdateCBuffers(float dt)
 	{
 		compute_cbuf_data.bokeh_blur_threshold = renderer_settings.bokeh_blur_threshold;
 		compute_cbuf_data.bokeh_lum_threshold = renderer_settings.bokeh_lum_threshold;
@@ -1572,7 +1572,7 @@ namespace adria
 		compute_cbuf_data.threshold = renderer_settings.bloom_threshold;
 		compute_cbuf_data.bloom_scale = renderer_settings.bloom_scale;
 
-		std::array<float32, 9> coeffs{};
+		std::array<float, 9> coeffs{};
 		coeffs.fill(1.0f / 9);
 		compute_cbuf_data.gauss_coeff1 = coeffs[0];
 		compute_cbuf_data.gauss_coeff2 = coeffs[1];
@@ -1594,7 +1594,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		compute_cbuffer->Update(context, compute_cbuf_data);
 	}
-	void Renderer::UpdateOcean(float32 dt)
+	void Renderer::UpdateOcean(float dt)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 		if (reg.size<Ocean>() == 0) return;
@@ -1747,11 +1747,11 @@ namespace adria
 			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 		}
 	}
-	void Renderer::UpdateWeather(float32 dt)
+	void Renderer::UpdateWeather(float dt)
 	{
 		ID3D11DeviceContext* context = gfx->Context();
 
-		static float32 total_time = 0.0f;
+		static float total_time = 0.0f;
 		total_time += dt;
 
 		auto lights = reg.view<Light>();
@@ -1799,7 +1799,7 @@ namespace adria
 
 		weather_cbuffer->Update(context, weather_cbuf_data);
 	}
-	void Renderer::UpdateParticles(float32 dt)
+	void Renderer::UpdateParticles(float dt)
 	{
 		auto emitters = reg.view<Emitter>();
 		for (auto emitter : emitters)
@@ -1854,7 +1854,7 @@ namespace adria
 	}
 	void Renderer::UpdateVoxelData()
 	{
-		float32 const f = 0.05f / renderer_settings.voxel_size;
+		float const f = 0.05f / renderer_settings.voxel_size;
 
 		XMFLOAT3 cam_pos;
 		XMStoreFloat3(&cam_pos, camera->Position());
@@ -2146,7 +2146,7 @@ namespace adria
 			for (uint32 i = 0; i < ssao_kernel.size(); ++i)
 				postprocess_cbuf_data.samples[i] = ssao_kernel[i];
 
-			postprocess_cbuf_data.noise_scale = XMFLOAT2((float32)width / 8, (float32)height / 8);
+			postprocess_cbuf_data.noise_scale = XMFLOAT2((float)width / 8, (float)height / 8);
 			postprocess_cbuf_data.ssao_power = renderer_settings.ssao_power;
 			postprocess_cbuf_data.ssao_radius = renderer_settings.ssao_radius;
 			postprocess_cbuffer->Update(context, postprocess_cbuf_data);
@@ -2176,9 +2176,9 @@ namespace adria
 		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(7, 1, srv_null);
 		{
-			postprocess_cbuf_data.noise_scale = XMFLOAT2((float32)width / 8, (float32)height / 8);
+			postprocess_cbuf_data.noise_scale = XMFLOAT2((float)width / 8, (float)height / 8);
 			postprocess_cbuf_data.hbao_r2 = renderer_settings.hbao_radius * renderer_settings.hbao_radius;
-			postprocess_cbuf_data.hbao_radius_to_screen = renderer_settings.hbao_radius * 0.5f * float32(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
+			postprocess_cbuf_data.hbao_radius_to_screen = renderer_settings.hbao_radius * 0.5f * float(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
 			postprocess_cbuf_data.hbao_power = renderer_settings.hbao_power;
 			postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 		}
@@ -2367,7 +2367,7 @@ namespace adria
 			context->OMSetBlendState(nullptr, nullptr, 0xfffffff);
 		}
 		
-		float32 black[4] = { 0.0f,0.0f,0.0f,0.0f };
+		float black[4] = { 0.0f,0.0f,0.0f,0.0f };
 		context->ClearUnorderedAccessViewFloat(debug_uav, black);
 		context->ClearUnorderedAccessViewFloat(texture_uav, black);
 
@@ -2867,7 +2867,7 @@ namespace adria
 		ADRIA_ASSERT(light.type == ELightType::Directional);
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Cascades Shadow Map Pass");
 
-		std::array<float32, CASCADE_COUNT> split_distances;
+		std::array<float, CASCADE_COUNT> split_distances;
 		std::array<XMMATRIX, CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, renderer_settings.split_lambda, split_distances);
 		std::array<XMMATRIX, CASCADE_COUNT> light_view_projections{};
 
@@ -3349,9 +3349,9 @@ namespace adria
 			auto ss_sun_pos = XMFLOAT4(0.5f * light_posH.x / light_posH.w + 0.5f, -0.5f * light_posH.y / light_posH.w + 0.5f, light_posH.z / light_posH.w, 1.0f);
 			light_cbuf_data.screenspace_position = XMLoadFloat4(&ss_sun_pos);
 
-			static float32 const max_light_dist = 1.3f;
+			static float const max_light_dist = 1.3f;
 
-			float32 fMaxDist = (std::max)(abs(XMVectorGetX(light_cbuf_data.screenspace_position)), abs(XMVectorGetY(light_cbuf_data.screenspace_position)));
+			float fMaxDist = (std::max)(abs(XMVectorGetX(light_cbuf_data.screenspace_position)), abs(XMVectorGetY(light_cbuf_data.screenspace_position)));
 			if (fMaxDist >= 1.0f)
 				light_cbuf_data.color = XMVector3Transform(light_cbuf_data.color, XMMatrixScaling((max_light_dist - fMaxDist), (max_light_dist - fMaxDist), (max_light_dist - fMaxDist)));
 
@@ -3623,7 +3623,7 @@ namespace adria
 		ID3D11RenderTargetView* rtv = sun_target->RTV();
 		ID3D11DepthStencilView* dsv = depth_target->DSV();
 		
-		float32 black[4] = { 0.0f };
+		float black[4] = { 0.0f };
 		context->ClearRenderTargetView(rtv, black);
 
 		context->OMSetRenderTargets(1, &rtv, dsv);
