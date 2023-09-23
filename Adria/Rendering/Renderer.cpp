@@ -21,24 +21,199 @@ namespace adria
 	//helpers and constants
 	namespace
 	{
-		//Shadow stuff
 		constexpr uint32 SHADOW_MAP_SIZE = 2048;
 		constexpr uint32 SHADOW_CUBE_SIZE = 512;
 		constexpr uint32 SHADOW_CASCADE_SIZE = 2048;
 		constexpr uint32 CASCADE_COUNT = 4;
 
-		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Directional(Light const& light, BoundingSphere const&
-		scene_bounding_sphere, BoundingBox& cull_box)
+		std::pair<Matrix, Matrix> LightViewProjection_Directional(Light const& light, Camera const& camera, BoundingBox& cull_box)
 		{
-			static const XMVECTOR sphere_center = XMLoadFloat3(&scene_bounding_sphere.Center);
+			BoundingFrustum frustum = camera.Frustum();
+			std::array<Vector3, BoundingFrustum::CORNER_COUNT> corners = {};
+			frustum.GetCorners(corners.data());
 
-			XMVECTOR light_dir = XMVector3Normalize(light.direction);
-			XMVECTOR light_pos = -1.0f * scene_bounding_sphere.Radius * light_dir + sphere_center;
-			XMVECTOR target_pos = XMLoadFloat3(&scene_bounding_sphere.Center);
-			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-			XMMATRIX V = XMMatrixLookAtLH(light_pos, target_pos, up);
-			XMFLOAT3 sphere_centerLS;
-			XMStoreFloat3(&sphere_centerLS, XMVector3TransformCoord(target_pos, V));
+			BoundingSphere frustum_sphere;
+			BoundingSphere::CreateFromFrustum(frustum_sphere, frustum);
+
+			Vector3 frustum_center(0, 0, 0);
+			for (uint32 i = 0; i < corners.size(); ++i)
+			{
+				frustum_center = frustum_center + corners[i];
+			}
+			frustum_center /= static_cast<float>(corners.size());
+
+			float radius = 0.0f;
+			for (Vector3 const& corner : corners)
+			{
+				float distance = Vector3::Distance(corner, frustum_center);
+				radius = std::max(radius, distance);
+			}
+			radius = std::ceil(radius * 8.0f) / 8.0f;
+
+			Vector3 const max_extents(radius, radius, radius);
+			Vector3 const min_extents = -max_extents;
+			Vector3 const cascade_extents = max_extents - min_extents;
+
+			Vector3 light_dir = XMVector3Normalize(light.direction);
+			Matrix V = XMMatrixLookAtLH(frustum_center, frustum_center + 1.0f * light_dir * radius, Vector3::Up);
+
+			float l = min_extents.x;
+			float b = min_extents.y;
+			float n = min_extents.z;
+			float r = max_extents.x;
+			float t = max_extents.y;
+			float f = max_extents.z * 1.5f;
+
+			Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+			Matrix VP = V * P;
+			Vector3 shadow_origin(0, 0, 0);
+			shadow_origin = Vector3::Transform(shadow_origin, VP);
+			shadow_origin *= (SHADOW_MAP_SIZE / 2.0f);
+
+			Vector3 rounded_origin = XMVectorRound(shadow_origin);
+			Vector3 rounded_offset = rounded_origin - shadow_origin;
+			rounded_offset *= (2.0f / SHADOW_MAP_SIZE);
+			rounded_offset.z = 0.0f;
+			P.m[3][0] += rounded_offset.x;
+			P.m[3][1] += rounded_offset.y;
+
+			BoundingBox::CreateFromPoints(cull_box, Vector4(l, b, n, 1.0f), Vector4(r, t, f, 1.0f));
+			cull_box.Transform(cull_box, V.Invert());
+
+			return { V,P };
+		}
+		std::pair<Matrix, Matrix> LightViewProjection_Spot(Light const& light, BoundingFrustum& cull_frustum)
+		{
+			ADRIA_ASSERT(light.type == LightType::Spot);
+
+			Vector3 light_dir = XMVector3Normalize(light.direction);
+			Vector3 light_pos = Vector3(light.position);
+			Vector3 target_pos = light_pos + light_dir * light.range;
+
+			Matrix V = XMMatrixLookAtLH(light_pos, target_pos, Vector3::Up);
+			static const float shadow_near = 0.5f;
+			float fov_angle = 2.0f * acos(light.outer_cosine);
+			Matrix P = XMMatrixPerspectiveFovLH(fov_angle, 1.0f, shadow_near, light.range);
+
+			cull_frustum = BoundingFrustum(P);
+			cull_frustum.Transform(cull_frustum, V.Invert());
+
+			return { V,P };
+		}
+		std::pair<Matrix, Matrix> LightViewProjection_Point(Light const& light, uint32 face_index, BoundingFrustum& cull_frustum)
+		{
+			static float const shadow_near = 0.5f;
+			Matrix P = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, shadow_near, light.range);
+
+			Vector3 light_pos = Vector3(light.position);
+			Matrix V{};
+			Vector3 target{};
+			Vector3 up{};
+			switch (face_index)
+			{
+			case 0:
+				target = light_pos + Vector3(1, 0, 0);
+				up = Vector3(0.0f, 1.0f, 0.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			case 1:
+				target = light_pos + Vector3(-1, 0, 0);
+				up = Vector3(0.0f, 1.0f, 0.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			case 2:
+				target = light_pos + Vector3(0, 1, 0);
+				up = Vector3(0.0f, 0.0f, -1.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			case 3:
+				target = light_pos + Vector3(0, -1, 0);
+				up = Vector3(0.0f, 0.0f, 1.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			case 4:
+				target = light_pos + Vector3(0, 0, 1);
+				up = Vector3(0.0f, 1.0f, 0.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			case 5:
+				target = light_pos + Vector3(0, 0, -1);
+				up = Vector3(0.0f, 1.0f, 0.0f);
+				V = XMMatrixLookAtLH(light_pos, target, up);
+				break;
+			default:
+				ADRIA_ASSERT(false && "Invalid face index!");
+			}
+			cull_frustum = BoundingFrustum(P);
+			cull_frustum.Transform(cull_frustum, V.Invert());
+			return { V,P };
+		}
+		std::pair<Matrix, Matrix> LightViewProjection_Cascades(Light const& light, Camera const& camera, Matrix const& projection_matrix, BoundingBox& cull_box)
+		{
+			static float const far_factor = 1.5f;
+			static float const light_distance_factor = 1.0f;
+
+			BoundingFrustum frustum(projection_matrix);
+			frustum.Transform(frustum, camera.View().Invert());
+			std::array<Vector3, BoundingFrustum::CORNER_COUNT> corners{};
+			frustum.GetCorners(corners.data());
+
+			Vector3 frustum_center(0, 0, 0);
+			for (Vector3 const& corner : corners)
+			{
+				frustum_center = frustum_center + corner;
+			}
+			frustum_center /= static_cast<float>(corners.size());
+
+			float radius = 0.0f;
+			for (Vector3 const& corner : corners)
+			{
+				float distance = Vector3::Distance(corner, frustum_center);
+				radius = std::max(radius, distance);
+			}
+			radius = std::ceil(radius * 8.0f) / 8.0f;
+
+			Vector3 const max_extents(radius, radius, radius);
+			Vector3 const min_extents = -max_extents;
+			Vector3 const cascade_extents = max_extents - min_extents;
+
+			Vector3 light_dir = XMVector3Normalize(light.direction);
+			Matrix V = XMMatrixLookAtLH(frustum_center, frustum_center + light_distance_factor * light_dir * radius, Vector3::Up);
+
+			float l = min_extents.x;
+			float b = min_extents.y;
+			float n = min_extents.z - far_factor * radius;
+			float r = max_extents.x;
+			float t = max_extents.y;
+			float f = max_extents.z * far_factor;
+
+			Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+			Matrix VP = V * P;
+			Vector3 shadow_origin(0, 0, 0);
+			shadow_origin = Vector3::Transform(shadow_origin, VP);
+			shadow_origin *= (SHADOW_CASCADE_SIZE / 2.0f);
+
+			Vector3 rounded_origin = XMVectorRound(shadow_origin);
+			Vector3 rounded_offset = rounded_origin - shadow_origin;
+			rounded_offset *= (2.0f / SHADOW_CASCADE_SIZE);
+			rounded_offset.z = 0.0f;
+			P.m[3][0] += rounded_offset.x;
+			P.m[3][1] += rounded_offset.y;
+
+			BoundingBox::CreateFromPoints(cull_box, Vector4(l, b, n, 1.0f), Vector4(r, t, f, 1.0f));
+			cull_box.Transform(cull_box, V.Invert());
+			return { V,P };
+		}
+		std::pair<Matrix, Matrix> LightViewProjection_Directional(Light const& light, BoundingSphere const& scene_bounding_sphere, BoundingBox& cull_box)
+		{
+			static const Vector3 sphere_center = scene_bounding_sphere.Center;
+
+			Vector3 light_dir = XMVector3Normalize(light.direction);
+			Vector3 light_pos = -1.0f * scene_bounding_sphere.Radius * light_dir + sphere_center;
+			Vector3 target_pos = XMLoadFloat3(&scene_bounding_sphere.Center);
+			Matrix V = XMMatrixLookAtLH(light_pos, target_pos, Vector3::Up);
+			Vector3 sphere_centerLS = Vector3::Transform(target_pos, V);
+			
 			float l = sphere_centerLS.x - scene_bounding_sphere.Radius;
 			float b = sphere_centerLS.y - scene_bounding_sphere.Radius;
 			float n = sphere_centerLS.z - scene_bounding_sphere.Radius;
@@ -46,155 +221,15 @@ namespace adria
 			float t = sphere_centerLS.y + scene_bounding_sphere.Radius;
 			float f = sphere_centerLS.z + scene_bounding_sphere.Radius;
 
-			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
+			Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
-			BoundingBox::CreateFromPoints(cull_box, XMVectorSet(l, b, n, 1.0f), XMVectorSet(r, t, f, 1.0f));
-			cull_box.Transform(cull_box, XMMatrixInverse(nullptr, V));
-
-			return { V,P };
-		}
-
-		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Directional(Light const& light, Camera const& camera,
-			BoundingBox& cull_box)
-		{
-			BoundingFrustum frustum = camera.Frustum();
-			std::array<XMFLOAT3, frustum.CORNER_COUNT> corners;
-			frustum.GetCorners(corners.data());
-
-			BoundingSphere frustumSphere;
-			BoundingSphere::CreateFromFrustum(frustumSphere, frustum);
-
-			XMVECTOR frustumCenter = XMVectorSet(0, 0, 0, 0);
-			for (uint32 i = 0; i < corners.size(); ++i)
-			{
-				frustumCenter = frustumCenter + XMLoadFloat3(&corners[i]);
-			}
-			frustumCenter /= static_cast<float>(corners.size());
-
-			float radius = 0.0f;
-
-			for (uint32 i = 0; i < corners.size(); ++i)
-			{
-				float dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&corners[i]) - frustumCenter));
-				radius = (std::max)(radius, dist);
-			}
-			radius = std::ceil(radius * 8.0f) / 8.0f;
-
-			XMVECTOR const maxExtents = XMVectorSet(radius, radius, radius, 0);
-			XMVECTOR const minExtents = -maxExtents;
-			XMVECTOR const cascadeExtents = maxExtents - minExtents;
-
-			XMVECTOR lightDir = XMVector3Normalize(light.direction);
-			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-			XMMATRIX V = XMMatrixLookAtLH(frustumCenter, frustumCenter + 1.0f * lightDir * radius, up);
-
-			XMFLOAT3 minE, maxE, cascadeE;
-
-			XMStoreFloat3(&minE, minExtents);
-			XMStoreFloat3(&maxE, maxExtents);
-			XMStoreFloat3(&cascadeE, cascadeExtents);
-
-			float l = minE.x;
-			float b = minE.y;
-			float n = minE.z; // -farFactor * radius;
-			float r = maxE.x;
-			float t = maxE.y;
-			float f = maxE.z * 1.5f;
-
-			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
-
-			XMMATRIX VP = V * P;
-
-			XMFLOAT3 so(0, 0, 0);
-
-			XMVECTOR shadowOrigin = XMLoadFloat3(&so);
-
-			shadowOrigin = XMVector3Transform(shadowOrigin, VP);
-			shadowOrigin *= (SHADOW_MAP_SIZE / 2.0f);
-
-			XMVECTOR roundedOrigin = XMVectorRound(shadowOrigin);
-			XMVECTOR roundOffset = roundedOrigin - shadowOrigin;
-
-			roundOffset *= (2.0f / SHADOW_MAP_SIZE);
-			roundOffset *= XMVectorSet(1.0, 1.0, 0.0, 0.0);
-
-			P.r[3] += roundOffset;
-			BoundingBox::CreateFromPoints(cull_box, XMVectorSet(l, b, n, 1.0f), XMVectorSet(r, t, f, 1.0f));
-			cull_box.Transform(cull_box, XMMatrixInverse(nullptr, V));
+			BoundingBox::CreateFromPoints(cull_box, Vector4(l, b, n, 1.0f), Vector4(r, t, f, 1.0f));
+			cull_box.Transform(cull_box, V.Invert());
 
 			return { V,P };
 		}
 
-		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Spot(Light const& light, BoundingFrustum& cull_frustum)
-		{
-			ADRIA_ASSERT(light.type == LightType::Spot);
-
-			XMVECTOR light_dir = XMVector3Normalize(light.direction);
-			XMVECTOR light_pos = light.position;
-			XMVECTOR target_pos = light_pos + light_dir * light.range;
-			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-			XMMATRIX V = XMMatrixLookAtLH(light_pos, target_pos, up);
-			static const float shadow_near = 0.5f;
-			float fov_angle = 2.0f * acos(light.outer_cosine);
-			XMMATRIX P = XMMatrixPerspectiveFovLH(fov_angle, 1.0f, shadow_near, light.range);
-
-			cull_frustum = BoundingFrustum(P);
-			cull_frustum.Transform(cull_frustum, XMMatrixInverse(nullptr, V));
-			return { V,P };
-		}
-	
-		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Point(Light const& light, uint32 face_index,
-			BoundingFrustum& cull_frustum)
-		{
-			static float const shadow_near = 0.5f;
-			XMMATRIX P = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, shadow_near, light.range);
-			XMVECTOR light_pos = light.position;
-			XMMATRIX V{};
-			XMVECTOR target{};
-			XMVECTOR up{};
-			switch (face_index)
-			{
-			case 0:  //X+
-				target	= XMVectorAdd(light_pos, XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f));
-				up		= XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-				V		= XMMatrixLookAtLH(light_pos, target, up);
-				break;
-			case 1:  //X-
-				target	= XMVectorAdd(light_pos, XMVectorSet(-1.0f, 0.0f, 0.0f, 0.0f));
-				up		= XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-				V		= XMMatrixLookAtLH(light_pos, target, up);
-				break;
-			case 2:	 //Y+
-				target	= XMVectorAdd(light_pos, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-				up		= XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f);
-				V		= XMMatrixLookAtLH(light_pos, target, up);
-				break;
-			case 3:  //Y-
-				target	= XMVectorAdd(light_pos, XMVectorSet(0.0f, -1.0f, 0.0f, 0.0f));
-				up		= XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-				V		= XMMatrixLookAtLH(light_pos, target, up);
-				break;
-			case 4:  //Z+
-				target	= XMVectorAdd(light_pos, XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f));
-				up		= XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-				V		= XMMatrixLookAtLH(light_pos, target, up);
-				break;
-			case 5:  //Z-
-				target	= XMVectorAdd(light_pos, XMVectorSet(0.0f, 0.0f, -1.0f, 0.0f));
-				up		= XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-				V		= XMMatrixLookAtLH(light_pos, target, up);
-				break;
-			default:
-				ADRIA_ASSERT(false && "Invalid face index!");
-			}
-			cull_frustum = BoundingFrustum(P);
-			cull_frustum.Transform(cull_frustum, XMMatrixInverse(nullptr, V));
-			return { V,P };
-		}
-
-		std::array<XMMATRIX, CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, CASCADE_COUNT>& split_distances)
+		std::array<Matrix, CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, CASCADE_COUNT>& split_distances)
 		{
 			float camera_near = camera.Near();
 			float camera_far = camera.Far();
@@ -209,84 +244,12 @@ namespace adria
 				split_distances[i] = l * split_lambda + u * (1.0f - split_lambda);
 			}
 
-			std::array<XMMATRIX, CASCADE_COUNT> projectionMatrices{};
+			std::array<Matrix, CASCADE_COUNT> projectionMatrices{};
 			projectionMatrices[0] = XMMatrixPerspectiveFovLH(fov, ar, camera_near, split_distances[0]);
 			for (uint32 i = 1; i < projectionMatrices.size(); ++i)
 				projectionMatrices[i] = XMMatrixPerspectiveFovLH(fov, ar, split_distances[i - 1], split_distances[i]);
 			return projectionMatrices;
 		}
-
-		std::pair<XMMATRIX, XMMATRIX> LightViewProjection_Cascades(Light const& light, Camera const& camera,
-			XMMATRIX projection_matrix,
-			BoundingBox& cull_box)
-		{
-			static float const farFactor = 1.5f;
-			static float const lightDistanceFactor = 4.0f;
-
-			//std::array<XMMATRIX, CASCADE_COUNT> projectionMatrices = RecalculateProjectionMatrices(camera);
-			std::array<XMMATRIX, CASCADE_COUNT> lightViewProjectionMatrices{};
-
-			BoundingFrustum frustum(projection_matrix);
-			frustum.Transform(frustum, XMMatrixInverse(nullptr, camera.View()));
-
-			///get frustum corners
-			std::array<XMFLOAT3, frustum.CORNER_COUNT> corners{};
-			frustum.GetCorners(corners.data());
-
-			XMVECTOR frustumCenter = XMVectorSet(0, 0, 0, 0);
-			for (uint32 i = 0; i < corners.size(); ++i)
-			{
-				frustumCenter = frustumCenter + XMLoadFloat3(&corners[i]);
-			}
-			frustumCenter /= static_cast<float>(corners.size());
-			float radius = 0.0f;
-
-			for (uint32 i = 0; i < corners.size(); ++i)
-			{
-				float dist = XMVectorGetX(XMVector3Length(XMLoadFloat3(&corners[i]) - frustumCenter));
-				radius = (std::max)(radius, dist);
-			}
-			radius = std::ceil(radius * 8.0f) / 8.0f;
-
-			XMVECTOR const maxExtents = XMVectorSet(radius, radius, radius, 0);
-			XMVECTOR const minExtents = -maxExtents;
-			XMVECTOR const cascadeExtents = maxExtents - minExtents;
-
-			XMVECTOR lightDir = light.direction;
-			static const XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-			XMMATRIX V = XMMatrixLookAtLH(frustumCenter, frustumCenter + lightDistanceFactor * lightDir * radius, up);
-			XMFLOAT3 minE, maxE, cascadeE;
-
-			XMStoreFloat3(&minE, minExtents);
-			XMStoreFloat3(&maxE, maxExtents);
-			XMStoreFloat3(&cascadeE, cascadeExtents);
-
-			float l = minE.x;
-			float b = minE.y;
-			float n = minE.z - farFactor * radius;
-			float r = maxE.x;
-			float t = maxE.y;
-			float f = maxE.z * farFactor;
-
-			XMMATRIX P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
-			XMMATRIX VP = V * P;
-			XMFLOAT3 so(0, 0, 0);
-			XMVECTOR shadowOrigin = XMLoadFloat3(&so);
-			shadowOrigin = XMVector3Transform(shadowOrigin, VP); //sOrigin * P;
-			shadowOrigin *= (SHADOW_CASCADE_SIZE / 2.0f);
-
-			XMVECTOR roundedOrigin = XMVectorRound(shadowOrigin);
-			XMVECTOR roundOffset = roundedOrigin - shadowOrigin;
-			roundOffset *= (2.0f / SHADOW_CASCADE_SIZE);
-			roundOffset *= XMVectorSet(1.0, 1.0, 0.0, 0.0);
-
-			P.r[3] += roundOffset;
-			BoundingBox::CreateFromPoints(cull_box, XMVectorSet(l, b, n, 1.0f), XMVectorSet(r, t, f, 1.0f));
-			cull_box.Transform(cull_box, XMMatrixInverse(nullptr, V));
-			return { V,P };
-		}
-
 
 		float GaussianDistribution(float x, float sigma)
 		{
@@ -2860,8 +2823,8 @@ namespace adria
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Cascades Shadow Map Pass");
 
 		std::array<float, CASCADE_COUNT> split_distances;
-		std::array<XMMATRIX, CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, renderer_settings.split_lambda, split_distances);
-		std::array<XMMATRIX, CASCADE_COUNT> light_view_projections{};
+		std::array<Matrix, CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, renderer_settings.split_lambda, split_distances);
+		std::array<Matrix, CASCADE_COUNT> light_view_projections{};
 
 		ID3D11ShaderResourceView* null_srv[] = { nullptr };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWARRAY, 1, null_srv);
@@ -2888,10 +2851,10 @@ namespace adria
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWARRAY, 1, srv);
 
 		shadow_cbuf_data.shadow_map_size = SHADOW_CASCADE_SIZE;
-		shadow_cbuf_data.shadow_matrices[0] = XMMatrixInverse(nullptr, camera->View()) * light_view_projections[0];
-		shadow_cbuf_data.shadow_matrices[1] = XMMatrixInverse(nullptr, camera->View()) * light_view_projections[1];
-		shadow_cbuf_data.shadow_matrices[2] = XMMatrixInverse(nullptr, camera->View()) * light_view_projections[2];
-		shadow_cbuf_data.shadow_matrices[3] = XMMatrixInverse(nullptr, camera->View()) * light_view_projections[3];
+		shadow_cbuf_data.shadow_matrices[0] = camera->View().Invert() * light_view_projections[0];
+		shadow_cbuf_data.shadow_matrices[1] = camera->View().Invert() * light_view_projections[1];
+		shadow_cbuf_data.shadow_matrices[2] = camera->View().Invert() * light_view_projections[2];
+		shadow_cbuf_data.shadow_matrices[3] = camera->View().Invert() * light_view_projections[3];
 		shadow_cbuf_data.split0 = split_distances[0];
 		shadow_cbuf_data.split1 = split_distances[1];
 		shadow_cbuf_data.split2 = split_distances[2];

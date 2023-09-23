@@ -1,7 +1,7 @@
+#include <algorithm>
 #include "Camera.h"
 #include "Input/Input.h"
 #include "Math/Constants.h"
-#include <algorithm>
 
 using namespace DirectX;
 
@@ -37,26 +37,20 @@ namespace adria
 	{
 		if (!enabled) return;
 		Input& input = g_Input;
-		if (input.GetKey(EKeyCode::Space)) return;
+		if (input.GetKey(KeyCode::Space)) return;
 
 		float speed_factor = 1.0f;
 
-		if (input.GetKey(EKeyCode::ShiftLeft)) speed_factor *= 5.0f;
-		if (input.GetKey(EKeyCode::CtrlLeft))  speed_factor *= 0.2f;
+		if (input.GetKey(KeyCode::ShiftLeft)) speed_factor *= 5.0f;
+		if (input.GetKey(KeyCode::CtrlLeft))  speed_factor *= 0.2f;
 
-		if (input.GetKey(EKeyCode::W)) Walk(speed_factor * dt);
-
-		if (input.GetKey(EKeyCode::S)) Walk(-speed_factor * dt);
-
-		if (input.GetKey(EKeyCode::A)) Strafe(-speed_factor * dt);
-
-		if (input.GetKey(EKeyCode::D)) Strafe(speed_factor * dt);
-
-		if (input.GetKey(EKeyCode::Q)) Jump(speed_factor * dt);
-
-		if (input.GetKey(EKeyCode::E)) Jump(-speed_factor * dt);
-
-		if (input.GetKey(EKeyCode::MouseRight))
+		if (input.GetKey(KeyCode::W)) Walk(speed_factor * dt);
+		if (input.GetKey(KeyCode::S)) Walk(-speed_factor * dt);
+		if (input.GetKey(KeyCode::A)) Strafe(-speed_factor * dt);
+		if (input.GetKey(KeyCode::D)) Strafe(speed_factor * dt);
+		if (input.GetKey(KeyCode::Q)) Jump(speed_factor * dt);
+		if (input.GetKey(KeyCode::E)) Jump(-speed_factor * dt);
+		if (input.GetKey(KeyCode::MouseRight))
 		{
 			float dx = input.GetMouseDeltaX();
 			float dy = input.GetMouseDeltaY();
@@ -92,105 +86,71 @@ namespace adria
 		far_plane = f;
 		SetLens(fov, aspect_ratio, near_plane, far_plane);
 	}
-	void Camera::SetPosition(XMFLOAT3 pos)
+	void Camera::SetPosition(Vector3 const& pos)
 	{
 		position = pos;
 	}
 
-	XMMATRIX Camera::View() const
+	Matrix Camera::View() const
 	{
-		return XMLoadFloat4x4(&view_matrix);
+		return view_matrix;
 	}
-	XMMATRIX Camera::Proj() const
+	Matrix Camera::Proj() const
 	{
-		return XMLoadFloat4x4(&projection_matrix);
+		return projection_matrix;
 	}
-	XMMATRIX Camera::ViewProj() const
+	Matrix Camera::ViewProj() const
 	{
-		return XMMatrixMultiply(View(), Proj());
+		return view_matrix * projection_matrix;
 	}
 	BoundingFrustum Camera::Frustum() const
 	{
 		BoundingFrustum frustum(Proj());
-		frustum.Transform(frustum, XMMatrixInverse(nullptr, View()));
+		frustum.Transform(frustum, view_matrix.Invert());
 		return frustum;
 	}
 
 	void Camera::UpdateViewMatrix()
 	{
-		XMVECTOR R = XMLoadFloat3(&right_vector);
-		XMVECTOR U = XMLoadFloat3(&up_vector);
-		XMVECTOR L = XMLoadFloat3(&look_vector);
-		XMVECTOR P = XMLoadFloat3(&position);
-
-		// Keep camera's axes orthogonal to each other and of unit length.
-		L = XMVector3Normalize(L);
-		U = XMVector3Normalize(XMVector3Cross(L, R));
-
-		// U, L already ortho-normal, so no need to normalize cross product.
-		R = XMVector3Cross(U, L);
-
-		// Fill in the view matrix entries.
-		XMStoreFloat3(&right_vector, R);
-		XMStoreFloat3(&up_vector, U);
-		XMStoreFloat3(&look_vector, L);
-
+		look_vector.Normalize();
+		up_vector = look_vector.Cross(right_vector);
+		up_vector.Normalize();
+		right_vector = up_vector.Cross(look_vector);
 		SetView();
 	}
 
 	void Camera::Strafe(float dt)
 	{
-
-		// mPosition += d*mRight
-		XMVECTOR s = XMVectorReplicate(dt * speed);
-		XMVECTOR r = XMLoadFloat3(&right_vector);
-		XMVECTOR p = XMLoadFloat3(&position);
-		XMStoreFloat3(&position, XMVectorMultiplyAdd(s, r, p));
+		position += dt * speed * right_vector;
 	}
 	void Camera::Walk(float dt)
 	{
-		// mPosition += d*mLook
-		XMVECTOR s = XMVectorReplicate(dt * speed);
-		XMVECTOR l = XMLoadFloat3(&look_vector);
-		XMVECTOR p = XMLoadFloat3(&position);
-		XMStoreFloat3(&position, XMVectorMultiplyAdd(s, l, p));
+		position += dt * speed * look_vector;
 	}
 	void Camera::Jump(float dt)
 	{
-		// mPosition += d*Up
-		XMVECTOR s = XMVectorReplicate(dt * speed);
-		XMVECTOR l = XMLoadFloat3(&up_vector);
-		XMVECTOR p = XMLoadFloat3(&position);
-		XMStoreFloat3(&position, XMVectorMultiplyAdd(s, l, p));
+		position += dt * speed * up_vector;
 	}
 	void Camera::Pitch(int64 dy)
 	{
-		// Rotate up and look vector about the right vector.
-		XMMATRIX R = XMMatrixRotationAxis(XMLoadFloat3(&right_vector), sensitivity * XMConvertToRadians((float)dy));
-		XMStoreFloat3(&up_vector, XMVector3TransformNormal(XMLoadFloat3(&up_vector), R));
-		XMStoreFloat3(&look_vector, XMVector3TransformNormal(XMLoadFloat3(&look_vector), R));
+		Matrix R = Matrix::CreateFromAxisAngle(right_vector, sensitivity * XMConvertToRadians((float)dy));
+		up_vector = Vector3::TransformNormal(up_vector, R);
+		look_vector = Vector3::TransformNormal(look_vector, R);
 	}
 	void Camera::Yaw(int64 dx)
 	{
-		// Rotate the basis vectors about the world y-axis.
+		Matrix R = Matrix::CreateRotationY(sensitivity * XMConvertToRadians((float)dx));
 
-		XMMATRIX R = XMMatrixRotationY(sensitivity * XMConvertToRadians((float)dx));
-
-		XMStoreFloat3(&right_vector, XMVector3TransformNormal(XMLoadFloat3(&right_vector), R));
-		XMStoreFloat3(&up_vector, XMVector3TransformNormal(XMLoadFloat3(&up_vector), R));
-		XMStoreFloat3(&look_vector, XMVector3TransformNormal(XMLoadFloat3(&look_vector), R));
+		right_vector = Vector3::TransformNormal(right_vector, R);
+		up_vector = Vector3::TransformNormal(up_vector, R);
+		look_vector = Vector3::TransformNormal(look_vector, R);
 	}
 	void Camera::SetLens(float fov, float aspect, float zn, float zf)
 	{
-		XMMATRIX P = XMMatrixPerspectiveFovLH(fov, aspect, zn, zf);
-		XMStoreFloat4x4(&projection_matrix, P);
+		projection_matrix = XMMatrixPerspectiveFovLH(fov, aspect, zn, zf);
 	}
 	void Camera::SetView()
 	{
-		XMVECTOR pos = XMLoadFloat3(&position);
-		XMVECTOR look = XMLoadFloat3(&look_vector);
-		XMVECTOR up = XMLoadFloat3(&up_vector);
-		XMMATRIX view = XMMatrixLookToLH(pos, look, up);
-		XMStoreFloat4x4(&view_matrix, view);
+		view_matrix = XMMatrixLookToLH(position, look_vector, up_vector);
 	}
 }

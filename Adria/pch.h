@@ -31,5 +31,6 @@
 //
 #include "Core/CoreTypes.h"
 #include "Core/Defines.h"
+#include "Math/MathTypes.h"
 #include "Graphics/GfxDefines.h"
 #include "Utilities/AutoRefCountPtr.h"

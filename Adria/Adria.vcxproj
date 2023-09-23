@@ -118,7 +118,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;$(SolutionDir)ThirdParty\cereal;$(SolutionDir)ThirdParty\ImGui;$(SolutionDir)ThirdParty\gfx-external;$(SolutionDir)Adria\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;$(SolutionDir)ThirdParty\cereal;$(SolutionDir)ThirdParty\ImGui;$(SolutionDir)ThirdParty\gfx-external;$(SolutionDir)ThirdParty\SimpleMath;$(SolutionDir)Adria\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -141,7 +141,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;$(SolutionDir)ThirdParty\cereal;$(SolutionDir)ThirdParty\ImGui;$(SolutionDir)ThirdParty\gfx-external;$(SolutionDir)Adria\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)ThirdParty\stb;$(SolutionDir)ThirdParty\tinygltf;$(SolutionDir)ThirdParty\tinyobjloader;$(SolutionDir)ThirdParty\FastNoiseLite;$(SolutionDir)ThirdParty\json;$(SolutionDir)ThirdParty\nfd\include;$(SolutionDir)ThirdParty\FontAwesome;$(SolutionDir)ThirdParty\cereal;$(SolutionDir)ThirdParty\ImGui;$(SolutionDir)ThirdParty\gfx-external;$(SolutionDir)ThirdParty\SimpleMath;$(SolutionDir)Adria\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <UseStandardPreprocessor>false</UseStandardPreprocessor>
       <ForcedIncludeFiles>pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -167,6 +167,7 @@
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_impl_win32.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_tables.cpp" />
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="..\ThirdParty\SimpleMath\SimpleMath.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
@@ -213,6 +214,7 @@
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_rectpack.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_textedit.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_truetype.h" />
+    <ClInclude Include="..\ThirdParty\SimpleMath\SimpleMath.h" />
     <ClInclude Include="Core\CoreTypes.h" />
     <ClInclude Include="Core\Engine.h" />
     <ClInclude Include="Core\Defines.h" />
@@ -244,6 +246,7 @@
     <ClInclude Include="Math\ComputeNormals.h" />
     <ClInclude Include="Math\ComputeTangentFrame.h" />
     <ClInclude Include="Math\Constants.h" />
+    <ClInclude Include="Math\MathTypes.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Rendering\Camera.h" />
     <ClInclude Include="Rendering\Components.h" />
@@ -302,6 +305,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
+    <None Include="..\ThirdParty\SimpleMath\SimpleMath.inl" />
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli" />
     <None Include="Resources\Shaders\Globals\GlobalsDS.hlsli" />
     <None Include="Resources\Shaders\Globals\GlobalsGS.hlsli" />

@@ -80,6 +80,9 @@
     <Filter Include="External\ImGui">
       <UniqueIdentifier>{9b050724-2521-4cb8-8f19-46abe5f20554}</UniqueIdentifier>
     </Filter>
+    <Filter Include="External\SimpleMath">
+      <UniqueIdentifier>{72fd1772-5308-4a07-b844-7b25e0a140a0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -188,6 +191,9 @@
     </ClCompile>
     <ClCompile Include="..\ThirdParty\gfx-external\DDSTextureLoader.cpp">
       <Filter>External\TextureLoaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ThirdParty\SimpleMath\SimpleMath.cpp">
+      <Filter>External\SimpleMath</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -465,6 +471,12 @@
     <ClInclude Include="Utilities\AutoRefCountPtr.h">
       <Filter>Utilities</Filter>
     </ClInclude>
+    <ClInclude Include="..\ThirdParty\SimpleMath\SimpleMath.h">
+      <Filter>External\SimpleMath</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\MathTypes.h">
+      <Filter>Math</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Adria.rc">
@@ -521,6 +533,9 @@
     </None>
     <None Include="scene.json" />
     <None Include="..\README.md" />
+    <None Include="..\ThirdParty\SimpleMath\SimpleMath.inl">
+      <Filter>External\SimpleMath</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\Misc\SkyboxPS.hlsl">
