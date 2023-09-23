@@ -24,7 +24,7 @@ namespace adria
 
 	void GfxProfiler::BeginProfileBlock(ID3D11DeviceContext* context, EProfilerBlock block)
 	{
-		UINT64 i = current_frame % FRAME_COUNT;
+		uint64 i = current_frame % FRAME_COUNT;
 		QueryData& query_data = queries[i][static_cast<size_t>(block)];
 		ADRIA_ASSERT(!query_data.begin_called);
 		ADRIA_ASSERT(!query_data.end_called);
@@ -35,7 +35,7 @@ namespace adria
 
 	void GfxProfiler::EndProfileBlock(ID3D11DeviceContext* context, EProfilerBlock block)
 	{
-		UINT64 i = current_frame % FRAME_COUNT;
+		uint64 i = current_frame % FRAME_COUNT;
 		QueryData& query_data = queries[i][static_cast<size_t>(block)];
 		ADRIA_ASSERT(query_data.begin_called);
 		ADRIA_ASSERT(!query_data.end_called);
@@ -52,7 +52,7 @@ namespace adria
 			return {};
 		}
 
-		UINT64 old_index = (current_frame - FRAME_COUNT + 1) % FRAME_COUNT;
+		uint64 old_index = (current_frame - FRAME_COUNT + 1) % FRAME_COUNT;
 		auto& old_queries = queries[old_index];
 
 		HRESULT hr = S_OK;
@@ -78,19 +78,19 @@ namespace adria
 				}
 				else
 				{
-					UINT64 begin_ts = 0;
-					UINT64 end_ts = 0;
+					uint64 begin_ts = 0;
+					uint64 end_ts = 0;
 
-					hr = context->GetData(query.timestamp_query_start.Get(), &begin_ts, sizeof(UINT64), 0);
+					hr = context->GetData(query.timestamp_query_start.Get(), &begin_ts, sizeof(uint64), 0);
 
 					while (context->GetData(query.timestamp_query_end.Get(), NULL, 0, 0) == S_FALSE)
 					{
 						ADRIA_LOG(INFO, "Waiting for frame end timestamp of %s in frame %llu", ToString(block).c_str(), current_frame);
 						std::this_thread::sleep_for(std::chrono::nanoseconds(500));
 					}
-					hr = context->GetData(query.timestamp_query_end.Get(), &end_ts, sizeof(UINT64), 0);
+					hr = context->GetData(query.timestamp_query_end.Get(), &end_ts, sizeof(uint64), 0);
 
-					FLOAT time_ms = (end_ts - begin_ts) * 1000.0f / disjoint_ts.Frequency;
+					float time_ms = (end_ts - begin_ts) * 1000.0f / disjoint_ts.Frequency;
 
 					std::string time_ms_string = std::to_string(time_ms);
 					std::string result = ToString(block) + " time: " + time_ms_string + "ms";

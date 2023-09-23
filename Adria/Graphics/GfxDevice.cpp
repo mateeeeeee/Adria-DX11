@@ -4,7 +4,7 @@
 
 static inline void ReportLiveObjects()
 {
-	Microsoft::WRL::ComPtr<IDXGIDebug1> dxgi_debug;
+	adria::ArcPtr<IDXGIDebug1> dxgi_debug;
 	if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgi_debug.GetAddressOf()))))
 	{
 		dxgi_debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
@@ -52,20 +52,20 @@ namespace adria
 			0,
 			D3D11_SDK_VERSION,
 			&sd,
-			&swapchain,
-			&device,
+			swapchain.GetAddressOf(),
+			device.GetAddressOf(),
 			nullptr,
-			&immediate_context
+			immediate_context.GetAddressOf()
 		);
 		GFX_CHECK_HR(hr);
 		immediate_context->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)annot.GetAddressOf());
 
 #if defined(_DEBUG) || defined(FORCE_DEBUG_LAYER)
-		Microsoft::WRL::ComPtr<ID3D11Debug> d3dDebug;
+		ArcPtr<ID3D11Debug> d3dDebug;
 		hr = device.As(&d3dDebug);
 		if (SUCCEEDED(hr))
 		{
-			Microsoft::WRL::ComPtr<ID3D11InfoQueue> d3dInfoQueue;
+			ArcPtr<ID3D11InfoQueue> d3dInfoQueue;
 			hr = d3dDebug.As(&d3dInfoQueue);
 			if (SUCCEEDED(hr))
 			{
@@ -141,8 +141,8 @@ namespace adria
 		D3D11_QUERY_DESC desc{};
 		desc.MiscFlags = 0;
 		desc.Query = D3D11_QUERY_EVENT;
-		Microsoft::WRL::ComPtr<ID3D11Query> query = nullptr;
-		HRESULT hr = device->CreateQuery(&desc, &query);
+		ArcPtr<ID3D11Query> query = nullptr;
+		HRESULT hr = device->CreateQuery(&desc, query.GetAddressOf());
 		ADRIA_ASSERT(SUCCEEDED(hr));
 		immediate_context->End(query.Get());
 		BOOL result;
@@ -158,9 +158,9 @@ namespace adria
 
 		GFX_CHECK_HR(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0));
 
-		Microsoft::WRL::ComPtr<ID3D11Texture2D> pBuffer = nullptr;
-		GFX_CHECK_HR(swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)pBuffer.GetAddressOf()));
-		GFX_CHECK_HR(device->CreateRenderTargetView(pBuffer.Get(), nullptr,
+		ArcPtr<ID3D11Texture2D> p_buffer = nullptr;
+		GFX_CHECK_HR(swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)p_buffer.GetAddressOf()));
+		GFX_CHECK_HR(device->CreateRenderTargetView(p_buffer.Get(), nullptr,
 			backbuffer_rtv.GetAddressOf()));
 
 		immediate_context->OMSetRenderTargets(1, backbuffer_rtv.GetAddressOf(), nullptr);

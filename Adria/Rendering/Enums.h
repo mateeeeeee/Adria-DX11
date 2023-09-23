@@ -37,7 +37,7 @@ namespace adria
 	DECLARE_TEXTURE_SLOT(SAND, 3);
 	DECLARE_TEXTURE_SLOT(LAYER, 4);
 
-	enum EShader : uint8
+	enum ShaderId : uint8
 	{
 		VS_Sky,
 		PS_Skybox,
@@ -141,7 +141,7 @@ namespace adria
 		EShader_Count
 	};
 
-	enum class EShaderProgram : uint8 
+	enum class ShaderProgram : uint8 
 	{
 		Skybox,
 		UniformColorSky,
@@ -220,34 +220,34 @@ namespace adria
 		Unknown
 	};
 
-	enum class EToneMap : uint8
+	enum class ToneMap : uint8
 	{
 		Reinhard,
 		Hable,
 		Linear
 	};
 
-	enum class ELightType : int32
+	enum class LightType : int32
 	{
 		Directional,
 		Point,
 		Spot
 	};
 
-	enum class EFogType : int32
+	enum class FogType : int32
 	{
 		Exponential, 
 		ExponentialHeight
 	};
 
-	enum class EAmbientOcclusion : uint8
+	enum class AmbientOcclusion : uint8
 	{
 		None,
 		SSAO,
 		HBAO
 	};
 
-	enum class EBokehType : uint8
+	enum class BokehType : uint8
 	{
 		Hex,
 		Oct,
@@ -255,14 +255,14 @@ namespace adria
 		Cross
 	};
 
-	enum class ESkyType : uint8
+	enum class SkyType : uint8
 	{
 		UniformColor,
 		Skybox,
 		HosekWilkie
 	};
 
-	enum class EBlendState
+	enum class BlendState
 	{
 		None,
 		AlphaToCoverage,
@@ -270,25 +270,25 @@ namespace adria
 		AlphaBlend
 	};
 
-	enum class EDepthState
+	enum class DepthState
 	{
 		None
 	};
 
-	enum class ERasterizerState
+	enum class RasterizerState
 	{
 		None,
 		NoCulling
 	};
 
-	enum EAntiAliasing : uint8
+	enum AntiAliasing : uint8
 	{
 		EAntiAliasing_None = 0x0,
 		EAntiAliasing_FXAA = 0x1,
 		EAntiAliasing_TAA = 0x2
 	};
 
-	enum EGBufferSlot : uint8
+	enum GBufferSlot : uint8
 	{
 		EGBufferSlot_NormalMetallic,
 		EGBufferSlot_DiffuseRoughness,
@@ -296,14 +296,14 @@ namespace adria
 		EGBufferSlot_Count
 	};
 
-	enum class EDecalType : uint8 
+	enum class DecalType : uint8 
 	{
 		Project_XY,
 		Project_YZ,
 		Project_XZ
 	};
 
-	enum class EMaterialAlphaMode : uint8
+	enum class MaterialAlphaMode : uint8
 	{
 		Opaque,
 		Blend,

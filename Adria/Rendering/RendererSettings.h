@@ -10,7 +10,7 @@ namespace adria
 		float wind_direction[2] = { 10.0f, 10.0f };
 
 		bool fog = false;
-		EFogType fog_type = EFogType::Exponential;
+		FogType fog_type = FogType::Exponential;
 		float fog_falloff = 0.005f;
 		float fog_density = 0.002f;
 		float fog_start = 100.0f;
@@ -21,15 +21,15 @@ namespace adria
 		bool shadow_transparent = false;
 		float split_lambda = 0.25f;
 		
-		EAntiAliasing anti_aliasing = EAntiAliasing_None;
+		AntiAliasing anti_aliasing = EAntiAliasing_None;
 		
 		float tone_map_exposure = 1.0f;
-		EToneMap tone_map_op = EToneMap::Reinhard;
+		ToneMap tone_map_op = ToneMap::Reinhard;
 		//motion blur
 		bool motion_blur = false;
 		float velocity_buffer_scale = 64.0f;
 		//ao
-		EAmbientOcclusion ambient_occlusion = EAmbientOcclusion::None;
+		AmbientOcclusion ambient_occlusion = AmbientOcclusion::None;
 		float   ssao_power = 4.0f;
 		float   ssao_radius = 1.0f;
 		float   hbao_power = 1.5f;
@@ -54,7 +54,7 @@ namespace adria
 		bool bloom = false;
 		float bloom_threshold = 0.25f;
 		float bloom_scale = 2.0f;
-		EBokehType bokeh_type = EBokehType::Hex;
+		BokehType bokeh_type = BokehType::Hex;
 		//clouds
 		bool clouds = false;
 		float crispiness = 43.0f;
@@ -92,7 +92,7 @@ namespace adria
 		bool recreate_initial_spectrum = true;
 		bool ocean_color_changed = false;
 		//sky
-		ESkyType sky_type = ESkyType::Skybox;
+		SkyType sky_type = SkyType::Skybox;
 		float sky_color[3] = { 0.53f, 0.81f, 0.92f };
 		float turbidity = 2.0f;
 		float ground_albedo = 0.1f;

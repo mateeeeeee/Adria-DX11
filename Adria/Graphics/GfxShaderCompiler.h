@@ -11,7 +11,7 @@ namespace adria
 	{
 		std::vector<uint8> bytecode;
 
-		void SetBytecode(void* data, size_t data_size)
+		void SetBytecode(void* data, uint32 data_size)
 		{
 			bytecode.resize(data_size);
 			memcpy(bytecode.data(), data, data_size);
@@ -20,9 +20,9 @@ namespace adria
 		{
 			return (void*)bytecode.data();
 		}
-		size_t GetLength() const
+		uint32 GetLength() const
 		{
-			return bytecode.size();
+			return (uint32)bytecode.size();
 		}
 	};
 	struct GfxShaderMacro

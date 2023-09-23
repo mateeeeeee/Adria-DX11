@@ -9,7 +9,6 @@
 #include "ConstantBuffers.h"
 #include "TextureManager.h"
 #include "Graphics/GfxConstantBuffer.h"
-#include "Graphics/GfxShaderProgram.h"
 #include "Graphics/GfxRenderPass.h"
 #include "Graphics/GfxProfiler.h"
 #include "Graphics/GfxBuffer.h"
@@ -45,7 +44,7 @@ namespace adria
 		void NewFrame(Camera const*);
 		void Update(float dt);
 		
-		void SetSceneViewportData(SceneViewport&&);
+		void SetSceneViewportData(SceneViewport const&);
 		void SetProfilerSettings(GfxProfilerSettings const&);
 		void Render(RendererSettings const&);
 
@@ -136,9 +135,9 @@ namespace adria
 		//////////////////////////////////////////////////////////////////
 		bool ibl_textures_generated = false;
 		bool recreate_clusters = true;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> env_srv;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> irmap_srv;
-		Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> brdf_srv;
+		ArcPtr<ID3D11ShaderResourceView> env_srv;
+		ArcPtr<ID3D11ShaderResourceView> irmap_srv;
+		ArcPtr<ID3D11ShaderResourceView> brdf_srv;
 		DirectX::BoundingBox light_bounding_box;
 		DirectX::BoundingFrustum light_bounding_frustum;
 		std::optional<DirectX::BoundingSphere> scene_bounding_sphere = std::nullopt;
@@ -188,23 +187,23 @@ namespace adria
 		std::unique_ptr<GfxBuffer> aabb_wireframe_ib;
 
 		//samplers
-		Microsoft::WRL::ComPtr<ID3D11SamplerState>			linear_wrap_sampler;
-		Microsoft::WRL::ComPtr<ID3D11SamplerState>			point_wrap_sampler;
-		Microsoft::WRL::ComPtr<ID3D11SamplerState>			linear_border_sampler;
-		Microsoft::WRL::ComPtr<ID3D11SamplerState>			linear_clamp_sampler;
-		Microsoft::WRL::ComPtr<ID3D11SamplerState>			point_clamp_sampler;
-		Microsoft::WRL::ComPtr<ID3D11SamplerState>			shadow_sampler;
-		Microsoft::WRL::ComPtr<ID3D11SamplerState>			anisotropic_sampler;
+		ArcPtr<ID3D11SamplerState>			linear_wrap_sampler;
+		ArcPtr<ID3D11SamplerState>			point_wrap_sampler;
+		ArcPtr<ID3D11SamplerState>			linear_border_sampler;
+		ArcPtr<ID3D11SamplerState>			linear_clamp_sampler;
+		ArcPtr<ID3D11SamplerState>			point_clamp_sampler;
+		ArcPtr<ID3D11SamplerState>			shadow_sampler;
+		ArcPtr<ID3D11SamplerState>			anisotropic_sampler;
 		//render states
-		Microsoft::WRL::ComPtr<ID3D11BlendState>			additive_blend;
-		Microsoft::WRL::ComPtr<ID3D11BlendState>			alpha_blend;
-		Microsoft::WRL::ComPtr<ID3D11BlendState>			alpha_to_coverage;
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilState>		leq_depth;
-		Microsoft::WRL::ComPtr<ID3D11DepthStencilState>		no_depth_test;
-		Microsoft::WRL::ComPtr<ID3D11RasterizerState>		scissor_enabled;
-		Microsoft::WRL::ComPtr<ID3D11RasterizerState>		cull_none;
-		Microsoft::WRL::ComPtr<ID3D11RasterizerState>		shadow_depth_bias;
-		Microsoft::WRL::ComPtr<ID3D11RasterizerState>		wireframe;
+		ArcPtr<ID3D11BlendState>			additive_blend;
+		ArcPtr<ID3D11BlendState>			alpha_blend;
+		ArcPtr<ID3D11BlendState>			alpha_to_coverage;
+		ArcPtr<ID3D11DepthStencilState>		leq_depth;
+		ArcPtr<ID3D11DepthStencilState>		no_depth_test;
+		ArcPtr<ID3D11RasterizerState>		scissor_enabled;
+		ArcPtr<ID3D11RasterizerState>		cull_none;
+		ArcPtr<ID3D11RasterizerState>		shadow_depth_bias;
+		ArcPtr<ID3D11RasterizerState>		wireframe;
 
 	private:
 
@@ -234,7 +233,7 @@ namespace adria
 		void UpdateTerrainData();
 		void UpdateVoxelData();
 		void CameraFrustumCulling();
-		void LightFrustumCulling(ELightType type);
+		void LightFrustumCulling(LightType type);
 		
 		//called in render
 		void PassPicking();

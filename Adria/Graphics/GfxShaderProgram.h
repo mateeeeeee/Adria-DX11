@@ -1,7 +1,5 @@
 #pragma once
-#include <wrl.h>
 #include "GfxShaderCompiler.h"
-#include "Core/Defines.h" 
 
 namespace adria
 {
@@ -49,7 +47,7 @@ namespace adria
 			GFX_CHECK_HR(hr);
 		}
 	private:
-		Microsoft::WRL::ComPtr<ID3D11VertexShader> vs = nullptr;
+		ArcPtr<ID3D11VertexShader> vs = nullptr;
 	};
 	class GfxPixelShader final : public GfxShader
 	{
@@ -78,7 +76,7 @@ namespace adria
 			GFX_CHECK_HR(hr);
 		}
 	private:
-		Microsoft::WRL::ComPtr<ID3D11PixelShader> ps = nullptr;
+		ArcPtr<ID3D11PixelShader> ps = nullptr;
 	};
 	class GfxGeometryShader final : public GfxShader
 	{
@@ -107,7 +105,7 @@ namespace adria
 			GFX_CHECK_HR(hr);
 		}
 	private:
-		Microsoft::WRL::ComPtr<ID3D11GeometryShader> gs = nullptr;
+		ArcPtr<ID3D11GeometryShader> gs = nullptr;
 	};
 	class GfxDomainShader final : public GfxShader
 	{
@@ -135,7 +133,7 @@ namespace adria
 			GFX_CHECK_HR(hr);
 		}
 	private:
-		Microsoft::WRL::ComPtr<ID3D11DomainShader> ds = nullptr;
+		ArcPtr<ID3D11DomainShader> ds = nullptr;
 	};
 	class GfxHullShader final : public GfxShader
 	{
@@ -163,7 +161,7 @@ namespace adria
 			GFX_CHECK_HR(hr);
 		}
 	private:
-		Microsoft::WRL::ComPtr<ID3D11HullShader> hs = nullptr;
+		ArcPtr<ID3D11HullShader> hs = nullptr;
 	};
 	class GfxComputeShader final : public GfxShader
 	{
@@ -191,7 +189,7 @@ namespace adria
 			GFX_CHECK_HR(hr);
 		}
 	private:
-		Microsoft::WRL::ComPtr<ID3D11ComputeShader> cs = nullptr;
+		ArcPtr<ID3D11ComputeShader> cs = nullptr;
 	};
 
 	class GfxInputLayout
@@ -201,7 +199,7 @@ namespace adria
 
 		GfxInputLayout(ID3D11Device* device, GfxShaderBlob const& vs_blob, std::vector<D3D11_INPUT_ELEMENT_DESC> const& desc = {})
 		{
-			if (!desc.empty()) device->CreateInputLayout(desc.data(), (UINT)desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(),
+			if (!desc.empty()) device->CreateInputLayout(desc.data(), (uint32)desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(),
 				layout.GetAddressOf());
 			else
 				GfxShaderCompiler::CreateInputLayoutWithReflection(device, vs_blob, layout.GetAddressOf());
@@ -216,7 +214,7 @@ namespace adria
 			context->IASetInputLayout(nullptr);
 		}
 	private:
-		Microsoft::WRL::ComPtr<ID3D11InputLayout> layout;
+		ArcPtr<ID3D11InputLayout> layout;
 	};
 
 	struct GfxShaderProgram

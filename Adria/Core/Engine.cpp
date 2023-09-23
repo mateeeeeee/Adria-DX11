@@ -137,15 +137,15 @@ namespace adria
 
 				if (type == "directional")
 				{
-					light.light_data.type = ELightType::Directional;
+					light.light_data.type = LightType::Directional;
 				}
 				else if (type == "point")
 				{
-					light.light_data.type = ELightType::Point;
+					light.light_data.type = LightType::Point;
 				}
 				else if (type == "spot")
 				{
-					light.light_data.type = ELightType::Spot;
+					light.light_data.type = LightType::Spot;
 				}
 				else
 				{
@@ -261,7 +261,7 @@ namespace adria
 	void Engine::Update(float dt)
 	{
 		camera->Tick(dt);
-		renderer->SetSceneViewportData(std::move(scene_viewport_data));
+		renderer->SetSceneViewportData(scene_viewport_data);
 		renderer->NewFrame(camera.get());
 		renderer->Update(dt);
 	}

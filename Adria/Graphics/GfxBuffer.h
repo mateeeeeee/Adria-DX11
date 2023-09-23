@@ -212,9 +212,9 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		GfxBufferDesc desc;
-		Microsoft::WRL::ComPtr<ID3D11Buffer> resource;
-		std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> srvs;
-		std::vector<Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>> uavs;
+		ArcPtr<ID3D11Buffer> resource;
+		std::vector<ArcPtr<ID3D11ShaderResourceView>> srvs;
+		std::vector<ArcPtr<ID3D11UnorderedAccessView>> uavs;
 
 	private:
 		size_t CreateSubresource(GfxSubresourceType type, GfxBufferSubresourceDesc const& subresource_desc)
@@ -253,8 +253,8 @@ namespace adria
 					srv_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / stride;
 				}
 
-				Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
-				hr = device->CreateShaderResourceView(resource.Get(), &srv_desc, &srv);
+				ArcPtr<ID3D11ShaderResourceView> srv;
+				hr = device->CreateShaderResourceView(resource.Get(), &srv_desc, srv.GetAddressOf());
 
 				if (SUCCEEDED(hr))
 				{
@@ -300,8 +300,8 @@ namespace adria
 					uav_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / stride;
 				}
 
-				Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> uav;
-				hr = device->CreateUnorderedAccessView(resource.Get(), &uav_desc, &uav);
+				ArcPtr<ID3D11UnorderedAccessView> uav;
+				hr = device->CreateUnorderedAccessView(resource.Get(), &uav_desc, uav.GetAddressOf());
 
 				if (SUCCEEDED(hr))
 				{

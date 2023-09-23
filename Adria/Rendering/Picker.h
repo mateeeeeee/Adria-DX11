@@ -43,7 +43,7 @@ namespace adria
 			ID3D11UnorderedAccessView* lights_uav = picking_buffer->UAV();
 			context->CSSetUnorderedAccessViews(0, 1, &lights_uav, nullptr);
 
-			ShaderManager::GetShaderProgram(EShaderProgram::Picker)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::Picker)->Bind(context);
 			context->Dispatch(1, 1, 1);
 
 			ID3D11ShaderResourceView* null_srv[2] = { nullptr };

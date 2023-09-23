@@ -115,12 +115,12 @@ namespace adria
 		float roughness_factor	= 1.0f;
 		float emissive_factor		= 1.0f;
 
-		EMaterialAlphaMode alpha_mode = EMaterialAlphaMode::Opaque;
+		MaterialAlphaMode alpha_mode = MaterialAlphaMode::Opaque;
 		float alpha_cutoff		= 0.5f;
 		bool    double_sided		= false;
 
 		DirectX::XMFLOAT3 diffuse = DirectX::XMFLOAT3(1, 1, 1);
-		EShaderProgram shader = EShaderProgram::Unknown;
+		ShaderProgram shader = ShaderProgram::Unknown;
 	};
 
 	struct COMPONENT Light
@@ -130,7 +130,7 @@ namespace adria
 		DirectX::XMVECTOR color		= DirectX::XMVectorSet(1, 1, 1, 1);
 		float energy = 1.0f;
 		float range = 100.0f;
-		ELightType type = ELightType::Directional;
+		LightType type = LightType::Directional;
 		float outer_cosine = cos(pi<float> / 4);
 		float inner_cosine = cos(pi<float> / 8);
 		bool casts_shadows = false;
@@ -180,9 +180,9 @@ namespace adria
 
 	struct COMPONENT RenderState
 	{
-		EBlendState blend_state = EBlendState::None;
-		EDepthState depth_state = EDepthState::None;
-		ERasterizerState raster_state = ERasterizerState::None;
+		BlendState blend_state = BlendState::None;
+		DepthState depth_state = DepthState::None;
+		RasterizerState raster_state = RasterizerState::None;
 	};
 
 	struct COMPONENT Skybox 
@@ -236,7 +236,7 @@ namespace adria
 		TextureHandle albedo_decal_texture = INVALID_TEXTURE_HANDLE;
 		TextureHandle normal_decal_texture = INVALID_TEXTURE_HANDLE;
 		DirectX::XMMATRIX decal_model_matrix = DirectX::XMMatrixIdentity();
-		EDecalType decal_type = EDecalType::Project_XY;
+		DecalType decal_type = DecalType::Project_XY;
 		bool modify_gbuffer_normals = false;
 	};
 

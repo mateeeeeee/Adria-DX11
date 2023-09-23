@@ -17,9 +17,9 @@ namespace adria
 		static constexpr UINT64 FRAME_COUNT = GFX_BACKBUFFER_COUNT;
 		struct QueryData
 		{
-			Microsoft::WRL::ComPtr<ID3D11Query> disjoint_query;
-			Microsoft::WRL::ComPtr<ID3D11Query> timestamp_query_start;
-			Microsoft::WRL::ComPtr<ID3D11Query> timestamp_query_end;
+			ArcPtr<ID3D11Query> disjoint_query;
+			ArcPtr<ID3D11Query> timestamp_query_start;
+			ArcPtr<ID3D11Query> timestamp_query_end;
 			bool begin_called, end_called;
 		};
 
@@ -32,7 +32,7 @@ namespace adria
 
 	private:
 		ID3D11Device* device;
-		UINT64 current_frame = 0;
+		uint64 current_frame = 0;
 		std::array<std::array<QueryData, (size_t)EProfilerBlock::Count>, FRAME_COUNT> queries;
 	};
 

@@ -104,14 +104,14 @@ namespace adria
 
 		void GetBlobFromCompiledShader(char const* filename, GfxShaderBlob& blob)
 		{
-			Microsoft::WRL::ComPtr<ID3DBlob> pBytecodeBlob;
+			ArcPtr<ID3DBlob> bytecode_blob;
 
 			std::wstring wide_filename = ToWideString(std::string(filename));
-			HRESULT hr = D3DReadFileToBlob(wide_filename.c_str(), &pBytecodeBlob);
+			HRESULT hr = D3DReadFileToBlob(wide_filename.c_str(), bytecode_blob.GetAddressOf());
 			GFX_CHECK_HR(hr);
 
-			blob.bytecode.resize(pBytecodeBlob->GetBufferSize());
-			std::memcpy(blob.GetPointer(), pBytecodeBlob->GetBufferPointer(), blob.GetLength());
+			blob.bytecode.resize(bytecode_blob->GetBufferSize());
+			std::memcpy(blob.GetPointer(), bytecode_blob->GetBufferPointer(), blob.GetLength());
 		}
 
 		void CompileShader(GfxShaderCompileInput const& input,
@@ -150,7 +150,6 @@ namespace adria
 			}
 			entrypoint = input.entrypoint.empty() ? entrypoint : input.entrypoint;
 
-			//do cache thing
 			std::string macro_key;
 			for (GfxShaderMacro const& macro : input.macros)
 			{
@@ -167,13 +166,13 @@ namespace adria
 			if (CheckCache(cache_path, input, output)) return;
 			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.source_file.c_str(), entrypoint.c_str());
 
-			UINT shader_compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
+			uint32 shader_compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
 			if (input.flags & GfxShaderCompileInput::FlagDisableOptimization) shader_compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 			if (input.flags & GfxShaderCompileInput::FlagDebug) shader_compile_flags |= D3DCOMPILE_DEBUG;
 			std::vector<D3D_SHADER_MACRO> defines{};
 			defines.resize(input.macros.size());
 			
-			for (uint32_t i = 0; i < input.macros.size(); ++i)
+			for (uint32 i = 0; i < input.macros.size(); ++i)
 			{
 				defines[i].Name = (char*)malloc(sizeof(input.macros[i].name));
 				defines[i].Definition = (char*)malloc(sizeof(input.macros[i].value));
@@ -183,13 +182,13 @@ namespace adria
 			}
 			defines.push_back({ NULL,NULL });
 
-			Microsoft::WRL::ComPtr<ID3DBlob> bytecode_blob = nullptr;
-			Microsoft::WRL::ComPtr<ID3DBlob> error_blob = nullptr;
+			ArcPtr<ID3DBlob> bytecode_blob = nullptr;
+			ArcPtr<ID3DBlob> error_blob = nullptr;
 
 			CShaderInclude includer(GetParentPath(input.source_file).c_str());
 			HRESULT hr = D3DCompileFromFile(ToWideString(input.source_file).c_str(), defines.data(),
 				&includer, entrypoint.c_str(), model.c_str(), shader_compile_flags, 0, 
-				&bytecode_blob, &error_blob);
+				bytecode_blob.GetAddressOf(), error_blob.GetAddressOf());
 
 			auto const& includes = includer.GetIncludes();
 			if (FAILED(hr) && error_blob) OutputDebugStringA(reinterpret_cast<const char*>(error_blob->GetBufferPointer()));
@@ -212,60 +211,60 @@ namespace adria
 		void CreateInputLayoutWithReflection(ID3D11Device* device, GfxShaderBlob const& blob, ID3D11InputLayout** il)
 		{
 			// Reflect shader info
-			Microsoft::WRL::ComPtr<ID3D11ShaderReflection> pVertexShaderReflection = nullptr;
-			GFX_CHECK_HR(D3DReflect(blob.GetPointer(), blob.GetLength(), IID_ID3D11ShaderReflection, (void**)pVertexShaderReflection.GetAddressOf()));
+			ArcPtr<ID3D11ShaderReflection> vertex_shader_reflection = nullptr;
+			GFX_CHECK_HR(D3DReflect(blob.GetPointer(), blob.GetLength(), IID_ID3D11ShaderReflection, (void**)vertex_shader_reflection.GetAddressOf()));
 
 			// Get shader info
 			D3D11_SHADER_DESC shaderDesc;
-			pVertexShaderReflection->GetDesc(&shaderDesc);
+			vertex_shader_reflection->GetDesc(&shaderDesc);
 
 			// Read input layout description from shader info
 			std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc;
-			for (uint32_t i = 0; i < shaderDesc.InputParameters; i++)
+			for (uint32 i = 0; i < shaderDesc.InputParameters; i++)
 			{
-				D3D11_SIGNATURE_PARAMETER_DESC paramDesc;
-				pVertexShaderReflection->GetInputParameterDesc(i, &paramDesc);
+				D3D11_SIGNATURE_PARAMETER_DESC param_desc;
+				vertex_shader_reflection->GetInputParameterDesc(i, &param_desc);
 
 				// fill out input element desc
-				D3D11_INPUT_ELEMENT_DESC elementDesc{};
-				elementDesc.SemanticName = paramDesc.SemanticName;
-				elementDesc.SemanticIndex = paramDesc.SemanticIndex;
-				elementDesc.InputSlot = 0;
-				elementDesc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
-				elementDesc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-				elementDesc.InstanceDataStepRate = 0;
+				D3D11_INPUT_ELEMENT_DESC element_desc{};
+				element_desc.SemanticName = param_desc.SemanticName;
+				element_desc.SemanticIndex = param_desc.SemanticIndex;
+				element_desc.InputSlot = 0;
+				element_desc.AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+				element_desc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+				element_desc.InstanceDataStepRate = 0;
 
 				// determine DXGI format
-				if (paramDesc.Mask == 1)
+				if (param_desc.Mask == 1)
 				{
-					if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32_UINT;
-					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32_SINT;
-					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) element_desc.Format = DXGI_FORMAT_R32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) element_desc.Format = DXGI_FORMAT_R32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) element_desc.Format = DXGI_FORMAT_R32_FLOAT;
 				}
-				else if (paramDesc.Mask <= 3)
+				else if (param_desc.Mask <= 3)
 				{
-					if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32_UINT;
-					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32_SINT;
-					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) element_desc.Format = DXGI_FORMAT_R32G32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) element_desc.Format = DXGI_FORMAT_R32G32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) element_desc.Format = DXGI_FORMAT_R32G32_FLOAT;
 				}
-				else if (paramDesc.Mask <= 7)
+				else if (param_desc.Mask <= 7)
 				{
-					if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_UINT;
-					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_SINT;
-					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) element_desc.Format = DXGI_FORMAT_R32G32B32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) element_desc.Format = DXGI_FORMAT_R32G32B32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) element_desc.Format = DXGI_FORMAT_R32G32B32_FLOAT;
 				}
-				else if (paramDesc.Mask <= 15)
+				else if (param_desc.Mask <= 15)
 				{
-					if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
-					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_SINT;
-					else if (paramDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) elementDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) element_desc.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) element_desc.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+					else if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) element_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 				}
 
-				inputLayoutDesc.push_back(elementDesc);
+				inputLayoutDesc.push_back(element_desc);
 			}
 
 			if (inputLayoutDesc.empty()) return;
-			HRESULT hr = device->CreateInputLayout(inputLayoutDesc.data(), static_cast<UINT>(inputLayoutDesc.size()), blob.GetPointer(), blob.GetLength(), il);
+			HRESULT hr = device->CreateInputLayout(inputLayoutDesc.data(), static_cast<uint32>(inputLayoutDesc.size()), blob.GetPointer(), blob.GetLength(), il);
 			GFX_CHECK_HR(hr);
 		}
 	}

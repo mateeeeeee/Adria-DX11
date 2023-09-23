@@ -171,12 +171,12 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		Microsoft::WRL::ComPtr<ID3D11Resource> resource;
+		ArcPtr<ID3D11Resource> resource;
 		GfxTextureDesc desc;
-		std::vector<Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> srvs;
-		std::vector<Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView>> uavs;
-		std::vector<Microsoft::WRL::ComPtr<ID3D11RenderTargetView>> rtvs;
-		std::vector<Microsoft::WRL::ComPtr<ID3D11DepthStencilView>> dsvs;
+		std::vector<ArcPtr<ID3D11ShaderResourceView>> srvs;
+		std::vector<ArcPtr<ID3D11UnorderedAccessView>> uavs;
+		std::vector<ArcPtr<ID3D11RenderTargetView>> rtvs;
+		std::vector<ArcPtr<ID3D11DepthStencilView>> dsvs;
 
 	private:
 		[[maybe_unused]] size_t CreateSubresource(GfxSubresourceType type, GfxTextureSubresourceDesc const& view_desc)
@@ -289,8 +289,8 @@ namespace adria
 					srv_desc.Texture3D.MipLevels = mip_count;
 				}
 
-				Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
-				HRESULT hr = device->CreateShaderResourceView(resource.Get(), &srv_desc, &srv);
+				ArcPtr<ID3D11ShaderResourceView> srv;
+				HRESULT hr = device->CreateShaderResourceView(resource.Get(), &srv_desc, srv.GetAddressOf());
 				if (SUCCEEDED(hr))
 				{
 					srvs.push_back(srv);
@@ -359,8 +359,8 @@ namespace adria
 					uav_desc.Texture3D.WSize = -1;
 				}
 
-				Microsoft::WRL::ComPtr<ID3D11UnorderedAccessView> uav;
-				HRESULT hr = device->CreateUnorderedAccessView(resource.Get(), &uav_desc, &uav);
+				ArcPtr<ID3D11UnorderedAccessView> uav;
+				HRESULT hr = device->CreateUnorderedAccessView(resource.Get(), &uav_desc, uav.GetAddressOf());
 				if (SUCCEEDED(hr))
 				{
 					uavs.push_back(uav);
@@ -445,8 +445,8 @@ namespace adria
 					rtv_desc.Texture3D.WSize = -1;
 				}
 
-				Microsoft::WRL::ComPtr<ID3D11RenderTargetView> rtv;
-				HRESULT hr = device->CreateRenderTargetView(resource.Get(), &rtv_desc, &rtv);
+				ArcPtr<ID3D11RenderTargetView> rtv;
+				HRESULT hr = device->CreateRenderTargetView(resource.Get(), &rtv_desc, rtv.GetAddressOf());
 				if (SUCCEEDED(hr))
 				{
 					rtvs.push_back(rtv);
@@ -524,8 +524,8 @@ namespace adria
 					}
 				}
 
-				Microsoft::WRL::ComPtr<ID3D11DepthStencilView> dsv;
-				HRESULT hr = device->CreateDepthStencilView(resource.Get(), &dsv_desc, &dsv);
+				ArcPtr<ID3D11DepthStencilView> dsv;
+				HRESULT hr = device->CreateDepthStencilView(resource.Get(), &dsv_desc, dsv.GetAddressOf());
 				if (SUCCEEDED(hr))
 				{
 					dsvs.push_back(dsv);

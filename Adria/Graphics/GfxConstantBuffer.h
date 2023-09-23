@@ -1,13 +1,10 @@
 #pragma once
 #include <d3d11.h>
+#include "GfxDefines.h"
 #include "GfxShaderCompiler.h"
-#include "Core/CoreTypes.h" 
-#include "Core/Defines.h" 
-
 
 namespace adria
 {
-
 	template<typename CBuffer>
 	class GfxConstantBuffer
 	{
@@ -31,7 +28,7 @@ namespace adria
 		}
 
 	private:
-		Microsoft::WRL::ComPtr<ID3D11Buffer> buffer = nullptr;
+		ArcPtr<ID3D11Buffer> buffer = nullptr;
 		bool dynamic;
 	};
 

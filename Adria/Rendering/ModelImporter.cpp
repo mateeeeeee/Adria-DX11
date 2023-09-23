@@ -432,23 +432,23 @@ namespace adria
 					material.emissive_texture = g_TextureManager.LoadTexture(ToWideString(texemissive));
 					material.emissive_factor = (float)gltf_material.emissiveFactor[0];
 				}
-				material.shader = EShaderProgram::GBufferPBR;
+				material.shader = ShaderProgram::GBufferPBR;
 				material.alpha_cutoff = (float)gltf_material.alphaCutoff;
 				material.double_sided = gltf_material.doubleSided;
 				if (gltf_material.alphaMode == "OPAQUE")
 				{
-					material.alpha_mode = EMaterialAlphaMode::Opaque;
-					material.shader = EShaderProgram::GBufferPBR;
+					material.alpha_mode = MaterialAlphaMode::Opaque;
+					material.shader = ShaderProgram::GBufferPBR;
 				}
 				else if (gltf_material.alphaMode == "BLEND")
 				{
-					material.alpha_mode = EMaterialAlphaMode::Blend;
-					material.shader = EShaderProgram::GBufferPBR_Mask;
+					material.alpha_mode = MaterialAlphaMode::Blend;
+					material.shader = ShaderProgram::GBufferPBR_Mask;
 				}
 				else if (gltf_material.alphaMode == "MASK")
 				{
-					material.alpha_mode = EMaterialAlphaMode::Mask;
-					material.shader = EShaderProgram::GBufferPBR_Mask;
+					material.alpha_mode = MaterialAlphaMode::Mask;
+					material.shader = ShaderProgram::GBufferPBR_Mask;
 				}
 
 				reg.emplace<Material>(e, material);
@@ -778,7 +778,7 @@ namespace adria
     {
         entity light = reg.create();
 
-        if (params.light_data.type == ELightType::Directional)
+        if (params.light_data.type == LightType::Directional)
             const_cast<LightParameters&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
   
         reg.emplace<Light>(light, params.light_data);
@@ -810,13 +810,13 @@ namespace adria
 
             if (params.light_texture.has_value())
                 material.albedo_texture = g_TextureManager.LoadTexture(params.light_texture.value()); //
-            else if(params.light_data.type == ELightType::Directional)
+            else if(params.light_data.type == LightType::Directional)
                 material.albedo_texture = g_TextureManager.LoadTexture(L"Resources/Textures/sun.png");
 
-            if (params.light_data.type == ELightType::Directional)
-                material.shader = EShaderProgram::Sun;
+            if (params.light_data.type == LightType::Directional)
+                material.shader = ShaderProgram::Sun;
             else if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
-                material.shader = EShaderProgram::Billboard;
+                material.shader = ShaderProgram::Billboard;
             else 
             { 
                 ADRIA_LOG(ERROR, "Light with quad mesh needs diffuse texture!"); 
@@ -827,7 +827,7 @@ namespace adria
             auto translation_matrix = XMMatrixTranslationFromVector(params.light_data.position);
             reg.emplace<Transform>(light, translation_matrix, translation_matrix);
             //sun rendered in separate pass
-            if (params.light_data.type != ELightType::Directional) reg.emplace<Forward>(light, true);
+            if (params.light_data.type != LightType::Directional) reg.emplace<Forward>(light, true);
         }
         else if (params.mesh_type == LightMesh::Cube)
         {
@@ -896,13 +896,13 @@ namespace adria
 
         switch (params.light_data.type)
         {
-        case ELightType::Directional:
+        case LightType::Directional:
             reg.emplace<Tag>(light, "Directional Light");
             break;
-        case ELightType::Spot:
+        case LightType::Spot:
             reg.emplace<Tag>(light, "Spot Light");
             break;
-        case ELightType::Point:
+        case LightType::Point:
             reg.emplace<Tag>(light, "Point Light");
             break;
         }
@@ -915,7 +915,7 @@ namespace adria
 
         Material ocean_material{};
         ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
-        ocean_material.shader = EShaderProgram::Unknown; 
+        ocean_material.shader = ShaderProgram::Unknown; 
 
         Ocean ocean_component{};
         for (auto ocean_chunk : ocean_chunks)
@@ -1021,7 +1021,7 @@ namespace adria
 		Material material{};
 		material.albedo_texture = g_TextureManager.LoadTexture(params.mesh_texture_pair.second);
 		material.albedo_factor = 1.0f;
-		material.shader = EShaderProgram::GBuffer_Foliage;
+		material.shader = ShaderProgram::GBuffer_Foliage;
 		reg.emplace<Material>(foliage, material);
 		reg.emplace<Foliage>(foliage);
 
@@ -1101,7 +1101,7 @@ namespace adria
 			Material material{};
 			material.albedo_texture = g_TextureManager.LoadTexture(texture_path + diffuse_textures[i]);
 			material.albedo_factor = 1.0f;
-			material.shader = EShaderProgram::GBuffer_Foliage;
+			material.shader = ShaderProgram::GBuffer_Foliage;
 			reg.emplace<Material>(tree, material);
 			reg.emplace<Foliage>(tree);
 
@@ -1162,15 +1162,15 @@ namespace adria
 		XMStoreFloat3(&abs_normal, XMVectorAbs(N));
 		if (abs_normal.x >= abs_normal.y && abs_normal.x >= abs_normal.z)
 		{
-			decal.decal_type = EDecalType::Project_YZ;
+			decal.decal_type = DecalType::Project_YZ;
 		}
 		else if (abs_normal.y >= abs_normal.x && abs_normal.y >= abs_normal.z)
 		{
-			decal.decal_type = EDecalType::Project_XZ;
+			decal.decal_type = DecalType::Project_XZ;
 		}
 		else
 		{
-			decal.decal_type = EDecalType::Project_XY;
+			decal.decal_type = DecalType::Project_XY;
 		}
         
         entity decal_entity = reg.create();

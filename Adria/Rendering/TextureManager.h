@@ -2,7 +2,6 @@
 #include <string>
 #include <array>
 #include <unordered_map>
-#include <variant>
 #include "Graphics/GfxDevice.h"
 #include "Utilities/Singleton.h"
 
@@ -31,7 +30,7 @@ namespace adria
 		GfxDevice* gfx;
 		bool mipmaps = true;
 		TextureHandle handle = INVALID_TEXTURE_HANDLE;
-		std::unordered_map<TextureHandle, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> texture_map{};
+		std::unordered_map<TextureHandle, ArcPtr<ID3D11ShaderResourceView>> texture_map{};
 		std::unordered_map<std::wstring, TextureHandle> loaded_textures{};
 
 	private:
