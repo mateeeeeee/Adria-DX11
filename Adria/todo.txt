@@ -1,3 +1,2 @@
-- remove wrl com ptr
-- replace dxmath with simple math
-- tidy up shaders a bit?
+- add some gfx abstractions
+- tidy up shaders a bit
