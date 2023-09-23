@@ -138,10 +138,10 @@ namespace adria
 		ArcPtr<ID3D11ShaderResourceView> env_srv;
 		ArcPtr<ID3D11ShaderResourceView> irmap_srv;
 		ArcPtr<ID3D11ShaderResourceView> brdf_srv;
-		DirectX::BoundingBox light_bounding_box;
-		DirectX::BoundingFrustum light_bounding_frustum;
-		std::optional<DirectX::BoundingSphere> scene_bounding_sphere = std::nullopt;
-		std::array<DirectX::XMVECTOR, SSAO_KERNEL_SIZE> ssao_kernel{};
+		BoundingBox light_bounding_box;
+		BoundingFrustum light_bounding_frustum;
+		std::optional<BoundingSphere> scene_bounding_sphere = std::nullopt;
+		std::array<Vector4, SSAO_KERNEL_SIZE> ssao_kernel{};
 		std::vector<ID3D11ShaderResourceView*> lens_flare_textures;
 		std::vector<ID3D11ShaderResourceView*> clouds_textures;
 		TextureHandle hex_bokeh_handle = INVALID_TEXTURE_HANDLE;

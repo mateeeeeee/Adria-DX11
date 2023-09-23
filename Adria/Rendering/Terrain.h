@@ -13,7 +13,7 @@ namespace adria
 
 		float HeightAt(float x, float z) const;
 		
-		DirectX::XMFLOAT3 NormalAt(float x, float z) const;
+		Vector3 NormalAt(float x, float z) const;
 
 		std::pair<float, float> TileSizes() const 
 		{
@@ -31,7 +31,7 @@ namespace adria
 		float tile_size_z;
 		uint64 tile_count_x;
 		uint64 tile_count_z;
-		DirectX::XMFLOAT3 offset;
+		Vector3 offset;
 
 	private:
 

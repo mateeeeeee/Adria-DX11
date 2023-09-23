@@ -12,8 +12,8 @@ namespace adria
 
 	struct PickingData
 	{
-		DirectX::XMFLOAT4 position = DirectX::XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-		DirectX::XMFLOAT4 normal   = DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 0.0f);
+		Vector4 position = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+		Vector4 normal = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
 	};
 
 	class Picker

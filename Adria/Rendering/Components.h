@@ -16,15 +16,15 @@ namespace adria
 {
 	struct COMPONENT Transform
 	{
-		DirectX::XMMATRIX starting_transform = DirectX::XMMatrixIdentity();
-		DirectX::XMMATRIX current_transform = DirectX::XMMatrixIdentity();
+		Matrix starting_transform = Matrix::Identity;
+		Matrix current_transform = Matrix::Identity;
 	};
 
 	struct COMPONENT Relationship
 	{
 		static constexpr size_t MAX_CHILDREN = 2048;
 		tecs::entity parent = tecs::null_entity;
-		size_t children_count = 0;
+		uint32 children_count = 0;
 		tecs::entity children[MAX_CHILDREN] = { tecs::null_entity };
 	};
 
@@ -119,15 +119,15 @@ namespace adria
 		float alpha_cutoff		= 0.5f;
 		bool    double_sided		= false;
 
-		DirectX::XMFLOAT3 diffuse = DirectX::XMFLOAT3(1, 1, 1);
+		Vector3 diffuse = Vector3(1, 1, 1);
 		ShaderProgram shader = ShaderProgram::Unknown;
 	};
 
 	struct COMPONENT Light
 	{
-		DirectX::XMVECTOR position	= DirectX::XMVectorSet(0, 10, 0, 1);
-		DirectX::XMVECTOR direction	= DirectX::XMVectorSet(0, -1, 0, 0);
-		DirectX::XMVECTOR color		= DirectX::XMVectorSet(1, 1, 1, 1);
+		Vector4 position = Vector4(0, 10, 0, 1);
+		Vector4 direction = Vector4(0, -1, 0, 0);
+		Vector4 color = Vector4(1, 1, 1, 1);
 		float energy = 1.0f;
 		float range = 100.0f;
 		LightType type = LightType::Directional;
@@ -152,7 +152,7 @@ namespace adria
 
 	struct COMPONENT AABB
 	{
-		DirectX::BoundingBox bounding_box;
+		BoundingBox bounding_box;
 		bool camera_visible = true;
 		bool light_visible = true;
 		bool skip_culling = false;
@@ -161,7 +161,7 @@ namespace adria
 
 		void UpdateBuffer(GfxDevice* gfx)
 		{
-			DirectX::XMFLOAT3 corners[8];
+			Vector3 corners[8];
 			bounding_box.GetCorners(corners);
 			SimpleVertex vertices[] =
 			{
@@ -200,7 +200,7 @@ namespace adria
 	struct COMPONENT TerrainComponent
 	{
 		inline static std::unique_ptr<Terrain> terrain;
-		inline static DirectX::XMFLOAT2 texture_scale;
+		inline static Vector2 texture_scale;
 		TextureHandle sand_texture = INVALID_TEXTURE_HANDLE;
 		TextureHandle grass_texture = INVALID_TEXTURE_HANDLE;
 		TextureHandle rock_texture = INVALID_TEXTURE_HANDLE;
@@ -211,9 +211,9 @@ namespace adria
 	struct COMPONENT Emitter
 	{
 		TextureHandle		particle_texture = INVALID_TEXTURE_HANDLE;
-		DirectX::XMFLOAT4	position = DirectX::XMFLOAT4(0, 0, 0, 0);
-		DirectX::XMFLOAT4	velocity = DirectX::XMFLOAT4(0, 5, 0, 0);
-		DirectX::XMFLOAT4	position_variance = DirectX::XMFLOAT4(0, 0, 0, 0);
+		Vector4	position		  = Vector4(0, 0, 0, 0);
+		Vector4	velocity		  = Vector4(0, 5, 0, 0);
+		Vector4	position_variance = Vector4(0, 0, 0, 0);
 		int32					number_to_emit = 0;
 		float					particle_lifespan = 5.0f;
 		float					start_size = 10.0f;
@@ -235,7 +235,7 @@ namespace adria
 	{
 		TextureHandle albedo_decal_texture = INVALID_TEXTURE_HANDLE;
 		TextureHandle normal_decal_texture = INVALID_TEXTURE_HANDLE;
-		DirectX::XMMATRIX decal_model_matrix = DirectX::XMMatrixIdentity();
+		Matrix decal_model_matrix = Matrix::Identity;
 		DecalType decal_type = DecalType::Project_XY;
 		bool modify_gbuffer_normals = false;
 	};

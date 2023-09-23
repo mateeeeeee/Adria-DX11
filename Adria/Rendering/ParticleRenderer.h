@@ -20,16 +20,16 @@ namespace adria
 
 		struct GPUParticleA
 		{
-			DirectX::XMFLOAT4	TintAndAlpha;	
+			Vector4		TintAndAlpha;
 			float		Rotation;					
 			uint32		IsSleeping;					
 		};
 		struct GPUParticleB
 		{
-			DirectX::XMFLOAT3	Position;		
+			Vector3		Position;
 			float		Mass;						
 
-			DirectX::XMFLOAT3	Velocity;		
+			Vector3		Velocity;
 			float		Lifespan;					
 
 			float		DistanceToEye;				
@@ -39,9 +39,9 @@ namespace adria
 		};
 		struct EmitterCBuffer
 		{
-			DirectX::XMFLOAT4	EmitterPosition;
-			DirectX::XMFLOAT4	EmitterVelocity;
-			DirectX::XMFLOAT4	PositionVariance;
+			Vector4	EmitterPosition;
+			Vector4	EmitterVelocity;
+			Vector4	PositionVariance;
 
 			int32	MaxParticlesThisFrame;
 			float	ParticleLifeSpan;
@@ -62,7 +62,7 @@ namespace adria
 		};
 		struct ViewSpacePositionRadius
 		{
-			DirectX::XMFLOAT3 viewspace_position;
+			Vector3 viewspace_position;
 			float radius;
 		};
 		struct SortDispatchInfo
@@ -70,7 +70,7 @@ namespace adria
 			int32 x, y, z, w;
 		};
 	public:
-		ParticleRenderer(GfxDevice* gfx);
+		explicit ParticleRenderer(GfxDevice* gfx);
 
 		void Update(float dt, Emitter& emitter_params);
 

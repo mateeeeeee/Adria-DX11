@@ -54,7 +54,7 @@ namespace adria
 			Vector3 const min_extents = -max_extents;
 			Vector3 const cascade_extents = max_extents - min_extents;
 
-			Vector3 light_dir = XMVector3Normalize(light.direction);
+			Vector4 light_dir = light.direction; light_dir.Normalize();
 			Matrix V = XMMatrixLookAtLH(frustum_center, frustum_center + 1.0f * light_dir * radius, Vector3::Up);
 
 			float l = min_extents.x;
@@ -413,18 +413,18 @@ namespace adria
 
 		camera = _camera;
 
-		frame_cbuf_data.global_ambient = XMVECTOR{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1.0f };
+		frame_cbuf_data.global_ambient = Vector4{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1.0f };
 
 		frame_cbuf_data.camera_near = camera->Near();
 		frame_cbuf_data.camera_far = camera->Far();
-		frame_cbuf_data.camera_position = camera->Position();
-		frame_cbuf_data.camera_forward = camera->Forward();
+		frame_cbuf_data.camera_position = Vector4(camera->Position());
+		frame_cbuf_data.camera_forward = Vector4(camera->Forward());
 		frame_cbuf_data.view = camera->View();
 		frame_cbuf_data.projection = camera->Proj();
 		frame_cbuf_data.viewprojection = camera->ViewProj();
-		frame_cbuf_data.inverse_view = XMMatrixInverse(nullptr, camera->View());
-		frame_cbuf_data.inverse_projection = XMMatrixInverse(nullptr, camera->Proj());
-		frame_cbuf_data.inverse_view_projection = XMMatrixInverse(nullptr, camera->ViewProj());
+		frame_cbuf_data.inverse_view = camera->View().Invert();
+		frame_cbuf_data.inverse_projection = camera->Proj().Invert();
+		frame_cbuf_data.inverse_view_projection = camera->ViewProj().Invert();
 		frame_cbuf_data.screen_resolution_x = (float)width;
 		frame_cbuf_data.screen_resolution_y = (float)height;
 		frame_cbuf_data.mouse_normalized_coords_x = (current_scene_viewport.mouse_position_x - current_scene_viewport.scene_viewport_pos_x) / current_scene_viewport.scene_viewport_size_x;
@@ -544,14 +544,14 @@ namespace adria
 		//for sky
 		const SimpleVertex cube_vertices[8] = 
 		{
-			XMFLOAT3{ -0.5f, -0.5f,  0.5f },
-			XMFLOAT3{  0.5f, -0.5f,  0.5f },
-			XMFLOAT3{  0.5f,  0.5f,  0.5f },
-			XMFLOAT3{ -0.5f,  0.5f,  0.5f },
-			XMFLOAT3{ -0.5f, -0.5f, -0.5f },
-			XMFLOAT3{  0.5f, -0.5f, -0.5f },
-			XMFLOAT3{  0.5f,  0.5f, -0.5f },
-			XMFLOAT3{ -0.5f,  0.5f, -0.5f }
+			Vector3{ -0.5f, -0.5f,  0.5f },
+			Vector3{  0.5f, -0.5f,  0.5f },
+			Vector3{  0.5f,  0.5f,  0.5f },
+			Vector3{ -0.5f,  0.5f,  0.5f },
+			Vector3{ -0.5f, -0.5f, -0.5f },
+			Vector3{  0.5f, -0.5f, -0.5f },
+			Vector3{  0.5f,  0.5f, -0.5f },
+			Vector3{ -0.5f,  0.5f, -0.5f }
 		};
 
 		const uint16 cube_indices[36] = 
@@ -820,14 +820,13 @@ namespace adria
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
 			for (uint32 i = 0; i < ssao_kernel.size(); i++)
 			{
-				XMFLOAT4 offset = XMFLOAT4(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
-				XMVECTOR _offset = XMLoadFloat4(&offset);
-				_offset = XMVector4Normalize(_offset);
-				_offset *= rand_float();
+				Vector4 offset(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
+				offset.Normalize();
+				offset *= rand_float();
 				float scale = static_cast<float>(i) / ssao_kernel.size();
 				scale = std::lerp(0.1f, 1.0f, scale * scale);
-				_offset *= scale;
-				ssao_kernel[i] = _offset;
+				offset *= scale;
+				ssao_kernel[i] = offset;
 			}
 
 			for (int32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
@@ -1561,7 +1560,7 @@ namespace adria
 			for (auto e : ocean_view)
 			{
 				auto& material = ocean_view.get<Material>(e);
-				material.diffuse = XMFLOAT3(renderer_settings.ocean_color);
+				material.diffuse = Vector3(renderer_settings.ocean_color);
 			}
 		}
 
@@ -1717,15 +1716,15 @@ namespace adria
 
 			if (light_data.type == LightType::Directional && light_data.active)
 			{
-				weather_cbuf_data.light_dir = XMVector3Normalize(-light_data.direction);
+				weather_cbuf_data.light_dir = -light_data.direction; weather_cbuf_data.light_dir.Normalize();
 				weather_cbuf_data.light_color = light_data.color * light_data.energy;
 				break;
 			}
 		}
 
-		weather_cbuf_data.sky_color = XMVECTOR{ renderer_settings.sky_color[0], renderer_settings.sky_color[1],renderer_settings.sky_color[2], 1.0f };
-		weather_cbuf_data.ambient_color = XMVECTOR{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1],renderer_settings.ambient_color[2], 1.0f };
-		weather_cbuf_data.wind_dir = XMVECTOR{ renderer_settings.wind_direction[0], 0.0f, renderer_settings.wind_direction[1], 0.0f };
+		weather_cbuf_data.sky_color = Vector4{ renderer_settings.sky_color[0], renderer_settings.sky_color[1],renderer_settings.sky_color[2], 1.0f };
+		weather_cbuf_data.ambient_color = Vector4{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1],renderer_settings.ambient_color[2], 1.0f };
+		weather_cbuf_data.wind_dir = Vector4{ renderer_settings.wind_direction[0], 0.0f, renderer_settings.wind_direction[1], 0.0f };
 		weather_cbuf_data.wind_speed = renderer_settings.wind_speed;
 		weather_cbuf_data.time = total_time;
 		weather_cbuf_data.crispiness	= renderer_settings.crispiness;
@@ -1737,20 +1736,19 @@ namespace adria
 		weather_cbuf_data.density_factor = renderer_settings.density_factor;
 		weather_cbuf_data.cloud_type = renderer_settings.cloud_type;
 
-		XMFLOAT3 sun_dir;
-		XMStoreFloat3(&sun_dir, XMVector3Normalize(weather_cbuf_data.light_dir));
+		Vector3 sun_dir = Vector3(&weather_cbuf_data.light_dir.x); sun_dir.Normalize();
 		SkyParameters sky_params = CalculateSkyParameters(renderer_settings.turbidity, renderer_settings.ground_albedo, sun_dir);
 
-		weather_cbuf_data.A = sky_params[(size_t)ESkyParams::A];
-		weather_cbuf_data.B = sky_params[(size_t)ESkyParams::B];
-		weather_cbuf_data.C = sky_params[(size_t)ESkyParams::C];
-		weather_cbuf_data.D = sky_params[(size_t)ESkyParams::D];
-		weather_cbuf_data.E = sky_params[(size_t)ESkyParams::E];
-		weather_cbuf_data.F = sky_params[(size_t)ESkyParams::F];
-		weather_cbuf_data.G = sky_params[(size_t)ESkyParams::G];
-		weather_cbuf_data.H = sky_params[(size_t)ESkyParams::H];
-		weather_cbuf_data.I = sky_params[(size_t)ESkyParams::I];
-		weather_cbuf_data.Z = sky_params[(size_t)ESkyParams::Z];
+		weather_cbuf_data.A = sky_params[(size_t)ESkyParam_A];
+		weather_cbuf_data.B = sky_params[(size_t)ESkyParam_B];
+		weather_cbuf_data.C = sky_params[(size_t)ESkyParam_C];
+		weather_cbuf_data.D = sky_params[(size_t)ESkyParam_D];
+		weather_cbuf_data.E = sky_params[(size_t)ESkyParam_E];
+		weather_cbuf_data.F = sky_params[(size_t)ESkyParam_F];
+		weather_cbuf_data.G = sky_params[(size_t)ESkyParam_G];
+		weather_cbuf_data.H = sky_params[(size_t)ESkyParam_H];
+		weather_cbuf_data.I = sky_params[(size_t)ESkyParam_I];
+		weather_cbuf_data.Z = sky_params[(size_t)ESkyParam_Z];
 
 		weather_cbuffer->Update(context, weather_cbuf_data);
 	}
@@ -1811,11 +1809,11 @@ namespace adria
 	{
 		float const f = 0.05f / renderer_settings.voxel_size;
 
-		XMFLOAT3 cam_pos;
-		XMStoreFloat3(&cam_pos, camera->Position());
-		XMFLOAT3 center = XMFLOAT3(floorf(cam_pos.x * f) / f, floorf(cam_pos.y * f) / f, floorf(cam_pos.z * f) / f);
+		Vector3 cam_pos = camera->Position();
+		Vector3 center(floorf(cam_pos.x * f) / f, floorf(cam_pos.y * f) / f, floorf(cam_pos.z * f) / f);
 
-		if (XMVectorGetX(XMVector3LengthSq(XMVectorSet(renderer_settings.voxel_center_x, renderer_settings.voxel_center_y, renderer_settings.voxel_center_z, 1.0) - XMLoadFloat3(&center))) > 0.0001f)
+		Vector3 voxel_center(renderer_settings.voxel_center_x, renderer_settings.voxel_center_y, renderer_settings.voxel_center_z);
+		if(Vector3::DistanceSquared(voxel_center, center) > 0.01f)
 		{
 			renderer_settings.voxel_center_x = center.x;
 			renderer_settings.voxel_center_y = center.y;
@@ -1919,14 +1917,14 @@ namespace adria
 				{
 					auto [mesh, transform, material] = gbuffer_view.get<Mesh, Transform, Material>(e);
 
-					XMMATRIX parent_transform = XMMatrixIdentity();
+					Matrix parent_transform = Matrix::Identity;
 					if (Relationship* relationship = reg.get_if<Relationship>(e))
 					{
 						if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 					}
 					
 					object_cbuf_data.model = transform.current_transform * parent_transform;
-					object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+					object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
 					object_cbuffer->Update(context, object_cbuf_data);
 
 					material_cbuf_data.albedo_factor = material.albedo_factor;
@@ -2101,7 +2099,7 @@ namespace adria
 			for (uint32 i = 0; i < ssao_kernel.size(); ++i)
 				postprocess_cbuf_data.samples[i] = ssao_kernel[i];
 
-			postprocess_cbuf_data.noise_scale = XMFLOAT2((float)width / 8, (float)height / 8);
+			postprocess_cbuf_data.noise_scale = Vector2((float)width / 8, (float)height / 8);
 			postprocess_cbuf_data.ssao_power = renderer_settings.ssao_power;
 			postprocess_cbuf_data.ssao_radius = renderer_settings.ssao_radius;
 			postprocess_cbuffer->Update(context, postprocess_cbuf_data);
@@ -2131,7 +2129,7 @@ namespace adria
 		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(7, 1, srv_null);
 		{
-			postprocess_cbuf_data.noise_scale = XMFLOAT2((float)width / 8, (float)height / 8);
+			postprocess_cbuf_data.noise_scale = Vector2((float)width / 8, (float)height / 8);
 			postprocess_cbuf_data.hbao_r2 = renderer_settings.hbao_radius * renderer_settings.hbao_radius;
 			postprocess_cbuf_data.hbao_radius_to_screen = renderer_settings.hbao_radius * 0.5f * float(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
 			postprocess_cbuf_data.hbao_power = renderer_settings.hbao_power;
@@ -2219,9 +2217,9 @@ namespace adria
 				light_cbuf_data.sscs_max_ray_distance = light_data.sscs_max_ray_distance;
 				light_cbuf_data.sscs_max_depth_distance = light_data.sscs_max_depth_distance;
 				
-				XMMATRIX camera_view = camera->View();
-				light_cbuf_data.position = XMVector4Transform(light_cbuf_data.position, camera_view);
-				light_cbuf_data.direction = XMVector4Transform(light_cbuf_data.direction, camera_view);
+				Matrix camera_view = camera->View();
+				light_cbuf_data.position = Vector4::Transform(light_cbuf_data.position, camera_view);
+				light_cbuf_data.direction = Vector4::Transform(light_cbuf_data.direction, camera_view);
 				light_cbuffer->Update(context, light_cbuf_data);
 			}
 
@@ -2351,9 +2349,9 @@ namespace adria
 			light_cbuf_data.range = light.range;
 			light_cbuf_data.volumetric_strength = light.volumetric_strength;
 				
-			XMMATRIX camera_view = camera->View();
-			light_cbuf_data.position = XMVector4Transform(light_cbuf_data.position, camera_view);
-			light_cbuf_data.direction = XMVector4Transform(light_cbuf_data.direction, camera_view);
+			Matrix camera_view = camera->View();
+			light_cbuf_data.position = Vector4::Transform(light_cbuf_data.position, camera_view);
+			light_cbuf_data.direction = Vector4::Transform(light_cbuf_data.direction, camera_view);
 			light_cbuffer->Update(context, light_cbuf_data);
 
 			PassVolumetric(light);
@@ -2441,7 +2439,7 @@ namespace adria
 				light_cbuf_data.range = light.range;
 				light_cbuf_data.volumetric_strength = light.volumetric_strength;
 
-				XMMATRIX camera_view = camera->View();
+				Matrix camera_view = camera->View();
 				light_cbuf_data.position = XMVector4Transform(light_cbuf_data.position, camera_view);
 				light_cbuf_data.direction = XMVector4Transform(light_cbuf_data.direction, camera_view);
 				light_cbuffer->Update(context, light_cbuf_data);
@@ -2521,7 +2519,7 @@ namespace adria
 			if (!aabb.camera_visible) continue;
 
 			object_cbuf_data.model = transform.current_transform;
-			object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+			object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
 			object_cbuffer->Update(context, object_cbuf_data);
 
 			material_cbuf_data.albedo_factor = material.albedo_factor;
@@ -2744,7 +2742,7 @@ namespace adria
 		shadow_cbuf_data.lightviewprojection = V * P;
 		shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
-		shadow_cbuf_data.shadow_matrices[0] = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
+		shadow_cbuf_data.shadow_matrices[0] = camera->View().Invert() * shadow_cbuf_data.lightviewprojection;
 		shadow_cbuffer->Update(context, shadow_cbuf_data);
 
 		ID3D11ShaderResourceView* null_srv[1] = { nullptr };
@@ -2771,7 +2769,7 @@ namespace adria
 		shadow_cbuf_data.lightviewprojection = V * P;
 		shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
-		shadow_cbuf_data.shadow_matrices[0] = XMMatrixInverse(nullptr, camera->View()) * shadow_cbuf_data.lightviewprojection;
+		shadow_cbuf_data.shadow_matrices[0] = camera->View().Invert() * shadow_cbuf_data.lightviewprojection;
 		shadow_cbuffer->Update(context, shadow_cbuf_data);
 
 		ID3D11ShaderResourceView* null_srv[1] = { nullptr };
@@ -2878,14 +2876,14 @@ namespace adria
 					auto const& transform = shadow_view.get<Transform>(e);
 					auto const& mesh = shadow_view.get<Mesh>(e);
 
-					XMMATRIX parent_transform = XMMatrixIdentity();
+					Matrix parent_transform = Matrix::Identity;
 					if (Relationship* relationship = reg.get_if<Relationship>(e))
 					{
 						if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 					}
 
 					object_cbuf_data.model = transform.current_transform * parent_transform;
-					object_cbuf_data.transposed_inverse_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+					object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
 					object_cbuffer->Update(context, object_cbuf_data);
 					mesh.Draw(context);
 				}
@@ -2915,14 +2913,14 @@ namespace adria
 				auto& transform = shadow_view.get<Transform>(e);
 				auto& mesh = shadow_view.get<Mesh>(e);
 
-				XMMATRIX parent_transform = XMMatrixIdentity();
+				Matrix parent_transform = Matrix::Identity;
 				if (Relationship* relationship = reg.get_if<Relationship>(e))
 				{
 					if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 				}
 
 				object_cbuf_data.model = transform.current_transform * parent_transform;
-				object_cbuf_data.transposed_inverse_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
 				object_cbuffer->Update(context, object_cbuf_data);
 				mesh.Draw(context);
 			}
@@ -2936,14 +2934,14 @@ namespace adria
 				ADRIA_ASSERT(material != nullptr);
 				ADRIA_ASSERT(material->albedo_texture != INVALID_TEXTURE_HANDLE);
 
-				XMMATRIX parent_transform = XMMatrixIdentity();
+				Matrix parent_transform = Matrix::Identity;
 				if (Relationship* relationship = reg.get_if<Relationship>(e))
 				{
 					if (auto* root_transform = reg.get_if<Transform>(relationship->parent)) parent_transform = root_transform->current_transform;
 				}
 
 				object_cbuf_data.model = transform.current_transform * parent_transform;
-				object_cbuf_data.transposed_inverse_model = XMMatrixInverse(nullptr, object_cbuf_data.model);
+				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
 				object_cbuffer->Update(context, object_cbuf_data);
 
 				auto view = g_TextureManager.GetTextureView(material->albedo_texture);
@@ -2996,8 +2994,8 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->Context();
 		SCOPED_ANNOTATION(gfx->Annotation(), L"Sky Pass");
 
-		object_cbuf_data.model = XMMatrixTranslationFromVector(camera->Position());
-		object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+		object_cbuf_data.model = Matrix::CreateTranslation(camera->Position());
+		object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
 		object_cbuffer->Update(context, object_cbuf_data);
 
 		context->RSSetState(cull_none.Get());
@@ -3072,7 +3070,7 @@ namespace adria
 			if (aabb.camera_visible)
 			{
 				object_cbuf_data.model = transform.current_transform;
-				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
 				object_cbuffer->Update(context, object_cbuf_data);
 				
 				material_cbuf_data.diffuse = material.diffuse;
@@ -3124,11 +3122,11 @@ namespace adria
 			auto& aabb = aabb_view.get(e);
 			if (aabb.draw_aabb)
 			{
-				object_cbuf_data.model = XMMatrixIdentity();
-				object_cbuf_data.transposed_inverse_model = XMMatrixIdentity();
+				object_cbuf_data.model = Matrix::Identity;
+				object_cbuf_data.transposed_inverse_model = Matrix::Identity;
 				object_cbuffer->Update(context, object_cbuf_data);
 
-				material_cbuf_data.diffuse = XMFLOAT3(1, 0, 0);
+				material_cbuf_data.diffuse = Vector3(1, 0, 0);
 				material_cbuffer->Update(context, material_cbuf_data);
 
 				context->RSSetState(wireframe.Get());
@@ -3165,7 +3163,7 @@ namespace adria
 			ShaderManager::GetShaderProgram(material.shader)->Bind(context);
 
 			object_cbuf_data.model = transform.current_transform;
-			object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+			object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
 			object_cbuffer->Update(context, object_cbuf_data);
 				
 			material_cbuf_data.diffuse = material.diffuse;
@@ -3201,14 +3199,16 @@ namespace adria
 			ADRIA_LOG(WARNING, "Using Lens Flare on a Non-Directional Light Source");
 		}
 
+		Vector4 light_ss{};
 		{
-			XMVECTOR light_pos_h = XMVector4Transform(light.position, camera->ViewProj());
-			XMFLOAT4 light_posH{};
-			XMStoreFloat4(&light_posH, light_pos_h);
-			auto ss_sun_pos = XMFLOAT4(0.5f * light_posH.x / light_posH.w + 0.5f, -0.5f * light_posH.y / light_posH.w + 0.5f, light_posH.z / light_posH.w, 1.0f);
-			light_cbuf_data.screenspace_position = XMLoadFloat4(&ss_sun_pos);
-			light_cbuffer->Update(context, light_cbuf_data);
+			Vector4 light_pos = Vector4::Transform(light.position, camera->ViewProj());
+			light_ss.x = 0.5f * light_pos.x / light_pos.w + 0.5f;
+			light_ss.y = -0.5f * light_pos.y / light_pos.w + 0.5f;
+			light_ss.z = light_pos.z / light_pos.w;
+			light_ss.w = 1.0f;
 		}
+		light_cbuf_data.screenspace_position = light_ss;
+		light_cbuffer->Update(context, light_cbuf_data);
 
 		{
 			ID3D11ShaderResourceView* depth_srv_array[1] = { depth_target->SRV() };
@@ -3292,23 +3292,24 @@ namespace adria
 			light_cbuf_data.godrays_density = light.godrays_density;
 			light_cbuf_data.godrays_exposure = light.godrays_exposure;
 			light_cbuf_data.color = light.color * light.energy;
-			auto camera_position = camera->Position(); 
 
-			auto light_position = XMVector4Transform(light.position,
-				XMMatrixTranslation(XMVectorGetX(camera_position), 0.0f, XMVectorGetZ(camera_position)));
+			Vector4 camera_position(camera->Position());
+			Vector4 light_position = light.type == LightType::Directional ? Vector4::Transform(light.position, XMMatrixTranslation(camera_position.x, 0.0f, camera_position.y)) : light.position;
 
-			XMVECTOR light_pos_h = XMVector4Transform(light_position, camera->ViewProj());
-			XMFLOAT4 light_posH{};
-			XMStoreFloat4(&light_posH, light_pos_h);
-
-			auto ss_sun_pos = XMFLOAT4(0.5f * light_posH.x / light_posH.w + 0.5f, -0.5f * light_posH.y / light_posH.w + 0.5f, light_posH.z / light_posH.w, 1.0f);
-			light_cbuf_data.screenspace_position = XMLoadFloat4(&ss_sun_pos);
+			Vector4 light_ss{};
+			{
+				Vector4 light_pos = Vector4::Transform(light.position, camera->ViewProj());
+				light_ss.x = 0.5f * light_pos.x / light_pos.w + 0.5f;
+				light_ss.y = -0.5f * light_pos.y / light_pos.w + 0.5f;
+				light_ss.z = light_pos.z / light_pos.w;
+				light_ss.w = 1.0f;
+			}
+			light_cbuf_data.screenspace_position = light_ss;
 
 			static float const max_light_dist = 1.3f;
 
-			float fMaxDist = (std::max)(abs(XMVectorGetX(light_cbuf_data.screenspace_position)), abs(XMVectorGetY(light_cbuf_data.screenspace_position)));
-			if (fMaxDist >= 1.0f)
-				light_cbuf_data.color = XMVector3Transform(light_cbuf_data.color, XMMatrixScaling((max_light_dist - fMaxDist), (max_light_dist - fMaxDist), (max_light_dist - fMaxDist)));
+			float f_max_dist = std::max(abs(light_cbuf_data.screenspace_position.x), abs(light_cbuf_data.screenspace_position.y));
+			if (f_max_dist >= 1.0f) light_cbuf_data.color = Vector4::Transform(light_cbuf_data.color, Matrix::CreateScale((max_light_dist - f_max_dist), (max_light_dist - f_max_dist), (max_light_dist - f_max_dist)));
 
 			light_cbuffer->Update(context, light_cbuf_data);
 		}
@@ -3588,7 +3589,7 @@ namespace adria
 			ShaderManager::GetShaderProgram(ShaderProgram::Sun)->Bind(context);
 
 			object_cbuf_data.model = transform.current_transform;
-			object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+			object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
 			object_cbuffer->Update(context, object_cbuf_data);
 			material_cbuf_data.diffuse = material.diffuse;
 			material_cbuf_data.albedo_factor = material.albedo_factor;

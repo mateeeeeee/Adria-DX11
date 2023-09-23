@@ -10,18 +10,18 @@ namespace adria
 {
 	DECLSPEC_ALIGN(16) struct FrameCBuffer
 	{
-		DirectX::XMVECTOR global_ambient;
-		DirectX::XMMATRIX view;
-		DirectX::XMMATRIX projection;
-		DirectX::XMMATRIX viewprojection;
-		DirectX::XMMATRIX inverse_view;
-		DirectX::XMMATRIX inverse_projection;
-		DirectX::XMMATRIX inverse_view_projection;
-		DirectX::XMMATRIX previous_view;
-		DirectX::XMMATRIX previous_projection;
-		DirectX::XMMATRIX previous_view_projection;
-		DirectX::XMVECTOR camera_position;
-		DirectX::XMVECTOR camera_forward;
+		Vector4 global_ambient;
+		Matrix view;
+		Matrix projection;
+		Matrix viewprojection;
+		Matrix inverse_view;
+		Matrix inverse_projection;
+		Matrix inverse_view_projection;
+		Matrix previous_view;
+		Matrix previous_projection;
+		Matrix previous_view_projection;
+		Vector4 camera_position;
+		Vector4 camera_forward;
 		float camera_near;
 		float camera_far;
 		float screen_resolution_x;
@@ -32,10 +32,10 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct LightCBuffer
 	{
-		DirectX::XMVECTOR screenspace_position;
-		DirectX::XMVECTOR position;
-		DirectX::XMVECTOR direction;
-		DirectX::XMVECTOR color;
+		Vector4 screenspace_position;
+		Vector4 position;
+		Vector4 direction;
+		Vector4 color;
 		float range;
 		int32   type;
 		float outer_cosine;
@@ -55,17 +55,17 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct ObjectCBuffer
 	{
-		DirectX::XMMATRIX model;
-		DirectX::XMMATRIX transposed_inverse_model;
+		Matrix model;
+		Matrix transposed_inverse_model;
 	};
 
 	DECLSPEC_ALIGN(16) struct MaterialCBuffer
 	{
-		DirectX::XMFLOAT3 ambient;
+		Vector3 ambient;
 		float _padd1;
-		DirectX::XMFLOAT3 diffuse;
+		Vector3 diffuse;
 		float alpha_cutoff;
-		DirectX::XMFLOAT3 specular;
+		Vector3 specular;
 
 		float shininess;
 		float albedo_factor;
@@ -76,9 +76,9 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct ShadowCBuffer
 	{
-		DirectX::XMMATRIX lightviewprojection;
-		DirectX::XMMATRIX lightview;
-		DirectX::XMMATRIX shadow_matrices[4];
+		Matrix lightviewprojection;
+		Matrix lightview;
+		Matrix shadow_matrices[4];
 		float split0;
 		float split1;
 		float split2;
@@ -90,16 +90,16 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct PostprocessCBuffer
 	{
-		DirectX::XMFLOAT2 noise_scale;
+		Vector2 noise_scale;
 		float ssao_radius;
 		float ssao_power;
-		DirectX::XMVECTOR samples[16];
+		Vector4 samples[16];
 		float ssr_ray_step;
 		float ssr_ray_hit_threshold;
 		float velocity_buffer_scale;
 		float tone_map_exposure;
-		DirectX::XMVECTOR dof_params;
-		DirectX::XMVECTOR fog_color;
+		Vector4 dof_params;
+		Vector4 fog_color;
 		float   fog_falloff;
 		float   fog_density;
 		float	  fog_start;
@@ -125,11 +125,11 @@ namespace adria
 		float gauss_coeff9; //blur coefficients
 
 		float bokeh_fallout;				//bokeh
-		DirectX::XMVECTOR dof_params;	//bokeh
+		Vector4 dof_params;					//bokeh
 		float bokeh_radius_scale;			//bokeh
 		float bokeh_color_scale;			//bokeh
-		float bokeh_blur_threshold;		//bokeh
-		float bokeh_lum_threshold;		//bokeh	
+		float bokeh_blur_threshold;			//bokeh
+		float bokeh_lum_threshold;			//bokeh	
 
 		int32 ocean_size;					//ocean
 		int32 resolution;					//ocean
@@ -143,11 +143,11 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct WeatherCBuffer
 	{
-		DirectX::XMVECTOR light_dir;
-		DirectX::XMVECTOR light_color;
-		DirectX::XMVECTOR sky_color;
-		DirectX::XMVECTOR ambient_color;
-		DirectX::XMVECTOR wind_dir;
+		Vector4 light_dir;
+		Vector4 light_color;
+		Vector4 sky_color;
+		Vector4 ambient_color;
+		Vector4 wind_dir;
 
 		float wind_speed;
 		float time;
@@ -164,31 +164,31 @@ namespace adria
 		float _padd[2];
 
 		//sky parameters
-		DirectX::XMFLOAT3 A; 
+		Vector3 A; 
 		float _paddA;
-		DirectX::XMFLOAT3 B;
+		Vector3 B;
 		float _paddB;
-		DirectX::XMFLOAT3 C;
+		Vector3 C;
 		float _paddC;
-		DirectX::XMFLOAT3 D;
+		Vector3 D;
 		float _paddD;
-		DirectX::XMFLOAT3 E;
+		Vector3 E;
 		float _paddE;
-		DirectX::XMFLOAT3 F;
+		Vector3 F;
 		float _paddF;
-		DirectX::XMFLOAT3 G;
+		Vector3 G;
 		float _paddG;
-		DirectX::XMFLOAT3 H;
+		Vector3 H;
 		float _paddH;
-		DirectX::XMFLOAT3 I;
+		Vector3 I;
 		float _paddI;
-		DirectX::XMFLOAT3 Z;
+		Vector3 Z;
 		float _paddZ;
 	};
 
 	DECLSPEC_ALIGN(16) struct VoxelCBuffer
 	{
-		DirectX::XMFLOAT3 grid_center;
+		Vector3 grid_center;
 		float   data_size;        // voxel half-extent in world space units
 		float   data_size_rcp;    // 1.0 / voxel-half extent
 		uint32    data_res;         // voxel grid resolution
@@ -202,7 +202,7 @@ namespace adria
 
 	DECLSPEC_ALIGN(16) struct TerrainCBuffer
 	{
-		DirectX::XMFLOAT2 texture_scale;
+		Vector2 texture_scale;
 		int ocean_active;
 	};
 
@@ -214,9 +214,9 @@ namespace adria
 	};
 	struct LightSBuffer
 	{
-		DirectX::XMVECTOR position;
-		DirectX::XMVECTOR direction;
-		DirectX::XMVECTOR color;
+		Vector4 position;
+		Vector4 direction;
+		Vector4 color;
 		int32 active;
 		float range;
 		int32 type;
@@ -228,8 +228,8 @@ namespace adria
 	};
 	struct ClusterAABB
 	{
-		DirectX::XMVECTOR min_point;
-		DirectX::XMVECTOR max_point;
+		Vector4 min_point;
+		Vector4 max_point;
 	};
 	struct LightGrid
 	{

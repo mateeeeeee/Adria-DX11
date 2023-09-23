@@ -130,10 +130,10 @@ namespace adria
 
                 float height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
 
-                vertex.position = XMFLOAT3(i * params.tile_size_x + params.grid_offset.x, 
+                vertex.position = Vector3(i * params.tile_size_x + params.grid_offset.x, 
                     height + params.grid_offset.y, j * params.tile_size_z + params.grid_offset.z);
-                vertex.uv = XMFLOAT2(i * 1.0f * params.texture_scale_x / (params.tile_count_x - 1), j * 1.0f * params.texture_scale_z / (params.tile_count_z - 1));
-                vertex.normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
+                vertex.uv = Vector2(i * 1.0f * params.texture_scale_x / (params.tile_count_x - 1), j * 1.0f * params.texture_scale_z / (params.tile_count_z - 1));
+                vertex.normal = Vector3(0.0f, 1.0f, 0.0f);
                 vertices.push_back(vertex);
             }
         }
@@ -502,28 +502,28 @@ namespace adria
 				{
 					for (size_t i = 0; i < index_count; i += 3)
 					{
-						indices.push_back(((uint16_t*)data)[i + 0]);
-						indices.push_back(((uint16_t*)data)[i + 1]);
-						indices.push_back(((uint16_t*)data)[i + 2]);
+						indices.push_back(((uint16*)data)[i + 0]);
+						indices.push_back(((uint16*)data)[i + 1]);
+						indices.push_back(((uint16*)data)[i + 2]);
 					}
 				}
 				else if (stride == 4)
 				{
 					for (size_t i = 0; i < index_count; i += 3)
 					{
-						indices.push_back(((uint32_t*)data)[i + 0]);
-						indices.push_back(((uint32_t*)data)[i + 1]);
-						indices.push_back(((uint32_t*)data)[i + 2]);
+						indices.push_back(((uint32*)data)[i + 0]);
+						indices.push_back(((uint32*)data)[i + 1]);
+						indices.push_back(((uint32*)data)[i + 2]);
 					}
 				}
 				else ADRIA_ASSERT(false);
 
-				std::vector<XMFLOAT3> positions;
-				std::vector<XMFLOAT3> normals;
-				std::vector<XMFLOAT2> uvs;
-				std::vector<XMFLOAT3> tangents;
+				std::vector<Vector3> positions;
+				std::vector<Vector3> normals;
+				std::vector<Vector2> uvs;
+				std::vector<Vector3> tangents;
 				std::vector<float>    tangent_handness;
-				std::vector<XMFLOAT3> bitangents;
+				std::vector<Vector3>  bitangents;
 				for (auto& attr : primitive.attributes)
 				{
 					std::string const& attr_name = attr.first;
@@ -542,7 +542,7 @@ namespace adria
 						positions.reserve(vertex_count);
 						for (size_t i = 0; i < vertex_count; ++i)
 						{
-							positions.push_back(*(XMFLOAT3*)((size_t)data + i * stride));
+							positions.push_back(*(Vector3*)((size_t)data + i * stride));
 						}
 					}
 					else if (!attr_name.compare("NORMAL"))
@@ -550,7 +550,7 @@ namespace adria
 						normals.reserve(vertex_count);
 						for (size_t i = 0; i < vertex_count; ++i)
 						{
-							normals.push_back(*(XMFLOAT3*)((size_t)data + i * stride));
+							normals.push_back(*(Vector3*)((size_t)data + i * stride));
 							if (material.double_sided)
 							{
 								normals.back().x *= -1;
@@ -564,7 +564,7 @@ namespace adria
 						tangents.reserve(vertex_count);
 						for (size_t i = 0; i < vertex_count; ++i)
 						{
-							XMFLOAT4 tangent = *(XMFLOAT4*)((size_t)data + i * stride);
+							Vector4 tangent = *(Vector4*)((size_t)data + i * stride);
 							tangents.emplace_back(tangent.x, tangent.y, tangent.z);
 							tangent_handness.push_back(tangent.w);
 						}
@@ -576,7 +576,7 @@ namespace adria
 						{
 							for (size_t i = 0; i < vertex_count; ++i)
 							{
-								XMFLOAT2 tex = *(XMFLOAT2*)((size_t)data + i * stride);
+								Vector2 tex = *(Vector2*)((size_t)data + i * stride);
 								tex.y = 1.0f - tex.y;
 								uvs.push_back(tex);
 							}
@@ -587,16 +587,16 @@ namespace adria
 							{
 								uint8 const& s = *(uint8*)((size_t)data + i * stride + 0 * sizeof(uint8));
 								uint8 const& t = *(uint8*)((size_t)data + i * stride + 1 * sizeof(uint8));
-								uvs.push_back(XMFLOAT2(s / 255.0f, 1.0f - t / 255.0f));
+								uvs.push_back(Vector2(s / 255.0f, 1.0f - t / 255.0f));
 							}
 						}
 						else if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
 						{
 							for (size_t i = 0; i < vertex_count; ++i)
 							{
-								uint16_t const& s = *(uint16*)((size_t)data + i * stride + 0 * sizeof(uint16));
-								uint16_t const& t = *(uint16*)((size_t)data + i * stride + 1 * sizeof(uint16));
-								uvs.push_back(XMFLOAT2(s / 65535.0f, 1.0f - t / 65535.0f));
+								uint16 const& s = *(uint16*)((size_t)data + i * stride + 0 * sizeof(uint16));
+								uint16 const& t = *(uint16*)((size_t)data + i * stride + 1 * sizeof(uint16));
+								uvs.push_back(Vector2(s / 65535.0f, 1.0f - t / 65535.0f));
 							}
 						}
 					}
@@ -615,9 +615,9 @@ namespace adria
 				{
 					for (size_t i = 0; i < vertex_count; ++i)
 					{
-						float tangent_w = tangent_handness[i];
-						XMVECTOR _bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&normals[i]), XMLoadFloat3(&tangents[i])), tangent_w);
-						XMStoreFloat3(&bitangents[i], XMVector3Normalize(_bitangent));
+						Vector3 bitangent = normals[i].Cross(tangents[i]) * tangent_handness[i];
+						bitangent.Normalize();
+						bitangents[i] = bitangent;
 					}
 				}
 				else
@@ -634,97 +634,93 @@ namespace adria
 						positions[i],
 						uvs[i],
 						normals[i],
-						XMFLOAT3(tangents[i].x, tangents[i].y, tangents[i].z),
+						Vector3(tangents[i].x, tangents[i].y, tangents[i].z),
 						bitangents[i]
 					);
 				}
 			}
 		}
 
-		std::function<void(int, XMMATRIX)> LoadNode;
-		LoadNode = [&](int node_index, XMMATRIX parent_transform)
-		{
-			if (node_index < 0) return;
-			auto& node = model.nodes[node_index];
-			struct Transforms
+		std::function<void(int, Matrix const&)> LoadNode;
+		LoadNode = [&](int node_index, Matrix const& parent_transform)
 			{
-				XMFLOAT4 rotation_local = XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f);
-				XMFLOAT3 scale_local = XMFLOAT3(1.0f, 1.0f, 1.0f);
-				XMFLOAT3 translation_local = XMFLOAT3(0.0f, 0.0f, 0.0f);
-				XMFLOAT4X4 world;
-				bool update = true;
-				void Update()
+				if (node_index < 0) return;
+				auto& node = model.nodes[node_index];
+				struct Transforms
 				{
-					if (update)
+					Vector4 rotation_local = Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+					Vector3 scale_local = Vector3(1.0f, 1.0f, 1.0f);
+					Vector3 translation_local = Vector3(0.0f, 0.0f, 0.0f);
+					Matrix world = Matrix::Identity;
+					bool update = true;
+					void Update()
 					{
-						XMVECTOR S_local = XMLoadFloat3(&scale_local);
-						XMVECTOR R_local = XMLoadFloat4(&rotation_local);
-						XMVECTOR T_local = XMLoadFloat3(&translation_local);
-						XMMATRIX WORLD = XMMatrixScalingFromVector(S_local) *
-							XMMatrixRotationQuaternion(R_local) *
-							XMMatrixTranslationFromVector(T_local);
-						XMStoreFloat4x4(&world, WORLD);
+						if (update)
+						{
+							world = Matrix::CreateScale(scale_local) *
+								Matrix::CreateFromQuaternion(rotation_local) *
+								Matrix::CreateTranslation(translation_local);
+						}
+					}
+				} transforms;
+
+				if (!node.scale.empty())
+				{
+					transforms.scale_local = Vector3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
+				}
+				if (!node.rotation.empty())
+				{
+					transforms.rotation_local = Vector4((float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3]);
+				}
+				if (!node.translation.empty())
+				{
+					transforms.translation_local = Vector3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
+				}
+				if (!node.matrix.empty())
+				{
+					transforms.world._11 = (float)node.matrix[0];
+					transforms.world._12 = (float)node.matrix[1];
+					transforms.world._13 = (float)node.matrix[2];
+					transforms.world._14 = (float)node.matrix[3];
+					transforms.world._21 = (float)node.matrix[4];
+					transforms.world._22 = (float)node.matrix[5];
+					transforms.world._23 = (float)node.matrix[6];
+					transforms.world._24 = (float)node.matrix[7];
+					transforms.world._31 = (float)node.matrix[8];
+					transforms.world._32 = (float)node.matrix[9];
+					transforms.world._33 = (float)node.matrix[10];
+					transforms.world._34 = (float)node.matrix[11];
+					transforms.world._41 = (float)node.matrix[12];
+					transforms.world._42 = (float)node.matrix[13];
+					transforms.world._43 = (float)node.matrix[14];
+					transforms.world._44 = (float)node.matrix[15];
+					transforms.update = false;
+				}
+				transforms.Update();
+
+				if (node.mesh >= 0)
+				{
+					auto const& mesh = model.meshes[node.mesh];
+					std::vector<entity> const& mesh_entities = mesh_name_to_entities_map[mesh.name];
+					for (entity e : mesh_entities)
+					{
+						Mesh const& mesh = reg.get<Mesh>(e);
+						Matrix model = transforms.world * parent_transform;
+						BoundingBox bounding_box = AABBFromRange(vertices.begin() + mesh.base_vertex_location, vertices.begin() + mesh.base_vertex_location + mesh.vertex_count);
+						bounding_box.Transform(bounding_box, model);
+
+						AABB aabb{};
+						aabb.bounding_box = bounding_box;
+						aabb.light_visible = true;
+						aabb.camera_visible = true;
+						aabb.UpdateBuffer(gfx);
+						reg.add<AABB>(e, aabb);
+						reg.emplace<Transform>(e, model, model);
 					}
 				}
-			} transforms;
 
-			if (!node.scale.empty())
-			{
-				transforms.scale_local = XMFLOAT3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
-			}
-			if (!node.rotation.empty())
-			{
-				transforms.rotation_local = XMFLOAT4((float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3]);
-			}
-			if (!node.translation.empty())
-			{
-				transforms.translation_local = XMFLOAT3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
-			}
-			if (!node.matrix.empty())
-			{
-				transforms.world._11 = (float)node.matrix[0];
-				transforms.world._12 = (float)node.matrix[1];
-				transforms.world._13 = (float)node.matrix[2];
-				transforms.world._14 = (float)node.matrix[3];
-				transforms.world._21 = (float)node.matrix[4];
-				transforms.world._22 = (float)node.matrix[5];
-				transforms.world._23 = (float)node.matrix[6];
-				transforms.world._24 = (float)node.matrix[7];
-				transforms.world._31 = (float)node.matrix[8];
-				transforms.world._32 = (float)node.matrix[9];
-				transforms.world._33 = (float)node.matrix[10];
-				transforms.world._34 = (float)node.matrix[11];
-				transforms.world._41 = (float)node.matrix[12];
-				transforms.world._42 = (float)node.matrix[13];
-				transforms.world._43 = (float)node.matrix[14];
-				transforms.world._44 = (float)node.matrix[15];
-				transforms.update = false;
-			}
-			transforms.Update();
-
-			if (node.mesh >= 0)
-			{
-				auto const& mesh = model.meshes[node.mesh];
-				std::vector<entity> const& mesh_entities = mesh_name_to_entities_map[mesh.name];
-				for (entity e : mesh_entities)
-				{
-					Mesh const& mesh = reg.get<Mesh>(e);
-					XMMATRIX model = XMLoadFloat4x4(&transforms.world) * parent_transform;
-					BoundingBox bounding_box = AABBFromRange(vertices.begin() + mesh.base_vertex_location, vertices.begin() + mesh.base_vertex_location + mesh.vertex_count);
-					bounding_box.Transform(bounding_box, model);
-
-					AABB aabb{};
-					aabb.bounding_box = bounding_box;
-					aabb.light_visible = true;
-					aabb.camera_visible = true;
-					aabb.UpdateBuffer(gfx);
-					reg.add<AABB>(e, aabb);
-					reg.emplace<Transform>(e, model, model);
-				}
-			}
-
-			for (int child : node.children) LoadNode(child, XMLoadFloat4x4(&transforms.world) * parent_transform);
-		};
+				for (int child : node.children) LoadNode(child, transforms.world * parent_transform);
+			};
 		tinygltf::Scene const& scene = model.scenes[std::max(0, model.defaultScene)];
 		for (size_t i = 0; i < scene.nodes.size(); ++i)
 		{
@@ -738,7 +734,7 @@ namespace adria
 		reg.emplace<Transform>(root);
 		reg.emplace<Tag>(root, model_name);
 		Relationship relationship;
-		relationship.children_count = entities.size();
+		relationship.children_count = (uint32)entities.size();
 		ADRIA_ASSERT(relationship.children_count <= Relationship::MAX_CHILDREN);
 		for (size_t i = 0; i < relationship.children_count; ++i)
 		{
@@ -779,7 +775,7 @@ namespace adria
         entity light = reg.create();
 
         if (params.light_data.type == LightType::Directional)
-            const_cast<LightParameters&>(params).light_data.position = XMVectorScale(-params.light_data.direction, 1e3);
+            const_cast<LightParameters&>(params).light_data.position = -params.light_data.direction * 1e3;
   
         reg.emplace<Light>(light, params.light_data);
 
@@ -833,17 +829,17 @@ namespace adria
         {
 		    
            const SimpleVertex cube_vertices[8] = {
-			   XMFLOAT3{ -1.0, -1.0,  1.0 },
-			   XMFLOAT3{ 1.0, -1.0,  1.0 },
-			   XMFLOAT3{ 1.0,  1.0,  1.0 },
-			   XMFLOAT3{ -1.0,  1.0,  1.0 },
-			   XMFLOAT3{ -1.0, -1.0, -1.0 },
-			   XMFLOAT3{ 1.0, -1.0, -1.0 },
-			   XMFLOAT3{ 1.0,  1.0, -1.0 },
-			   XMFLOAT3{ -1.0,  1.0, -1.0 }
+			   Vector3{ -1.0, -1.0,  1.0 },
+			   Vector3{ 1.0, -1.0,  1.0 },
+			   Vector3{ 1.0,  1.0,  1.0 },
+			   Vector3{ -1.0,  1.0,  1.0 },
+			   Vector3{ -1.0, -1.0, -1.0 },
+			   Vector3{ 1.0, -1.0, -1.0 },
+			   Vector3{ 1.0,  1.0, -1.0 },
+			   Vector3{ -1.0,  1.0, -1.0 }
 			};
 
-			const uint16_t cube_indices[36] = {
+			const uint16 cube_indices[36] = {
 				// front
 				0, 1, 2,
 				2, 3, 0,
@@ -914,7 +910,7 @@ namespace adria
         std::vector<entity> ocean_chunks = ModelImporter::LoadGrid(params.ocean_grid);
 
         Material ocean_material{};
-        ocean_material.diffuse = XMFLOAT3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
+        ocean_material.diffuse = Vector3(0.0123f, 0.3613f, 0.6867f); //0, 105, 148
         ocean_material.shader = ShaderProgram::Unknown; 
 
         Ocean ocean_component{};
@@ -938,7 +934,7 @@ namespace adria
             params.terrain_grid.tile_count_x,
             params.terrain_grid.tile_count_z);
 
-        TerrainComponent::texture_scale = XMFLOAT2(params.terrain_grid.texture_scale_x,
+        TerrainComponent::texture_scale = Vector2(params.terrain_grid.texture_scale_x,
             params.terrain_grid.texture_scale_z);
 
         GenerateTerrainLayerTexture(params.layer_texture.c_str(), TerrainComponent::terrain.get(), params.layer_params);
@@ -964,7 +960,7 @@ namespace adria
 		
 		struct FoliageInstance
 		{
-			XMFLOAT3 position;
+			Vector3 position;
             float rotation_y;
 		};
 
@@ -996,8 +992,8 @@ namespace adria
 		for (int32 i = 0; i < params.foliage_count; ++i)
 		{
             static const uint32 MAX_ITERATIONS = 5;
-			XMFLOAT3 position{};
-			XMFLOAT3 normal{};
+			Vector3 position{};
+			Vector3 normal{};
 			uint32 iteration = 0;
 			do
 			{
@@ -1005,7 +1001,7 @@ namespace adria
 				position.x = random_x();
 				position.z = random_z();
 				position.y = TerrainComponent::terrain ? TerrainComponent::terrain->HeightAt(position.x, position.z) - 0.5f : -0.5f;
-				normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : XMFLOAT3(0.0f, 1.0f, 0.0f);
+				normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : Vector3(0.0f, 1.0f, 0.0f);
 
 				++iteration;
 			} while (position.y > params.foliage_height_end || position.y < params.foliage_height_start || normal.y < params.foliage_slope_start);
@@ -1042,7 +1038,7 @@ namespace adria
 
 		struct TreeInstance
 		{
-			XMFLOAT3 position;
+			Vector3 position;
 			float rotation_y;
 		};
 
@@ -1072,8 +1068,8 @@ namespace adria
 		for (int32 i = 0; i < params.tree_count; ++i)
 		{
 			static const uint32 MAX_ITERATIONS = 5;
-			XMFLOAT3 position{};
-			XMFLOAT3 normal{};
+			Vector3 position{};
+			Vector3 normal{};
 			uint32 iteration = 0;
 			do
 			{
@@ -1081,7 +1077,7 @@ namespace adria
 				position.x = random_x();
 				position.z = random_z();
 				position.y = TerrainComponent::terrain ? TerrainComponent::terrain->HeightAt(position.x, position.z) - 0.5f : -0.5f;
-				normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : XMFLOAT3(0.0f, 1.0f, 0.0f);
+				normal = TerrainComponent::terrain ? TerrainComponent::terrain->NormalAt(position.x, position.z) : Vector3(0.0f, 1.0f, 0.0f);
 
 				++iteration;
 			} while (position.y > params.tree_height_end || position.y < params.tree_height_start || normal.y < params.tree_slope_start);
@@ -1120,9 +1116,9 @@ namespace adria
     entity ModelImporter::LoadEmitter(EmitterParameters const& params)
 	{
 		Emitter emitter{};
-		emitter.position = DirectX::XMFLOAT4(params.position[0], params.position[1], params.position[2], 1);
-		emitter.velocity = DirectX::XMFLOAT4(params.velocity[0], params.velocity[1], params.velocity[2], 0);
-		emitter.position_variance = DirectX::XMFLOAT4(params.position_variance[0], params.position_variance[1], params.position_variance[2], 1);
+		emitter.position = Vector4(params.position[0], params.position[1], params.position[2], 1);
+		emitter.velocity = Vector4(params.velocity[0], params.velocity[1], params.velocity[2], 0);
+		emitter.position_variance = Vector4(params.position_variance[0], params.position_variance[1], params.position_variance[2], 1);
         emitter.velocity_variance = params.velocity_variance;
 		emitter.number_to_emit = 0;
 		emitter.particle_lifespan = params.lifespan;
@@ -1148,18 +1144,17 @@ namespace adria
         if(!params.albedo_texture_path.empty()) decal.albedo_decal_texture = g_TextureManager.LoadTexture(params.albedo_texture_path);
         if(!params.normal_texture_path.empty()) decal.normal_decal_texture = g_TextureManager.LoadTexture(params.normal_texture_path);
 
-        XMVECTOR P = XMLoadFloat4(&params.position);
-        XMVECTOR N = XMLoadFloat4(&params.normal);
+		Vector3 P = params.position;
+		Vector3 N = params.normal;
+		Vector3 ProjectorDirection = -N;
+		Matrix RotationMatrix = Matrix::CreateFromAxisAngle(ProjectorDirection, params.rotation);
+		Matrix ModelMatrix = Matrix::CreateScale(params.size) * RotationMatrix * Matrix::CreateTranslation(P);
 
-        XMVECTOR ProjectorDirection = XMVectorNegate(N);
-        XMMATRIX RotationMatrix = XMMatrixRotationAxis(ProjectorDirection, params.rotation);
-        XMMATRIX model_matrix = XMMatrixScaling(params.size, params.size, params.size) * RotationMatrix * XMMatrixTranslationFromVector(P);
-
-        decal.decal_model_matrix = model_matrix;
+		decal.decal_model_matrix = ModelMatrix;
 		decal.modify_gbuffer_normals = params.modify_gbuffer_normals;
 
-		XMFLOAT3 abs_normal;
-		XMStoreFloat3(&abs_normal, XMVectorAbs(N));
+		Vector3 abs_normal = XMVectorAbs(N);
+
 		if (abs_normal.x >= abs_normal.y && abs_normal.x >= abs_normal.z)
 		{
 			decal.decal_type = DecalType::Project_YZ;

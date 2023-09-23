@@ -903,8 +903,8 @@ namespace adria
 			ImGui::Text("Picked Normal: %f %f %f", picking_data.normal.x, picking_data.normal.y, picking_data.normal.z);
 			if (ImGui::Button("Load Decal"))
 			{
-				params.position = picking_data.position;
-				params.normal = picking_data.normal;
+				params.position = Vector3(picking_data.position);
+				params.normal = Vector3(picking_data.normal);
 				params.rotation = XMConvertToRadians(params.rotation);
 
 				engine->model_importer->LoadDecal(params);
@@ -973,9 +973,9 @@ namespace adria
 				{
 					LightParameters light_params{};
 					light_params.light_data.casts_shadows = false;
-					light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
-					light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
-					light_params.light_data.position = DirectX::XMVectorSet(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
+					light_params.light_data.color = Vector4(real() * 2, real() * 2, real() * 2, 1.0f);
+					light_params.light_data.direction = Vector4(0.5f, -1.0f, 0.1f, 0.0f);
+					light_params.light_data.position = Vector4(real() * 200 - 100, real() * 200.0f, real() * 200 - 100, 1.0f);
 					light_params.light_data.type = LightType::Point;
 					light_params.mesh_type = LightMesh::NoMesh;
 					light_params.light_data.range = real() * 100.0f + 40.0f;
@@ -1014,23 +1014,18 @@ namespace adria
 					else if (light->type == LightType::Spot)			ImGui::Text("Spot Light");
 					else if (light->type == LightType::Point)			ImGui::Text("Point Light");
 
-					XMFLOAT4 light_color, light_direction, light_position;
-					XMStoreFloat4(&light_color, light->color);
-					XMStoreFloat4(&light_direction, light->direction);
-					XMStoreFloat4(&light_position, light->position);
-
+					Vector4 light_color = light->color, light_direction = light->direction, light_position = light->position;
 					float color[3] = { light_color.x, light_color.y, light_color.z };
-
 					ImGui::ColorEdit3("Light Color", color);
 
-					light->color = XMVectorSet(color[0], color[1], color[2], 1.0f);
+					light->color = Vector4(color[0], color[1], color[2], 1.0f);
 
 					ImGui::SliderFloat("Light Energy", &light->energy, 0.0f, 50.0f);
 
 					if (engine->reg.has<Material>(selected_entity))
 					{
 						auto& material = engine->reg.get<Material>(selected_entity);
-						material.diffuse = XMFLOAT3(color[0], color[1], color[2]);
+						material.diffuse = Vector3(color[0], color[1], color[2]);
 					}
 
 					if (light->type == LightType::Directional || light->type == LightType::Spot)
@@ -1039,11 +1034,11 @@ namespace adria
 
 						ImGui::SliderFloat3("Light direction", direction, -1.0f, 1.0f);
 
-						light->direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
+						light->direction = Vector4(direction[0], direction[1], direction[2], 0.0f);
 
 						if (light->type == LightType::Directional)
 						{
-							light->position = XMVectorScale(-light->direction, 1e3);
+							light->position = -light->direction * 1e3;
 						}
 					}
 
@@ -1064,7 +1059,7 @@ namespace adria
 
 						ImGui::SliderFloat3("Light position", position, -300.0f, 500.0f);
 
-						light->position = XMVectorSet(position[0], position[1], position[2], 1.0f);
+						light->position = Vector4(position[0], position[1], position[2], 1.0f);
 
 						ImGui::SliderFloat("Range", &light->range, 50.0f, 1000.0f);
 					}
@@ -1196,9 +1191,8 @@ namespace adria
                 auto transform = engine->reg.get_if<Transform>(selected_entity);
                 if (transform && ImGui::CollapsingHeader("Transform"))
                 {
-					XMFLOAT4X4 tr;
-					XMStoreFloat4x4(&tr, transform->current_transform);
-
+					Matrix tr = transform->current_transform;
+					
 					float translation[3], rotation[3], scale[3];
 					ImGuizmo::DecomposeMatrixToComponents(tr.m[0], translation, rotation, scale);
 					ImGui::InputFloat3("Translation", translation);
@@ -1208,13 +1202,13 @@ namespace adria
 
 					if (Emitter* emitter = engine->reg.get_if<Emitter>(selected_entity))
 					{
-						emitter->position = XMFLOAT4(translation[0], translation[1], translation[2], 1.0f);
+						emitter->position = Vector4(translation[0], translation[1], translation[2], 1.0f);
 					}
 
 					if (AABB* aabb = engine->reg.get_if<AABB>(selected_entity))
 					{
-						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
-						aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+						aabb->bounding_box.Transform(aabb->bounding_box, transform->current_transform.Invert());
+						aabb->bounding_box.Transform(aabb->bounding_box, tr);
 						aabb->UpdateBuffer(engine->gfx.get());
 					}
 
@@ -1225,13 +1219,13 @@ namespace adria
 							entity child = relationship->children[i];
 							if (AABB* aabb = engine->reg.get_if<AABB>(child))
 							{
-								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, transform->current_transform));
-								aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+								aabb->bounding_box.Transform(aabb->bounding_box, transform->current_transform.Invert());
+								aabb->bounding_box.Transform(aabb->bounding_box, tr);
 								aabb->UpdateBuffer(engine->gfx.get());
 							}
 						}
 					}
-					transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
+					transform->current_transform = tr;
                 }
 
                 auto skybox = engine->reg.get_if<Skybox>(selected_entity);
@@ -1281,18 +1275,17 @@ namespace adria
 					ImGui::SliderFloat3("Position", pos, -500.0f, 500.0f);
 					ImGui::SliderFloat3("Velocity", vel, -50.0f, 50.0f);
 					ImGui::SliderFloat3("Position Variance", pos_var, -50.0f, 50.0f);
-					emitter->position = DirectX::XMFLOAT4(pos[0], pos[1], pos[2], 1.0f);
-					emitter->velocity = DirectX::XMFLOAT4(vel[0], vel[1], vel[2], 1.0f);
-					emitter->position_variance = DirectX::XMFLOAT4(pos_var[0], pos_var[1], pos_var[2], 1.0f);
+					emitter->position = Vector4(pos[0], pos[1], pos[2], 1.0f);
+					emitter->velocity = Vector4(vel[0], vel[1], vel[2], 1.0f);
+					emitter->position_variance = Vector4(pos_var[0], pos_var[1], pos_var[2], 1.0f);
 
 					if (transform)
 					{
-						XMFLOAT4X4 tr;
-						XMStoreFloat4x4(&tr, transform->current_transform);
+						Matrix tr = transform->current_transform;
 						float translation[3], rotation[3], scale[3];
 						ImGuizmo::DecomposeMatrixToComponents(tr.m[0], translation, rotation, scale);
 						ImGuizmo::RecomposeMatrixFromComponents(pos, rotation, scale, tr.m[0]);
-						transform->current_transform = DirectX::XMLoadFloat4x4(&tr);
+						transform->current_transform = tr;
 					}
 
 					ImGui::SliderFloat("Velocity Variance", &emitter->velocity_variance, -10.0f, 10.0f);
@@ -1366,11 +1359,10 @@ namespace adria
 		auto& camera = *engine->camera;
 		if (ImGui::Begin("Camera", &window_flags[Flag_Camera]))
 		{
-			XMFLOAT3 cam_pos;
-			XMStoreFloat3(&cam_pos, camera.Position());
+			Vector3 cam_pos = camera.Position();
 			float pos[3] = { cam_pos.x, cam_pos.y, cam_pos.z };
 			ImGui::SliderFloat3("Position", pos, 0.0f, 10000.0f);
-			camera.SetPosition(DirectX::XMFLOAT3(pos));
+			camera.SetPosition(Vector3(pos));
 			float near_plane = camera.Near(), far_plane = camera.Far();
 			float _fov = camera.Fov(), _ar = camera.AspectRatio();
 			ImGui::SliderFloat("Near Plane", &near_plane, 0.0f, 2.0f);
@@ -1420,46 +1412,38 @@ namespace adria
 
             auto& camera = *engine->camera;
 
-            auto camera_view = camera.View();
-            auto camera_proj = camera.Proj();
+			Matrix camera_view = camera.View();
+			Matrix camera_proj = camera.Proj();
 
-            DirectX::XMFLOAT4X4 view, projection;
+			Transform& entity_transform = engine->reg.get<Transform>(selected_entity);
 
-            DirectX::XMStoreFloat4x4(&view, camera_view);
-            DirectX::XMStoreFloat4x4(&projection, camera_proj);
-
-            auto& entity_transform = engine->reg.get<Transform>(selected_entity);
-
-            DirectX::XMFLOAT4X4 tr;
-            DirectX::XMStoreFloat4x4(&tr, entity_transform.current_transform);
-
-            ImGuizmo::Manipulate(view.m[0], projection.m[0], gizmo_op, ImGuizmo::LOCAL,
-                tr.m[0]);
+			Matrix tr = entity_transform.current_transform;
+            ImGuizmo::Manipulate(camera_view.m[0], camera_proj.m[0], gizmo_op, ImGuizmo::LOCAL, tr.m[0]);
 
             if (ImGuizmo::IsUsing())
             {
                 AABB* aabb = engine->reg.get_if<AABB>(selected_entity);
                 if (aabb)
                 {
-                    aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
-                    aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+					aabb->bounding_box.Transform(aabb->bounding_box, entity_transform.current_transform.Invert());
+					aabb->bounding_box.Transform(aabb->bounding_box, tr);
 					aabb->UpdateBuffer(engine->gfx.get());
                 }
                
 				if (Relationship* relationship = engine->reg.get_if<Relationship>(selected_entity))
 				{
-					for (size_t i = 0; i < relationship->children_count; ++i)
+					for (uint32 i = 0; i < relationship->children_count; ++i)
 					{
 						entity child = relationship->children[i];
 						if (AABB* aabb = engine->reg.get_if<AABB>(child))
 						{
-							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMMatrixInverse(nullptr, entity_transform.current_transform));
-							aabb->bounding_box.Transform(aabb->bounding_box, DirectX::XMLoadFloat4x4(&tr));
+							aabb->bounding_box.Transform(aabb->bounding_box, entity_transform.current_transform.Invert());
+							aabb->bounding_box.Transform(aabb->bounding_box, tr);
 							aabb->UpdateBuffer(engine->gfx.get());
 						}
 					}
 				}
-				entity_transform.current_transform = DirectX::XMLoadFloat4x4(&tr);
+				entity_transform.current_transform = tr;
             }
         }
 
@@ -1725,9 +1709,9 @@ namespace adria
                         {
                             LightParameters light_params{};
                             light_params.light_data.casts_shadows = false;
-                            light_params.light_data.color = DirectX::XMVectorSet(real() * 2, real() * 2, real() * 2, 1.0f);
-                            light_params.light_data.direction = DirectX::XMVectorSet(0.5f, -1.0f, 0.1f, 0.0f);
-                            light_params.light_data.position = DirectX::XMVectorSet(real() * 500 - 250, real() * 500.0f, real() * 500 - 250, 1.0f);
+                            light_params.light_data.color = Vector4(real() * 2, real() * 2, real() * 2, 1.0f);
+                            light_params.light_data.direction = Vector4(0.5f, -1.0f, 0.1f, 0.0f);
+                            light_params.light_data.position = Vector4(real() * 500 - 250, real() * 500.0f, real() * 500 - 250, 1.0f);
                             light_params.light_data.type = LightType::Point;
                             light_params.mesh_type = LightMesh::NoMesh;
                             light_params.light_data.range = real() * 100.0f + 40.0f;

@@ -1,7 +1,5 @@
 #pragma once
-#include <DirectXMath.h>
 #include <optional>
-#include <functional>
 #include <array>
 #include <vector>
 #include "Components.h"
@@ -43,7 +41,7 @@ namespace adria
 	{
         std::string model_path = "";
         std::string textures_path = "";
-        DirectX::XMMATRIX model_matrix = DirectX::XMMatrixIdentity();
+        Matrix model_matrix = Matrix::Identity;
 	};
     struct SkyboxParameters
     {
@@ -63,7 +61,7 @@ namespace adria
         bool split_to_chunks = false;
         ENormalCalculation normal_type = ENormalCalculation::None;
         std::unique_ptr<Heightmap> heightmap = nullptr;
-        DirectX::XMFLOAT3 grid_offset = DirectX::XMFLOAT3(0,0,0);
+        Vector3 grid_offset = Vector3(0,0,0);
     };
     struct OceanParameters
     {
@@ -74,8 +72,8 @@ namespace adria
         std::pair<FoliageMesh, std::string> mesh_texture_pair;
         int32 foliage_count;
         float foliage_scale;
-        DirectX::XMFLOAT2 foliage_center;
-        DirectX::XMFLOAT2 foliage_extents;
+		Vector2 foliage_center;
+		Vector2 foliage_extents;
         float foliage_height_start;
 		float foliage_height_end;
 		float foliage_slope_start;
@@ -85,8 +83,8 @@ namespace adria
         TreeType tree_type;
 		int32 tree_count;
 		float tree_scale;
-		DirectX::XMFLOAT2 tree_center;
-		DirectX::XMFLOAT2 tree_extents;
+		Vector2 tree_center;
+		Vector2 tree_extents;
         float tree_height_start;
 		float tree_height_end;
 		float tree_slope_start;
@@ -140,8 +138,8 @@ namespace adria
         float size = 50.0f;
         DecalType decal_type = DecalType::Project_XY;
         bool modify_gbuffer_normals = false;
-        DirectX::XMFLOAT4 position;
-        DirectX::XMFLOAT4 normal;
+        Vector3 position;
+        Vector3 normal;
     };
 
     namespace tecs

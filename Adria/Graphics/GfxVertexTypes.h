@@ -1,5 +1,4 @@
 #pragma once
-#include <DirectXMath.h>
 #include <d3d11.h>
 #include <vector>
 
@@ -19,7 +18,7 @@ namespace adria
 
 	struct SimpleVertex
 	{
-		DirectX::XMFLOAT3 position;
+		Vector3 position;
 
 		static std::vector<D3D11_INPUT_ELEMENT_DESC> GetLayout()
 		{
@@ -29,8 +28,8 @@ namespace adria
 
 	struct TexturedVertex
 	{
-		DirectX::XMFLOAT3 position;
-		DirectX::XMFLOAT2 uv;
+		Vector3 position;
+		Vector2 uv;
 
 		static std::vector<D3D11_INPUT_ELEMENT_DESC> GetLayout()
 		{
@@ -40,9 +39,9 @@ namespace adria
 
 	struct TexturedNormalVertex
 	{
-		DirectX::XMFLOAT3 position;
-		DirectX::XMFLOAT2 uv;
-		DirectX::XMFLOAT3 normal;
+		Vector3 position;
+		Vector2 uv;
+		Vector3 normal;
 
 		static std::vector<D3D11_INPUT_ELEMENT_DESC> GetLayout()
 		{
@@ -52,8 +51,8 @@ namespace adria
 
 	struct ColoredVertex
 	{
-		DirectX::XMFLOAT3 position;
-		DirectX::XMFLOAT4 color;
+		Vector3 position;
+		Vector4 color;
 
 		static std::vector<D3D11_INPUT_ELEMENT_DESC> GetLayout()
 		{
@@ -63,9 +62,9 @@ namespace adria
 
 	struct ColoredNormalVertex
 	{
-		DirectX::XMFLOAT3 position;
-		DirectX::XMFLOAT4 color;
-		DirectX::XMFLOAT3 normal;
+		Vector3 position;
+		Vector4 color;
+		Vector3 normal;
 
 		static std::vector<D3D11_INPUT_ELEMENT_DESC> GetLayout()
 		{
@@ -75,8 +74,8 @@ namespace adria
 
 	struct NormalVertex
 	{
-		DirectX::XMFLOAT3 position;
-		DirectX::XMFLOAT3 normal;
+		Vector3 position;
+		Vector3 normal;
 
 		static std::vector<D3D11_INPUT_ELEMENT_DESC> GetLayout()
 		{
@@ -86,11 +85,11 @@ namespace adria
 
 	struct CompleteVertex
 	{
-		DirectX::XMFLOAT3 position;
-		DirectX::XMFLOAT2 uv;
-		DirectX::XMFLOAT3 normal;
-		DirectX::XMFLOAT3 tangent;
-		DirectX::XMFLOAT3 bitangent;
+		Vector3 position;
+		Vector2 uv;
+		Vector3 normal;
+		Vector3 tangent;
+		Vector3 bitangent;
 
 		static std::vector<D3D11_INPUT_ELEMENT_DESC> GetLayout()
 		{
