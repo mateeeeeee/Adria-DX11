@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "GfxResourceCommon.h"
+#include "GfxDescriptor.h"
 #include "GfxFormat.h"
 
 namespace adria
@@ -12,8 +13,8 @@ namespace adria
 		GfxCpuAccess cpu_access = GfxCpuAccess::None;
 		GfxBindFlag bind_flags = GfxBindFlag::None;
 		GfxBufferMiscFlag misc_flags = GfxBufferMiscFlag::None;
-		uint32 stride = 0; //structured buffers, (vertex buffers, index buffers, needed for count calculation not for srv as structured buffers)
-		GfxFormat format = GfxFormat::UNKNOWN; //typed buffers, index buffers
+		uint32 stride = 0;
+		GfxFormat format = GfxFormat::UNKNOWN;
 		std::strong_ordering operator<=>(GfxBufferDesc const& other) const = default;
 	};
 
@@ -75,16 +76,15 @@ namespace adria
 		return desc;
 	}
 
-	enum EFlagsUAV : uint8
+	enum FlagsUAV : uint8
 	{
 		UAV_None = 0x0,
 		UAV_Raw = 0x1,
 		UAV_Append = 0x2,
 		UAV_Counter = 0x4
 	};
-	DEFINE_ENUM_BIT_OPERATORS(EFlagsUAV);
-
-	inline constexpr uint32 ParseBufferUAVFlags(EFlagsUAV flags)
+	DEFINE_ENUM_BIT_OPERATORS(FlagsUAV);
+	inline constexpr uint32 ParseBufferUAVFlags(FlagsUAV flags)
 	{
 		uint32 _flags = 0;
 		if (HasAnyFlag(flags, UAV_Raw)) _flags |= D3D11_BUFFER_UAV_FLAG_RAW;
@@ -97,7 +97,7 @@ namespace adria
 	{
 		uint64 offset = 0;
 		uint64 size = uint64(-1);
-		EFlagsUAV uav_flags = UAV_None;
+		FlagsUAV uav_flags = UAV_None;
 		std::strong_ordering operator<=>(GfxBufferSubresourceDesc const& other) const = default;
 	};
 	using GfxBufferInitialData = void const*;
@@ -132,18 +132,18 @@ namespace adria
 		GfxBuffer& operator=(GfxBuffer const&) = delete;
 		~GfxBuffer() = default;
 
-		ID3D11ShaderResourceView* SRV(uint64 i = 0) const { return srvs[i].Get(); }
-		ID3D11UnorderedAccessView* UAV(uint64 i = 0) const { return uavs[i].Get(); }
+		GfxReadOnlyDescriptor SRV(uint64 i = 0) const { return srvs[i].Get(); }
+		GfxReadWriteDescriptor UAV(uint64 i = 0) const { return uavs[i].Get(); }
 
 		[[maybe_unused]] uint64 CreateSRV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
 			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
-			return CreateSubresource(GfxSubresourceType_SRV, _desc);
+			return CreateDescriptor(GfxSubresourceType_SRV, _desc);
 		}
 		[[maybe_unused]] uint64 CreateUAV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
 			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
-			return CreateSubresource(GfxSubresourceType_UAV, _desc);
+			return CreateDescriptor(GfxSubresourceType_UAV, _desc);
 		}
 
 		ID3D11Buffer* GetNative() const { return resource.Get(); }
@@ -214,11 +214,11 @@ namespace adria
 		GfxDevice* gfx;
 		GfxBufferDesc desc;
 		ArcPtr<ID3D11Buffer> resource;
-		std::vector<ArcPtr<ID3D11ShaderResourceView>> srvs;
-		std::vector<ArcPtr<ID3D11UnorderedAccessView>> uavs;
+		std::vector<GfxArcReadOnlyDescriptor> srvs;
+		std::vector<GfxArcReadWriteDescriptor> uavs;
 
 	private:
-		uint64 CreateSubresource(GfxSubresourceType type, GfxBufferSubresourceDesc const& subresource_desc)
+		uint64 CreateDescriptor(GfxSubresourceType type, GfxBufferSubresourceDesc const& subresource_desc)
 		{
 			HRESULT hr = E_FAIL;
 			ID3D11Device* device = gfx->Device();

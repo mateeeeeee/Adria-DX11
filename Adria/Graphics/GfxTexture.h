@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include "GfxResourceCommon.h"
+#include "GfxDescriptor.h"
+#include "GfxFormat.h"
 
 namespace adria
 {
@@ -142,28 +144,28 @@ namespace adria
 		[[maybe_unused]] uint64 CreateSRV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
-			return CreateSubresource(GfxSubresourceType_SRV, _desc);
+			return CreateDescriptor(GfxSubresourceType_SRV, _desc);
 		}
 		[[maybe_unused]] uint64 CreateUAV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
-			return CreateSubresource(GfxSubresourceType_UAV, _desc);
+			return CreateDescriptor(GfxSubresourceType_UAV, _desc);
 		}
 		[[maybe_unused]] uint64 CreateRTV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
-			return CreateSubresource(GfxSubresourceType_RTV, _desc);
+			return CreateDescriptor(GfxSubresourceType_RTV, _desc);
 		}
 		[[maybe_unused]] uint64 CreateDSV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
-			return CreateSubresource(GfxSubresourceType_DSV, _desc);
+			return CreateDescriptor(GfxSubresourceType_DSV, _desc);
 		}
 
-		ID3D11ShaderResourceView* SRV(uint64 i = 0) const { return srvs[i].Get(); }
-		ID3D11UnorderedAccessView* UAV(uint64 i = 0) const { return uavs[i].Get(); }
-		ID3D11RenderTargetView* RTV(uint64 i = 0) const { return rtvs[i].Get(); }
-		ID3D11DepthStencilView* DSV(uint64 i = 0) const { return dsvs[i].Get(); }
+		GfxReadOnlyDescriptor	SRV(uint64 i = 0) const { return srvs[i].Get(); }
+		GfxReadWriteDescriptor	UAV(uint64 i = 0) const { return uavs[i].Get(); }
+		GfxColorDescriptor		RTV(uint64 i = 0) const { return rtvs[i].Get(); }
+		GfxDepthDescriptor		DSV(uint64 i = 0) const { return dsvs[i].Get(); }
 
 		ID3D11Resource* GetNative() const { return resource.Get(); }
 		ID3D11Resource* Detach() { return resource.Detach(); }
@@ -173,13 +175,13 @@ namespace adria
 		GfxDevice* gfx;
 		ArcPtr<ID3D11Resource> resource;
 		GfxTextureDesc desc;
-		std::vector<ArcPtr<ID3D11ShaderResourceView>> srvs;
-		std::vector<ArcPtr<ID3D11UnorderedAccessView>> uavs;
-		std::vector<ArcPtr<ID3D11RenderTargetView>> rtvs;
-		std::vector<ArcPtr<ID3D11DepthStencilView>> dsvs;
+		std::vector<GfxArcReadOnlyDescriptor> srvs;
+		std::vector<GfxArcReadWriteDescriptor> uavs;
+		std::vector<GfxArcColorDescriptor> rtvs;
+		std::vector<GfxArcDepthDescriptor> dsvs;
 
 	private:
-		[[maybe_unused]] uint64 CreateSubresource(GfxSubresourceType type, GfxTextureSubresourceDesc const& view_desc)
+		[[maybe_unused]] uint64 CreateDescriptor(GfxSubresourceType type, GfxTextureSubresourceDesc const& view_desc)
 		{
 			uint32 first_slice = view_desc.first_slice;
 			uint32 slice_count = view_desc.slice_count;

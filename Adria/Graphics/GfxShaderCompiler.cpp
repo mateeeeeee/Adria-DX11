@@ -80,7 +80,7 @@ namespace adria
 
 			archive(output.hash);
 			archive(output.includes);
-			size_t binary_size = 0;
+			uint32 binary_size = 0;
 			archive(binary_size);
 			std::unique_ptr<char[]> binary_data(new char[binary_size]);
 			archive.loadBinary(binary_data.get(), binary_size);
