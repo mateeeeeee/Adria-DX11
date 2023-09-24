@@ -14,7 +14,7 @@
 #include <unordered_map>
 #include <map>
 #include <unordered_set>
-#include <d3d11.h>
+#include <d3d11_1.h>
 #include <wrl.h>
 #include <dxgi1_3.h>
 #include <windows.h>

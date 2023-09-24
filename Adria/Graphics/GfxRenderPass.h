@@ -4,11 +4,10 @@
 #include <unordered_map>
 #include <d3d11.h>
 #include "GfxFormat.h"
+#include "GfxDescriptor.h"
 
 namespace adria
 {
-	using GfxColorDescriptor = ID3D11RenderTargetView*;
-	using GfxDepthDescriptor = ID3D11DepthStencilView*;
 
 	struct GfxClearValue
 	{

@@ -173,6 +173,7 @@
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\GUI.cpp" />
     <ClCompile Include="Events\EventQueue.cpp" />
+    <ClCompile Include="Graphics\GfxCommandContext.cpp" />
     <ClCompile Include="Graphics\GfxCommonStates.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
     <ClCompile Include="Graphics\GfxProfiler.cpp" />
@@ -227,14 +228,18 @@
     <ClInclude Include="Events\EventQueue.h" />
     <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
+    <ClInclude Include="Graphics\GfxCommandContext.h" />
     <ClInclude Include="Graphics\GfxCommonStates.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
     <ClInclude Include="Graphics\GfxDefines.h" />
+    <ClInclude Include="Graphics\GfxDescriptor.h" />
     <ClInclude Include="Graphics\GfxDevice.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
     <ClInclude Include="Graphics\GfxProfiler.h" />
+    <ClInclude Include="Graphics\GfxQuery.h" />
     <ClInclude Include="Graphics\GfxRenderPass.h" />
     <ClInclude Include="Graphics\GfxResourceCommon.h" />
+    <ClInclude Include="Graphics\GfxSampler.h" />
     <ClInclude Include="Graphics\GfxScopedAnnotation.h" />
     <ClInclude Include="Graphics\GfxShaderProgram.h" />
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />

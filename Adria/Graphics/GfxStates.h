@@ -55,6 +55,40 @@ namespace adria
 		GreaterEqual,
 		Always,
 	};
+	inline constexpr D3D11_COMPARISON_FUNC ConvertComparisonFunc(GfxComparisonFunc value)
+	{
+		switch (value)
+		{
+		case GfxComparisonFunc::Never:
+			return D3D11_COMPARISON_NEVER;
+			break;
+		case GfxComparisonFunc::Less:
+			return D3D11_COMPARISON_LESS;
+			break;
+		case GfxComparisonFunc::Equal:
+			return D3D11_COMPARISON_EQUAL;
+			break;
+		case GfxComparisonFunc::LessEqual:
+			return D3D11_COMPARISON_LESS_EQUAL;
+			break;
+		case GfxComparisonFunc::Greater:
+			return D3D11_COMPARISON_GREATER;
+			break;
+		case GfxComparisonFunc::NotEqual:
+			return D3D11_COMPARISON_NOT_EQUAL;
+			break;
+		case GfxComparisonFunc::GreaterEqual:
+			return D3D11_COMPARISON_GREATER_EQUAL;
+			break;
+		case GfxComparisonFunc::Always:
+			return D3D11_COMPARISON_ALWAYS;
+			break;
+		default:
+			break;
+		}
+		return D3D11_COMPARISON_NEVER;
+	}
+
 	enum class GfxDepthWriteMask : uint8
 	{
 		Zero,

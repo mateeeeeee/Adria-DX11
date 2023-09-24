@@ -108,7 +108,7 @@ namespace adria
 			: gfx(gfx), desc(desc)
 		{
 			D3D11_BUFFER_DESC buffer_desc{};
-			buffer_desc.ByteWidth = (UINT)desc.size;
+			buffer_desc.ByteWidth = (uint32)desc.size;
 			buffer_desc.Usage = ConvertUsage(desc.resource_usage);
 			buffer_desc.BindFlags = ParseBindFlags(desc.bind_flags);
 			buffer_desc.CPUAccessFlags = ParseCPUAccessFlags(desc.cpu_access);
@@ -152,10 +152,10 @@ namespace adria
 		}
 
 		GfxBufferDesc const& GetDesc() const { return desc; }
-		UINT GetCount() const
+		uint32 GetCount() const
 		{
 			ADRIA_ASSERT(desc.stride != 0);
-			return static_cast<UINT>(desc.size / desc.stride);
+			return static_cast<uint32>(desc.size / desc.stride);
 		}
 
 		[[maybe_unused]] void* Map()

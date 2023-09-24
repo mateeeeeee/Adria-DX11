@@ -198,6 +198,9 @@
     <ClCompile Include="Graphics\GfxStates.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GfxCommandContext.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -478,6 +481,18 @@
       <Filter>Math</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxStates.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxCommandContext.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxDescriptor.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxSampler.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxQuery.h">
       <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>

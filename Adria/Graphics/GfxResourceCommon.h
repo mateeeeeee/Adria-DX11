@@ -1,12 +1,5 @@
 #pragma once
-#include <memory>
-#include <optional>
-#include "GfxDevice.h"
-#include "GfxFormat.h"
 #include "Utilities/EnumUtil.h"
-#include "Utilities/StringUtil.h"
-#include "Core/Defines.h"
-
 
 namespace adria
 {
@@ -92,7 +85,7 @@ namespace adria
 
 	inline constexpr uint32 ParseCPUAccessFlags(GfxCpuAccess value)
 	{
-		uint32_t result = 0;
+		uint32 result = 0;
 		if (HasAnyFlag(value, GfxCpuAccess::Write))
 			result |= D3D11_CPU_ACCESS_WRITE;
 		if (HasAnyFlag(value, GfxCpuAccess::Read))
@@ -138,4 +131,38 @@ namespace adria
 			result |= D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
 		return result;
 	}
+
+	enum class GfxMapType : uint32 
+	{
+		Read = 1,
+		Write = 2,
+		ReadWrite = 3,
+		WriteDiscard = 4,
+		WriteNoOverwrite = 5
+	};
+	inline constexpr D3D11_MAP ConvertMapType(GfxMapType value)
+	{
+		switch (value)
+		{
+		case GfxMapType::Read:
+			return D3D11_MAP_READ;
+		case GfxMapType::Write:
+			return D3D11_MAP_WRITE;
+		case GfxMapType::ReadWrite:
+			return D3D11_MAP_READ_WRITE;
+		case GfxMapType::WriteDiscard:
+			return D3D11_MAP_WRITE_DISCARD;
+		case GfxMapType::WriteNoOverwrite:
+			return D3D11_MAP_WRITE_NO_OVERWRITE;
+		default:
+			return D3D11_MAP_WRITE;
+		}
+		return D3D11_MAP_WRITE;
+	}
+	struct GfxMappedSubresource
+	{
+		void* p_data;
+		uint32 row_pitch;
+		uint32 depth_pitch;
+	};
 }
