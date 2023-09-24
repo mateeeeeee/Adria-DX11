@@ -21,6 +21,7 @@
 #include "Utilities/Heightmap.h"
 #include "Utilities/Image.h"
 #include "Utilities/HashMap.h"
+#include "Utilities/StringUtil.h"
 
 using namespace DirectX;
 namespace adria 

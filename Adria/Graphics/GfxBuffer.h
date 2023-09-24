@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "GfxResourceCommon.h"
+#include "GfxFormat.h"
 
 namespace adria
 {
@@ -119,7 +120,7 @@ namespace adria
 			if (initial_data != nullptr)
 			{
 				data.pSysMem = initial_data;
-				data.SysMemPitch = (UINT)desc.size;
+				data.SysMemPitch = (uint32)desc.size;
 				data.SysMemSlicePitch = 0;
 			}
 			ID3D11Device* device = gfx->Device();
@@ -131,15 +132,15 @@ namespace adria
 		GfxBuffer& operator=(GfxBuffer const&) = delete;
 		~GfxBuffer() = default;
 
-		ID3D11ShaderResourceView* SRV(size_t i = 0) const { return srvs[i].Get(); }
-		ID3D11UnorderedAccessView* UAV(size_t i = 0) const { return uavs[i].Get(); }
+		ID3D11ShaderResourceView* SRV(uint64 i = 0) const { return srvs[i].Get(); }
+		ID3D11UnorderedAccessView* UAV(uint64 i = 0) const { return uavs[i].Get(); }
 
-		[[maybe_unused]] size_t CreateSRV(GfxBufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] uint64 CreateSRV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
 			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 			return CreateSubresource(GfxSubresourceType_SRV, _desc);
 		}
-		[[maybe_unused]] size_t CreateUAV(GfxBufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] uint64 CreateUAV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
 			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 			return CreateSubresource(GfxSubresourceType_UAV, _desc);
@@ -189,7 +190,7 @@ namespace adria
 			ID3D11DeviceContext* ctx = gfx->Context();
 			ctx->Unmap(resource.Get(), 0);
 		}
-		void Update(void const* src_data, size_t data_size)
+		void Update(void const* src_data, uint64 data_size)
 		{
 			ID3D11DeviceContext* ctx = gfx->Context();
 			if (desc.resource_usage == GfxResourceUsage::Dynamic)
@@ -217,7 +218,7 @@ namespace adria
 		std::vector<ArcPtr<ID3D11UnorderedAccessView>> uavs;
 
 	private:
-		size_t CreateSubresource(GfxSubresourceType type, GfxBufferSubresourceDesc const& subresource_desc)
+		uint64 CreateSubresource(GfxSubresourceType type, GfxBufferSubresourceDesc const& subresource_desc)
 		{
 			HRESULT hr = E_FAIL;
 			ID3D11Device* device = gfx->Device();
