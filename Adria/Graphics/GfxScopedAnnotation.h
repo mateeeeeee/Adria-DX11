@@ -7,7 +7,7 @@ namespace adria
 	class GfxScopedAnnotation
 	{
 	public:
-		GfxScopedAnnotation(ID3DUserDefinedAnnotation* annotation, LPCWSTR name)
+		GfxScopedAnnotation(ID3DUserDefinedAnnotation* annotation, wchar_t const* name)
 			: annotation(annotation)
 		{
 			if(annotation) annotation->BeginEvent(name);
@@ -22,5 +22,5 @@ namespace adria
 		ID3DUserDefinedAnnotation* annotation;
 	};
 
-	#define SCOPED_ANNOTATION(annotation, name) GfxScopedAnnotation _annotation(annotation, name)
+	#define AdriaGfxScopedAnnotation(annotation, name) GfxScopedAnnotation ADRIA_CONCAT(_annotation, __COUNTER__)(annotation, name)
 }

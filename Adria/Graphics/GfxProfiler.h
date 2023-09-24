@@ -1,8 +1,10 @@
 #pragma once
-#include <d3d11.h>
 #include <string>
 #include <array>
-#include "GfxProfilerSettings.h"
+#include <unordered_map>
+#include <d3d11.h>
+#include "GfxDefines.h"
+#include "Utilities/Singleton.h"
 
 namespace adria
 {
@@ -12,9 +14,12 @@ namespace adria
 		float time_in_ms;
 	};
 
-	class GfxProfiler
+	class GfxProfiler : public Singleton<GfxProfiler>
 	{
-		static constexpr UINT64 FRAME_COUNT = GFX_BACKBUFFER_COUNT;
+		friend class Singleton<GfxProfiler>;
+
+		static constexpr uint64 FRAME_COUNT = GFX_BACKBUFFER_COUNT;
+		static constexpr uint64 MAX_QUERIES = 256;
 		struct QueryData
 		{
 			ArcPtr<ID3D11Query> disjoint_query;
@@ -24,37 +29,51 @@ namespace adria
 		};
 
 	public:
-		explicit GfxProfiler(ID3D11Device* device);
-
-		void BeginProfileBlock(ID3D11DeviceContext* context, EProfilerBlock block);
-		void EndProfileBlock(ID3D11DeviceContext* context, EProfilerBlock block);
+		void Initialize(ID3D11Device* device);
+		void Destroy();
+		void NewFrame();
+		void BeginProfileScope(ID3D11DeviceContext* context, char const* name);
+		void EndProfileScope(ID3D11DeviceContext* context, char const* name);
 		[[maybe_unused]] std::vector<Timestamp> GetProfilingResults(ID3D11DeviceContext* context);
 
 	private:
-		ID3D11Device* device;
+		ID3D11Device* device = nullptr;
 		uint64 current_frame = 0;
-		std::array<std::array<QueryData, (size_t)EProfilerBlock::Count>, FRAME_COUNT> queries;
-	};
+		std::array<std::array<QueryData, MAX_QUERIES>, FRAME_COUNT> queries;
+		std::unordered_map<std::string, uint32> name_to_index_map;
+		uint32 scope_counter = 0;
 
-	struct GfxScopedProfileBlock
+	private:
+		GfxProfiler() {}
+		~GfxProfiler() {}
+	};
+	#define g_GfxProfiler GfxProfiler::Get()
+
+#if GFX_PROFILING
+	struct GfxProfileScope
 	{
-		GfxScopedProfileBlock(GfxProfiler& profiler, ID3D11DeviceContext* context, EProfilerBlock block)
-			: profiler{ profiler }, block{ block }, context{ context }
+		GfxProfileScope(ID3D11DeviceContext* context, char const* name, bool active = true)
+			: name{ name }, context{ context }, active{ active }
 		{
-			profiler.BeginProfileBlock(context, block);
+			if(active) 
+				g_GfxProfiler.BeginProfileScope(context, name);
 		}
 
-		~GfxScopedProfileBlock()
+		~GfxProfileScope()
 		{
-			profiler.EndProfileBlock(context, block);
+			if (active) 
+				g_GfxProfiler.EndProfileScope(context, name);
 		}
 
-		GfxProfiler& profiler;
 		ID3D11DeviceContext* context;
-		EProfilerBlock block;
+		char const* name;
+		bool active;
 	};
 
-	#define SCOPED_GPU_PROFILE_BLOCK(profiler, context, block_id) GfxScopedProfileBlock block(profiler, context, block_id)
-	#define SCOPED_GPU_PROFILE_BLOCK_ON_CONDITION(profiler, context, block_id, cond) std::unique_ptr<GfxScopedProfileBlock> scoped_profile = nullptr; \
-																					  if(cond) scoped_profile = std::make_unique<GfxScopedProfileBlock>(profiler, context, block_id)
+	#define AdriaGfxProfileScope(context, name) GfxProfileScope ADRIA_CONCAT(gfx_profile, __COUNTER__)(context, name)
+	#define AdriaGfxProfileCondScope(context, name, cond) GfxProfileScope ADRIA_CONCAT(gfx_profile, __COUNTER__)(context, name, cond)
+#else
+	#define AdriaGfxProfileScope(context, name) 
+	#define AdriaGfxProfileCondScope(context, name, active) 
+#endif
 }

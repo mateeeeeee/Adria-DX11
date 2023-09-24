@@ -44,8 +44,8 @@ namespace adria
 		void NewFrame(Camera const*);
 		void Update(float dt);
 		
+		void SetProfiling(bool profiling) { profiling_enabled = profiling; }
 		void SetSceneViewportData(SceneViewport const&);
-		void SetProfilerSettings(GfxProfilerSettings const&);
 		void Render(RendererSettings const&);
 
 		void ResolveToOffscreenFramebuffer();
@@ -64,9 +64,8 @@ namespace adria
 		GfxDevice* gfx;
 		Camera const* camera;
 		RendererSettings renderer_settings;
-		GfxProfiler profiler;
-		GfxProfilerSettings profiler_settings;
 		ParticleRenderer particle_renderer;
+		bool profiling_enabled = false;
 
 		SceneViewport current_scene_viewport;
 		bool pick_in_current_frame = false;

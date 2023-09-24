@@ -2,7 +2,7 @@
 #include <vector>
 #include <DirectXMath.h>
 #include "Core/CoreTypes.h"
-#include "Graphics/GfxVertexTypes.h"
+#include "Graphics/GfxVertexFormat.h"
 
 namespace adria
 {

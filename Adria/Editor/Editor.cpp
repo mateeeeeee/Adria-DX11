@@ -1743,17 +1743,6 @@ namespace adria
 			if (enable_profiling)
 			{
 				static ProfilerState state;
-                if (ImGui::CollapsingHeader("Profiler Settings", ImGuiTreeNodeFlags_DefaultOpen))
-				{
-					ImGui::Checkbox("Profile GBuffer Pass", &profiler_settings.profile_gbuffer_pass);
-					ImGui::Checkbox("Profile Decal Pass", &profiler_settings.profile_decal_pass);
-					ImGui::Checkbox("Profile Deferred Pass", &profiler_settings.profile_deferred_pass);
-					ImGui::Checkbox("Profile Forward Pass", &profiler_settings.profile_forward_pass);
-					ImGui::Checkbox("Profile Particles Pass", &profiler_settings.profile_particles_pass);
-					ImGui::Checkbox("Profile Postprocessing", &profiler_settings.profile_postprocessing);
-				}
-                engine->renderer->SetProfilerSettings(profiler_settings);
-				
 				static constexpr uint64 NUM_FRAMES = 128;
 				static float FRAME_TIME_ARRAY[NUM_FRAMES] = { 0 };
 				static float RECENT_HIGHEST_FRAME_TIME = 0.0f;
@@ -1849,10 +1838,7 @@ namespace adria
 					state.accumulating_frame_count++;
 				}
 			}
-			else
-			{
-                engine->renderer->SetProfilerSettings(NO_PROFILING);
-			}
+			engine->renderer->SetProfiling(enable_profiling);
         }
         ImGui::End();
     }

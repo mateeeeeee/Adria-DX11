@@ -6,7 +6,7 @@
 #include "TextureManager.h"
 #include "Core/CoreTypes.h"
 #include "Math/Constants.h"
-#include "Graphics/GfxVertexTypes.h"
+#include "Graphics/GfxVertexFormat.h"
 #include "Graphics/GfxBuffer.h"
 #include "tecs/entity.h"
 

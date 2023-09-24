@@ -12,7 +12,7 @@
 #include "TextureManager.h"
 #include "tecs/registry.h"
 #include "Graphics/GfxDevice.h"
-#include "Graphics/GfxVertexTypes.h"
+#include "Graphics/GfxVertexFormat.h"
 #include "Logging/Logger.h"
 #include "Math/BoundingVolumeHelpers.h"
 #include "Math/ComputeTangentFrame.h"

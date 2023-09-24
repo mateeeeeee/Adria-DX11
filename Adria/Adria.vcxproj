@@ -232,14 +232,14 @@
     <ClInclude Include="Graphics\GfxDevice.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
     <ClInclude Include="Graphics\GfxProfiler.h" />
-    <ClInclude Include="Graphics\GfxProfilerSettings.h" />
     <ClInclude Include="Graphics\GfxRenderPass.h" />
     <ClInclude Include="Graphics\GfxResourceCommon.h" />
     <ClInclude Include="Graphics\GfxScopedAnnotation.h" />
     <ClInclude Include="Graphics\GfxShaderProgram.h" />
     <ClInclude Include="Graphics\GfxShaderCompiler.h" />
+    <ClInclude Include="Graphics\GfxStates.h" />
     <ClInclude Include="Graphics\GfxTexture.h" />
-    <ClInclude Include="Graphics\GfxVertexTypes.h" />
+    <ClInclude Include="Graphics\GfxVertexFormat.h" />
     <ClInclude Include="Input\Input.h" />
     <ClInclude Include="Logging\Logger.h" />
     <ClInclude Include="Math\BoundingVolumeHelpers.h" />
