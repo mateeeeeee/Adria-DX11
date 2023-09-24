@@ -235,6 +235,7 @@
     <ClInclude Include="Graphics\GfxDescriptor.h" />
     <ClInclude Include="Graphics\GfxDevice.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
+    <ClInclude Include="Graphics\GfxInputLayout.h" />
     <ClInclude Include="Graphics\GfxProfiler.h" />
     <ClInclude Include="Graphics\GfxQuery.h" />
     <ClInclude Include="Graphics\GfxRenderPass.h" />

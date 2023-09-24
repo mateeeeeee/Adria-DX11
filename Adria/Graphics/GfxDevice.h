@@ -9,6 +9,9 @@
 
 namespace adria
 {
+	class GfxBuffer;
+	struct GfxBufferDesc;
+
 	class GfxDevice
 	{
 	public:

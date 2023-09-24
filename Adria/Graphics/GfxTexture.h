@@ -41,7 +41,6 @@ namespace adria
 	};
 
 	using GfxTextureInitialData = D3D11_SUBRESOURCE_DATA;
-
 	class GfxTexture
 	{
 		constexpr static D3D11_TEXTURE1D_DESC ConvertTextureDesc1D(GfxTextureDesc const& desc)
@@ -542,5 +541,4 @@ namespace adria
 			return -1;
 		}
 	};
-
 }

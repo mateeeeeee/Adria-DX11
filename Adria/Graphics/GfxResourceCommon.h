@@ -160,6 +160,7 @@ namespace adria
 		}
 		return D3D11_MAP_WRITE;
 	}
+
 	struct GfxMappedSubresource
 	{
 		void* p_data;
