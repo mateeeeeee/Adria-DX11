@@ -70,7 +70,7 @@ namespace adria
 			std::vector<std::string> includes;
 		};
 
-		bool CheckCache(char const* cache_path, GfxShaderCompileInput const& input, GfxShaderCompileOutput& output)
+		bool CheckCache(char const* cache_path, GfxShaderDesc const& input, GfxShaderCompileOutput& output)
 		{
 			if (!FileExists(cache_path)) return false;
 			if (GetFileLastWriteTime(cache_path) < GetFileLastWriteTime(input.source_file)) return false;
@@ -84,7 +84,7 @@ namespace adria
 			archive(binary_size);
 			std::unique_ptr<char[]> binary_data(new char[binary_size]);
 			archive.loadBinary(binary_data.get(), binary_size);
-			output.blob.SetBytecode(binary_data.get(), binary_size);
+			output.shader_bytecode.SetBytecode(binary_data.get(), binary_size);
 			return true;
 		}
 		bool SaveToCache(char const* cache_path, GfxShaderCompileOutput const& output)
@@ -93,8 +93,8 @@ namespace adria
 			cereal::BinaryOutputArchive archive(os);
 			archive(output.hash);
 			archive(output.includes);
-			archive(output.blob.GetLength());
-			archive.saveBinary(output.blob.GetPointer(), output.blob.GetLength());
+			archive(output.shader_bytecode.GetLength());
+			archive.saveBinary(output.shader_bytecode.GetPointer(), output.shader_bytecode.GetLength());
 			return true;
 		}
 	}
@@ -102,7 +102,7 @@ namespace adria
 	namespace GfxShaderCompiler
 	{
 
-		void GetBlobFromCompiledShader(char const* filename, GfxShaderBlob& blob)
+		void GetBytecodeFromCompiledShader(char const* filename, GfxShaderBytecode& blob)
 		{
 			ArcPtr<ID3DBlob> bytecode_blob;
 
@@ -114,7 +114,7 @@ namespace adria
 			std::memcpy(blob.GetPointer(), bytecode_blob->GetBufferPointer(), blob.GetLength());
 		}
 
-		void CompileShader(GfxShaderCompileInput const& input,
+		void CompileShader(GfxShaderDesc const& input,
 			GfxShaderCompileOutput& output)
 		{
 			output = GfxShaderCompileOutput{};
@@ -158,7 +158,7 @@ namespace adria
 			}
 			uint64 macro_hash = crc64(macro_key.c_str(), macro_key.size());
 
-			std::string build_string = input.flags & GfxShaderCompileInput::FlagDebug ? "debug" : "release";
+			std::string build_string = input.flags & GfxShaderCompilerFlagBit_Debug ? "debug" : "release";
 			char cache_path[256];
 			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", shaders_cache_directory, 
 				GetFilenameWithoutExtension(input.source_file).c_str(), entrypoint.c_str(), macro_hash, build_string.c_str());
@@ -167,8 +167,8 @@ namespace adria
 			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.source_file.c_str(), entrypoint.c_str());
 
 			uint32 shader_compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
-			if (input.flags & GfxShaderCompileInput::FlagDisableOptimization) shader_compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
-			if (input.flags & GfxShaderCompileInput::FlagDebug) shader_compile_flags |= D3DCOMPILE_DEBUG;
+			if (input.flags & GfxShaderCompilerFlagBit_DisableOptimization) shader_compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
+			if (input.flags & GfxShaderCompilerFlagBit_Debug) shader_compile_flags |= D3DCOMPILE_DEBUG;
 			std::vector<D3D_SHADER_MACRO> defines{};
 			defines.resize(input.macros.size());
 			
@@ -200,32 +200,28 @@ namespace adria
 
 			uint64 shader_hash = crc64((char*)bytecode_blob->GetBufferPointer(), bytecode_blob->GetBufferSize());
 			
-			output.blob.bytecode.resize(bytecode_blob->GetBufferSize());
-			std::memcpy(output.blob.GetPointer(), bytecode_blob->GetBufferPointer(), bytecode_blob->GetBufferSize());
+			output.shader_bytecode.bytecode.resize(bytecode_blob->GetBufferSize());
+			std::memcpy(output.shader_bytecode.GetPointer(), bytecode_blob->GetBufferPointer(), bytecode_blob->GetBufferSize());
 			output.includes = includes;
 			output.includes.push_back(input.source_file);
 			output.hash = shader_hash;
 			SaveToCache(cache_path, output);
 		}
 
-		void CreateInputLayoutWithReflection(ID3D11Device* device, GfxShaderBlob const& blob, ID3D11InputLayout** il)
+		void CreateInputLayoutWithReflection(ID3D11Device* device, GfxShaderBytecode const& blob, ID3D11InputLayout** il)
 		{
-			// Reflect shader info
 			ArcPtr<ID3D11ShaderReflection> vertex_shader_reflection = nullptr;
 			GFX_CHECK_HR(D3DReflect(blob.GetPointer(), blob.GetLength(), IID_ID3D11ShaderReflection, (void**)vertex_shader_reflection.GetAddressOf()));
 
-			// Get shader info
 			D3D11_SHADER_DESC shaderDesc;
 			vertex_shader_reflection->GetDesc(&shaderDesc);
 
-			// Read input layout description from shader info
 			std::vector<D3D11_INPUT_ELEMENT_DESC> inputLayoutDesc;
 			for (uint32 i = 0; i < shaderDesc.InputParameters; i++)
 			{
 				D3D11_SIGNATURE_PARAMETER_DESC param_desc;
 				vertex_shader_reflection->GetInputParameterDesc(i, &param_desc);
 
-				// fill out input element desc
 				D3D11_INPUT_ELEMENT_DESC element_desc{};
 				element_desc.SemanticName = param_desc.SemanticName;
 				element_desc.SemanticIndex = param_desc.SemanticIndex;
@@ -234,7 +230,6 @@ namespace adria
 				element_desc.InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 				element_desc.InstanceDataStepRate = 0;
 
-				// determine DXGI format
 				if (param_desc.Mask == 1)
 				{
 					if (param_desc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) element_desc.Format = DXGI_FORMAT_R32_UINT;

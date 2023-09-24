@@ -999,85 +999,85 @@ namespace adria
 	}
 	void Renderer::CreateRenderPasses(uint32 width, uint32 height)
 	{
-		static constexpr std::array<float, 4> clear_black = { 0.0f,0.0f,0.0f,0.0f };
+		static constexpr float clear_black[4] = {0.0f,0.0f,0.0f,0.0f};
 
-		RtvAttachmentDesc gbuffer_normal_attachment{};
+		GfxColorAttachmentDesc gbuffer_normal_attachment{};
 		gbuffer_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic]->RTV();
-		gbuffer_normal_attachment.clear_color = clear_black;
-		gbuffer_normal_attachment.load_op = ELoadOp::Clear;
+		gbuffer_normal_attachment.clear_color = GfxClearValue(clear_black);
+		gbuffer_normal_attachment.load_op = GfxLoadAccessOp::Clear;
 
-		RtvAttachmentDesc gbuffer_albedo_attachment{};
+		GfxColorAttachmentDesc gbuffer_albedo_attachment{};
 		gbuffer_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness]->RTV();
-		gbuffer_albedo_attachment.clear_color = clear_black;
-		gbuffer_albedo_attachment.load_op = ELoadOp::Clear;
+		gbuffer_albedo_attachment.clear_color = GfxClearValue(clear_black);
+		gbuffer_albedo_attachment.load_op = GfxLoadAccessOp::Clear;
 
-		RtvAttachmentDesc gbuffer_emissive_attachment{};
+		GfxColorAttachmentDesc gbuffer_emissive_attachment{};
 		gbuffer_emissive_attachment.view = gbuffer[EGBufferSlot_Emissive]->RTV();
-		gbuffer_emissive_attachment.clear_color = clear_black;
-		gbuffer_emissive_attachment.load_op = ELoadOp::Clear;
+		gbuffer_emissive_attachment.clear_color = GfxClearValue(clear_black);
+		gbuffer_emissive_attachment.load_op = GfxLoadAccessOp::Clear;
 
-		RtvAttachmentDesc decal_normal_attachment{};
+		GfxColorAttachmentDesc decal_normal_attachment{};
 		decal_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic]->RTV();
-		decal_normal_attachment.load_op = ELoadOp::Load;
+		decal_normal_attachment.load_op = GfxLoadAccessOp::Load;
 
-		RtvAttachmentDesc decal_albedo_attachment{};
+		GfxColorAttachmentDesc decal_albedo_attachment{};
 		decal_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness]->RTV();
-		decal_albedo_attachment.load_op = ELoadOp::Load;
+		decal_albedo_attachment.load_op = GfxLoadAccessOp::Load;
 
-		DsvAttachmentDesc depth_clear_attachment{};
+		GfxDepthAttachmentDesc depth_clear_attachment{};
 		depth_clear_attachment.view = depth_target->DSV();
-		depth_clear_attachment.clear_depth = 1.0f;
-		depth_clear_attachment.load_op = ELoadOp::Clear;
+		depth_clear_attachment.clear_depth = GfxClearValue(1.0f, 0);
+		depth_clear_attachment.load_op = GfxLoadAccessOp::Clear;
 
-		RtvAttachmentDesc hdr_color_clear_attachment{};
+		GfxColorAttachmentDesc hdr_color_clear_attachment{};
 		hdr_color_clear_attachment.view = hdr_render_target->RTV();
-		hdr_color_clear_attachment.clear_color = clear_black;
-		hdr_color_clear_attachment.load_op = ELoadOp::Clear;
+		hdr_color_clear_attachment.clear_color = GfxClearValue(clear_black);
+		hdr_color_clear_attachment.load_op = GfxLoadAccessOp::Clear;
 
-		RtvAttachmentDesc hdr_color_load_attachment{};
+		GfxColorAttachmentDesc hdr_color_load_attachment{};
 		hdr_color_load_attachment.view = hdr_render_target->RTV();
-		hdr_color_load_attachment.load_op = ELoadOp::Load;
+		hdr_color_load_attachment.load_op = GfxLoadAccessOp::Load;
 
 		
-		DsvAttachmentDesc depth_load_attachment{};
+		GfxDepthAttachmentDesc depth_load_attachment{};
 		depth_load_attachment.view = depth_target->DSV();
-		depth_load_attachment.clear_depth = 1.0f;
-		depth_load_attachment.load_op = ELoadOp::Load;
+		depth_load_attachment.clear_depth = GfxClearValue(clear_black);
+		depth_load_attachment.load_op = GfxLoadAccessOp::Load;
 
-		RtvAttachmentDesc fxaa_source_attachment{};
+		GfxColorAttachmentDesc fxaa_source_attachment{};
 		fxaa_source_attachment.view = fxaa_texture->RTV();
-		fxaa_source_attachment.load_op = ELoadOp::DontCare;
+		fxaa_source_attachment.load_op = GfxLoadAccessOp::DontCare;
 
-		DsvAttachmentDesc shadow_map_attachment{};
+		GfxDepthAttachmentDesc shadow_map_attachment{};
 		shadow_map_attachment.view = shadow_depth_map->DSV();
-		shadow_map_attachment.clear_depth = 1.0f;
-		shadow_map_attachment.load_op = ELoadOp::Clear;
+		shadow_map_attachment.clear_depth = GfxClearValue(clear_black);
+		shadow_map_attachment.load_op = GfxLoadAccessOp::Clear;
 
-		RtvAttachmentDesc ssao_attachment{};
+		GfxColorAttachmentDesc ssao_attachment{};
 		ssao_attachment.view = ao_texture->RTV();
-		ssao_attachment.load_op = ELoadOp::DontCare;
+		ssao_attachment.load_op = GfxLoadAccessOp::DontCare;
 
-		RtvAttachmentDesc ping_color_load_attachment{};
+		GfxColorAttachmentDesc ping_color_load_attachment{};
 		ping_color_load_attachment.view = postprocess_textures[0]->RTV();
-		ping_color_load_attachment.load_op = ELoadOp::Load;
+		ping_color_load_attachment.load_op = GfxLoadAccessOp::Load;
 
-		RtvAttachmentDesc pong_color_load_attachment{};
+		GfxColorAttachmentDesc pong_color_load_attachment{};
 		pong_color_load_attachment.view = postprocess_textures[1]->RTV();
-		pong_color_load_attachment.load_op = ELoadOp::Load;
+		pong_color_load_attachment.load_op = GfxLoadAccessOp::Load;
 
-		RtvAttachmentDesc offscreen_clear_attachment{};
+		GfxColorAttachmentDesc offscreen_clear_attachment{};
 		offscreen_clear_attachment.view = offscreen_ldr_render_target->RTV();
-		offscreen_clear_attachment.clear_color = clear_black;
-		offscreen_clear_attachment.load_op = ELoadOp::Clear;
+		offscreen_clear_attachment.clear_color = GfxClearValue(clear_black);
+		offscreen_clear_attachment.load_op = GfxLoadAccessOp::Clear;
 
-		RtvAttachmentDesc velocity_clear_attachment{};
+		GfxColorAttachmentDesc velocity_clear_attachment{};
 		velocity_clear_attachment.view = velocity_buffer->RTV();
-		velocity_clear_attachment.clear_color = clear_black;
-		velocity_clear_attachment.load_op = ELoadOp::Clear;
+		velocity_clear_attachment.clear_color = GfxClearValue(clear_black);
+		velocity_clear_attachment.load_op = GfxLoadAccessOp::Clear;
 
 		//gbuffer pass
 		{
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(gbuffer_normal_attachment);
@@ -1089,7 +1089,7 @@ namespace adria
 
 		//ambient pass
 		{
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_clear_attachment);
@@ -1098,7 +1098,7 @@ namespace adria
 
 		//lighting pass
 		{
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
@@ -1108,7 +1108,7 @@ namespace adria
 
 		//forward pass
 		{
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
@@ -1118,7 +1118,7 @@ namespace adria
 
 		//particle pass
 		{
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
@@ -1127,7 +1127,7 @@ namespace adria
 
 		//decal pass
 		{
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(decal_albedo_attachment);
@@ -1137,7 +1137,7 @@ namespace adria
 
 		//fxaa pass
 		{
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(fxaa_source_attachment);
@@ -1146,7 +1146,7 @@ namespace adria
 
 		//shadow map pass
 		{
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = SHADOW_MAP_SIZE;
 			render_pass_desc.height = SHADOW_MAP_SIZE;
 			render_pass_desc.dsv_attachment = shadow_map_attachment;
@@ -1157,12 +1157,12 @@ namespace adria
 		{
 			for (uint32 i = 0; i < 6; ++i)
 			{
-				DsvAttachmentDesc shadow_cubemap_attachment{};
+				GfxDepthAttachmentDesc shadow_cubemap_attachment{};
 				shadow_cubemap_attachment.view = shadow_depth_cubemap->DSV(i + 1);
-				shadow_cubemap_attachment.clear_depth = 1.0f;
-				shadow_cubemap_attachment.load_op = ELoadOp::Clear;
+				shadow_cubemap_attachment.clear_depth = GfxClearValue(1.0f, 0);
+				shadow_cubemap_attachment.load_op = GfxLoadAccessOp::Clear;
 
-				RenderPassDesc render_pass_desc{};
+				GfxRenderPassDesc render_pass_desc{};
 				render_pass_desc.width = SHADOW_CUBE_SIZE;
 				render_pass_desc.height = SHADOW_CUBE_SIZE;
 				render_pass_desc.dsv_attachment = shadow_cubemap_attachment;
@@ -1175,12 +1175,12 @@ namespace adria
 			cascade_shadow_pass.clear();
 			for (uint32 i = 0; i < CASCADE_COUNT; ++i)
 			{
-				DsvAttachmentDesc cascade_shadow_map_attachment{};
+				GfxDepthAttachmentDesc cascade_shadow_map_attachment{};
 				cascade_shadow_map_attachment.view = shadow_cascade_maps->DSV(i + 1);
-				cascade_shadow_map_attachment.clear_depth = 1.0f;
-				cascade_shadow_map_attachment.load_op = ELoadOp::Clear;
+				cascade_shadow_map_attachment.clear_depth = GfxClearValue(1.0f, 0);
+				cascade_shadow_map_attachment.load_op = GfxLoadAccessOp::Clear;
 
-				RenderPassDesc render_pass_desc{};
+				GfxRenderPassDesc render_pass_desc{};
 				render_pass_desc.width = SHADOW_CASCADE_SIZE;
 				render_pass_desc.height = SHADOW_CASCADE_SIZE;
 				render_pass_desc.dsv_attachment = cascade_shadow_map_attachment;
@@ -1191,7 +1191,7 @@ namespace adria
 		//ssao pass
 		{
 
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(ssao_attachment);
@@ -1202,13 +1202,13 @@ namespace adria
 		//ping pong passes
 		{
 			
-			RenderPassDesc ping_render_pass_desc{};
+			GfxRenderPassDesc ping_render_pass_desc{};
 			ping_render_pass_desc.width = width;
 			ping_render_pass_desc.height = height;
 			ping_render_pass_desc.rtv_attachments.push_back(ping_color_load_attachment);
 			postprocess_passes[0] = GfxRenderPass(ping_render_pass_desc);
 
-			RenderPassDesc pong_render_pass_desc{};
+			GfxRenderPassDesc pong_render_pass_desc{};
 			pong_render_pass_desc.width = width;
 			pong_render_pass_desc.height = height;
 			pong_render_pass_desc.rtv_attachments.push_back(pong_color_load_attachment);
@@ -1218,7 +1218,7 @@ namespace adria
 
 		//voxel debug pass
 		{
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_clear_attachment);
@@ -1228,7 +1228,7 @@ namespace adria
 
 		//offscreen_resolve_pass
 		{
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(offscreen_clear_attachment);
@@ -1237,7 +1237,7 @@ namespace adria
 
 		//velocity buffer pass
 		{
-			RenderPassDesc render_pass_desc{};
+			GfxRenderPassDesc render_pass_desc{};
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(velocity_clear_attachment);
@@ -1279,8 +1279,8 @@ namespace adria
 		unfiltered_env_tex->GetDesc(&tex_desc);
 		//Compute pre-filtered specular environment map.
 		{
-			GfxShaderBlob cs_blob;
-			GfxShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpmapCS.cso", cs_blob);
+			GfxShaderBytecode cs_blob;
+			GfxShaderCompiler::GetBytecodeFromCompiledShader("Resources/Compiled Shaders/SpmapCS.cso", cs_blob);
 			GfxComputeShader spmap_program{ device, cs_blob };
 
 			ArcPtr<ID3D11Texture2D> env_tex = nullptr;
@@ -1356,8 +1356,8 @@ namespace adria
 		}
 		// Compute diffuse irradiance cubemap.
 		{
-			GfxShaderBlob cs_blob;
-			GfxShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/IrmapCS.cso", cs_blob);
+			GfxShaderBytecode cs_blob;
+			GfxShaderCompiler::GetBytecodeFromCompiledShader("Resources/Compiled Shaders/IrmapCS.cso", cs_blob);
 			GfxComputeShader irmap_program(device, cs_blob);
 
 			ArcPtr<ID3D11Texture2D> irmap_tex = nullptr;
@@ -1402,8 +1402,8 @@ namespace adria
 
 		// Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.
 		{
-			GfxShaderBlob cs_blob;
-			GfxShaderCompiler::GetBlobFromCompiledShader("Resources/Compiled Shaders/SpbrdfCS.cso", cs_blob);
+			GfxShaderBytecode cs_blob;
+			GfxShaderCompiler::GetBytecodeFromCompiledShader("Resources/Compiled Shaders/SpbrdfCS.cso", cs_blob);
 			GfxComputeShader BRDFprogram(device, cs_blob);
 
 			ArcPtr<ID3D11Texture2D> brdf_tex = nullptr;

@@ -377,11 +377,11 @@ namespace adria
 
 		void CompileShader(ShaderId shader, bool first_compile = false)
 		{
-			GfxShaderCompileInput input{ .entrypoint = "main" };
+			GfxShaderDesc input{ .entrypoint = "main" };
 #if _DEBUG
-			input.flags = GfxShaderCompileInput::FlagDebug | GfxShaderCompileInput::FlagDisableOptimization;
+			input.flags = GfxShaderCompilerFlagBit_Debug | GfxShaderCompilerFlagBit_DisableOptimization;
 #else
-			input.flags = GfxShaderCompileInput::FlagNone;
+			input.flags = GfxShaderCompilerFlagBit_None;
 #endif
 			input.source_file = "Resources/Shaders/" + GetShaderSource(shader);
 			input.stage = GetStage(shader);
@@ -392,28 +392,28 @@ namespace adria
 			switch (input.stage)
 			{
 			case GfxShaderStage::VS:
-				if(first_compile) vs_shader_map[shader] = std::make_unique<GfxVertexShader>(device, output.blob);
-				else vs_shader_map[shader]->Recreate(device, output.blob);
+				if(first_compile) vs_shader_map[shader] = std::make_unique<GfxVertexShader>(device, output.shader_bytecode);
+				else vs_shader_map[shader]->Recreate(device, output.shader_bytecode);
 				break;
 			case GfxShaderStage::PS:
-				if (first_compile) ps_shader_map[shader] = std::make_unique<GfxPixelShader>(device, output.blob);
-				else ps_shader_map[shader]->Recreate(device, output.blob);
+				if (first_compile) ps_shader_map[shader] = std::make_unique<GfxPixelShader>(device, output.shader_bytecode);
+				else ps_shader_map[shader]->Recreate(device, output.shader_bytecode);
 				break;
 			case GfxShaderStage::HS:
-				if (first_compile) hs_shader_map[shader] = std::make_unique<GfxHullShader>(device, output.blob);
-				else hs_shader_map[shader]->Recreate(device, output.blob);
+				if (first_compile) hs_shader_map[shader] = std::make_unique<GfxHullShader>(device, output.shader_bytecode);
+				else hs_shader_map[shader]->Recreate(device, output.shader_bytecode);
 				break;
 			case GfxShaderStage::DS:
-				if (first_compile) ds_shader_map[shader] = std::make_unique<GfxDomainShader>(device, output.blob);
-				else ds_shader_map[shader]->Recreate(device, output.blob);
+				if (first_compile) ds_shader_map[shader] = std::make_unique<GfxDomainShader>(device, output.shader_bytecode);
+				else ds_shader_map[shader]->Recreate(device, output.shader_bytecode);
 				break;
 			case GfxShaderStage::GS:
-				if (first_compile) gs_shader_map[shader] = std::make_unique<GfxGeometryShader>(device, output.blob);
-				else gs_shader_map[shader]->Recreate(device, output.blob);
+				if (first_compile) gs_shader_map[shader] = std::make_unique<GfxGeometryShader>(device, output.shader_bytecode);
+				else gs_shader_map[shader]->Recreate(device, output.shader_bytecode);
 				break;
 			case GfxShaderStage::CS:
-				if (first_compile) cs_shader_map[shader] = std::make_unique<GfxComputeShader>(device, output.blob);
-				else cs_shader_map[shader]->Recreate(device, output.blob);
+				if (first_compile) cs_shader_map[shader] = std::make_unique<GfxComputeShader>(device, output.shader_bytecode);
+				else cs_shader_map[shader]->Recreate(device, output.shader_bytecode);
 				break;
 			default:
 				ADRIA_ASSERT(false);
@@ -431,7 +431,7 @@ namespace adria
 				
 				if (shader != VS_Foliage) input_layout_map.emplace(std::piecewise_construct, 
 																   std::forward_as_tuple(shader),
-																   std::forward_as_tuple(device, vs_shader_map[shader]->GetBlob()));
+																   std::forward_as_tuple(device, vs_shader_map[shader]->GetBytecode()));
 				else
 				{
 					std::vector<D3D11_INPUT_ELEMENT_DESC> foliage_input_desc = {
@@ -443,7 +443,7 @@ namespace adria
 					};
 					input_layout_map.emplace(std::piecewise_construct,
 						std::forward_as_tuple(shader),
-						std::forward_as_tuple(device, vs_shader_map[shader]->GetBlob(), foliage_input_desc));
+						std::forward_as_tuple(device, vs_shader_map[shader]->GetBytecode(), foliage_input_desc));
 				}
 			}
 

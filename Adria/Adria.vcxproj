@@ -178,6 +178,7 @@
     <ClCompile Include="Graphics\GfxProfiler.cpp" />
     <ClCompile Include="Graphics\GfxRenderPass.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
+    <ClCompile Include="Graphics\GfxStates.cpp" />
     <ClCompile Include="Input\Input.cpp" />
     <ClCompile Include="Logging\Logger.cpp" />
     <ClCompile Include="main.cpp" />
@@ -306,6 +307,7 @@
   <ItemGroup>
     <None Include="..\README.md" />
     <None Include="..\ThirdParty\SimpleMath\SimpleMath.inl" />
+    <None Include="Graphics\GfxShader.h" />
     <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli" />
     <None Include="Resources\Shaders\Globals\GlobalsDS.hlsli" />
     <None Include="Resources\Shaders\Globals\GlobalsGS.hlsli" />

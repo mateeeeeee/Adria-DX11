@@ -32,8 +32,8 @@ namespace adria
 		uint32 width, height;
 		ArcPtr<ID3D11Device> device = nullptr;
 		ArcPtr<IDXGISwapChain> swapchain = nullptr;
-		ArcPtr<ID3D11RenderTargetView> backbuffer_rtv = nullptr;
 		ArcPtr<ID3D11Texture2D> backbuffer = nullptr;
+		ArcPtr<ID3D11RenderTargetView> backbuffer_rtv = nullptr;
 		ArcPtr<ID3D11DeviceContext> immediate_context = nullptr;
 		ArcPtr<ID3DUserDefinedAnnotation> annot = nullptr;
 		

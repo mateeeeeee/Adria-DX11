@@ -6,19 +6,19 @@ namespace adria
 	class GfxShader
 	{
 	public:
-		GfxShader(GfxShaderBlob const& blob, GfxShaderStage stage)
-			: blob(blob), stage(stage)
+		GfxShader(GfxShaderBytecode const& bytecode, GfxShaderStage stage)
+			: bytecode(bytecode), stage(stage)
 		{}
 
-		GfxShaderBlob& GetBlob() { return blob; }
+		GfxShaderBytecode& GetBytecode() { return bytecode; }
 		GfxShaderStage GetStage() const { return stage; }
 
 		virtual ~GfxShader() = default;
 		virtual void Bind(ID3D11DeviceContext* context) = 0;
 		virtual void Unbind(ID3D11DeviceContext* context) = 0;
-		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) = 0;
+		virtual void Recreate(ID3D11Device* device, GfxShaderBytecode const& blob) = 0;
 	private:
-		GfxShaderBlob blob;
+		GfxShaderBytecode bytecode;
 		GfxShaderStage stage;
 	};
 	class GfxVertexShader final : public GfxShader
@@ -26,9 +26,9 @@ namespace adria
 		friend struct GfxShaderProgram;
 
 	public:
-		GfxVertexShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::VS)
+		GfxVertexShader(ID3D11Device* device, GfxShaderBytecode const& blob) : GfxShader(blob, GfxShaderStage::VS)
 		{
-			GfxShaderBlob const& vs_blob = GetBlob();
+			GfxShaderBytecode const& vs_blob = GetBytecode();
 			HRESULT hr = device->CreateVertexShader(vs_blob.GetPointer(), vs_blob.GetLength(), nullptr, vs.GetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -40,9 +40,9 @@ namespace adria
 		{
 			context->VSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBytecode const& blob) override
 		{
-			GetBlob() = blob;
+			GetBytecode() = blob;
 			HRESULT hr = device->CreateVertexShader(blob.GetPointer(), blob.GetLength(), nullptr, vs.ReleaseAndGetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -54,9 +54,9 @@ namespace adria
 		friend struct GfxShaderProgram;
 
 	public:
-		GfxPixelShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::PS)
+		GfxPixelShader(ID3D11Device* device, GfxShaderBytecode const& blob) : GfxShader(blob, GfxShaderStage::PS)
 		{
-			GfxShaderBlob const& ps_blob = GetBlob();
+			GfxShaderBytecode const& ps_blob = GetBytecode();
 			HRESULT hr = device->CreatePixelShader(ps_blob.GetPointer(), ps_blob.GetLength(), nullptr, ps.GetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -69,9 +69,9 @@ namespace adria
 		{
 			context->PSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBytecode const& blob) override
 		{
-			GetBlob() = blob;
+			GetBytecode() = blob;
 			HRESULT hr = device->CreatePixelShader(blob.GetPointer(), blob.GetLength(), nullptr, ps.ReleaseAndGetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -83,9 +83,9 @@ namespace adria
 		friend struct GfxShaderProgram;
 
 	public:
-		GfxGeometryShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::GS)
+		GfxGeometryShader(ID3D11Device* device, GfxShaderBytecode const& blob) : GfxShader(blob, GfxShaderStage::GS)
 		{
-			GfxShaderBlob const& gs_blob = GetBlob();
+			GfxShaderBytecode const& gs_blob = GetBytecode();
 			HRESULT hr = device->CreateGeometryShader(gs_blob.GetPointer(), gs_blob.GetLength(), nullptr, gs.GetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -98,9 +98,9 @@ namespace adria
 		{
 			context->GSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBytecode const& blob) override
 		{
-			GetBlob() = blob;
+			GetBytecode() = blob;
 			HRESULT hr = device->CreateGeometryShader(blob.GetPointer(), blob.GetLength(), nullptr, gs.ReleaseAndGetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -112,9 +112,9 @@ namespace adria
 		friend struct GfxShaderProgram;
 
 	public:
-		GfxDomainShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::DS)
+		GfxDomainShader(ID3D11Device* device, GfxShaderBytecode const& blob) : GfxShader(blob, GfxShaderStage::DS)
 		{
-			GfxShaderBlob const& ds_blob = GetBlob();
+			GfxShaderBytecode const& ds_blob = GetBytecode();
 			HRESULT hr = device->CreateDomainShader(ds_blob.GetPointer(), ds_blob.GetLength(), nullptr, ds.GetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -126,9 +126,9 @@ namespace adria
 		{
 			context->DSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBytecode const& blob) override
 		{
-			GetBlob() = blob;
+			GetBytecode() = blob;
 			HRESULT hr = device->CreateDomainShader(blob.GetPointer(), blob.GetLength(), nullptr, ds.ReleaseAndGetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -140,9 +140,9 @@ namespace adria
 		friend struct GfxShaderProgram;
 
 	public:
-		GfxHullShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::HS)
+		GfxHullShader(ID3D11Device* device, GfxShaderBytecode const& blob) : GfxShader(blob, GfxShaderStage::HS)
 		{
-			GfxShaderBlob const& hs_blob = GetBlob();
+			GfxShaderBytecode const& hs_blob = GetBytecode();
 			HRESULT hr = device->CreateHullShader(hs_blob.GetPointer(), hs_blob.GetLength(), nullptr, hs.GetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -154,9 +154,9 @@ namespace adria
 		{
 			context->HSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBytecode const& blob) override
 		{
-			GetBlob() = blob;
+			GetBytecode() = blob;
 			HRESULT hr = device->CreateHullShader(blob.GetPointer(), blob.GetLength(), nullptr, hs.ReleaseAndGetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -168,9 +168,9 @@ namespace adria
 		friend struct GfxShaderProgram;
 
 	public:
-		GfxComputeShader(ID3D11Device* device, GfxShaderBlob const& blob) : GfxShader(blob, GfxShaderStage::CS)
+		GfxComputeShader(ID3D11Device* device, GfxShaderBytecode const& blob) : GfxShader(blob, GfxShaderStage::CS)
 		{
-			GfxShaderBlob const& cs_blob = GetBlob();
+			GfxShaderBytecode const& cs_blob = GetBytecode();
 			HRESULT hr = device->CreateComputeShader(cs_blob.GetPointer(), cs_blob.GetLength(), nullptr, cs.GetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -182,9 +182,9 @@ namespace adria
 		{
 			context->CSSetShader(nullptr, nullptr, 0);
 		}
-		virtual void Recreate(ID3D11Device* device, GfxShaderBlob const& blob) override
+		virtual void Recreate(ID3D11Device* device, GfxShaderBytecode const& blob) override
 		{
-			GetBlob() = blob;
+			GetBytecode() = blob;
 			HRESULT hr = device->CreateComputeShader(blob.GetPointer(), blob.GetLength(), nullptr, cs.ReleaseAndGetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -197,7 +197,7 @@ namespace adria
 	public:
 		GfxInputLayout() {}
 
-		GfxInputLayout(ID3D11Device* device, GfxShaderBlob const& vs_blob, std::vector<D3D11_INPUT_ELEMENT_DESC> const& desc = {})
+		GfxInputLayout(ID3D11Device* device, GfxShaderBytecode const& vs_blob, std::vector<D3D11_INPUT_ELEMENT_DESC> const& desc = {})
 		{
 			if (!desc.empty()) device->CreateInputLayout(desc.data(), (uint32)desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(),
 				layout.GetAddressOf());

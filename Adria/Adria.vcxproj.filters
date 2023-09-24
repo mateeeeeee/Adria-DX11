@@ -195,6 +195,9 @@
     <ClCompile Include="..\ThirdParty\SimpleMath\SimpleMath.cpp">
       <Filter>External\SimpleMath</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GfxStates.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -535,6 +538,9 @@
     <None Include="..\README.md" />
     <None Include="..\ThirdParty\SimpleMath\SimpleMath.inl">
       <Filter>External\SimpleMath</Filter>
+    </None>
+    <None Include="Graphics\GfxShader.h">
+      <Filter>Graphics</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

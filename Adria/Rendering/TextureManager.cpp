@@ -170,13 +170,13 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 			ArcPtr<ID3D11ComputeShader> equirect_to_cube{};
 
 			GfxShaderBlob blob{};
-			GfxShaderCompileInput input{};
+			GfxShaderDesc input{};
 			input.source_file = "Resources\\Shaders\\Deferred\\Equirect2cubeCS.hlsl";
 			input.stage = GfxShaderStage::CS;
 			input.entrypoint = "cs_main";
 			GfxShaderCompileOutput output{};
 			GfxShaderCompiler::CompileShader(input, output);
-			device->CreateComputeShader(output.blob.GetPointer(), output.blob.GetLength(), nullptr, equirect_to_cube.GetAddressOf());
+			device->CreateComputeShader(output.shader_bytecode.GetPointer(), output.shader_bytecode.GetLength(), nullptr, equirect_to_cube.GetAddressOf());
 
 			D3D11_SAMPLER_DESC samp_desc{};
 			samp_desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
