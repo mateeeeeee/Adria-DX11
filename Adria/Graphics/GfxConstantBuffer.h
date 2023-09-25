@@ -1,7 +1,5 @@
 #pragma once
-#include <d3d11.h>
-#include "GfxDefines.h"
-#include "GfxShaderCompiler.h"
+#include "GfxDevice.h"
 
 namespace adria
 {
@@ -15,8 +13,8 @@ namespace adria
 
 	public:
 
-		GfxConstantBuffer(ID3D11Device* device, bool dynamic = true);
-		GfxConstantBuffer(ID3D11Device* device, CBuffer const& initialdata, bool dynamic = true);
+		GfxConstantBuffer(GfxDevice* gfx, bool dynamic = true);
+		GfxConstantBuffer(GfxDevice* gfx, CBuffer const& initialdata, bool dynamic = true);
 
 		void Update(ID3D11DeviceContext* context, void const* data, uint32 data_size);
 		void Update(ID3D11DeviceContext* context, CBuffer const& buffer_data);
@@ -34,7 +32,7 @@ namespace adria
 
 
 	template<typename CBuffer>
-	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(ID3D11Device* device, CBuffer const& initialdata, bool dynamic /*= true*/) : dynamic{ dynamic }
+	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(GfxDevice* gfx, CBuffer const& initialdata, bool dynamic /*= true*/) : dynamic{ dynamic }
 	{
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -46,12 +44,12 @@ namespace adria
 		D3D11_SUBRESOURCE_DATA sd;
 		ZeroMemory(&sd, sizeof(sd));
 		sd.pSysMem = (void*)&initialdata;
-		HRESULT hr = device->CreateBuffer(&bd, &sd, buffer.GetAddressOf());
+		HRESULT hr = gfx->Device()->CreateBuffer(&bd, &sd, buffer.GetAddressOf());
 		GFX_CHECK_HR(hr);
 	}
 
 	template<typename CBuffer>
-	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(ID3D11Device* device, bool dynamic /*= true*/) : dynamic{ dynamic }
+	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(GfxDevice* gfx, bool dynamic /*= true*/) : dynamic{ dynamic }
 	{
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
@@ -60,7 +58,7 @@ namespace adria
 		bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		bd.CPUAccessFlags = dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
 
-		HRESULT hr = device->CreateBuffer(&bd, nullptr, buffer.GetAddressOf());
+		HRESULT hr = gfx->Device()->CreateBuffer(&bd, nullptr, buffer.GetAddressOf());
 		GFX_CHECK_HR(hr);
 	}
 
@@ -79,7 +77,7 @@ namespace adria
 			memcpy(mapped_buffer.pData, data, data_size);
 			context->Unmap(buffer.Get(), 0);
 		}
-		else context->UpdateSubresource(buffer.Get(), 0, nullptr, &data, 0, 0);
+		else context->UpdateSubresource(buffer.Get(), 0, nullptr, &data, data_size, 0);
 	}
 
 	template<typename CBuffer>

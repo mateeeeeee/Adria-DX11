@@ -49,8 +49,14 @@ namespace adria
 
 		GfxMappedSubresource MapBuffer(GfxBuffer* buffer, GfxMapType map_type);
 		void UnmapBuffer(GfxBuffer* buffer);
-		GfxMappedSubresource MapTexture(GfxTexture* texture, GfxMapType map_type, uint32	subresource = 0);
+		GfxMappedSubresource MapTexture(GfxTexture* texture, GfxMapType map_type, uint32 subresource = 0);
 		void UnmapTexture(GfxTexture* texture, uint32 subresource = 0);
+		void UpdateBuffer(GfxBuffer* buffer, void const* data, uint32 data_size);
+		template<typename T>
+		void UpdateBuffer(GfxBuffer* buffer, T const& data)
+		{
+			UpdateBuffer(buffer, &data, sizeof(data));
+		}
 
 		void BeginRenderPass(GfxRenderPassDesc const& render_pass_desc);
 		void EndRenderPass();
@@ -67,6 +73,7 @@ namespace adria
 		void ClearDepth(GfxDepthDescriptor dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);
 		void SetRenderTargets(std::span<GfxColorDescriptor> rtvs, GfxDepthDescriptor dsv = nullptr);
 
+		void SetInputLayout(GfxInputLayout* il);
 		void SetDepthStencilState(GfxDepthStencilState* dss, uint32 stencil_ref);
 		void SetRasterizerState(GfxRasterizerState* rs);
 		void SetBlendStateState(GfxBlendState* bs, float blend_factors[4], uint32 mask = 0xffffffff);

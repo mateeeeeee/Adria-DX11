@@ -11,12 +11,12 @@ namespace adria
 		particle_bufferB(gfx, StructuredBufferDesc<GPUParticleB>(MAX_PARTICLES)),
 		view_space_positions_buffer(gfx, StructuredBufferDesc<ViewSpacePositionRadius>(MAX_PARTICLES)),
 		alive_index_buffer(gfx, StructuredBufferDesc<IndexBufferElement>(MAX_PARTICLES)),
-		indirect_render_args_buffer(gfx, IndirectArgsBufferDesc(5 * sizeof(UINT))),
-		indirect_sort_args_buffer(gfx, IndirectArgsBufferDesc(4 * sizeof(UINT))),
-		dead_list_count_cbuffer(gfx->Device(), false),
-		active_list_count_cbuffer(gfx->Device(), false),
-		emitter_cbuffer(gfx->Device(), true),
-		sort_dispatch_info_cbuffer(gfx->Device(), true)
+		indirect_render_args_buffer(gfx, IndirectArgsBufferDesc(5 * sizeof(uint32))),
+		indirect_sort_args_buffer(gfx, IndirectArgsBufferDesc(4 * sizeof(uint32))),
+		dead_list_count_cbuffer(gfx, false),
+		active_list_count_cbuffer(gfx, false),
+		emitter_cbuffer(gfx, true),
+		sort_dispatch_info_cbuffer(gfx, true)
 	{
 		CreateViews();
 		CreateRandomTexture();

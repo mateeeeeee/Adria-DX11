@@ -2,6 +2,7 @@
 #include "GfxQuery.h"
 #include "GfxBuffer.h"
 #include "GfxTexture.h"
+#include "GfxInputLayout.h"
 #include "GfxRenderPass.h"
 #include "GfxShaderProgram.h"
 #include "Utilities/StringUtil.h"
@@ -197,6 +198,15 @@ namespace adria
 		command_context->OMSetRenderTargets((uint32)rtvs.size(), rtvs.data(), dsv);
 	}
 
+	void GfxCommandContext::SetInputLayout(GfxInputLayout* il)
+	{
+		if (current_input_layout != il)
+		{
+			current_input_layout = il;
+			command_context->IASetInputLayout(*il);
+		}
+	}
+
 	void GfxCommandContext::SetDepthStencilState(GfxDepthStencilState* dss, uint32 stencil_ref)
 	{
 		if (current_depth_state != dss)
@@ -260,6 +270,19 @@ namespace adria
 	void GfxCommandContext::UnmapTexture(GfxTexture* texture, uint32 subresource /*= 0*/)
 	{
 		command_context->Unmap(texture->GetNative(), 0);
+	}
+
+	void GfxCommandContext::UpdateBuffer(GfxBuffer* buffer, void const* data, uint32 data_size)
+	{
+		GfxBufferDesc desc = buffer->GetDesc();
+
+		if (desc.resource_usage == GfxResourceUsage::Dynamic)
+		{
+			GfxMappedSubresource mapped_buffer = MapBuffer(buffer, GfxMapType::WriteDiscard);
+			memcpy(mapped_buffer.p_data, data, data_size);
+			UnmapBuffer(buffer);
+		}
+		else command_context->UpdateSubresource(buffer->GetNative(), 0, nullptr, &data, data_size, 0);
 	}
 
 	void GfxCommandContext::SetConstantBuffers(GfxShaderStage stage, uint32 start, std::span<GfxBuffer*> buffers)

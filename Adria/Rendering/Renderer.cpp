@@ -500,18 +500,16 @@ namespace adria
 	}
 	void Renderer::CreateBuffers()
 	{
-		ID3D11Device* device = gfx->Device();
-
-		frame_cbuffer = std::make_unique<GfxConstantBuffer<FrameCBuffer>>(device);
-		light_cbuffer = std::make_unique<GfxConstantBuffer<LightCBuffer>>(device);
-		object_cbuffer = std::make_unique<GfxConstantBuffer<ObjectCBuffer>>(device);
-		material_cbuffer = std::make_unique<GfxConstantBuffer<MaterialCBuffer>>(device);
-		shadow_cbuffer = std::make_unique<GfxConstantBuffer<ShadowCBuffer>>(device);
-		postprocess_cbuffer = std::make_unique<GfxConstantBuffer<PostprocessCBuffer>>(device);
-		compute_cbuffer = std::make_unique<GfxConstantBuffer<ComputeCBuffer>>(device);
-		weather_cbuffer = std::make_unique<GfxConstantBuffer<WeatherCBuffer>>(device);
-		voxel_cbuffer = std::make_unique<GfxConstantBuffer<VoxelCBuffer>>(device);
-		terrain_cbuffer = std::make_unique<GfxConstantBuffer<TerrainCBuffer>>(device);
+		frame_cbuffer = std::make_unique<GfxConstantBuffer<FrameCBuffer>>(gfx);
+		light_cbuffer = std::make_unique<GfxConstantBuffer<LightCBuffer>>(gfx);
+		object_cbuffer = std::make_unique<GfxConstantBuffer<ObjectCBuffer>>(gfx);
+		material_cbuffer = std::make_unique<GfxConstantBuffer<MaterialCBuffer>>(gfx);
+		shadow_cbuffer = std::make_unique<GfxConstantBuffer<ShadowCBuffer>>(gfx);
+		postprocess_cbuffer = std::make_unique<GfxConstantBuffer<PostprocessCBuffer>>(gfx);
+		compute_cbuffer = std::make_unique<GfxConstantBuffer<ComputeCBuffer>>(gfx);
+		weather_cbuffer = std::make_unique<GfxConstantBuffer<WeatherCBuffer>>(gfx);
+		voxel_cbuffer = std::make_unique<GfxConstantBuffer<VoxelCBuffer>>(gfx);
+		terrain_cbuffer = std::make_unique<GfxConstantBuffer<TerrainCBuffer>>(gfx);
 
 		GfxBufferDesc bokeh_indirect_draw_buffer_desc{};
 		bokeh_indirect_draw_buffer_desc.size = 4 * sizeof(uint32);
@@ -536,7 +534,7 @@ namespace adria
 		light_list->CreateUAV();
 		light_grid->CreateSRV();
 		light_grid->CreateUAV();
-		//for sky
+		
 		const SimpleVertex cube_vertices[8] = 
 		{
 			Vector3{ -0.5f, -0.5f,  0.5f },
@@ -1316,7 +1314,7 @@ namespace adria
 				float padding[3];
 			};
 
-			GfxConstantBuffer<RoughnessCBuffer> roughness_cb(device);
+			GfxConstantBuffer<RoughnessCBuffer> roughness_cb(gfx);
 			spmap_program.Bind(context);
 			roughness_cb.Bind(context, GfxShaderStage::CS, 0);
 			context->CSSetShaderResources(0, 1, &unfiltered_env_srv);
@@ -1625,7 +1623,7 @@ namespace adria
 				uint32 subseq_count;
 			};
 			static FFTCBuffer fft_cbuf_data{ .seq_count = RESOLUTION };
-			static GfxConstantBuffer<FFTCBuffer> fft_cbuffer(gfx->Device());
+			static GfxConstantBuffer<FFTCBuffer> fft_cbuffer(gfx);
 
 			fft_cbuffer.Bind(context, GfxShaderStage::CS, 10);
 			//fft horizontal
@@ -2047,7 +2045,7 @@ namespace adria
 			bool32 modify_gbuffer_normals;
 		};
 
-		static GfxConstantBuffer<DecalCBuffer> decal_cbuffer(gfx->Device());
+		static GfxConstantBuffer<DecalCBuffer> decal_cbuffer(gfx);
 		static DecalCBuffer decal_cbuf_data{};
 		decal_cbuffer.Bind(context, GfxShaderStage::PS, 11);
 

@@ -1,2 +1,7 @@
-- add some gfx abstractions
+- finish command context
+- gfx common states -> functions returning gfxdescs, not d3d11 descs
+- refactor shader classes compltely
+- cbuffer should not use member update -> GfxCommandContext::UpdateBuffer
+- scoped annotation should use GfxCommandContext, not ID3D11ImmediateContext
+- shader compiler ->remove input layout reflection from there
 - tidy up shaders a bit
