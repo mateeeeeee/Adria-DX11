@@ -1,11 +1,10 @@
 #pragma once
-#include "Core/CoreTypes.h"
 #include <vector>
 #include <string_view>
 
 namespace adria
 {
-	enum class ENoiseType
+	enum class NoiseType
 	{
 		OpenSimplex2,
 		OpenSimplex2S,
@@ -14,7 +13,7 @@ namespace adria
 		ValueCubic,
 		Value
 	};
-	enum class EFractalType
+	enum class FractalType
 	{
 		None,
 		FBM,
@@ -26,8 +25,8 @@ namespace adria
 		uint32 width;
 		uint32 depth;
 		uint32 max_height;
-		EFractalType fractal_type = EFractalType::None;
-		ENoiseType noise_type = ENoiseType::Perlin;
+		FractalType fractal_type = FractalType::None;
+		NoiseType noise_type = NoiseType::Perlin;
 		int32 seed = 1337;
 		float frequency = 0.01f;
 		float persistence = 0.5f;
@@ -57,18 +56,14 @@ namespace adria
 	{
 	public:
 		
-		Heightmap(NoiseDesc const& desc);
-
+		explicit Heightmap(NoiseDesc const& desc);
 		Heightmap(std::string_view heightmap_path, uint32 max_height);
 
 		float HeightAt(uint64 x, uint64 z) const;
-
 		uint64 Width() const;
-
 		uint64 Depth() const;
 
 		void ApplyThermalErosion(ThermalErosionDesc const& desc);
-
 		void ApplyHydraulicErosion(HydraulicErosionDesc const& desc);
 
 	private:

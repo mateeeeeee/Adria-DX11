@@ -604,7 +604,7 @@ namespace adria
 				}
 				bool has_tangents = !tangents.empty();
 				ADRIA_ASSERT(tangent_handness.size() == tangents.size());
-				size_t vertex_count = positions.size();
+				uint64 vertex_count = positions.size();
 				if (normals.size() != vertex_count) normals.resize(vertex_count);
 				if (uvs.size() != vertex_count) uvs.resize(vertex_count);
 				if (tangents.size() != vertex_count) tangents.resize(vertex_count);
@@ -614,7 +614,7 @@ namespace adria
 				reg.emplace<Mesh>(e, mesh_component);
 				if (has_tangents)
 				{
-					for (size_t i = 0; i < vertex_count; ++i)
+					for (uint64 i = 0; i < vertex_count; ++i)
 					{
 						Vector3 bitangent = normals[i].Cross(tangents[i]) * tangent_handness[i];
 						bitangent.Normalize();
@@ -629,7 +629,7 @@ namespace adria
 				}
 
 				vertices.reserve(vertices.size() + vertex_count);
-				for (size_t i = 0; i < vertex_count; ++i)
+				for (uint64 i = 0; i < vertex_count; ++i)
 				{
 					vertices.emplace_back(
 						positions[i],

@@ -192,12 +192,12 @@ namespace adria
 		ArcPtr<ID3D11ComputeShader> cs = nullptr;
 	};
 
-	class GfxInputLayout
+	class GfxInputLayout2
 	{
 	public:
-		GfxInputLayout() {}
+		GfxInputLayout2() {}
 
-		GfxInputLayout(ID3D11Device* device, GfxShaderBytecode const& vs_blob, std::vector<D3D11_INPUT_ELEMENT_DESC> const& desc = {})
+		GfxInputLayout2(ID3D11Device* device, GfxShaderBytecode const& vs_blob, std::vector<D3D11_INPUT_ELEMENT_DESC> const& desc = {})
 		{
 			if (!desc.empty()) device->CreateInputLayout(desc.data(), (uint32)desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(),
 				layout.GetAddressOf());
@@ -263,7 +263,7 @@ namespace adria
 			shaders[GS] = gs;
 			return *this;
 		}
-		GfxGraphicsShaderProgram& SetInputLayout(GfxInputLayout* il)
+		GfxGraphicsShaderProgram& SetInputLayout(GfxInputLayout2* il)
 		{
 			input_layout = il;
 			return *this;
@@ -284,7 +284,7 @@ namespace adria
 
 	private:
 		GfxShader* shaders[ShaderCount] = { nullptr };
-		GfxInputLayout* input_layout = nullptr;
+		GfxInputLayout2* input_layout = nullptr;
 	};
 	class GfxComputeShaderProgram final : public GfxShaderProgram
 	{

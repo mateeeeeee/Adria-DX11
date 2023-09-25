@@ -83,6 +83,9 @@
     <Filter Include="External\SimpleMath">
       <UniqueIdentifier>{72fd1772-5308-4a07-b844-7b25e0a140a0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphics\Old">
+      <UniqueIdentifier>{04a6fe1b-33de-4cc1-b6cc-d72473373c47}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -104,9 +107,6 @@
     <ClCompile Include="Graphics\GfxDevice.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\Renderer.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -119,9 +119,6 @@
     <ClCompile Include="Graphics\GfxProfiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Utilities\AdriaException.cpp">
-      <Filter>Utilities</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\GUI.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
@@ -130,9 +127,6 @@
     </ClCompile>
     <ClCompile Include="Utilities\Heightmap.cpp">
       <Filter>Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\GfxCommonStates.cpp">
-      <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GfxRenderPass.cpp">
       <Filter>Graphics</Filter>
@@ -151,9 +145,6 @@
     </ClCompile>
     <ClCompile Include="Rendering\ShaderManager.cpp">
       <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="Utilities\CPUProfiler.cpp">
-      <Filter>Utilities</Filter>
     </ClCompile>
     <ClCompile Include="Utilities\StringUtil.cpp">
       <Filter>Utilities</Filter>
@@ -200,6 +191,18 @@
     </ClCompile>
     <ClCompile Include="Graphics\GfxCommandContext.cpp">
       <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxInputLayout.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxQuery.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxCommonStates.cpp">
+      <Filter>Graphics\Old</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
+      <Filter>Graphics\Old</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -251,19 +254,7 @@
     <ClInclude Include="Graphics\GfxDevice.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxCommonStates.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\GfxConstantBuffer.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxRenderPass.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\GfxShaderProgram.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\GfxShaderCompiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxVertexFormat.h">
@@ -326,16 +317,10 @@
     <ClInclude Include="Utilities\LinearAllocator.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\ObjectPool.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\RingAllocator.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\Timer.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\AdriaException.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Editor\GUI.h">
@@ -371,9 +356,6 @@
     <ClInclude Include="Rendering\ParticleRenderer.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxScopedAnnotation.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Tasks\Task.h">
       <Filter>Threading</Filter>
     </ClInclude>
@@ -394,9 +376,6 @@
     </ClInclude>
     <ClInclude Include="Rendering\ShaderManager.h">
       <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Utilities\CPUProfiler.h">
-      <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Events\Delegate.h">
       <Filter>Events</Filter>
@@ -489,14 +468,26 @@
     <ClInclude Include="Graphics\GfxDescriptor.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxSampler.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxQuery.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxInputLayout.h">
       <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxCommonStates.h">
+      <Filter>Graphics\Old</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxShaderProgram.h">
+      <Filter>Graphics\Old</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxScopedAnnotation.h">
+      <Filter>Graphics\Old</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxConstantBuffer.h">
+      <Filter>Graphics\Old</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxShaderCompiler.h">
+      <Filter>Graphics\Old</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

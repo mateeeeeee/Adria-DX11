@@ -384,8 +384,8 @@ namespace adria
 
 				static NoiseDesc noise_desc
 				{
-				 .fractal_type = EFractalType::FBM,
-				 .noise_type = ENoiseType::Perlin,
+				 .fractal_type = FractalType::FBM,
+				 .noise_type = NoiseType::Perlin,
 				 .seed = 33,
 				 .persistence = 0.666f,
 				 .lacunarity = 2.0f,
@@ -418,7 +418,7 @@ namespace adria
 						}
 						ImGui::EndCombo();
 					}
-					noise_desc.noise_type = static_cast<ENoiseType>(current_noise_type);
+					noise_desc.noise_type = static_cast<NoiseType>(current_noise_type);
 
 					const char* fractal_types[] = { "None", "FBM", "Ridged", "PingPong" };
 					static int current_fractal_type = 1;
@@ -433,7 +433,7 @@ namespace adria
 						}
 						ImGui::EndCombo();
 					}
-					noise_desc.fractal_type = static_cast<EFractalType>(current_fractal_type);
+					noise_desc.fractal_type = static_cast<FractalType>(current_fractal_type);
 				}
 				else
 				{

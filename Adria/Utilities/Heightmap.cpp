@@ -2,44 +2,42 @@
 #include "Cpp/FastNoiseLite.h"
 #include "Image.h"
 #include "Random.h"
-#include <algorithm>
-#include <numeric>
 
 namespace adria
 {
 	
-	static constexpr FastNoiseLite::NoiseType GetNoiseType(ENoiseType type)
+	static constexpr FastNoiseLite::NoiseType GetNoiseType(NoiseType type)
 	{
 		switch (type)
 		{
-		case ENoiseType::OpenSimplex2:
+		case NoiseType::OpenSimplex2:
 			return FastNoiseLite::NoiseType_OpenSimplex2;
-		case ENoiseType::OpenSimplex2S:
+		case NoiseType::OpenSimplex2S:
 			return FastNoiseLite::NoiseType_OpenSimplex2S;
-		case ENoiseType::Cellular:
+		case NoiseType::Cellular:
 			return FastNoiseLite::NoiseType_OpenSimplex2;
-		case ENoiseType::ValueCubic:
+		case NoiseType::ValueCubic:
 			return FastNoiseLite::NoiseType_ValueCubic;
-		case ENoiseType::Value:
+		case NoiseType::Value:
 			return FastNoiseLite::NoiseType_Value;
-		case ENoiseType::Perlin:
+		case NoiseType::Perlin:
 		default:
 			return FastNoiseLite::NoiseType_Perlin;
 		}
 
 		return FastNoiseLite::NoiseType_Perlin;
 	}
-	static constexpr FastNoiseLite::FractalType GetFractalType(EFractalType type)
+	static constexpr FastNoiseLite::FractalType GetFractalType(FractalType type)
 	{
 		switch (type)
 		{
-		case EFractalType::FBM:
+		case FractalType::FBM:
 			return FastNoiseLite::FractalType_FBm;
-		case EFractalType::Ridged:
+		case FractalType::Ridged:
 			return FastNoiseLite::FractalType_Ridged;
-		case EFractalType::PingPong:
+		case FractalType::PingPong:
 			return FastNoiseLite::FractalType_PingPong;
-		case EFractalType::None:
+		case FractalType::None:
 		default:
 			return FastNoiseLite::FractalType_None;
 		}
@@ -350,7 +348,6 @@ namespace adria
 			}
 		}
 	}
-
 	void Heightmap::ApplyHydraulicErosion(HydraulicErosionDesc const& desc)
 	{
 		uint64 drops = (uint64)desc.drops;
@@ -501,5 +498,4 @@ namespace adria
 			}
 		}
 	}
-
 }

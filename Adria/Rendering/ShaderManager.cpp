@@ -29,10 +29,10 @@ namespace adria
 		HashMap<ShaderId, std::unique_ptr<GfxGeometryShader>>	gs_shader_map;
 		HashMap<ShaderId, std::unique_ptr<GfxComputeShader>>	cs_shader_map;
 		HashMap<ShaderId, HashSet<fs::path>>					dependent_files_map;
-		HashMap<ShaderId, GfxInputLayout>						input_layout_map;
+		HashMap<ShaderId, GfxInputLayout2>						input_layout_map;
 
 		HashMap<ShaderProgram, GfxGraphicsShaderProgram>		gfx_shader_program_map;
-		HashMap<ShaderProgram, GfxComputeShaderProgram> compute_shader_program_map;
+		HashMap<ShaderProgram, GfxComputeShaderProgram>			compute_shader_program_map;
 
 		constexpr GfxShaderStage GetStage(ShaderId shader)
 		{

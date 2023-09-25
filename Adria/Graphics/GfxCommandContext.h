@@ -20,10 +20,10 @@ namespace adria
 	class GfxQuery;
 
 	struct GfxRenderPassDesc;
-	struct GfxRasterizerState;
-	struct GfxBlendState;
-	struct GfxDepthStencilState;
-	struct GfxInputLayout;
+	class GfxRasterizerState;
+	class GfxBlendState;
+	class GfxDepthStencilState;
+	class  GfxInputLayout;
 
 	class GfxCommandContext
 	{
@@ -41,7 +41,7 @@ namespace adria
 		void DispatchIndirect(GfxBuffer const& buffer, uint32 offset);
 		
 		void CopyBuffer(GfxBuffer& dst, GfxBuffer const& src);
-		void CopyBuffer(GfxBuffer& dst, uint64 dst_offset, GfxBuffer const& src, uint64 src_offset, uint64 size);
+		void CopyBuffer(GfxBuffer& dst, uint32 dst_offset, GfxBuffer const& src, uint32 src_offset, uint32 size);
 		void CopyTexture(GfxTexture& dst, GfxTexture const& src);
 		void CopyTexture(GfxTexture& dst, uint32 dst_mip, uint32 dst_array, GfxTexture const& src, uint32 src_mip, uint32 src_array);
 
@@ -69,8 +69,7 @@ namespace adria
 
 		void SetDepthStencilState(GfxDepthStencilState* dss, uint32 stencil_ref);
 		void SetRasterizerState(GfxRasterizerState* rs);
-		void SetBlendStateState(GfxBlendState* bs, float blend_factors[4], uint32  mask = 0xffffffff);
-
+		void SetBlendStateState(GfxBlendState* bs, float blend_factors[4], uint32 mask = 0xffffffff);
 		void SetConstantBuffers(GfxShaderStage stage, uint32 start, std::span<GfxBuffer*> buffers);
 		void SetVertexShader(GfxVertexShader* shader);
 		void SetPixelShader(GfxPixelShader* shader);
@@ -79,14 +78,15 @@ namespace adria
 		void SetGeometryShader(GfxGeometryShader* shader);
 		void SetComputeShader(GfxComputeShader* shader);
 
+		void SetSamplers(GfxShaderStage stage, uint32 start, std::span<GfxSampler> samplers);
 		void SetReadOnlyDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadOnlyDescriptor> descriptors);
-		void SetReadWriteDescriptors(uint32 start, std::span<GfxReadWriteDescriptor> descriptors);
+		void SetReadWriteDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadWriteDescriptor> descriptors);
 
 		void GenerateMips(GfxReadOnlyDescriptor srv);
 
-		void Begin(GfxQuery& query);
-		void End(GfxQuery& query);
-		void GetData(GfxQuery& query, void* data, uint32 data_size);
+		void BeginQuery(GfxQuery& query);
+		void EndQuery(GfxQuery& query);
+		void GetQueryData(GfxQuery& query, void* data, uint32 data_size);
 
 		void BeginEvent(char const* event_name);
 		void EndEvent();
@@ -103,16 +103,12 @@ namespace adria
 		GfxGeometryShader* current_gs = nullptr;
 		GfxComputeShader* current_cs = nullptr;
 
-		GfxBlendState current_blend_state{};
-		GfxRasterizerState current_rasterizer_state{};
-		GfxDepthStencilState current_depth_state{};
+		GfxBlendState* current_blend_state = nullptr;
+		GfxRasterizerState* current_rasterizer_state = nullptr;
+		GfxDepthStencilState* current_depth_state = nullptr;
 		GfxPrimitiveTopology current_topology = GfxPrimitiveTopology::Undefined;
 
 		GfxRenderPassDesc* current_render_pass = nullptr;
-
-		GfxInputLayout* current_il = nullptr;
-
-		uint32 stencil_ref = 0;
-		float prev_blendfactor[4] = {};
+		GfxInputLayout* current_input_layout = nullptr;
 	};
 }

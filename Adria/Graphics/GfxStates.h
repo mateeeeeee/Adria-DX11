@@ -55,39 +55,6 @@ namespace adria
 		GreaterEqual,
 		Always,
 	};
-	inline constexpr D3D11_COMPARISON_FUNC ConvertComparisonFunc(GfxComparisonFunc value)
-	{
-		switch (value)
-		{
-		case GfxComparisonFunc::Never:
-			return D3D11_COMPARISON_NEVER;
-			break;
-		case GfxComparisonFunc::Less:
-			return D3D11_COMPARISON_LESS;
-			break;
-		case GfxComparisonFunc::Equal:
-			return D3D11_COMPARISON_EQUAL;
-			break;
-		case GfxComparisonFunc::LessEqual:
-			return D3D11_COMPARISON_LESS_EQUAL;
-			break;
-		case GfxComparisonFunc::Greater:
-			return D3D11_COMPARISON_GREATER;
-			break;
-		case GfxComparisonFunc::NotEqual:
-			return D3D11_COMPARISON_NOT_EQUAL;
-			break;
-		case GfxComparisonFunc::GreaterEqual:
-			return D3D11_COMPARISON_GREATER_EQUAL;
-			break;
-		case GfxComparisonFunc::Always:
-			return D3D11_COMPARISON_ALWAYS;
-			break;
-		default:
-			break;
-		}
-		return D3D11_COMPARISON_NEVER;
-	}
 
 	enum class GfxDepthWriteMask : uint8
 	{
@@ -144,17 +111,17 @@ namespace adria
 		Front,
 		Back,
 	};
-	enum class GfxColorWrite
+	enum class GfxColorWrite : uint8
 	{
 		Disable = 0,
 		EnableRed = 1 << 0,
 		EnableGreen = 1 << 1,
 		EnableBlue = 1 << 2,
 		EnableAlpha = 1 << 3,
-		EnableAll = ~0,
+		EnableAll = EnableRed | EnableGreen | EnableBlue | EnableAlpha,
 	};
 
-	struct GfxRasterizerState
+	struct GfxRasterizerStateDesc
 	{
 		GfxFillMode fill_mode = GfxFillMode::Solid;
 		GfxCullMode cull_mode = GfxCullMode::Back;
@@ -168,7 +135,7 @@ namespace adria
 		bool conservative_rasterization_enable = false;
 		uint32 forced_sample_count = 0;
 	};
-	struct GfxDepthStencilState
+	struct GfxDepthStencilStateDesc
 	{
 		bool depth_enable = true;
 		GfxDepthWriteMask depth_write_mask = GfxDepthWriteMask::All;
@@ -186,7 +153,7 @@ namespace adria
 		GfxDepthStencilOp front_face{};
 		GfxDepthStencilOp back_face{};
 	};
-	struct GfxBlendState
+	struct GfxBlendStateDesc
 	{
 		bool alpha_to_coverage_enable = false;
 		bool independent_blend_enable = false;
@@ -204,27 +171,125 @@ namespace adria
 		GfxRenderTargetBlendState render_target[8];
 	};
 
-	D3D11_RASTERIZER_DESC ConvertRasterizerDesc(GfxRasterizerState);
-	D3D11_DEPTH_STENCIL_DESC ConvertDepthStencilDesc(GfxDepthStencilState);
-	D3D11_BLEND_DESC ConvertBlendDesc(GfxBlendState);
-	inline constexpr D3D_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopology(GfxPrimitiveTopology topology)
+	class GfxDevice;
+
+	class GfxRasterizerState
 	{
-		switch (topology)
+		friend class GfxCommandContext;
+	public:
+		GfxRasterizerState(GfxDevice* gfx, GfxRasterizerStateDesc const& desc);
+
+	private:
+		ArcPtr<ID3D11RasterizerState> rasterizer_state;
+
+	private:
+		operator ID3D11RasterizerState* () const
 		{
-		case GfxPrimitiveTopology::PointList:
-			return D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
-		case GfxPrimitiveTopology::LineList:
-			return D3D_PRIMITIVE_TOPOLOGY_LINELIST;
-		case GfxPrimitiveTopology::LineStrip:
-			return D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
-		case GfxPrimitiveTopology::TriangleList:
-			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-		case GfxPrimitiveTopology::TriangleStrip:
-			return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-		default:
-			if (topology >= GfxPrimitiveTopology::PatchList1 && topology <= GfxPrimitiveTopology::PatchList32)
-				return D3D_PRIMITIVE_TOPOLOGY(D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + ((uint32)topology - (uint32)GfxPrimitiveTopology::PatchList1));
-			else return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
+			return rasterizer_state.Get();
 		}
-	}
+	};
+	class GfxDepthStencilState
+	{
+		friend class GfxCommandContext;
+	public:
+		GfxDepthStencilState(GfxDevice* gfx, GfxDepthStencilStateDesc const& desc);
+
+	private:
+		ArcPtr<ID3D11DepthStencilState> depth_stencil_state;
+
+	private:
+		operator ID3D11DepthStencilState* () const
+		{
+			return depth_stencil_state.Get();
+		}
+	};
+	class GfxBlendState
+	{
+		friend class GfxCommandContext;
+	public:
+		GfxBlendState(GfxDevice* gfx, GfxBlendStateDesc const& desc);
+
+	private:
+		ArcPtr<ID3D11BlendState> blend_state;
+
+	private:
+		operator ID3D11BlendState* () const
+		{
+			return blend_state.Get();
+		}
+	};
+
+	enum class GfxTextureAddressMode
+	{
+		Wrap,
+		Mirror,
+		Clamp,
+		Border,
+	};
+	enum class GfxFilter : uint32
+	{
+		MIN_MAG_MIP_POINT,
+		MIN_MAG_POINT_MIP_LINEAR,
+		MIN_POINT_MAG_LINEAR_MIP_POINT,
+		MIN_POINT_MAG_MIP_LINEAR,
+		MIN_LINEAR_MAG_MIP_POINT,
+		MIN_LINEAR_MAG_POINT_MIP_LINEAR,
+		MIN_MAG_LINEAR_MIP_POINT,
+		MIN_MAG_MIP_LINEAR,
+		ANISOTROPIC,
+		COMPARISON_MIN_MAG_MIP_POINT,
+		COMPARISON_MIN_MAG_POINT_MIP_LINEAR,
+		COMPARISON_MIN_POINT_MAG_LINEAR_MIP_POINT,
+		COMPARISON_MIN_POINT_MAG_MIP_LINEAR,
+		COMPARISON_MIN_LINEAR_MAG_MIP_POINT,
+		COMPARISON_MIN_LINEAR_MAG_POINT_MIP_LINEAR,
+		COMPARISON_MIN_MAG_LINEAR_MIP_POINT,
+		COMPARISON_MIN_MAG_MIP_LINEAR,
+		COMPARISON_ANISOTROPIC,
+		MINIMUM_MIN_MAG_MIP_POINT,
+		MINIMUM_MIN_MAG_POINT_MIP_LINEAR,
+		MINIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT,
+		MINIMUM_MIN_POINT_MAG_MIP_LINEAR,
+		MINIMUM_MIN_LINEAR_MAG_MIP_POINT,
+		MINIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR,
+		MINIMUM_MIN_MAG_LINEAR_MIP_POINT,
+		MINIMUM_MIN_MAG_MIP_LINEAR,
+		MINIMUM_ANISOTROPIC,
+		MAXIMUM_MIN_MAG_MIP_POINT,
+		MAXIMUM_MIN_MAG_POINT_MIP_LINEAR,
+		MAXIMUM_MIN_POINT_MAG_LINEAR_MIP_POINT,
+		MAXIMUM_MIN_POINT_MAG_MIP_LINEAR,
+		MAXIMUM_MIN_LINEAR_MAG_MIP_POINT,
+		MAXIMUM_MIN_LINEAR_MAG_POINT_MIP_LINEAR,
+		MAXIMUM_MIN_MAG_LINEAR_MIP_POINT,
+		MAXIMUM_MIN_MAG_MIP_LINEAR,
+		MAXIMUM_ANISOTROPIC,
+	};
+
+	struct GfxSamplerDesc
+	{
+		GfxFilter filter = GfxFilter::MIN_MAG_MIP_POINT;
+		GfxTextureAddressMode addressU = GfxTextureAddressMode::Clamp;
+		GfxTextureAddressMode addressV = GfxTextureAddressMode::Clamp;
+		GfxTextureAddressMode addressW = GfxTextureAddressMode::Clamp;
+		float mip_lod_bias = 0.0f;
+		uint32 max_anisotropy = 0;
+		GfxComparisonFunc comparison_func = GfxComparisonFunc::Never;
+		float border_color[4];
+		float min_lod = 0.0f;
+		float max_lod = FLT_MAX;
+	};
+	class GfxSampler
+	{
+		friend class GfxCommandContext;
+	public:
+		GfxSampler(GfxDevice* gfx, GfxSamplerDesc const& desc);
+
+		operator ID3D11SamplerState* const() const
+		{
+			return sampler.Get();
+		}
+	private:
+		ArcPtr<ID3D11SamplerState> sampler;
+	};
 }
