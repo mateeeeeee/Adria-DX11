@@ -65,6 +65,7 @@ namespace adria
 
 		void SetTopology(GfxPrimitiveTopology topology);
 		void SetIndexBuffer(GfxBuffer* index_buffer, uint32 offset = 0);
+		void SetVertexBuffer(GfxBuffer* vertex_buffer, uint32 slot = 0);
 		void SetVertexBuffers(std::span<GfxBuffer*> vertex_buffers, uint32 start_slot = 0);
 		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height);
 		void SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height);
@@ -79,7 +80,6 @@ namespace adria
 		void SetDepthStencilState(GfxDepthStencilState* dss, uint32 stencil_ref);
 		void SetRasterizerState(GfxRasterizerState* rs);
 		void SetBlendStateState(GfxBlendState* bs, float blend_factors[4], uint32 mask = 0xffffffff);
-		void SetConstantBuffers(GfxShaderStage stage, uint32 start, std::span<GfxBuffer*> buffers);
 		void SetVertexShader(GfxVertexShader* shader);
 		void SetPixelShader(GfxPixelShader* shader);
 		void SetHullShader(GfxHullShader* shader);
@@ -87,8 +87,13 @@ namespace adria
 		void SetGeometryShader(GfxGeometryShader* shader);
 		void SetComputeShader(GfxComputeShader* shader);
 
-		void SetSamplers(GfxShaderStage stage, uint32 start, std::span<GfxSampler> samplers);
+		void SetConstantBuffer(GfxShaderStage stage, uint32 slot, GfxBuffer* buffer);
+		void SetConstantBuffers(GfxShaderStage stage, uint32 start, std::span<GfxBuffer*> buffers);
+		void SetSampler(GfxShaderStage stage, uint32 start, GfxSampler* sampler);
+		void SetSamplers(GfxShaderStage stage, uint32 start, std::span<GfxSampler*> samplers);
+		void SetReadOnlyDescriptor(GfxShaderStage stage, uint32 slot, GfxReadOnlyDescriptor descriptor);
 		void SetReadOnlyDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadOnlyDescriptor> descriptors);
+		void SetReadWriteDescriptor(GfxShaderStage stage, uint32 slot, GfxReadWriteDescriptor descriptor);
 		void SetReadWriteDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadWriteDescriptor> descriptors);
 
 		void GenerateMips(GfxReadOnlyDescriptor srv);

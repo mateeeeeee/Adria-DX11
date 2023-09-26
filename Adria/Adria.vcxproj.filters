@@ -116,9 +116,6 @@
     <ClCompile Include="Rendering\Camera.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GfxProfiler.cpp">
-      <Filter>Graphics</Filter>
-    </ClCompile>
     <ClCompile Include="Editor\GUI.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
@@ -127,9 +124,6 @@
     </ClCompile>
     <ClCompile Include="Utilities\Heightmap.cpp">
       <Filter>Utilities</Filter>
-    </ClCompile>
-    <ClCompile Include="Graphics\GfxRenderPass.cpp">
-      <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\SkyModel.cpp">
       <Filter>Rendering</Filter>
@@ -204,6 +198,12 @@
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
       <Filter>Graphics\Old</Filter>
     </ClCompile>
+    <ClCompile Include="Graphics\GfxRenderPass.cpp">
+      <Filter>Graphics\Old</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxProfiler.cpp">
+      <Filter>Graphics\Old</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Utilities\RingBuffer.h">
@@ -254,9 +254,6 @@
     <ClInclude Include="Graphics\GfxDevice.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxRenderPass.h">
-      <Filter>Graphics</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxVertexFormat.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -292,9 +289,6 @@
     </ClInclude>
     <ClInclude Include="Rendering\Camera.h">
       <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\GfxProfiler.h">
-      <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="tecs\component_pool.h">
       <Filter>tecs</Filter>
@@ -487,6 +481,12 @@
       <Filter>Graphics\Old</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxShaderCompiler.h">
+      <Filter>Graphics\Old</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxRenderPass.h">
+      <Filter>Graphics\Old</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxProfiler.h">
       <Filter>Graphics\Old</Filter>
     </ClInclude>
   </ItemGroup>

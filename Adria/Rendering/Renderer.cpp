@@ -6,6 +6,8 @@
 #include "SkyModel.h"
 #include "Logging/Logger.h"
 #include "Graphics/GfxDevice.h"
+#include "Graphics/GfxCommandContext.h"
+#include "Graphics/GfxStates.h"
 #include "Graphics/GfxCommonStates.h"
 #include "Graphics/GfxScopedAnnotation.h"
 #include "Math/Constants.h"
@@ -362,7 +364,7 @@ namespace adria
 		}
 
 	}
-	void Renderer::ResolveToOffscreenFramebuffer()
+	void Renderer::ResolveToOffscreenTexture()
 	{
 		ID3D11DeviceContext* context = gfx->GetContext();
 		if (renderer_settings.anti_aliasing & EAntiAliasing_FXAA)
@@ -535,7 +537,7 @@ namespace adria
 		light_grid->CreateSRV();
 		light_grid->CreateUAV();
 		
-		const SimpleVertex cube_vertices[8] = 
+		const SimpleVertex cube_vertices[] = 
 		{
 			Vector3{ -0.5f, -0.5f,  0.5f },
 			Vector3{  0.5f, -0.5f,  0.5f },
@@ -547,24 +549,18 @@ namespace adria
 			Vector3{ -0.5f,  0.5f, -0.5f }
 		};
 
-		const uint16 cube_indices[36] = 
+		const uint16 cube_indices[] = 
 		{
-			// front
 			0, 1, 2,
 			2, 3, 0,
-			// right
 			1, 5, 6,
 			6, 2, 1,
-			// back
 			7, 6, 5,
 			5, 4, 7,
-			// left
 			4, 0, 3,
 			3, 7, 4,
-			// bottom
 			4, 5, 1,
 			1, 0, 4,
-			// top
 			3, 2, 6,
 			6, 7, 3
 		};
@@ -592,101 +588,19 @@ namespace adria
 	}
 	void Renderer::CreateSamplers()
 	{
-		auto device = gfx->GetDevice();
-
-		D3D11_SAMPLER_DESC sampDesc = {};
-		sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		sampDesc.MinLOD = 0;
-		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-		GFX_CHECK_HR(device->CreateSamplerState(&sampDesc, linear_wrap_sampler.GetAddressOf()));
-
-		//point wrap sampler
-
-		D3D11_SAMPLER_DESC pointWrapSampDesc = {};
-		pointWrapSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-		pointWrapSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		pointWrapSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		pointWrapSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		pointWrapSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		pointWrapSampDesc.MinLOD = 0;
-		pointWrapSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-		GFX_CHECK_HR(device->CreateSamplerState(&pointWrapSampDesc, point_wrap_sampler.GetAddressOf()));
-
-		//point border sampler
-		D3D11_SAMPLER_DESC linearBorderSampDesc = {};
-		linearBorderSampDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
-		linearBorderSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-		linearBorderSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-		linearBorderSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-
-		linearBorderSampDesc.BorderColor[0] = 0.0f;
-		linearBorderSampDesc.BorderColor[1] = 0.0f;
-		linearBorderSampDesc.BorderColor[2] = 0.0f;
-		linearBorderSampDesc.BorderColor[3] = 1e5f;
-
-		linearBorderSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		linearBorderSampDesc.MinLOD = 0;
-		linearBorderSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		GFX_CHECK_HR(device->CreateSamplerState(&linearBorderSampDesc, linear_border_sampler.GetAddressOf()));
-
-		//comparison sampler
-		D3D11_SAMPLER_DESC comparisonSamplerDesc;
-		ZeroMemory(&comparisonSamplerDesc, sizeof(D3D11_SAMPLER_DESC));
-		comparisonSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
-		comparisonSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
-		comparisonSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
-		comparisonSamplerDesc.BorderColor[0] = 1.0f;
-		comparisonSamplerDesc.BorderColor[1] = 1.0f;
-		comparisonSamplerDesc.BorderColor[2] = 1.0f;
-		comparisonSamplerDesc.BorderColor[3] = 1.0f;
-		comparisonSamplerDesc.MinLOD = 0.f;
-		comparisonSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		comparisonSamplerDesc.MipLODBias = 0.f;
-		comparisonSamplerDesc.MaxAnisotropy = 0;
-		comparisonSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
-		comparisonSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
-
-		GFX_CHECK_HR(device->CreateSamplerState(&comparisonSamplerDesc, shadow_sampler.GetAddressOf()));
-
-		D3D11_SAMPLER_DESC linearClampSampDesc = {};
-		linearClampSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		linearClampSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-		linearClampSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-		linearClampSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-		linearClampSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		linearClampSampDesc.MinLOD = 0;
-		linearClampSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-		GFX_CHECK_HR(device->CreateSamplerState(&linearClampSampDesc, linear_clamp_sampler.GetAddressOf()));
-
-		D3D11_SAMPLER_DESC pointClampSampDesc = {};
-		pointClampSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
-		pointClampSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-		pointClampSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-		pointClampSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-		pointClampSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		pointClampSampDesc.MinLOD = 0;
-		pointClampSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-		GFX_CHECK_HR(device->CreateSamplerState(&pointClampSampDesc, point_clamp_sampler.GetAddressOf()));
-
-		D3D11_SAMPLER_DESC anisotropicSampDesc = {};
-		anisotropicSampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-		anisotropicSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		anisotropicSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		anisotropicSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		anisotropicSampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		anisotropicSampDesc.MinLOD = 0;
-		anisotropicSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-		anisotropicSampDesc.MaxAnisotropy = D3D11_REQ_MAXANISOTROPY;
-
-		GFX_CHECK_HR(device->CreateSamplerState(&anisotropicSampDesc, anisotropic_sampler.GetAddressOf()));
+		linear_wrap_sampler = std::make_unique<GfxSampler>(gfx, SamplerDesc(GfxFilter::MIN_MAG_MIP_LINEAR, GfxTextureAddressMode::Wrap));
+		point_wrap_sampler = std::make_unique<GfxSampler>(gfx, SamplerDesc(GfxFilter::MIN_MAG_MIP_POINT, GfxTextureAddressMode::Wrap));
+		linear_border_sampler = std::make_unique<GfxSampler>(gfx, SamplerDesc(GfxFilter::MIN_MAG_LINEAR_MIP_POINT, GfxTextureAddressMode::Border));
+		linear_clamp_sampler = std::make_unique<GfxSampler>(gfx, SamplerDesc(GfxFilter::MIN_MAG_MIP_LINEAR, GfxTextureAddressMode::Clamp));
+		point_clamp_sampler = std::make_unique<GfxSampler>(gfx, SamplerDesc(GfxFilter::MIN_MAG_MIP_POINT, GfxTextureAddressMode::Clamp));
+		anisotropic_sampler = std::make_unique<GfxSampler>(gfx, SamplerDesc(GfxFilter::ANISOTROPIC, GfxTextureAddressMode::Wrap));
+		
+		GfxSamplerDesc comparison_sampler_desc{};
+		comparison_sampler_desc.filter = GfxFilter::COMPARISON_MIN_MAG_MIP_LINEAR;
+		comparison_sampler_desc.addressU = comparison_sampler_desc.addressV = comparison_sampler_desc.addressW = GfxTextureAddressMode::Border;
+		comparison_sampler_desc.border_color[0] = comparison_sampler_desc.border_color[1] = comparison_sampler_desc.border_color[2] = comparison_sampler_desc.border_color[3] = 1.0f;
+		comparison_sampler_desc.comparison_func = GfxComparisonFunc::LessEqual;
+		shadow_sampler = std::make_unique<GfxSampler>(gfx, comparison_sampler_desc);
 	}
 	void Renderer::CreateRenderStates()
 	{
@@ -980,7 +894,7 @@ namespace adria
 		render_target_desc.height = height;
 		render_target_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 		
-		for (uint32 i = 0; i < EGBufferSlot_Count; ++i)
+		for (uint32 i = 0; i < GBufferSlot_Count; ++i)
 		{
 			render_target_desc.format = GBUFFER_FORMAT[i];
 			gbuffer.push_back(std::make_unique<GfxTexture>(gfx, render_target_desc));
@@ -1000,26 +914,26 @@ namespace adria
 		static constexpr float clear_black[4] = {0.0f,0.0f,0.0f,0.0f};
 
 		GfxColorAttachmentDesc gbuffer_normal_attachment{};
-		gbuffer_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic]->RTV();
+		gbuffer_normal_attachment.view = gbuffer[GBufferSlot_NormalMetallic]->RTV();
 		gbuffer_normal_attachment.clear_color = GfxClearValue(clear_black);
 		gbuffer_normal_attachment.load_op = GfxLoadAccessOp::Clear;
 
 		GfxColorAttachmentDesc gbuffer_albedo_attachment{};
-		gbuffer_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness]->RTV();
+		gbuffer_albedo_attachment.view = gbuffer[GBufferSlot_DiffuseRoughness]->RTV();
 		gbuffer_albedo_attachment.clear_color = GfxClearValue(clear_black);
 		gbuffer_albedo_attachment.load_op = GfxLoadAccessOp::Clear;
 
 		GfxColorAttachmentDesc gbuffer_emissive_attachment{};
-		gbuffer_emissive_attachment.view = gbuffer[EGBufferSlot_Emissive]->RTV();
+		gbuffer_emissive_attachment.view = gbuffer[GBufferSlot_Emissive]->RTV();
 		gbuffer_emissive_attachment.clear_color = GfxClearValue(clear_black);
 		gbuffer_emissive_attachment.load_op = GfxLoadAccessOp::Clear;
 
 		GfxColorAttachmentDesc decal_normal_attachment{};
-		decal_normal_attachment.view = gbuffer[EGBufferSlot_NormalMetallic]->RTV();
+		decal_normal_attachment.view = gbuffer[GBufferSlot_NormalMetallic]->RTV();
 		decal_normal_attachment.load_op = GfxLoadAccessOp::Load;
 
 		GfxColorAttachmentDesc decal_albedo_attachment{};
-		decal_albedo_attachment.view = gbuffer[EGBufferSlot_DiffuseRoughness]->RTV();
+		decal_albedo_attachment.view = gbuffer[GBufferSlot_DiffuseRoughness]->RTV();
 		decal_albedo_attachment.load_op = GfxLoadAccessOp::Load;
 
 		GfxDepthAttachmentDesc depth_clear_attachment{};
@@ -1452,37 +1366,42 @@ namespace adria
 
 		if (!called)
 		{
-			ID3D11DeviceContext* context = gfx->GetContext();
-			//VS GLOBALS
+			GfxCommandContext* command_context = gfx->GetCommandContext();
+			ID3D11DeviceContext* context = command_context->GetNative();
+			
 			frame_cbuffer->Bind(context,  GfxShaderStage::VS, CBUFFER_SLOT_FRAME);
 			object_cbuffer->Bind(context, GfxShaderStage::VS, CBUFFER_SLOT_OBJECT);
 			shadow_cbuffer->Bind(context, GfxShaderStage::VS, CBUFFER_SLOT_SHADOW);
 			weather_cbuffer->Bind(context, GfxShaderStage::VS, CBUFFER_SLOT_WEATHER);
 			voxel_cbuffer->Bind(context,  GfxShaderStage::VS, CBUFFER_SLOT_VOXEL);
-			context->VSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
 
+			command_context->SetSampler(GfxShaderStage::VS, 0, linear_wrap_sampler.get());
+			
 			//TS/HS GLOBALS
 			frame_cbuffer->Bind(context, GfxShaderStage::DS, CBUFFER_SLOT_FRAME);
 			frame_cbuffer->Bind(context, GfxShaderStage::HS, CBUFFER_SLOT_FRAME);
-			context->DSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
-			context->HSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
+
+			command_context->SetSampler(GfxShaderStage::DS, 0, linear_wrap_sampler.get());
+			command_context->SetSampler(GfxShaderStage::HS, 0, linear_wrap_sampler.get());
 
 			//CS GLOBALS
 			frame_cbuffer->Bind(context, GfxShaderStage::CS, CBUFFER_SLOT_FRAME);
 			compute_cbuffer->Bind(context, GfxShaderStage::CS, CBUFFER_SLOT_COMPUTE);
 			voxel_cbuffer->Bind(context, GfxShaderStage::CS, CBUFFER_SLOT_VOXEL);
-			context->CSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
-			context->CSSetSamplers(1, 1, point_wrap_sampler.GetAddressOf());
-			context->CSSetSamplers(2, 1, linear_border_sampler.GetAddressOf());
-			context->CSSetSamplers(3, 1, linear_clamp_sampler.GetAddressOf());
+
+			command_context->SetSampler(GfxShaderStage::CS, 0, linear_wrap_sampler.get());
+			command_context->SetSampler(GfxShaderStage::CS, 1, point_wrap_sampler.get());
+			command_context->SetSampler(GfxShaderStage::CS, 2, linear_border_sampler.get());
+			command_context->SetSampler(GfxShaderStage::CS, 3, linear_clamp_sampler.get());
 
 			//GS GLOBALS
 			frame_cbuffer->Bind(context, GfxShaderStage::GS, CBUFFER_SLOT_FRAME);
 			light_cbuffer->Bind(context, GfxShaderStage::GS, CBUFFER_SLOT_LIGHT);
 			voxel_cbuffer->Bind(context, GfxShaderStage::GS, CBUFFER_SLOT_VOXEL);
-			context->GSSetSamplers(1, 1, point_wrap_sampler.GetAddressOf());
-			context->GSSetSamplers(4, 1, point_clamp_sampler.GetAddressOf());
-			
+
+			command_context->SetSampler(GfxShaderStage::GS, 1, point_wrap_sampler.get());
+			command_context->SetSampler(GfxShaderStage::GS, 4, point_clamp_sampler.get());
+
 			//PS GLOBALS
 			material_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_MATERIAL);
 			frame_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_FRAME);
@@ -1492,13 +1411,15 @@ namespace adria
 			weather_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_WEATHER);
 			voxel_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_VOXEL);
 			terrain_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_TERRAIN);
-			context->PSSetSamplers(0, 1, linear_wrap_sampler.GetAddressOf());
-			context->PSSetSamplers(1, 1, point_wrap_sampler.GetAddressOf());
-			context->PSSetSamplers(2, 1, linear_border_sampler.GetAddressOf());
-			context->PSSetSamplers(3, 1, linear_clamp_sampler.GetAddressOf());
-			context->PSSetSamplers(4, 1, point_clamp_sampler.GetAddressOf());
-			context->PSSetSamplers(5, 1, shadow_sampler.GetAddressOf());
-			context->PSSetSamplers(6, 1, anisotropic_sampler.GetAddressOf());
+
+			command_context->SetSampler(GfxShaderStage::PS, 0, linear_wrap_sampler.get());
+			command_context->SetSampler(GfxShaderStage::PS, 1, point_wrap_sampler.get());
+			command_context->SetSampler(GfxShaderStage::PS, 2, linear_border_sampler.get());
+			command_context->SetSampler(GfxShaderStage::PS, 3, linear_clamp_sampler.get());
+			command_context->SetSampler(GfxShaderStage::PS, 4, point_clamp_sampler.get());
+			command_context->SetSampler(GfxShaderStage::PS, 5, shadow_sampler.get());
+			command_context->SetSampler(GfxShaderStage::PS, 6, anisotropic_sampler.get());
+
 			called = true;
 		}
 
@@ -1869,7 +1790,7 @@ namespace adria
 		ADRIA_ASSERT(pick_in_current_frame);
 		AdriaGfxScopedAnnotation(gfx->GetAnnotation(), L"Picking Pass");
 		pick_in_current_frame = false;
-		last_picking_data = picker.Pick(depth_target->SRV(), gbuffer[EGBufferSlot_NormalMetallic]->SRV());
+		last_picking_data = picker.Pick(depth_target->SRV(), gbuffer[GBufferSlot_NormalMetallic]->SRV());
 	}
 	void Renderer::PassGBuffer()
 	{
@@ -2101,7 +2022,7 @@ namespace adria
 
 		ssao_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), ssao_random_texture->SRV() };
+			ID3D11ShaderResourceView* srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), ssao_random_texture->SRV() };
 			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2133,7 +2054,7 @@ namespace adria
 
 		hbao_pass.Begin(context);
 		{
-			ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), hbao_random_texture->SRV() };
+			ID3D11ShaderResourceView* srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), hbao_random_texture->SRV() };
 			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -2153,7 +2074,7 @@ namespace adria
 		AdriaGfxProfileCondScope(context, "Ambient Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(gfx->GetAnnotation(), L"Ambient Pass");
 
-		ID3D11ShaderResourceView* srvs[] = { gbuffer[EGBufferSlot_NormalMetallic]->SRV(),gbuffer[EGBufferSlot_DiffuseRoughness]->SRV(), depth_target->SRV(), gbuffer[EGBufferSlot_Emissive]->SRV() };
+		ID3D11ShaderResourceView* srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(),gbuffer[GBufferSlot_DiffuseRoughness]->SRV(), depth_target->SRV(), gbuffer[GBufferSlot_Emissive]->SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
 		ambient_pass.Begin(context);
@@ -2246,8 +2167,8 @@ namespace adria
 			lighting_pass.Begin(context);
 			{
 				ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-				shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->SRV();
-				shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness]->SRV();
+				shader_views[0] = gbuffer[GBufferSlot_NormalMetallic]->SRV();
+				shader_views[1] = gbuffer[GBufferSlot_DiffuseRoughness]->SRV();
 				shader_views[2] = depth_target->SRV();
 
 				context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
@@ -2277,8 +2198,8 @@ namespace adria
 		AdriaGfxScopedAnnotation(gfx->GetAnnotation(), L"Deferred Tiled Lighting Pass");
 
 		ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-		shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->SRV();
-		shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness]->SRV();
+		shader_views[0] = gbuffer[GBufferSlot_NormalMetallic]->SRV();
+		shader_views[1] = gbuffer[GBufferSlot_DiffuseRoughness]->SRV();
 		shader_views[2] = depth_target->SRV();
 		context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 		ID3D11ShaderResourceView* lights_srv = lights->SRV();
@@ -2397,8 +2318,8 @@ namespace adria
 		lighting_pass.Begin(context);
 		{
 			ID3D11ShaderResourceView* shader_views[6] = { nullptr };
-			shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->SRV();
-			shader_views[1] = gbuffer[EGBufferSlot_DiffuseRoughness]->SRV();
+			shader_views[0] = gbuffer[GBufferSlot_NormalMetallic]->SRV();
+			shader_views[1] = gbuffer[GBufferSlot_DiffuseRoughness]->SRV();
 			shader_views[2] = depth_target->SRV();
 			shader_views[3] = lights->SRV();
 			shader_views[4] = light_list->SRV();
@@ -2600,7 +2521,7 @@ namespace adria
 		lighting_pass.Begin(context);
 		{
 			ID3D11ShaderResourceView* shader_views[3] = { nullptr };
-			shader_views[0] = gbuffer[EGBufferSlot_NormalMetallic]->SRV();
+			shader_views[0] = gbuffer[GBufferSlot_NormalMetallic]->SRV();
 			shader_views[1] = depth_target->SRV();
 			shader_views[2] = renderer_settings.voxel_second_bounce ? voxel_texture_second_bounce->SRV() : voxel_texture->SRV();
 			context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
@@ -3275,7 +3196,7 @@ namespace adria
 		postprocess_cbuf_data.ssr_ray_step = renderer_settings.ssr_ray_step;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		ID3D11ShaderResourceView* srv_array[] = { gbuffer[EGBufferSlot_NormalMetallic]->SRV(), postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
+		ID3D11ShaderResourceView* srv_array[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 

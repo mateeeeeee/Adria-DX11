@@ -290,10 +290,10 @@ namespace adria
 
 	enum GBufferSlot : uint8
 	{
-		EGBufferSlot_NormalMetallic,
-		EGBufferSlot_DiffuseRoughness,
-		EGBufferSlot_Emissive,
-		EGBufferSlot_Count
+		GBufferSlot_NormalMetallic,
+		GBufferSlot_DiffuseRoughness,
+		GBufferSlot_Emissive,
+		GBufferSlot_Count
 	};
 
 	enum class DecalType : uint8 

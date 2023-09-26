@@ -185,9 +185,24 @@ namespace adria
 		command_context->IASetIndexBuffer(index_buffer->GetNative(), ConvertGfxFormat(index_buffer->GetDesc().format), offset);
 	}
 
-	void GfxCommandContext::SetVertexBuffers(std::span<GfxBuffer*> vertex_buffer_views, uint32 start_slot /*= 0*/)
+	void GfxCommandContext::SetVertexBuffer(GfxBuffer* vertex_buffer, uint32 slot /*= 0*/)
 	{
+		GfxBuffer* vertex_buffers[1] = { vertex_buffer };
+		SetVertexBuffers(vertex_buffers, slot);
+	}
 
+	void GfxCommandContext::SetVertexBuffers(std::span<GfxBuffer*> vertex_buffers, uint32 start_slot /*= 0*/)
+	{
+		std::vector<ID3D11Buffer*> d3d11_buffers(vertex_buffers.size());
+		std::vector<uint32> strides(vertex_buffers.size());
+		std::vector<uint32> offsets(vertex_buffers.size());
+		for (uint32 i = 0; i < vertex_buffers.size(); ++i)
+		{
+			d3d11_buffers[i] = vertex_buffers[i]->GetNative();
+			strides[i] = vertex_buffers[i]->GetDesc().stride;
+			offsets[i] = 0;
+		}
+		command_context->IASetVertexBuffers(start_slot, (uint32)vertex_buffers.size(), d3d11_buffers.data(), strides.data(), offsets.data());
 	}
 
 	void GfxCommandContext::SetViewport(uint32 x, uint32 y, uint32 width, uint32 height)
@@ -326,33 +341,6 @@ namespace adria
 		else command_context->UpdateSubresource(buffer->GetNative(), 0, nullptr, &data, data_size, 0);
 	}
 
-	void GfxCommandContext::SetConstantBuffers(GfxShaderStage stage, uint32 start, std::span<GfxBuffer*> buffers)
-	{
-		std::vector<ID3D11Buffer*> d3d11_buffers(buffers.size());
-		for (uint32 i = 0; i < buffers.size(); ++i) d3d11_buffers[i] = buffers[i]->GetNative();
-		switch (stage)
-		{
-		case GfxShaderStage::VS:
-			command_context->VSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
-			break;
-		case GfxShaderStage::PS:
-			command_context->PSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
-			break;
-		case GfxShaderStage::HS:
-			command_context->HSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
-			break;
-		case GfxShaderStage::DS:
-			command_context->DSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
-			break;
-		case GfxShaderStage::GS:
-			command_context->GSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
-			break;
-		case GfxShaderStage::CS:
-			command_context->CSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
-			break;
-		}
-	}
-
 	void GfxCommandContext::SetVertexShader(GfxVertexShader* shader)
 	{
 		if (shader != current_vs)
@@ -407,10 +395,49 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::SetSamplers(GfxShaderStage stage, uint32 start, std::span<GfxSampler> samplers)
+	void GfxCommandContext::SetConstantBuffer(GfxShaderStage stage, uint32 slot, GfxBuffer* buffer)
+	{
+		GfxBuffer* buffers[] = { buffer };
+		SetConstantBuffers(stage, slot, buffers);
+	}
+
+	void GfxCommandContext::SetConstantBuffers(GfxShaderStage stage, uint32 start, std::span<GfxBuffer*> buffers)
+	{
+		std::vector<ID3D11Buffer*> d3d11_buffers(buffers.size());
+		for (uint32 i = 0; i < buffers.size(); ++i) d3d11_buffers[i] = buffers[i]->GetNative();
+		switch (stage)
+		{
+		case GfxShaderStage::VS:
+			command_context->VSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			break;
+		case GfxShaderStage::PS:
+			command_context->PSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			break;
+		case GfxShaderStage::HS:
+			command_context->HSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			break;
+		case GfxShaderStage::DS:
+			command_context->DSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			break;
+		case GfxShaderStage::GS:
+			command_context->GSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			break;
+		case GfxShaderStage::CS:
+			command_context->CSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			break;
+		}
+	}
+
+	void GfxCommandContext::SetSampler(GfxShaderStage stage, uint32 start, GfxSampler* sampler)
+	{
+		GfxSampler* samplers[1] = { sampler };
+		SetSamplers(stage, start, samplers);
+	}
+
+	void GfxCommandContext::SetSamplers(GfxShaderStage stage, uint32 start, std::span<GfxSampler*> samplers)
 	{
 		std::vector<ID3D11SamplerState*> d3d11_samplers(samplers.size());
-		for (uint32 i = 0; i < samplers.size(); ++i) d3d11_samplers[i] = samplers[i];
+		for (uint32 i = 0; i < samplers.size(); ++i) d3d11_samplers[i] = *samplers[i];
 		switch (stage)
 		{
 		case GfxShaderStage::VS:
@@ -432,6 +459,12 @@ namespace adria
 			command_context->CSSetSamplers(start, (uint32)d3d11_samplers.size(), d3d11_samplers.data());
 			break;
 		}
+	}
+
+	void GfxCommandContext::SetReadOnlyDescriptor(GfxShaderStage stage, uint32 slot, GfxReadOnlyDescriptor descriptor)
+	{
+		GfxReadOnlyDescriptor descriptors[] = { descriptor };
+		SetReadOnlyDescriptors(stage, slot, descriptors);
 	}
 
 	void GfxCommandContext::SetReadOnlyDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadOnlyDescriptor> descriptors)
@@ -457,6 +490,12 @@ namespace adria
 			command_context->CSSetShaderResources(start, (uint32)descriptors.size(), descriptors.data());
 			break;
 		}
+	}
+
+	void GfxCommandContext::SetReadWriteDescriptor(GfxShaderStage stage, uint32 slot, GfxReadWriteDescriptor descriptor)
+	{
+		GfxReadWriteDescriptor descriptors[] = { descriptor };
+		SetReadWriteDescriptors(stage, slot, descriptors);
 	}
 
 	void GfxCommandContext::SetReadWriteDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadWriteDescriptor> descriptors)

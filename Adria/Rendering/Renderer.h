@@ -1,5 +1,4 @@
 #pragma once
-#include <DirectXCollision.h>
 #include <memory>
 #include <optional>
 #include "Picker.h"
@@ -17,8 +16,10 @@
 namespace adria
 {
 
-	class Camera;
 	class GfxDevice;
+	class GfxSampler;
+
+	class Camera;
 	class Input;
 	struct Light;
 	struct RenderState;
@@ -34,7 +35,7 @@ namespace adria
 		static constexpr uint32 CLUSTER_SIZE_Y = 16;
 		static constexpr uint32 CLUSTER_SIZE_Z = 16;
 		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
-		static constexpr GfxFormat GBUFFER_FORMAT[EGBufferSlot_Count] = { GfxFormat::R8G8B8A8_UNORM, GfxFormat::R8G8B8A8_UNORM, GfxFormat::R8G8B8A8_UNORM };
+		static constexpr GfxFormat GBUFFER_FORMAT[GBufferSlot_Count] = { GfxFormat::R8G8B8A8_UNORM, GfxFormat::R8G8B8A8_UNORM, GfxFormat::R8G8B8A8_UNORM };
 
 	public:
 
@@ -48,7 +49,7 @@ namespace adria
 		void SetSceneViewportData(SceneViewport const&);
 		void Render(RendererSettings const&);
 
-		void ResolveToOffscreenFramebuffer();
+		void ResolveToOffscreenTexture();
 		void ResolveToBackbuffer();
 
 		void OnResize(uint32 width, uint32 height);
@@ -134,15 +135,15 @@ namespace adria
 		//////////////////////////////////////////////////////////////////
 		bool ibl_textures_generated = false;
 		bool recreate_clusters = true;
-		ArcPtr<ID3D11ShaderResourceView> env_srv;
-		ArcPtr<ID3D11ShaderResourceView> irmap_srv;
-		ArcPtr<ID3D11ShaderResourceView> brdf_srv;
+		GfxArcReadOnlyDescriptor env_srv;
+		GfxArcReadOnlyDescriptor irmap_srv;
+		GfxArcReadOnlyDescriptor brdf_srv;
 		BoundingBox light_bounding_box;
 		BoundingFrustum light_bounding_frustum;
 		std::optional<BoundingSphere> scene_bounding_sphere = std::nullopt;
 		std::array<Vector4, SSAO_KERNEL_SIZE> ssao_kernel{};
-		std::vector<ID3D11ShaderResourceView*> lens_flare_textures;
-		std::vector<ID3D11ShaderResourceView*> clouds_textures;
+		std::vector<GfxReadOnlyDescriptor> lens_flare_textures;
+		std::vector<GfxReadOnlyDescriptor> clouds_textures;
 		TextureHandle hex_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle oct_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle circle_bokeh_handle = INVALID_TEXTURE_HANDLE;
@@ -185,14 +186,15 @@ namespace adria
 		std::unique_ptr<GfxBuffer> cube_ib;
 		std::unique_ptr<GfxBuffer> aabb_wireframe_ib;
 
+		
 		//samplers
-		ArcPtr<ID3D11SamplerState>			linear_wrap_sampler;
-		ArcPtr<ID3D11SamplerState>			point_wrap_sampler;
-		ArcPtr<ID3D11SamplerState>			linear_border_sampler;
-		ArcPtr<ID3D11SamplerState>			linear_clamp_sampler;
-		ArcPtr<ID3D11SamplerState>			point_clamp_sampler;
-		ArcPtr<ID3D11SamplerState>			shadow_sampler;
-		ArcPtr<ID3D11SamplerState>			anisotropic_sampler;
+		std::unique_ptr<GfxSampler>			linear_wrap_sampler;
+		std::unique_ptr<GfxSampler>			point_wrap_sampler;
+		std::unique_ptr<GfxSampler>			linear_border_sampler;
+		std::unique_ptr<GfxSampler>			linear_clamp_sampler;
+		std::unique_ptr<GfxSampler>			point_clamp_sampler;
+		std::unique_ptr<GfxSampler>			shadow_sampler;
+		std::unique_ptr<GfxSampler>			anisotropic_sampler;
 		//render states
 		ArcPtr<ID3D11BlendState>			additive_blend;
 		ArcPtr<ID3D11BlendState>			alpha_blend;
@@ -221,7 +223,6 @@ namespace adria
 		void CreateComputeTextures(uint32 width, uint32 height);
 		void CreateIBLTextures();
 
-		//called in update
 		void BindGlobals();
 
 		void UpdateCBuffers(float dt);
@@ -234,7 +235,6 @@ namespace adria
 		void CameraFrustumCulling();
 		void LightFrustumCulling(LightType type);
 		
-		//called in render
 		void PassPicking();
 		void PassGBuffer();
 		void PassDecals();
@@ -257,16 +257,12 @@ namespace adria
 		void PassShadowMapCommon();
 		void PassVolumetric(Light const& light);
 		
-		//called in forward pass
 		void PassSky();
 		void PassOcean();
 		void PassParticles();
 		void PassAABB();
 		void PassForwardCommon(bool transparent);
 		
-		//POSTPROCESS
-		
-		//called in postprocessing pass
 		void PassLensFlare(Light const& light);
 		void PassVolumetricClouds();
 		void PassSSR(); 

@@ -271,7 +271,7 @@ namespace adria
 		renderer->Render(settings);
 		if (editor_active)
 		{
-			renderer->ResolveToOffscreenFramebuffer();
+			renderer->ResolveToOffscreenTexture();
 		}
 		else
 		{

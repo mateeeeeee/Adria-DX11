@@ -275,7 +275,7 @@ namespace adria
 		float mip_lod_bias = 0.0f;
 		uint32 max_anisotropy = 0;
 		GfxComparisonFunc comparison_func = GfxComparisonFunc::Never;
-		float border_color[4];
+		float border_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
 		float min_lod = 0.0f;
 		float max_lod = FLT_MAX;
 	};
