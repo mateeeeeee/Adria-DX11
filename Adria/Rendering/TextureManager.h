@@ -3,12 +3,13 @@
 #include <array>
 #include <unordered_map>
 #include "Graphics/GfxDevice.h"
+#include "Graphics/GfxDescriptor.h"
 #include "Utilities/Singleton.h"
 
 namespace adria
 {
-	using TextureHandle = size_t;
-	inline constexpr TextureHandle const INVALID_TEXTURE_HANDLE = size_t(-1);
+	using TextureHandle = uint64;
+	inline constexpr TextureHandle const INVALID_TEXTURE_HANDLE = uint64(-1);
 
 	class TextureManager : public Singleton<TextureManager>
 	{
@@ -18,19 +19,19 @@ namespace adria
 		void Initialize(GfxDevice* gfx);
 		void Destroy();
 
-		[[nodiscard]] TextureHandle LoadTexture(std::wstring const& name);
-		[[nodiscard]] TextureHandle LoadTexture(std::string const& name);
-		[[nodiscard]] TextureHandle LoadCubeMap(std::wstring const& name);
-		[[nodiscard]] TextureHandle LoadCubeMap(std::array<std::string, 6> const& cubemap_textures);
+		ADRIA_NODISCARD TextureHandle LoadTexture(std::wstring const& name);
+		ADRIA_NODISCARD TextureHandle LoadTexture(std::string const& name);
+		ADRIA_NODISCARD TextureHandle LoadCubeMap(std::wstring const& name);
+		ADRIA_NODISCARD TextureHandle LoadCubeMap(std::array<std::string, 6> const& cubemap_textures);
 
-		ID3D11ShaderResourceView* GetTextureView(TextureHandle tex_handle) const;
+		GfxReadOnlyDescriptor GetTextureDescriptor(TextureHandle tex_handle) const;
 		void SetMipMaps(bool mipmaps);
 
 	private:
 		GfxDevice* gfx;
 		bool mipmaps = true;
 		TextureHandle handle = INVALID_TEXTURE_HANDLE;
-		std::unordered_map<TextureHandle, ArcPtr<ID3D11ShaderResourceView>> texture_map{};
+		std::unordered_map<TextureHandle, GfxArcReadOnlyDescriptor> texture_map{};
 		std::unordered_map<std::wstring, TextureHandle> loaded_textures{};
 
 	private:

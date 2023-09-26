@@ -134,23 +134,5 @@ namespace adria
 		std::optional<GfxDepthAttachmentDesc> dsv_attachment;
 		uint32 width, height;
 	};
-
-	class GfxRenderPass
-	{
-	public:
-		GfxRenderPass() = default;
-		explicit GfxRenderPass(GfxRenderPassDesc const& desc);
-		void Begin(ID3D11DeviceContext* context);
-		void End(ID3D11DeviceContext* context);
-
-	private:
-		uint32 width, height;
-		std::vector<GfxColorDescriptor> render_targets;
-		std::unordered_map<uint64, GfxClearValue> clear_values;
-		GfxDepthDescriptor depth_target = nullptr;
-		bool depth_clear = false;
-		GfxClearValue depth_clear_value;
-	};
-
 }
 

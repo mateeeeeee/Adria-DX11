@@ -115,24 +115,24 @@ namespace adria
 		std::unique_ptr<GfxBuffer> bokeh_indirect_draw_buffer;
 
 		//render passes
-		GfxRenderPass gbuffer_pass;
-		GfxRenderPass deep_gbuffer_pass;
-		GfxRenderPass ambient_pass;
-		GfxRenderPass lighting_pass;
-		GfxRenderPass forward_pass;
-		GfxRenderPass fxaa_pass;
-		GfxRenderPass velocity_buffer_pass;
-		GfxRenderPass taa_pass;
-		GfxRenderPass shadow_map_pass;
-		GfxRenderPass ssao_pass;
-		GfxRenderPass hbao_pass;
-		GfxRenderPass voxel_debug_pass;
-		GfxRenderPass offscreen_resolve_pass;
-		GfxRenderPass particle_pass;
-		GfxRenderPass decal_pass;
-		std::array<GfxRenderPass, 6> shadow_cubemap_pass;
-		std::vector<GfxRenderPass> cascade_shadow_pass;
-		std::array<GfxRenderPass, 2> postprocess_passes; 
+		GfxRenderPassDesc gbuffer_pass;
+		GfxRenderPassDesc deep_gbuffer_pass;
+		GfxRenderPassDesc ambient_pass;
+		GfxRenderPassDesc lighting_pass;
+		GfxRenderPassDesc forward_pass;
+		GfxRenderPassDesc fxaa_pass;
+		GfxRenderPassDesc velocity_buffer_pass;
+		GfxRenderPassDesc taa_pass;
+		GfxRenderPassDesc shadow_map_pass;
+		GfxRenderPassDesc ssao_pass;
+		GfxRenderPassDesc hbao_pass;
+		GfxRenderPassDesc voxel_debug_pass;
+		GfxRenderPassDesc offscreen_resolve_pass;
+		GfxRenderPassDesc particle_pass;
+		GfxRenderPassDesc decal_pass;
+		std::array<GfxRenderPassDesc, 6> shadow_cubemap_pass;
+		std::vector<GfxRenderPassDesc> cascade_shadow_pass;
+		std::array<GfxRenderPassDesc, 2> postprocess_passes; 
 		
 		//other
 		//////////////////////////////////////////////////////////////////

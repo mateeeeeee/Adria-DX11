@@ -178,7 +178,6 @@
     <ClCompile Include="Graphics\GfxInputLayout.cpp" />
     <ClCompile Include="Graphics\GfxProfiler.cpp" />
     <ClCompile Include="Graphics\GfxQuery.cpp" />
-    <ClCompile Include="Graphics\GfxRenderPass.cpp" />
     <ClCompile Include="Graphics\GfxScopedAnnotation.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
     <ClCompile Include="Graphics\GfxStates.cpp" />

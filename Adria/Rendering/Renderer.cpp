@@ -314,7 +314,6 @@ namespace adria
 	}
 	void Renderer::Render(RendererSettings const& _settings)
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
 		renderer_settings = _settings;
 		if (renderer_settings.ibl && !ibl_textures_generated) CreateIBLTextures();
 
@@ -349,12 +348,13 @@ namespace adria
 	}
 	void Renderer::ResolveToBackbuffer()
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
 		if (renderer_settings.anti_aliasing & EAntiAliasing_FXAA)
 		{
-			fxaa_pass.Begin(context);
+			command_context->BeginRenderPass(fxaa_pass);
 			PassToneMap();
-			fxaa_pass.End(context);
+			command_context->EndRenderPass();
 
 			gfx->SetBackbuffer(); 
 			PassFXAA();
@@ -368,22 +368,23 @@ namespace adria
 	}
 	void Renderer::ResolveToOffscreenTexture()
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
 		if (renderer_settings.anti_aliasing & EAntiAliasing_FXAA)
 		{
-			fxaa_pass.Begin(context);
+			command_context->BeginRenderPass(fxaa_pass);
 			PassToneMap();
-			fxaa_pass.End(context);
+			command_context->EndRenderPass();
 			
-			offscreen_resolve_pass.Begin(context);
+			command_context->BeginRenderPass(offscreen_resolve_pass);
 			PassFXAA();
-			offscreen_resolve_pass.End(context);
+			command_context->EndRenderPass();
 		}
 		else
 		{
-			offscreen_resolve_pass.Begin(context);
+			command_context->BeginRenderPass(offscreen_resolve_pass);
 			PassToneMap();
-			offscreen_resolve_pass.End(context);
+			command_context->EndRenderPass();
 		}
 	}
 	void Renderer::OnResize(uint32 w, uint32 h)
@@ -461,25 +462,25 @@ namespace adria
 	{
 		TextureHandle tex_handle{};
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare0.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare1.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare2.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare3.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare4.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare5.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare6.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
 
 		clouds_textures.resize(3);
 
@@ -958,7 +959,7 @@ namespace adria
 			render_pass_desc.rtv_attachments.push_back(gbuffer_albedo_attachment);
 			render_pass_desc.rtv_attachments.push_back(gbuffer_emissive_attachment);
 			render_pass_desc.dsv_attachment = depth_clear_attachment;
-			gbuffer_pass = GfxRenderPass(render_pass_desc);
+			gbuffer_pass = render_pass_desc;
 		}
 
 		//ambient pass
@@ -967,7 +968,7 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_clear_attachment);
-			ambient_pass = GfxRenderPass(render_pass_desc);
+			ambient_pass = render_pass_desc;
 		}
 
 		//lighting pass
@@ -977,7 +978,7 @@ namespace adria
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
 
-			lighting_pass = GfxRenderPass(render_pass_desc);
+			lighting_pass = render_pass_desc;
 		}
 
 		//forward pass
@@ -987,7 +988,7 @@ namespace adria
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
 			render_pass_desc.dsv_attachment = depth_load_attachment;
-			forward_pass = GfxRenderPass(render_pass_desc);
+			forward_pass = render_pass_desc;
 		}
 
 		//particle pass
@@ -996,7 +997,7 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_load_attachment);
-			particle_pass = GfxRenderPass(render_pass_desc);
+			particle_pass = render_pass_desc;
 		}
 
 		//decal pass
@@ -1006,7 +1007,7 @@ namespace adria
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(decal_albedo_attachment);
 			render_pass_desc.rtv_attachments.push_back(decal_normal_attachment);
-			decal_pass = GfxRenderPass(render_pass_desc);
+			decal_pass = render_pass_desc;
 		}
 
 		//fxaa pass
@@ -1015,7 +1016,7 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(fxaa_source_attachment);
-			fxaa_pass = GfxRenderPass(render_pass_desc);
+			fxaa_pass = render_pass_desc;
 		}
 
 		//shadow map pass
@@ -1024,7 +1025,7 @@ namespace adria
 			render_pass_desc.width = SHADOW_MAP_SIZE;
 			render_pass_desc.height = SHADOW_MAP_SIZE;
 			render_pass_desc.dsv_attachment = shadow_map_attachment;
-			shadow_map_pass = GfxRenderPass(render_pass_desc);
+			shadow_map_pass = render_pass_desc;
 		}
 
 		//shadow cubemap pass
@@ -1040,7 +1041,7 @@ namespace adria
 				render_pass_desc.width = SHADOW_CUBE_SIZE;
 				render_pass_desc.height = SHADOW_CUBE_SIZE;
 				render_pass_desc.dsv_attachment = shadow_cubemap_attachment;
-				shadow_cubemap_pass[i] = GfxRenderPass(render_pass_desc);
+				shadow_cubemap_pass[i] = render_pass_desc;
 			}
 		}
 
@@ -1058,7 +1059,7 @@ namespace adria
 				render_pass_desc.width = SHADOW_CASCADE_SIZE;
 				render_pass_desc.height = SHADOW_CASCADE_SIZE;
 				render_pass_desc.dsv_attachment = cascade_shadow_map_attachment;
-				cascade_shadow_pass.push_back(GfxRenderPass(render_pass_desc));
+				cascade_shadow_pass.push_back(render_pass_desc);
 			}
 		}
 
@@ -1069,7 +1070,7 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(ssao_attachment);
-			ssao_pass = GfxRenderPass(render_pass_desc);
+			ssao_pass = render_pass_desc;
 			hbao_pass = ssao_pass;
 		}
 
@@ -1080,13 +1081,13 @@ namespace adria
 			ping_render_pass_desc.width = width;
 			ping_render_pass_desc.height = height;
 			ping_render_pass_desc.rtv_attachments.push_back(ping_color_load_attachment);
-			postprocess_passes[0] = GfxRenderPass(ping_render_pass_desc);
+			postprocess_passes[0] = ping_render_pass_desc;
 
 			GfxRenderPassDesc pong_render_pass_desc{};
 			pong_render_pass_desc.width = width;
 			pong_render_pass_desc.height = height;
 			pong_render_pass_desc.rtv_attachments.push_back(pong_color_load_attachment);
-			postprocess_passes[1] = GfxRenderPass(pong_render_pass_desc);
+			postprocess_passes[1] = pong_render_pass_desc;
 
 		}
 
@@ -1097,7 +1098,7 @@ namespace adria
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(hdr_color_clear_attachment);
 			render_pass_desc.dsv_attachment = depth_load_attachment;
-			voxel_debug_pass = GfxRenderPass(render_pass_desc);
+			voxel_debug_pass = render_pass_desc;
 		}
 
 		//offscreen_resolve_pass
@@ -1106,7 +1107,7 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(offscreen_clear_attachment);
-			offscreen_resolve_pass = GfxRenderPass(render_pass_desc);
+			offscreen_resolve_pass = render_pass_desc;
 		}
 
 		//velocity buffer pass
@@ -1115,7 +1116,7 @@ namespace adria
 			render_pass_desc.width = width;
 			render_pass_desc.height = height;
 			render_pass_desc.rtv_attachments.push_back(velocity_clear_attachment);
-			velocity_buffer_pass = GfxRenderPass(render_pass_desc);
+			velocity_buffer_pass = render_pass_desc;
 		}
 	}
 	void Renderer::CreateComputeTextures(uint32 width, uint32 height)
@@ -1142,7 +1143,7 @@ namespace adria
 		for (auto skybox : skyboxes)
 		{
 			auto const& _skybox = skyboxes.get(skybox);
-			unfiltered_env_srv = g_TextureManager.GetTextureView(_skybox.cubemap_texture);
+			unfiltered_env_srv = g_TextureManager.GetTextureDescriptor(_skybox.cubemap_texture);
 			if (unfiltered_env_srv) break;
 		}
 
@@ -1744,7 +1745,6 @@ namespace adria
 		}
 	}
 
-	///////////////////////////////////////////////////////////////////////
 
 	void Renderer::PassPicking()
 	{
@@ -1784,7 +1784,7 @@ namespace adria
 			batched_entities[params].push_back(e);
 		}
 		
-		gbuffer_pass.Begin(context);
+		command_context->BeginRenderPass(gbuffer_pass);
 		{
 			for (auto const& [params, entities] : batched_entities)
 			{
@@ -1815,13 +1815,13 @@ namespace adria
 
 					if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = g_TextureManager.GetTextureView(material.albedo_texture);
+						auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
 						context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 					}
 
 					if (material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = g_TextureManager.GetTextureView(material.metallic_roughness_texture);
+						auto view = g_TextureManager.GetTextureDescriptor(material.metallic_roughness_texture);
 						context->PSSetShaderResources(TEXTURE_SLOT_ROUGHNESS_METALLIC, 1, &view);
 					}
 					else
@@ -1831,7 +1831,7 @@ namespace adria
 
 					if (material.normal_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = g_TextureManager.GetTextureView(material.normal_texture);
+						auto view = g_TextureManager.GetTextureDescriptor(material.normal_texture);
 						context->PSSetShaderResources(TEXTURE_SLOT_NORMAL, 1, &view);
 					}
 					else
@@ -1841,7 +1841,7 @@ namespace adria
 
 					if (material.emissive_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = g_TextureManager.GetTextureView(material.emissive_texture);
+						auto view = g_TextureManager.GetTextureDescriptor(material.emissive_texture);
 						context->PSSetShaderResources(TEXTURE_SLOT_EMISSIVE, 1, &view);
 					}
 					else
@@ -1868,28 +1868,28 @@ namespace adria
 
 				if (terrain.grass_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureView(terrain.grass_texture);
+					auto view = g_TextureManager.GetTextureDescriptor(terrain.grass_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_GRASS, 1, &view);
 				}
 				if (terrain.base_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureView(terrain.base_texture);
+					auto view = g_TextureManager.GetTextureDescriptor(terrain.base_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_BASE, 1, &view);
 				}
 				if (terrain.rock_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureView(terrain.rock_texture);
+					auto view = g_TextureManager.GetTextureDescriptor(terrain.rock_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_ROCK, 1, &view);
 				}
 				if (terrain.sand_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureView(terrain.sand_texture);
+					auto view = g_TextureManager.GetTextureDescriptor(terrain.sand_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_SAND, 1, &view);
 				}
 
 				if (terrain.layer_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureView(terrain.layer_texture);
+					auto view = g_TextureManager.GetTextureDescriptor(terrain.layer_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_LAYER, 1, &view);
 				}
 				mesh.Draw(context);
@@ -1908,13 +1908,13 @@ namespace adria
 
 				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureView(material.albedo_texture);
+					auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
 					context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 				}
 				mesh.Draw(context);
 			}
 		}
-		gbuffer_pass.End(context);
+		command_context->EndRenderPass();
 	}
 	void Renderer::PassDecals()
 	{
@@ -1934,7 +1934,7 @@ namespace adria
 		static DecalCBuffer decal_cbuf_data{};
 		decal_cbuffer.Bind(context, GfxShaderStage::PS, 11);
 
-		decal_pass.Begin(context);
+		command_context->BeginRenderPass(decal_pass);
 		{
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			BindVertexBuffer(context, cube_vb.get());
@@ -1954,15 +1954,15 @@ namespace adria
 				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
 				object_cbuffer->Update(context, object_cbuf_data);
 
-				ID3D11ShaderResourceView* srvs[] = { g_TextureManager.GetTextureView(decal.albedo_decal_texture), 
-													 g_TextureManager.GetTextureView(decal.normal_decal_texture),
+				ID3D11ShaderResourceView* srvs[] = { g_TextureManager.GetTextureDescriptor(decal.albedo_decal_texture), 
+													 g_TextureManager.GetTextureDescriptor(decal.normal_decal_texture),
 													 depth_target->SRV() };
 				context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 				context->DrawIndexed(cube_ib->GetCount(), 0, 0);
 			}
 			context->RSSetState(nullptr);
 		}
-		decal_pass.End(context);
+		command_context->EndRenderPass();
 	}
 
 	void Renderer::PassSSAO()
@@ -1984,7 +1984,7 @@ namespace adria
 			postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 		}
 
-		ssao_pass.Begin(context);
+		command_context->BeginRenderPass(ssao_pass);
 		{
 			ID3D11ShaderResourceView* srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), ssao_random_texture->SRV() };
 			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
@@ -1994,7 +1994,7 @@ namespace adria
 			context->Draw(4, 0);
 			context->PSSetShaderResources(1, ARRAYSIZE(srv_null), srv_null);
 		}
-		ssao_pass.End(context);
+		command_context->EndRenderPass();
 		BlurTexture(ao_texture.get());
 		ID3D11ShaderResourceView* blurred_ssao = blur_texture_final->SRV();
 		context->PSSetShaderResources(7, 1, &blurred_ssao);
@@ -2016,7 +2016,7 @@ namespace adria
 			postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 		}
 
-		hbao_pass.Begin(context);
+		command_context->BeginRenderPass(hbao_pass);
 		{
 			ID3D11ShaderResourceView* srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), hbao_random_texture->SRV() };
 			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
@@ -2026,7 +2026,7 @@ namespace adria
 			context->Draw(4, 0);
 			context->PSSetShaderResources(1, ARRAYSIZE(srv_null), srv_null);
 		}
-		hbao_pass.End(context);
+		command_context->EndRenderPass();
 		BlurTexture(ao_texture.get());
 
 		ID3D11ShaderResourceView* blurred_ssao = blur_texture_final->SRV();
@@ -2042,7 +2042,7 @@ namespace adria
 		ID3D11ShaderResourceView* srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(),gbuffer[GBufferSlot_DiffuseRoughness]->SRV(), depth_target->SRV(), gbuffer[GBufferSlot_Emissive]->SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
-		ambient_pass.Begin(context);
+		command_context->BeginRenderPass(ambient_pass);
 		if (renderer_settings.ibl)
 		{
 			std::vector<ID3D11ShaderResourceView*> ibl_views{ env_srv.Get(),irmap_srv.Get(), brdf_srv.Get() };
@@ -2060,7 +2060,7 @@ namespace adria
 		else ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR)->Bind(context);
 		context->Draw(4, 0);
 
-		ambient_pass.End(context);
+		command_context->EndRenderPass();
 
 		static ID3D11ShaderResourceView* null_srv[] = { nullptr, nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
@@ -2130,7 +2130,7 @@ namespace adria
 			}
 
 			//lighting + volumetric fog
-			lighting_pass.Begin(context);
+			command_context->BeginRenderPass(lighting_pass);
 			{
 				ID3D11ShaderResourceView* shader_views[3] = { nullptr };
 				shader_views[0] = gbuffer[GBufferSlot_NormalMetallic]->SRV();
@@ -2150,7 +2150,7 @@ namespace adria
 
 				if (light_data.volumetric) PassVolumetric(light_data);
 			}
-			lighting_pass.End(context);
+			command_context->EndRenderPass();
 
 
 		}
@@ -2219,7 +2219,7 @@ namespace adria
 
 		//Volumetric lighting
 		if (renderer_settings.visualize_tiled || volumetric_lights.empty()) return;
-		lighting_pass.Begin(context);
+		command_context->BeginRenderPass(lighting_pass);
 		command_context->SetBlendState(additive_blend.get());
 		for (auto const& light : volumetric_lights)
 		{
@@ -2241,7 +2241,7 @@ namespace adria
 			PassVolumetric(light);
 		}
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-		lighting_pass.End(context);
+		command_context->EndRenderPass();
 	}
 	void Renderer::PassDeferredClusteredLighting()
 	{
@@ -2281,7 +2281,7 @@ namespace adria
 
 		command_context->SetBlendState(additive_blend.get());
 
-		lighting_pass.Begin(context);
+		command_context->BeginRenderPass(lighting_pass);
 		{
 			ID3D11ShaderResourceView* shader_views[6] = { nullptr };
 			shader_views[0] = gbuffer[GBufferSlot_NormalMetallic]->SRV();
@@ -2332,7 +2332,7 @@ namespace adria
 				PassVolumetric(light);
 			}
 		}
-		lighting_pass.End(context);
+		command_context->EndRenderPass();
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 	}
 	void Renderer::PassForward()
@@ -2342,13 +2342,13 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Forward Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Forward Pass");
 
-		forward_pass.Begin(context); 
+		command_context->BeginRenderPass(forward_pass); 
 		PassForwardCommon(false);
 		PassSky();
 		PassOcean();
 		PassAABB();
 		PassForwardCommon(true);
-		forward_pass.End(context);
+		command_context->EndRenderPass();
 	}
 	void Renderer::PassVoxelize()
 	{
@@ -2411,7 +2411,7 @@ namespace adria
 
 			material_cbuf_data.albedo_factor = material.albedo_factor;
 			material_cbuffer->Update(context, material_cbuf_data);
-			auto view = g_TextureManager.GetTextureView(material.albedo_texture);
+			auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
 
 			context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 			mesh.Draw(context);
@@ -2461,7 +2461,7 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Voxelization Debug Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Voxelization Debug Pass");
 
-		voxel_debug_pass.Begin(context);
+		command_context->BeginRenderPass(voxel_debug_pass);
 		{
 			ID3D11ShaderResourceView* voxel_srv = voxel_texture->SRV();
 			context->VSSetShaderResources(9, 1, &voxel_srv);
@@ -2475,7 +2475,7 @@ namespace adria
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			context->VSSetShaderResources(9, 1, &null_srv);
 		}
-		voxel_debug_pass.End(context);
+		command_context->EndRenderPass();
 	}
 	void Renderer::PassVoxelGI()
 	{
@@ -2485,7 +2485,7 @@ namespace adria
 		AdriaGfxScopedAnnotation(command_context, "Voxel GI Pass");
 
 		command_context->SetBlendState(additive_blend.get());
-		lighting_pass.Begin(context);
+		command_context->BeginRenderPass(lighting_pass);
 		{
 			ID3D11ShaderResourceView* shader_views[3] = { nullptr };
 			shader_views[0] = gbuffer[GBufferSlot_NormalMetallic]->SRV();
@@ -2501,7 +2501,7 @@ namespace adria
 			static ID3D11ShaderResourceView* null_srv[] = { nullptr, nullptr, nullptr };
 			context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
 		}
-		lighting_pass.End(context);
+		command_context->EndRenderPass();
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 	}
 	void Renderer::PassPostprocessing()
@@ -2514,8 +2514,8 @@ namespace adria
 		PassVelocityBuffer();
 
 		auto lights = reg.view<Light>();
-		postprocess_passes[postprocess_index].Begin(context); 
-		CopyTexture(hdr_render_target.get()); //replace this with CopyResource!
+		command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
+		CopyTexture(hdr_render_target.get());
 		command_context->SetBlendState(additive_blend.get());
 		for (entity light : lights)
 		{
@@ -2525,41 +2525,41 @@ namespace adria
 		}
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
 
-		postprocess_passes[postprocess_index].End(context); 
+		command_context->EndRenderPass();
 		postprocess_index = !postprocess_index;
 
 		if (renderer_settings.dof)
 		{
-			postprocess_passes[postprocess_index].Begin(context);
+			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
 			PassDepthOfField();
-			postprocess_passes[postprocess_index].End(context);
+			command_context->EndRenderPass();
 
 			postprocess_index = !postprocess_index;
 		}
 
 		if (renderer_settings.clouds)
 		{
-			postprocess_passes[postprocess_index].Begin(context);
+			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
 			PassVolumetricClouds();
-			postprocess_passes[postprocess_index].End(context);
+			command_context->EndRenderPass();
 
 			postprocess_index = !postprocess_index;
 		}
 
 		if (renderer_settings.fog)
 		{
-			postprocess_passes[postprocess_index].Begin(context);
+			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
 			PassFog();
-			postprocess_passes[postprocess_index].End(context);
+			command_context->EndRenderPass();
 
 			postprocess_index = !postprocess_index;
 		}
 
 		if (renderer_settings.ssr)
 		{
-			postprocess_passes[postprocess_index].Begin(context);
+			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
 			PassSSR();
-			postprocess_passes[postprocess_index].End(context);
+			command_context->EndRenderPass();
 
 			postprocess_index = !postprocess_index;
 		}
@@ -2572,9 +2572,9 @@ namespace adria
 
 		if (renderer_settings.motion_blur)
 		{
-			postprocess_passes[postprocess_index].Begin(context);
+			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
 			PassMotionBlur();
-			postprocess_passes[postprocess_index].End(context);
+			command_context->EndRenderPass();
 
 			postprocess_index = !postprocess_index;
 		}
@@ -2589,27 +2589,27 @@ namespace adria
 				if (light_data.god_rays)
 				{
 					DrawSun(light);
-					postprocess_passes[!postprocess_index].Begin(context);
+					command_context->BeginRenderPass(postprocess_passes[!postprocess_index]);
 					PassGodRays(light_data);
-					postprocess_passes[!postprocess_index].End(context);
+					command_context->EndRenderPass();
 				}
 				else
 				{
 					DrawSun(light);
-					postprocess_passes[!postprocess_index].Begin(context);
+					command_context->BeginRenderPass(postprocess_passes[!postprocess_index]);
 					command_context->SetBlendState(additive_blend.get());
 					CopyTexture(sun_target.get());
 					context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-					postprocess_passes[!postprocess_index].End(context);
+					command_context->EndRenderPass();
 				}
 			}
 		}
 
 		if (renderer_settings.anti_aliasing & EAntiAliasing_TAA)
 		{
-			postprocess_passes[postprocess_index].Begin(context);
+			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
 			PassTAA();
-			postprocess_passes[postprocess_index].End(context);
+			command_context->EndRenderPass(); 
 			postprocess_index = !postprocess_index;
 
 			auto rtv = prev_hdr_render_target->RTV();
@@ -2638,14 +2638,14 @@ namespace adria
 
 		ID3D11ShaderResourceView* null_srv[1] = { nullptr };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, null_srv);
-		shadow_map_pass.Begin(context);
+		command_context->BeginRenderPass(shadow_map_pass);
 		{
 			command_context->SetRasterizerState(shadow_depth_bias.get());
 			LightFrustumCulling(LightType::Directional);
 			PassShadowMapCommon();
 			context->RSSetState(nullptr);
 		}
-		shadow_map_pass.End(context);
+		command_context->EndRenderPass();
 		ID3D11ShaderResourceView* shadow_depth_srv[1] = { shadow_depth_map->SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, shadow_depth_srv);
 	}
@@ -2667,14 +2667,14 @@ namespace adria
 
 		ID3D11ShaderResourceView* null_srv[1] = { nullptr };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, null_srv);
-		shadow_map_pass.Begin(context);
+		command_context->BeginRenderPass(shadow_map_pass);
 		{
 			command_context->SetRasterizerState(shadow_depth_bias.get());
 			LightFrustumCulling(LightType::Spot);
 			PassShadowMapCommon();
 			context->RSSetState(nullptr);
 		}
-		shadow_map_pass.End(context);
+		command_context->EndRenderPass();
 		ID3D11ShaderResourceView* shadow_depth_srv[1] = { shadow_depth_map->SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, shadow_depth_srv);
 	}
@@ -2696,14 +2696,14 @@ namespace adria
 			ID3D11ShaderResourceView* null_srv[1] = { nullptr };
 			context->PSSetShaderResources(TEXTURE_SLOT_SHADOWCUBE, 1, null_srv);
 
-			shadow_cubemap_pass[i].Begin(context);
+			command_context->BeginRenderPass(shadow_cubemap_pass[i]);
 			{
 				command_context->SetRasterizerState(shadow_depth_bias.get());
 				LightFrustumCulling(LightType::Point);
 				PassShadowMapCommon();
 				context->RSSetState(nullptr);
 			}
-			shadow_cubemap_pass[i].End(context);
+			command_context->EndRenderPass();
 		}
 
 		ID3D11ShaderResourceView* srv[] = { shadow_depth_cubemap->SRV() };
@@ -2733,12 +2733,12 @@ namespace adria
 			shadow_cbuf_data.lightviewprojection = light_view_projections[i];
 			shadow_cbuffer->Update(context, shadow_cbuf_data);
 
-			cascade_shadow_pass[i].Begin(context);
+			command_context->BeginRenderPass(cascade_shadow_pass[i]);
 			{
 				LightFrustumCulling(LightType::Directional);
 				PassShadowMapCommon();
 			}
-			cascade_shadow_pass[i].End(context);
+			command_context->EndRenderPass();
 		}
 
 		context->RSSetState(nullptr);
@@ -2841,7 +2841,7 @@ namespace adria
 				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
 				object_cbuffer->Update(context, object_cbuf_data);
 
-				auto view = g_TextureManager.GetTextureView(material->albedo_texture);
+				auto view = g_TextureManager.GetTextureDescriptor(material->albedo_texture);
 				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 
 				mesh.Draw(context);
@@ -2911,7 +2911,7 @@ namespace adria
 			{
 				auto const& skybox = skybox_view.get(e);
 				if (!skybox.active) continue;
-				auto view = g_TextureManager.GetTextureView(skybox.cubemap_texture);
+				auto view = g_TextureManager.GetTextureDescriptor(skybox.cubemap_texture);
 				context->PSSetShaderResources(TEXTURE_SLOT_CUBEMAP, 1, &view);
 				break;
 			}
@@ -2950,7 +2950,7 @@ namespace adria
 		for (auto skybox : skyboxes)
 		{
 			auto const& _skybox = skyboxes.get(skybox);
-			skybox_srv = g_TextureManager.GetTextureView(_skybox.cubemap_texture);
+			skybox_srv = g_TextureManager.GetTextureDescriptor(_skybox.cubemap_texture);
 			if (skybox_srv) break;
 		}
 
@@ -2959,7 +2959,7 @@ namespace adria
 							context->VSSetShaderResources(0, 1, &displacement_map_srv);
 
 		ID3D11ShaderResourceView* srvs[] = { ocean_normal_map->SRV(), skybox_srv ,
-		 g_TextureManager.GetTextureView(foam_handle) };
+		 g_TextureManager.GetTextureDescriptor(foam_handle) };
 		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
 		renderer_settings.ocean_tesselation ? ShaderManager::GetShaderProgram(ShaderProgram::OceanLOD)->Bind(context)
@@ -3003,18 +3003,18 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Particles Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Particles Pass");
 
-		particle_pass.Begin(context);
+		command_context->BeginRenderPass(particle_pass);
 		command_context->SetBlendState(alpha_blend.get());
 
 		auto emitters = reg.view<Emitter>();
 		for (auto emitter : emitters)
 		{
 			Emitter const& emitter_params = emitters.get(emitter);
-			particle_renderer.Render(emitter_params, depth_target->SRV(), g_TextureManager.GetTextureView(emitter_params.particle_texture));
+			particle_renderer.Render(emitter_params, depth_target->SRV(), g_TextureManager.GetTextureDescriptor(emitter_params.particle_texture));
 		}
 
 		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-		particle_pass.End(context);
+		command_context->EndRenderPass();
 	}
 
 	void Renderer::PassAABB()
@@ -3079,7 +3079,7 @@ namespace adria
 
 			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{
-				auto view = g_TextureManager.GetTextureView(material.albedo_texture);
+				auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
 
 				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 			}
@@ -3156,9 +3156,9 @@ namespace adria
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 
-		postprocess_passes[postprocess_index].End(context);
+		command_context->EndRenderPass();
 		postprocess_index = !postprocess_index;
-		postprocess_passes[postprocess_index].Begin(context);
+		command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
 
 		BlurTexture(postprocess_textures[!postprocess_index].get());
 		command_context->SetBlendState(alpha_blend.get());
@@ -3290,16 +3290,16 @@ namespace adria
 			switch (renderer_settings.bokeh_type)
 			{
 			case BokehType::Hex:
-				bokeh = g_TextureManager.GetTextureView(hex_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureDescriptor(hex_bokeh_handle);
 				break;
 			case BokehType::Oct:
-				bokeh = g_TextureManager.GetTextureView(oct_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureDescriptor(oct_bokeh_handle);
 				break;
 			case BokehType::Circle:
-				bokeh = g_TextureManager.GetTextureView(circle_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureDescriptor(circle_bokeh_handle);
 				break;
 			case BokehType::Cross:
-				bokeh = g_TextureManager.GetTextureView(cross_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureDescriptor(cross_bokeh_handle);
 				break;
 			default:
 				ADRIA_ASSERT(false && "Invalid Bokeh Type");
@@ -3370,7 +3370,7 @@ namespace adria
 		postprocess_cbuf_data.velocity_buffer_scale = renderer_settings.velocity_buffer_scale;
 		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
 
-		velocity_buffer_pass.Begin(context);
+		command_context->BeginRenderPass(velocity_buffer_pass);
 		{
 			ID3D11ShaderResourceView* const srv_array[1] = { depth_target->SRV() };
 			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
@@ -3382,7 +3382,7 @@ namespace adria
 			context->Draw(4, 0);
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 		}
-		velocity_buffer_pass.End(context);
+		command_context->EndRenderPass();
 	}
 
 	void Renderer::PassMotionBlur()
@@ -3529,7 +3529,7 @@ namespace adria
 
 			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{
-				auto view = g_TextureManager.GetTextureView(material.albedo_texture);
+				auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
 				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
 			}
 			mesh.Draw(context);
