@@ -1,34 +1,30 @@
 #include "GfxProfiler.h"
+#include "GfxQuery.h"
+#include "GfxDevice.h"
+#include "GfxCommandContext.h"
 #include "Core/Defines.h"
 #include "Logging/Logger.h"
 
-
-
 namespace adria
 {
-	void GfxProfiler::Initialize(ID3D11Device* _device) 
+	void GfxProfiler::Initialize(GfxDevice* _gfx)
 	{
-		device = _device;
-		D3D11_QUERY_DESC query_desc{};
+		gfx = _gfx;
 		for (auto& query : queries)
 		{
 			for (auto& block : query)
 			{
-				query_desc.Query = D3D11_QUERY_TIMESTAMP_DISJOINT;
-				device->CreateQuery(&query_desc, block.disjoint_query.GetAddressOf());
-				query_desc.Query = D3D11_QUERY_TIMESTAMP;
-				device->CreateQuery(&query_desc, block.timestamp_query_start.GetAddressOf());
-				device->CreateQuery(&query_desc, block.timestamp_query_end.GetAddressOf());
+				block.disjoint_query = std::make_unique<GfxQuery>(gfx, QueryType::TimestampDisjoint);
+				block.timestamp_query_start = std::make_unique<GfxQuery>(gfx, QueryType::Timestamp);
+				block.timestamp_query_end = std::make_unique<GfxQuery>(gfx, QueryType::Timestamp);
 			}
 		}
 	}
-
 	void GfxProfiler::Destroy()
 	{
 		name_to_index_map.clear();
-		device = nullptr;
+		gfx = nullptr;
 	}
-
 	void GfxProfiler::NewFrame()
 	{
 		++current_frame;
@@ -44,7 +40,8 @@ namespace adria
 
 	}
 
-	void GfxProfiler::BeginProfileScope(ID3D11DeviceContext* context, char const* name)
+
+	void GfxProfiler::BeginProfileScope(GfxCommandContext* context, char const* name)
 	{
 		uint64 i = current_frame % FRAME_COUNT;
 		uint32 profile_index = scope_counter++;
@@ -53,12 +50,11 @@ namespace adria
 		QueryData& query_data = queries[i][profile_index];
 		ADRIA_ASSERT(!query_data.begin_called);
 		ADRIA_ASSERT(!query_data.end_called);
-		context->Begin(query_data.disjoint_query.Get());
-		context->End(query_data.timestamp_query_start.Get());
+		context->BeginQuery(query_data.disjoint_query.get());
+		context->EndQuery(query_data.timestamp_query_start.get());
 		query_data.begin_called = true;
 	}
-
-	void GfxProfiler::EndProfileScope(ID3D11DeviceContext* context, char const* name)
+	void GfxProfiler::EndProfileScope(GfxCommandContext* context, char const* name)
 	{
 		uint64 i = current_frame % FRAME_COUNT;
 		uint32 profile_index = -1;
@@ -68,13 +64,13 @@ namespace adria
 		QueryData& query_data = queries[i][profile_index];
 		ADRIA_ASSERT(query_data.begin_called);
 		ADRIA_ASSERT(!query_data.end_called);
-		context->End(query_data.timestamp_query_end.Get());
-		context->End(query_data.disjoint_query.Get());
+		context->EndQuery(query_data.timestamp_query_end.get());
+		context->EndQuery(query_data.disjoint_query.get());
 		query_data.end_called = true;
 	}
-
-	std::vector<Timestamp> GfxProfiler::GetProfilingResults(ID3D11DeviceContext* context)
+	std::vector<Timestamp> GfxProfiler::GetProfilingResults()
 	{
+		GfxCommandContext* context = gfx->GetCommandContext();
 		if (current_frame < FRAME_COUNT - 1)
 		{
 			++current_frame;
@@ -84,8 +80,8 @@ namespace adria
 		uint64 old_index = (current_frame - FRAME_COUNT + 1) % FRAME_COUNT;
 		auto& old_queries = queries[old_index];
 
-		HRESULT hr = S_OK;
-		D3D11_QUERY_DATA_TIMESTAMP_DISJOINT disjoint_ts{};
+		bool hr = true;
+		QueryDataTimestampDisjoint disjoint_ts{};
 
 		std::vector<Timestamp> results{};
 		results.reserve(name_to_index_map.size());
@@ -95,13 +91,13 @@ namespace adria
 			QueryData& query = old_queries[index];
 			if (query.begin_called && query.end_called)
 			{
-				while (context->GetData(query.disjoint_query.Get(), NULL, 0, 0) == S_FALSE)
+				while (!context->GetQueryData(query.disjoint_query.get(), nullptr, 0))
 				{
 					ADRIA_LOG(INFO, "Waiting for disjoint timestamp of %s in frame %llu", name.c_str(), current_frame);
 					std::this_thread::sleep_for(std::chrono::nanoseconds(500));
 				}
-				hr = context->GetData(query.disjoint_query.Get(), &disjoint_ts, sizeof(D3D11_QUERY_DATA_TIMESTAMP_DISJOINT), 0);
-				if (disjoint_ts.Disjoint)
+				hr = context->GetQueryData(query.disjoint_query.get(), &disjoint_ts, sizeof(QueryDataTimestampDisjoint));
+				if (disjoint_ts.disjoint)
 				{
 					ADRIA_LOG(WARNING, "Disjoint Timestamp Flag in %s!", name.c_str());
 				}
@@ -109,15 +105,15 @@ namespace adria
 				{
 					uint64 begin_ts = 0;
 					uint64 end_ts = 0;
-					hr = context->GetData(query.timestamp_query_start.Get(), &begin_ts, sizeof(uint64), 0);
-					while (context->GetData(query.timestamp_query_end.Get(), NULL, 0, 0) == S_FALSE)
+					hr = context->GetQueryData(query.timestamp_query_start.get(), &begin_ts, sizeof(uint64));
+					while (!context->GetQueryData(query.timestamp_query_end.get(), nullptr, 0))
 					{
-						ADRIA_LOG(INFO, "Waiting for frame end timestamp of %s in frame %llu", name.c_str(), current_frame);
+						ADRIA_LOG(INFO, "Waiting for disjoint timestamp of %s in frame %llu", name.c_str(), current_frame);
 						std::this_thread::sleep_for(std::chrono::nanoseconds(500));
 					}
-					hr = context->GetData(query.timestamp_query_end.Get(), &end_ts, sizeof(uint64), 0);
+					hr = context->GetQueryData(query.timestamp_query_end.get(), &end_ts, sizeof(uint64));
 
-					float time_ms = (end_ts - begin_ts) * 1000.0f / disjoint_ts.Frequency;
+					float time_ms = (end_ts - begin_ts) * 1000.0f / disjoint_ts.frequency;
 					std::string time_ms_string = std::to_string(time_ms);
 					std::string result = name + " time: " + time_ms_string + "ms";
 
@@ -129,5 +125,9 @@ namespace adria
 		}
 		return results;
 	}
+
+	GfxProfiler::GfxProfiler() {}
+
+	GfxProfiler::~GfxProfiler() {}
 
 }

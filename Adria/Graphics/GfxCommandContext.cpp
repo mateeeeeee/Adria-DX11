@@ -68,9 +68,9 @@ namespace adria
 	{
 		Flush();
 		GfxQuery query(gfx, QueryType::Event);
-		EndQuery(query);
-		uint32 result = false;
-		while (!GetQueryData(query, &result, sizeof(result)));
+		EndQuery(&query);
+		bool32 result = false;
+		while (!GetQueryData(&query, &result, sizeof(result)));
 		ADRIA_ASSERT(result == true);
 	}
 
@@ -283,7 +283,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::SetBlendStateState(GfxBlendState* bs, float blend_factors[4], uint32 mask /*= 0xffffffff*/)
+	void GfxCommandContext::SetBlendState(GfxBlendState* bs, float* blend_factors, uint32 mask /*= 0xffffffff*/)
 	{
 		if (current_blend_state != bs)
 		{
@@ -509,30 +509,29 @@ namespace adria
 		command_context->GenerateMips(srv);
 	}
 
-	void GfxCommandContext::BeginQuery(GfxQuery& query)
+	void GfxCommandContext::BeginQuery(GfxQuery* query)
 	{
-		command_context->Begin(query);
+		command_context->Begin(*query);
 	}
 
-	void GfxCommandContext::EndQuery(GfxQuery& query)
+	void GfxCommandContext::EndQuery(GfxQuery* query)
 	{
-		command_context->End(query);
+		command_context->End(*query);
 	}
 
-	bool GfxCommandContext::GetQueryData(GfxQuery& query, void* data, uint32 data_size)
+	bool GfxCommandContext::GetQueryData(GfxQuery* query, void* data, uint32 data_size)
 	{
-		HRESULT hr = command_context->GetData(query, data, data_size, 0);
-		return hr == S_OK;
+		return command_context->GetData(*query, data, data_size, 0) == S_OK;
 	}
 
 	void GfxCommandContext::BeginEvent(char const* event_name)
 	{
-		annotation->BeginEvent(ToWideString(event_name).c_str());
+		if(false) annotation->BeginEvent(ToWideString(event_name).c_str());
 	}
 
 	void GfxCommandContext::EndEvent()
 	{
-		annotation->EndEvent();
+		if (false) annotation->EndEvent();
 	}
 
 }

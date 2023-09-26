@@ -306,8 +306,8 @@ namespace adria
 	inline GfxBlendStateDesc AlphaBlendStateDesc()
 	{
 		GfxBlendStateDesc desc{};
-		desc.render_target[0].blend_enable = false;
-		desc.render_target[0].src_blend = desc.render_target[0].src_blend_alpha = GfxBlend::One;
+		desc.render_target[0].blend_enable = true;
+		desc.render_target[0].src_blend = desc.render_target[0].src_blend_alpha = GfxBlend::SrcAlpha;
 		desc.render_target[0].dest_blend = desc.render_target[0].dest_blend_alpha = GfxBlend::InvSrcAlpha;
 		desc.render_target[0].blend_op = desc.render_target[0].blend_op_alpha = GfxBlendOp::Add;
 		desc.render_target[0].render_target_write_mask = GfxColorWrite::EnableAll;
@@ -316,8 +316,8 @@ namespace adria
 	inline GfxBlendStateDesc AdditiveBlendStateDesc()
 	{
 		GfxBlendStateDesc desc{};
-		desc.render_target[0].blend_enable = false;
-		desc.render_target[0].src_blend = desc.render_target[0].src_blend_alpha = GfxBlend::SrcAlpha;
+		desc.render_target[0].blend_enable = true;
+		desc.render_target[0].src_blend = desc.render_target[0].src_blend_alpha = GfxBlend::One;
 		desc.render_target[0].dest_blend = desc.render_target[0].dest_blend_alpha = GfxBlend::One;
 		desc.render_target[0].blend_op = desc.render_target[0].blend_op_alpha = GfxBlendOp::Add;
 		desc.render_target[0].render_target_write_mask = GfxColorWrite::EnableAll;

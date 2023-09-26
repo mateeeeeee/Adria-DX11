@@ -13,7 +13,7 @@ namespace adria
 			return D3D11_QUERY_OCCLUSION;
 		case QueryType::Timestamp:
 			return D3D11_QUERY_TIMESTAMP;
-		case QueryType::TimstampDisjoint:
+		case QueryType::TimestampDisjoint:
 			return D3D11_QUERY_TIMESTAMP_DISJOINT;
 		case QueryType::PipelineStatistics:
 			return D3D11_QUERY_PIPELINE_STATISTICS;

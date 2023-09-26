@@ -1,25 +1,17 @@
 #pragma once
-#include <d3d11_3.h>
 
 namespace adria
 {
+	class GfxCommandContext;
 	class GfxScopedAnnotation
 	{
 	public:
-		GfxScopedAnnotation(ID3DUserDefinedAnnotation* annotation, wchar_t const* name)
-			: annotation(annotation)
-		{
-			if(annotation) annotation->BeginEvent(name);
-		}
+		GfxScopedAnnotation(GfxCommandContext* context, char const* name);
 
-		~GfxScopedAnnotation()
-		{
-			if (annotation) annotation->EndEvent();
-		}
+		~GfxScopedAnnotation();
 
 	private:
-		ID3DUserDefinedAnnotation* annotation;
+		GfxCommandContext* context;
 	};
-
-	#define AdriaGfxScopedAnnotation(annotation, name) GfxScopedAnnotation ADRIA_CONCAT(_annotation, __COUNTER__)(annotation, name)
+	#define AdriaGfxScopedAnnotation(ctx, name) GfxScopedAnnotation ADRIA_CONCAT(_annotation, __COUNTER__)(ctx, name)
 }

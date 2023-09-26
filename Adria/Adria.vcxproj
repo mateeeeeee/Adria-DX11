@@ -174,12 +174,12 @@
     <ClCompile Include="Editor\GUI.cpp" />
     <ClCompile Include="Events\EventQueue.cpp" />
     <ClCompile Include="Graphics\GfxCommandContext.cpp" />
-    <ClCompile Include="Graphics\GfxCommonStates.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
     <ClCompile Include="Graphics\GfxInputLayout.cpp" />
     <ClCompile Include="Graphics\GfxProfiler.cpp" />
     <ClCompile Include="Graphics\GfxQuery.cpp" />
     <ClCompile Include="Graphics\GfxRenderPass.cpp" />
+    <ClCompile Include="Graphics\GfxScopedAnnotation.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
     <ClCompile Include="Graphics\GfxStates.cpp" />
     <ClCompile Include="Input\Input.cpp" />
@@ -229,7 +229,6 @@
     <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
     <ClInclude Include="Graphics\GfxCommandContext.h" />
-    <ClInclude Include="Graphics\GfxCommonStates.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
     <ClInclude Include="Graphics\GfxDefines.h" />
     <ClInclude Include="Graphics\GfxDescriptor.h" />

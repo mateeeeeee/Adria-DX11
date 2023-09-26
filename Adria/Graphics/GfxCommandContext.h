@@ -79,7 +79,7 @@ namespace adria
 		void SetInputLayout(GfxInputLayout* il);
 		void SetDepthStencilState(GfxDepthStencilState* dss, uint32 stencil_ref);
 		void SetRasterizerState(GfxRasterizerState* rs);
-		void SetBlendStateState(GfxBlendState* bs, float blend_factors[4], uint32 mask = 0xffffffff);
+		void SetBlendState(GfxBlendState* bs, float* blend_factors = nullptr, uint32 mask = 0xffffffff);
 		void SetVertexShader(GfxVertexShader* shader);
 		void SetPixelShader(GfxPixelShader* shader);
 		void SetHullShader(GfxHullShader* shader);
@@ -98,9 +98,9 @@ namespace adria
 
 		void GenerateMips(GfxReadOnlyDescriptor srv);
 
-		void BeginQuery(GfxQuery& query);
-		void EndQuery(GfxQuery& query);
-		bool GetQueryData(GfxQuery& query, void* data, uint32 data_size);
+		void BeginQuery(GfxQuery* query);
+		void EndQuery(GfxQuery* query);
+		bool GetQueryData(GfxQuery* query, void* data, uint32 data_size);
 
 		void BeginEvent(char const* event_name);
 		void EndEvent();

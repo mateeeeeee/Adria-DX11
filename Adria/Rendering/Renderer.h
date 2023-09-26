@@ -18,6 +18,9 @@ namespace adria
 
 	class GfxDevice;
 	class GfxSampler;
+	class GfxBlendState;
+	class GfxRasterizerState;
+	class GfxDepthStencilState;
 
 	class Camera;
 	class Input;
@@ -196,15 +199,13 @@ namespace adria
 		std::unique_ptr<GfxSampler>			shadow_sampler;
 		std::unique_ptr<GfxSampler>			anisotropic_sampler;
 		//render states
-		ArcPtr<ID3D11BlendState>			additive_blend;
-		ArcPtr<ID3D11BlendState>			alpha_blend;
-		ArcPtr<ID3D11BlendState>			alpha_to_coverage;
-		ArcPtr<ID3D11DepthStencilState>		leq_depth;
-		ArcPtr<ID3D11DepthStencilState>		no_depth_test;
-		ArcPtr<ID3D11RasterizerState>		scissor_enabled;
-		ArcPtr<ID3D11RasterizerState>		cull_none;
-		ArcPtr<ID3D11RasterizerState>		shadow_depth_bias;
-		ArcPtr<ID3D11RasterizerState>		wireframe;
+		std::unique_ptr<GfxBlendState>			additive_blend;
+		std::unique_ptr<GfxBlendState>			alpha_blend;
+		std::unique_ptr<GfxDepthStencilState>	leq_depth;
+		std::unique_ptr<GfxDepthStencilState>	no_depth_test;
+		std::unique_ptr<GfxRasterizerState>		cull_none;
+		std::unique_ptr<GfxRasterizerState>		shadow_depth_bias;
+		std::unique_ptr<GfxRasterizerState>		wireframe;
 
 	private:
 

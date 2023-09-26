@@ -192,9 +192,6 @@
     <ClCompile Include="Graphics\GfxQuery.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GfxCommonStates.cpp">
-      <Filter>Graphics\Old</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
       <Filter>Graphics\Old</Filter>
     </ClCompile>
@@ -202,7 +199,10 @@
       <Filter>Graphics\Old</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GfxProfiler.cpp">
-      <Filter>Graphics\Old</Filter>
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxScopedAnnotation.cpp">
+      <Filter>Graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -468,13 +468,7 @@
     <ClInclude Include="Graphics\GfxInputLayout.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxCommonStates.h">
-      <Filter>Graphics\Old</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxShaderProgram.h">
-      <Filter>Graphics\Old</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\GfxScopedAnnotation.h">
       <Filter>Graphics\Old</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxConstantBuffer.h">
@@ -487,7 +481,10 @@
       <Filter>Graphics\Old</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxProfiler.h">
-      <Filter>Graphics\Old</Filter>
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxScopedAnnotation.h">
+      <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

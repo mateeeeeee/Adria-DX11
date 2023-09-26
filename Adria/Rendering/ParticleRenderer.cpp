@@ -1,5 +1,6 @@
 #include "Utilities/Random.h"
 #include "Graphics/GfxScopedAnnotation.h"
+#include "Graphics/GfxCommandContext.h"
 #include "ParticleRenderer.h"
 #include "ShaderManager.h"
 
@@ -157,8 +158,9 @@ namespace adria
 
 	void ParticleRenderer::Emit(Emitter const& emitter_params)
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
-		AdriaGfxScopedAnnotation(gfx->GetAnnotation(), L"Particles Emit Pass");
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
+		AdriaGfxScopedAnnotation(command_context,"Particles Emit Pass");
 
 		if (emitter_params.number_to_emit > 0)
 		{
@@ -205,8 +207,9 @@ namespace adria
 
 	void ParticleRenderer::Simulate(ID3D11ShaderResourceView* depth_srv)
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
-		AdriaGfxScopedAnnotation(gfx->GetAnnotation(), L"Particles Simulate Pass");
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
+		AdriaGfxScopedAnnotation(command_context, "Particles Simulate Pass");
 
 		ID3D11UnorderedAccessView* uavs[] = {
 			particle_bufferA.UAV(), particle_bufferB.UAV(),
@@ -232,8 +235,9 @@ namespace adria
 
 	void ParticleRenderer::Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* particle_srv)
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
-		AdriaGfxScopedAnnotation(gfx->GetAnnotation(), L"Particles Rasterize Pass");
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
+		AdriaGfxScopedAnnotation(command_context, "Particles Rasterize Pass");
 
 		active_list_count_cbuffer.Bind(context, GfxShaderStage::VS, 12);
 
@@ -257,8 +261,9 @@ namespace adria
 
 	void ParticleRenderer::Sort()
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
-		AdriaGfxScopedAnnotation(gfx->GetAnnotation(), L"Particles Sort Pass");
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
+		AdriaGfxScopedAnnotation(command_context, "Particles Sort Pass");
 
 		active_list_count_cbuffer.Bind(context, GfxShaderStage::CS, 11);
 		sort_dispatch_info_cbuffer.Bind(context, GfxShaderStage::CS, 12);
