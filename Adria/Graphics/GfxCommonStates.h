@@ -1,5 +1,5 @@
 #pragma once
-#include <d3d11.h>
+#include <d3d11_3.h>
 
 namespace adria
 {
@@ -35,4 +35,5 @@ namespace adria
         static D3D11_RASTERIZER_DESC CreateRasterizerState(D3D11_CULL_MODE cullMode, D3D11_FILL_MODE fillMode);
         static D3D11_SAMPLER_DESC CreateSamplerState(D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode);;
     };
+
 }

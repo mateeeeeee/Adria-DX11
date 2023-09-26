@@ -32,7 +32,7 @@ namespace adria
 		io.Fonts->AddFontFromFileTTF("Resources/Fonts/" FONT_ICON_FILE_NAME_FA, 15.0f, &font_config, icon_ranges);
 
 		ImGui_ImplWin32_Init(Window::Handle());
-		ImGui_ImplDX11_Init(gfx->Device(), gfx->Context());
+		ImGui_ImplDX11_Init(gfx->GetDevice(), gfx->GetContext());
 
 		ImGuiStyle& style = ImGui::GetStyle();
 		style.WindowBorderSize = 1.0f;

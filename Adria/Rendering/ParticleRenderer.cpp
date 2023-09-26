@@ -125,7 +125,7 @@ namespace adria
 
 	void ParticleRenderer::InitializeDeadList() 
 	{
-		ID3D11DeviceContext* context = gfx->Context();
+		ID3D11DeviceContext* context = gfx->GetContext();
 
 		uint32 initial_count[] = { 0 };
 		ID3D11UnorderedAccessView* dead_list_uavs[] = { dead_list_buffer.UAV() };
@@ -141,7 +141,7 @@ namespace adria
 
 	void ParticleRenderer::ResetParticles()
 	{
-		ID3D11DeviceContext* context = gfx->Context();
+		ID3D11DeviceContext* context = gfx->GetContext();
 
 		ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV() };
 		uint32 initial_counts[] = { (uint32)-1, (uint32)-1 };
@@ -157,8 +157,8 @@ namespace adria
 
 	void ParticleRenderer::Emit(Emitter const& emitter_params)
 	{
-		ID3D11DeviceContext* context = gfx->Context();
-		AdriaGfxScopedAnnotation(gfx->Annotation(), L"Particles Emit Pass");
+		ID3D11DeviceContext* context = gfx->GetContext();
+		AdriaGfxScopedAnnotation(gfx->GetAnnotation(), L"Particles Emit Pass");
 
 		if (emitter_params.number_to_emit > 0)
 		{
@@ -205,8 +205,8 @@ namespace adria
 
 	void ParticleRenderer::Simulate(ID3D11ShaderResourceView* depth_srv)
 	{
-		ID3D11DeviceContext* context = gfx->Context();
-		AdriaGfxScopedAnnotation(gfx->Annotation(), L"Particles Simulate Pass");
+		ID3D11DeviceContext* context = gfx->GetContext();
+		AdriaGfxScopedAnnotation(gfx->GetAnnotation(), L"Particles Simulate Pass");
 
 		ID3D11UnorderedAccessView* uavs[] = {
 			particle_bufferA.UAV(), particle_bufferB.UAV(),
@@ -232,8 +232,8 @@ namespace adria
 
 	void ParticleRenderer::Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* particle_srv)
 	{
-		ID3D11DeviceContext* context = gfx->Context();
-		AdriaGfxScopedAnnotation(gfx->Annotation(), L"Particles Rasterize Pass");
+		ID3D11DeviceContext* context = gfx->GetContext();
+		AdriaGfxScopedAnnotation(gfx->GetAnnotation(), L"Particles Rasterize Pass");
 
 		active_list_count_cbuffer.Bind(context, GfxShaderStage::VS, 12);
 
@@ -257,8 +257,8 @@ namespace adria
 
 	void ParticleRenderer::Sort()
 	{
-		ID3D11DeviceContext* context = gfx->Context();
-		AdriaGfxScopedAnnotation(gfx->Annotation(), L"Particles Sort Pass");
+		ID3D11DeviceContext* context = gfx->GetContext();
+		AdriaGfxScopedAnnotation(gfx->GetAnnotation(), L"Particles Sort Pass");
 
 		active_list_count_cbuffer.Bind(context, GfxShaderStage::CS, 11);
 		sort_dispatch_info_cbuffer.Bind(context, GfxShaderStage::CS, 12);
@@ -286,7 +286,7 @@ namespace adria
 
 	bool ParticleRenderer::SortInitial()
 	{
-		ID3D11DeviceContext* context = gfx->Context();
+		ID3D11DeviceContext* context = gfx->GetContext();
 		bool done = true;
 		UINT numThreadGroups = ((MAX_PARTICLES - 1) >> 9) + 1;
 		if (numThreadGroups > 1) done = false;
@@ -297,7 +297,7 @@ namespace adria
 
 	bool ParticleRenderer::SortIncremental(uint32 presorted)
 	{
-		ID3D11DeviceContext* context = gfx->Context();
+		ID3D11DeviceContext* context = gfx->GetContext();
 
 		bool done = true;
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleBitonicSortStep)->Bind(context);

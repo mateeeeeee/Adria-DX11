@@ -28,7 +28,7 @@ namespace adria
 	{
 		D3D11_QUERY_DESC query_desc{};
 		query_desc.Query = ConvertToD3D11Query(type);
-		gfx->Device()->CreateQuery(&query_desc, query.GetAddressOf());
+		gfx->GetDevice()->CreateQuery(&query_desc, query.GetAddressOf());
 	}
 
 }

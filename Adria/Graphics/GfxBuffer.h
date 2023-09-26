@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "GfxDevice.h"
 #include "GfxResourceCommon.h"
 #include "GfxDescriptor.h"
 #include "GfxFormat.h"
@@ -123,7 +124,7 @@ namespace adria
 				data.SysMemPitch = (uint32)desc.size;
 				data.SysMemSlicePitch = 0;
 			}
-			ID3D11Device* device = gfx->Device();
+			ID3D11Device* device = gfx->GetDevice();
 			HRESULT hr = device->CreateBuffer(&buffer_desc, initial_data == nullptr ? nullptr : &data, resource.ReleaseAndGetAddressOf());
 			GFX_CHECK_HR(hr);
 		}
@@ -161,7 +162,7 @@ namespace adria
 
 		[[maybe_unused]] void* Map()
 		{
-			ID3D11DeviceContext* ctx = gfx->Context();
+			ID3D11DeviceContext* ctx = gfx->GetContext();
 			if (desc.resource_usage == GfxResourceUsage::Dynamic && desc.cpu_access == GfxCpuAccess::Write)
 			{
 				D3D11_MAPPED_SUBRESOURCE mapped_buffer{};
@@ -174,7 +175,7 @@ namespace adria
 		}
 		[[maybe_unused]] void* MapForRead()
 		{
-			ID3D11DeviceContext* ctx = gfx->Context();
+			ID3D11DeviceContext* ctx = gfx->GetContext();
 			if (desc.cpu_access == GfxCpuAccess::Read)
 			{
 				D3D11_MAPPED_SUBRESOURCE mapped_buffer{};
@@ -187,12 +188,12 @@ namespace adria
 		}
 		void Unmap()
 		{
-			ID3D11DeviceContext* ctx = gfx->Context();
+			ID3D11DeviceContext* ctx = gfx->GetContext();
 			ctx->Unmap(resource.Get(), 0);
 		}
 		void Update(void const* src_data, uint64 data_size)
 		{
-			ID3D11DeviceContext* ctx = gfx->Context();
+			ID3D11DeviceContext* ctx = gfx->GetContext();
 			if (desc.resource_usage == GfxResourceUsage::Dynamic)
 			{
 				D3D11_MAPPED_SUBRESOURCE mapped_buffer{};
@@ -221,7 +222,7 @@ namespace adria
 		uint64 CreateDescriptor(GfxSubresourceType type, GfxBufferSubresourceDesc const& subresource_desc)
 		{
 			HRESULT hr = E_FAIL;
-			ID3D11Device* device = gfx->Device();
+			ID3D11Device* device = gfx->GetDevice();
 			switch (type)
 			{
 			case GfxSubresourceType_SRV:

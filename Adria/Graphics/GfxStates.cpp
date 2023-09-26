@@ -350,24 +350,24 @@ namespace adria
 	GfxRasterizerState::GfxRasterizerState(GfxDevice* gfx, GfxRasterizerStateDesc const& desc)
 	{
 		D3D11_RASTERIZER_DESC d3d11_desc = ConvertRasterizerDesc(desc);
-		GFX_CHECK_HR(gfx->Device()->CreateRasterizerState(&d3d11_desc, rasterizer_state.GetAddressOf()));
+		GFX_CHECK_HR(gfx->GetDevice()->CreateRasterizerState(&d3d11_desc, rasterizer_state.GetAddressOf()));
 	}
 
 	GfxDepthStencilState::GfxDepthStencilState(GfxDevice* gfx, GfxDepthStencilStateDesc const& desc)
 	{
 		D3D11_DEPTH_STENCIL_DESC d3d11_desc = ConvertDepthStencilDesc(desc);
-		GFX_CHECK_HR(gfx->Device()->CreateDepthStencilState(&d3d11_desc, depth_stencil_state.GetAddressOf()));
+		GFX_CHECK_HR(gfx->GetDevice()->CreateDepthStencilState(&d3d11_desc, depth_stencil_state.GetAddressOf()));
 	}
 
 	GfxBlendState::GfxBlendState(GfxDevice* gfx, GfxBlendStateDesc const& desc)
 	{
 		D3D11_BLEND_DESC d3d11_desc = ConvertBlendDesc(desc);
-		gfx->Device()->CreateBlendState(&d3d11_desc, blend_state.GetAddressOf());
+		gfx->GetDevice()->CreateBlendState(&d3d11_desc, blend_state.GetAddressOf());
 	}
 
 	GfxSampler::GfxSampler(GfxDevice* gfx, GfxSamplerDesc const& desc)
 	{
 		D3D11_SAMPLER_DESC d3d11_desc = ConvertSamplerDesc(desc);
-		GFX_CHECK_HR(gfx->Device()->CreateSamplerState(&d3d11_desc, sampler.GetAddressOf()));
+		GFX_CHECK_HR(gfx->GetDevice()->CreateSamplerState(&d3d11_desc, sampler.GetAddressOf()));
 	}
 }

@@ -33,6 +33,47 @@ namespace adria
 		}
 	}
 
+	void GfxCommandContext::Begin()
+	{
+		annotation = nullptr;
+
+		current_vs = nullptr;
+		current_ps = nullptr;
+		current_hs = nullptr;
+		current_ds = nullptr;
+		current_gs = nullptr;
+		current_cs = nullptr;
+
+		current_blend_state = nullptr;
+		current_rasterizer_state = nullptr;
+		current_depth_state = nullptr;
+		current_topology = GfxPrimitiveTopology::Undefined;
+
+		current_render_pass = nullptr;
+		current_input_layout = nullptr;
+	}
+
+	void GfxCommandContext::End()
+	{
+		//command_context->ClearState();
+		++frame_count;
+	}
+
+	void GfxCommandContext::Flush()
+	{
+		command_context->Flush();
+	}
+
+	void GfxCommandContext::WaitForGPU()
+	{
+		Flush();
+		GfxQuery query(gfx, QueryType::Event);
+		EndQuery(query);
+		uint32 result = false;
+		while (!GetQueryData(query, &result, sizeof(result)));
+		ADRIA_ASSERT(result == true);
+	}
+
 	void GfxCommandContext::Draw(uint32 vertex_count, uint32 instance_count /*= 1*/, uint32 start_vertex_location /*= 0*/, uint32 start_instance_location /*= 0*/)
 	{
 		if(instance_count == 1) command_context->Draw(vertex_count, start_vertex_location);
@@ -439,19 +480,20 @@ namespace adria
 		command_context->End(query);
 	}
 
-	void GfxCommandContext::GetQueryData(GfxQuery& query, void* data, uint32 data_size)
+	bool GfxCommandContext::GetQueryData(GfxQuery& query, void* data, uint32 data_size)
 	{
-		command_context->GetData(query, data, data_size, 0);
+		HRESULT hr = command_context->GetData(query, data, data_size, 0);
+		return hr == S_OK;
 	}
 
 	void GfxCommandContext::BeginEvent(char const* event_name)
 	{
-		annot->BeginEvent(ToWideString(event_name).c_str());
+		annotation->BeginEvent(ToWideString(event_name).c_str());
 	}
 
 	void GfxCommandContext::EndEvent()
 	{
-		annot->EndEvent();
+		annotation->EndEvent();
 	}
 
 }

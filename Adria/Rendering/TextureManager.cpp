@@ -117,8 +117,8 @@ TextureHandle TextureManager::LoadCubeMap(std::wstring const& name)
 	TextureFormat format = GetTextureFormat(name);
 	ADRIA_ASSERT(format == TextureFormat::DDS || format == TextureFormat::HDR && "Cubemap in one file has to be .dds or .hdr format");
 
-	ID3D11Device* device = gfx->Device();
-	ID3D11DeviceContext* context = gfx->Context();
+	ID3D11Device* device = gfx->GetDevice();
+	ID3D11DeviceContext* context = gfx->GetContext();
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
 		++handle;
@@ -238,8 +238,8 @@ TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cube
 	ADRIA_ASSERT(format == TextureFormat::JPG || format == TextureFormat::PNG || format == TextureFormat::TGA ||
 		format == TextureFormat::BMP || format == TextureFormat::HDR || format == TextureFormat::PIC);
 	
-	ID3D11Device* device = gfx->Device();
-	ID3D11DeviceContext* context = gfx->Context();
+	ID3D11Device* device = gfx->GetDevice();
+	ID3D11DeviceContext* context = gfx->GetContext();
 
 	++handle;
 	D3D11_TEXTURE2D_DESC desc{};
@@ -308,8 +308,8 @@ void TextureManager::SetMipMaps(bool _mipmaps)
 
 TextureHandle TextureManager::LoadDDSTexture(std::wstring const& name)
 {
-	ID3D11Device* device = gfx->Device();
-	ID3D11DeviceContext* context = gfx->Context();
+	ID3D11Device* device = gfx->GetDevice();
+	ID3D11DeviceContext* context = gfx->GetContext();
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
 		++handle;
@@ -336,8 +336,8 @@ TextureHandle TextureManager::LoadDDSTexture(std::wstring const& name)
 
 TextureHandle TextureManager::LoadWICTexture(std::wstring const& name)
 {
-	ID3D11Device* device = gfx->Device();
-	ID3D11DeviceContext* context = gfx->Context();
+	ID3D11Device* device = gfx->GetDevice();
+	ID3D11DeviceContext* context = gfx->GetContext();
 
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
@@ -366,8 +366,8 @@ TextureHandle TextureManager::LoadWICTexture(std::wstring const& name)
 
 TextureHandle TextureManager::LoadTexture_HDR_TGA_PIC(std::string const& name)
 {
-	ID3D11Device* device = gfx->Device();
-	ID3D11DeviceContext* context = gfx->Context();
+	ID3D11Device* device = gfx->GetDevice();
+	ID3D11DeviceContext* context = gfx->GetContext();
 
 	std::wstring wide_name = ToWideString(name);
 	if (auto it = loaded_textures.find(wide_name); it == loaded_textures.end())

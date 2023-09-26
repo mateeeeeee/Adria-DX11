@@ -4,14 +4,12 @@
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "D3DCompiler.lib")
 #pragma comment(lib, "dxguid.lib")
+#include <d3d11_3.h>
 
-#include <d3d11_1.h>
 
 namespace adria
 {
-	class GfxBuffer;
-	struct GfxBufferDesc;
-
+	class GfxCommandContext;
 	class GfxDevice
 	{
 	public:
@@ -27,19 +25,20 @@ namespace adria
 		void SwapBuffers(bool vsync);
 		void SetBackbuffer();
 
-		ID3D11Device* Device() const;
-		ID3D11DeviceContext* Context() const;
-		ID3DUserDefinedAnnotation* Annotation() const;
+		ID3D11Device* GetDevice() const;
+		ID3D11DeviceContext* GetContext() const;
+		ID3DUserDefinedAnnotation* GetAnnotation() const;
+
+		GfxCommandContext* GetCommandContext() const { return command_context.get(); }
 
 	private:
 		uint32 width, height;
 		ArcPtr<ID3D11Device> device = nullptr;
 		ArcPtr<IDXGISwapChain> swapchain = nullptr;
+		std::unique_ptr<GfxCommandContext> command_context;
 		ArcPtr<ID3D11Texture2D> backbuffer = nullptr;
 		ArcPtr<ID3D11RenderTargetView> backbuffer_rtv = nullptr;
-		ArcPtr<ID3D11DeviceContext> immediate_context = nullptr;
-		ArcPtr<ID3DUserDefinedAnnotation> annot = nullptr;
-		
+
 	private:
 
 		void WaitForGPU();

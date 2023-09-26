@@ -1,5 +1,4 @@
 #pragma once
-#include "GfxDevice.h"
 #include "Utilities/EnumUtil.h"
 
 namespace adria

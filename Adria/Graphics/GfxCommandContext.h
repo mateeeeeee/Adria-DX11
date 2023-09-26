@@ -27,11 +27,13 @@ namespace adria
 
 	class GfxCommandContext
 	{
+		friend class GfxDevice;
 	public:
-		explicit GfxCommandContext(GfxDevice* gfx) : gfx(gfx) 
-		{
-		
-		}
+
+		void Begin();
+		void End();
+		void Flush();
+		void WaitForGPU();
 
 		void Draw(uint32 vertex_count, uint32 instance_count = 1, uint32 start_vertex_location = 0, uint32 start_instance_location = 0);
 		void DrawIndexed(uint32 index_count, uint32 instance_count = 1, uint32 index_offset = 0, uint32 base_vertex_location = 0, uint32 start_instance_location = 0);
@@ -93,15 +95,18 @@ namespace adria
 
 		void BeginQuery(GfxQuery& query);
 		void EndQuery(GfxQuery& query);
-		void GetQueryData(GfxQuery& query, void* data, uint32 data_size);
+		bool GetQueryData(GfxQuery& query, void* data, uint32 data_size);
 
 		void BeginEvent(char const* event_name);
 		void EndEvent();
 
+		ID3D11DeviceContext4* GetNative() const { return command_context.Get(); }
+		ID3DUserDefinedAnnotation* GetAnnotation() const { return annotation.Get(); }
 	private:
 		GfxDevice* gfx = nullptr;
-		ArcPtr<ID3D11DeviceContext2> command_context = nullptr;
-		ArcPtr<ID3DUserDefinedAnnotation> annot = nullptr;
+		uint32 frame_count = 0;
+		ArcPtr<ID3D11DeviceContext4> command_context = nullptr;
+		ArcPtr<ID3DUserDefinedAnnotation> annotation = nullptr;
 
 		GfxVertexShader* current_vs = nullptr;
 		GfxPixelShader* current_ps = nullptr;
@@ -117,5 +122,13 @@ namespace adria
 
 		GfxRenderPassDesc* current_render_pass = nullptr;
 		GfxInputLayout* current_input_layout = nullptr;
+
+	private:
+		explicit GfxCommandContext(GfxDevice* gfx) : gfx(gfx) {}
+		void Create(ID3D11DeviceContext4* ctx) 
+		{
+			command_context.Attach(ctx);
+			command_context->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)annotation.GetAddressOf());
+		}
 	};
 }

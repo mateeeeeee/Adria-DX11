@@ -37,7 +37,7 @@ namespace adria
 
 		PickingData Pick(ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* normal_srv)
 		{
-			ID3D11DeviceContext* context = gfx->Context();
+			ID3D11DeviceContext* context = gfx->GetContext();
 			ID3D11ShaderResourceView* shader_views[2] = { depth_srv, normal_srv };
 			context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 			ID3D11UnorderedAccessView* lights_uav = picking_buffer->UAV();

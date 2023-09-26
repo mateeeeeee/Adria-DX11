@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include "GfxDevice.h"
 #include "GfxResourceCommon.h"
 #include "GfxDescriptor.h"
 #include "GfxFormat.h"
@@ -97,7 +98,7 @@ namespace adria
 			: gfx(gfx), desc(desc)
 		{
 			HRESULT hr = S_OK;
-			ID3D11Device* device = gfx->Device();
+			ID3D11Device* device = gfx->GetDevice();
 
 			switch (desc.type)
 			{
@@ -187,7 +188,7 @@ namespace adria
 			uint32 first_mip = view_desc.first_mip;
 			uint32 mip_count = view_desc.mip_count;
 
-			ID3D11Device* device = gfx->Device();
+			ID3D11Device* device = gfx->GetDevice();
 			DXGI_FORMAT format = ConvertGfxFormat(desc.format);
 			switch (type)
 			{

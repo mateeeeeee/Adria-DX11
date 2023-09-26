@@ -292,4 +292,140 @@ namespace adria
 	private:
 		ArcPtr<ID3D11SamplerState> sampler;
 	};
+
+	inline GfxBlendStateDesc OpaqueBlendStateDesc()
+	{
+		GfxBlendStateDesc desc{};
+		desc.render_target[0].blend_enable = false;
+		desc.render_target[0].src_blend = desc.render_target[0].src_blend_alpha = GfxBlend::One;
+		desc.render_target[0].dest_blend = desc.render_target[0].dest_blend_alpha = GfxBlend::Zero;
+		desc.render_target[0].blend_op = desc.render_target[0].blend_op_alpha = GfxBlendOp::Add;
+		desc.render_target[0].render_target_write_mask = GfxColorWrite::EnableAll;
+		return desc;
+	}
+	inline GfxBlendStateDesc AlphaBlendStateDesc()
+	{
+		GfxBlendStateDesc desc{};
+		desc.render_target[0].blend_enable = false;
+		desc.render_target[0].src_blend = desc.render_target[0].src_blend_alpha = GfxBlend::One;
+		desc.render_target[0].dest_blend = desc.render_target[0].dest_blend_alpha = GfxBlend::InvSrcAlpha;
+		desc.render_target[0].blend_op = desc.render_target[0].blend_op_alpha = GfxBlendOp::Add;
+		desc.render_target[0].render_target_write_mask = GfxColorWrite::EnableAll;
+		return desc;
+	}
+	inline GfxBlendStateDesc AdditiveBlendStateDesc()
+	{
+		GfxBlendStateDesc desc{};
+		desc.render_target[0].blend_enable = false;
+		desc.render_target[0].src_blend = desc.render_target[0].src_blend_alpha = GfxBlend::SrcAlpha;
+		desc.render_target[0].dest_blend = desc.render_target[0].dest_blend_alpha = GfxBlend::One;
+		desc.render_target[0].blend_op = desc.render_target[0].blend_op_alpha = GfxBlendOp::Add;
+		desc.render_target[0].render_target_write_mask = GfxColorWrite::EnableAll;
+		return desc;
+	}
+
+	inline GfxDepthStencilStateDesc NoneDepthDesc()
+	{
+		GfxDepthStencilStateDesc desc{};
+		desc.depth_enable = false;
+		desc.depth_write_mask = GfxDepthWriteMask::Zero;
+		desc.depth_func = GfxComparisonFunc::LessEqual;
+		desc.stencil_enable = false;
+		desc.stencil_read_mask = 0xff;
+		desc.stencil_write_mask = 0xff;
+
+		desc.front_face.stencil_func = GfxComparisonFunc::Always;
+		desc.front_face.stencil_pass_op = GfxStencilOp::Keep;
+		desc.front_face.stencil_fail_op = GfxStencilOp::Keep;
+		desc.front_face.stencil_depth_fail_op = GfxStencilOp::Keep;
+		desc.back_face = desc.front_face;
+
+		return desc;
+	}
+	inline GfxDepthStencilStateDesc DefaultDepthDesc()
+	{
+		GfxDepthStencilStateDesc desc{};
+		desc.depth_enable = true;
+		desc.depth_write_mask = GfxDepthWriteMask::All;
+		desc.depth_func = GfxComparisonFunc::LessEqual;
+		desc.stencil_enable = false;
+		desc.stencil_read_mask = 0xff;
+		desc.stencil_write_mask = 0xff;
+
+		desc.front_face.stencil_func = GfxComparisonFunc::Always;
+		desc.front_face.stencil_pass_op = GfxStencilOp::Keep;
+		desc.front_face.stencil_fail_op = GfxStencilOp::Keep;
+		desc.front_face.stencil_depth_fail_op = GfxStencilOp::Keep;
+		desc.back_face = desc.front_face;
+
+		return desc;
+	}
+	inline GfxDepthStencilStateDesc ReadDepthDesc()
+	{
+		GfxDepthStencilStateDesc desc{};
+		desc.depth_enable = true;
+		desc.depth_write_mask = GfxDepthWriteMask::Zero;
+		desc.depth_func = GfxComparisonFunc::LessEqual;
+		desc.stencil_enable = false;
+		desc.stencil_read_mask = 0xff;
+		desc.stencil_write_mask = 0xff;
+
+		desc.front_face.stencil_func = GfxComparisonFunc::Always;
+		desc.front_face.stencil_pass_op = GfxStencilOp::Keep;
+		desc.front_face.stencil_fail_op = GfxStencilOp::Keep;
+		desc.front_face.stencil_depth_fail_op = GfxStencilOp::Keep;
+		desc.back_face = desc.front_face;
+
+		return desc;
+	}
+
+	inline GfxRasterizerStateDesc CullNoneDesc()
+	{
+		GfxRasterizerStateDesc desc{};
+		desc.cull_mode = GfxCullMode::None;
+		desc.fill_mode = GfxFillMode::Solid;
+		desc.depth_clip_enable = true;
+		desc.multisample_enable = true;
+		return desc;
+	}
+	inline GfxRasterizerStateDesc CullCWDesc()
+	{
+		GfxRasterizerStateDesc desc{};
+		desc.cull_mode = GfxCullMode::Front;
+		desc.fill_mode = GfxFillMode::Solid;
+		desc.depth_clip_enable = true;
+		desc.multisample_enable = true;
+		return desc;
+	}
+	inline GfxRasterizerStateDesc CullCCWDesc()
+	{
+		GfxRasterizerStateDesc desc{};
+		desc.cull_mode = GfxCullMode::Back;
+		desc.fill_mode = GfxFillMode::Solid;
+		desc.depth_clip_enable = true;
+		desc.multisample_enable = true;
+		return desc;
+	}
+	inline GfxRasterizerStateDesc WireframeDesc()
+	{
+		GfxRasterizerStateDesc desc{};
+		desc.cull_mode = GfxCullMode::Back;
+		desc.fill_mode = GfxFillMode::Wireframe;
+		desc.depth_clip_enable = true;
+		desc.multisample_enable = true;
+		return desc;
+	}
+
+	inline GfxSamplerDesc SamplerDesc(GfxFilter filter, GfxTextureAddressMode mode)
+	{
+		GfxSamplerDesc desc{};
+		desc.filter = filter;
+		desc.addressU = mode;
+		desc.addressV = mode;
+		desc.addressW = mode;
+		desc.max_anisotropy = 16;
+		desc.max_lod = FLT_MAX;
+		desc.comparison_func = GfxComparisonFunc::Never;
+		return desc;
+	}
 }

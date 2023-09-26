@@ -44,7 +44,7 @@ namespace adria
 		D3D11_SUBRESOURCE_DATA sd;
 		ZeroMemory(&sd, sizeof(sd));
 		sd.pSysMem = (void*)&initialdata;
-		HRESULT hr = gfx->Device()->CreateBuffer(&bd, &sd, buffer.GetAddressOf());
+		HRESULT hr = gfx->GetDevice()->CreateBuffer(&bd, &sd, buffer.GetAddressOf());
 		GFX_CHECK_HR(hr);
 	}
 
@@ -58,7 +58,7 @@ namespace adria
 		bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		bd.CPUAccessFlags = dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
 
-		HRESULT hr = gfx->Device()->CreateBuffer(&bd, nullptr, buffer.GetAddressOf());
+		HRESULT hr = gfx->GetDevice()->CreateBuffer(&bd, nullptr, buffer.GetAddressOf());
 		GFX_CHECK_HR(hr);
 	}
 
