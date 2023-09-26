@@ -430,7 +430,7 @@ namespace adria
 		frame_cbuf_data.mouse_normalized_coords_x = (current_scene_viewport.mouse_position_x - current_scene_viewport.scene_viewport_pos_x) / current_scene_viewport.scene_viewport_size_x;
 		frame_cbuf_data.mouse_normalized_coords_y = (current_scene_viewport.mouse_position_y - current_scene_viewport.scene_viewport_pos_y) / current_scene_viewport.scene_viewport_size_y;
 
-		frame_cbuffer->Update(gfx->GetContext(), frame_cbuf_data);
+		frame_cbuffer->Update(gfx->GetCommandContext(), frame_cbuf_data);
 
 		//set for next frame
 		frame_cbuf_data.previous_view = camera->View();
@@ -1137,6 +1137,7 @@ namespace adria
 	{
 		auto device = gfx->GetDevice();
 		auto context = gfx->GetContext();
+		auto command_context = gfx->GetCommandContext();
 
 		auto skyboxes = reg.view<Skybox>();
 		ID3D11ShaderResourceView* unfiltered_env_srv = nullptr;
@@ -1193,7 +1194,7 @@ namespace adria
 
 			GfxConstantBuffer<RoughnessCBuffer> roughness_cb(gfx);
 			spmap_program.Bind(context);
-			roughness_cb.Bind(context, GfxShaderStage::CS, 0);
+			roughness_cb.Bind(command_context, GfxShaderStage::CS, 0);
 			context->CSSetShaderResources(0, 1, &unfiltered_env_srv);
 
 			float const delta_roughness = 1.0f / (std::max)(float(tex_desc.MipLevels - 1), 1.0f);
@@ -1219,7 +1220,7 @@ namespace adria
 
 				spmap_constants = { level * delta_roughness };
 
-				roughness_cb.Update(context, spmap_constants);
+				roughness_cb.Update(command_context, spmap_constants);
 				context->CSSetUnorderedAccessViews(0, 1, env_uav.GetAddressOf(), nullptr);
 				context->Dispatch(numGroups, numGroups, 6);
 			}
@@ -1330,25 +1331,25 @@ namespace adria
 			GfxCommandContext* command_context = gfx->GetCommandContext();
 			ID3D11DeviceContext* context = command_context->GetNative();
 			
-			frame_cbuffer->Bind(context,  GfxShaderStage::VS, CBUFFER_SLOT_FRAME);
-			object_cbuffer->Bind(context, GfxShaderStage::VS, CBUFFER_SLOT_OBJECT);
-			shadow_cbuffer->Bind(context, GfxShaderStage::VS, CBUFFER_SLOT_SHADOW);
-			weather_cbuffer->Bind(context, GfxShaderStage::VS, CBUFFER_SLOT_WEATHER);
-			voxel_cbuffer->Bind(context,  GfxShaderStage::VS, CBUFFER_SLOT_VOXEL);
+			frame_cbuffer->Bind(command_context,  GfxShaderStage::VS, CBUFFER_SLOT_FRAME);
+			object_cbuffer->Bind(command_context, GfxShaderStage::VS, CBUFFER_SLOT_OBJECT);
+			shadow_cbuffer->Bind(command_context, GfxShaderStage::VS, CBUFFER_SLOT_SHADOW);
+			weather_cbuffer->Bind(command_context, GfxShaderStage::VS, CBUFFER_SLOT_WEATHER);
+			voxel_cbuffer->Bind(command_context,  GfxShaderStage::VS, CBUFFER_SLOT_VOXEL);
 
 			command_context->SetSampler(GfxShaderStage::VS, 0, linear_wrap_sampler.get());
 			
 			//TS/HS GLOBALS
-			frame_cbuffer->Bind(context, GfxShaderStage::DS, CBUFFER_SLOT_FRAME);
-			frame_cbuffer->Bind(context, GfxShaderStage::HS, CBUFFER_SLOT_FRAME);
+			frame_cbuffer->Bind(command_context, GfxShaderStage::DS, CBUFFER_SLOT_FRAME);
+			frame_cbuffer->Bind(command_context, GfxShaderStage::HS, CBUFFER_SLOT_FRAME);
 
 			command_context->SetSampler(GfxShaderStage::DS, 0, linear_wrap_sampler.get());
 			command_context->SetSampler(GfxShaderStage::HS, 0, linear_wrap_sampler.get());
 
 			//CS GLOBALS
-			frame_cbuffer->Bind(context, GfxShaderStage::CS, CBUFFER_SLOT_FRAME);
-			compute_cbuffer->Bind(context, GfxShaderStage::CS, CBUFFER_SLOT_COMPUTE);
-			voxel_cbuffer->Bind(context, GfxShaderStage::CS, CBUFFER_SLOT_VOXEL);
+			frame_cbuffer->Bind(command_context, GfxShaderStage::CS, CBUFFER_SLOT_FRAME);
+			compute_cbuffer->Bind(command_context, GfxShaderStage::CS, CBUFFER_SLOT_COMPUTE);
+			voxel_cbuffer->Bind(command_context, GfxShaderStage::CS, CBUFFER_SLOT_VOXEL);
 
 			command_context->SetSampler(GfxShaderStage::CS, 0, linear_wrap_sampler.get());
 			command_context->SetSampler(GfxShaderStage::CS, 1, point_wrap_sampler.get());
@@ -1356,22 +1357,22 @@ namespace adria
 			command_context->SetSampler(GfxShaderStage::CS, 3, linear_clamp_sampler.get());
 
 			//GS GLOBALS
-			frame_cbuffer->Bind(context, GfxShaderStage::GS, CBUFFER_SLOT_FRAME);
-			light_cbuffer->Bind(context, GfxShaderStage::GS, CBUFFER_SLOT_LIGHT);
-			voxel_cbuffer->Bind(context, GfxShaderStage::GS, CBUFFER_SLOT_VOXEL);
+			frame_cbuffer->Bind(command_context, GfxShaderStage::GS, CBUFFER_SLOT_FRAME);
+			light_cbuffer->Bind(command_context, GfxShaderStage::GS, CBUFFER_SLOT_LIGHT);
+			voxel_cbuffer->Bind(command_context, GfxShaderStage::GS, CBUFFER_SLOT_VOXEL);
 
 			command_context->SetSampler(GfxShaderStage::GS, 1, point_wrap_sampler.get());
 			command_context->SetSampler(GfxShaderStage::GS, 4, point_clamp_sampler.get());
 
 			//PS GLOBALS
-			material_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_MATERIAL);
-			frame_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_FRAME);
-			light_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_LIGHT);
-			shadow_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_SHADOW);
-			postprocess_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_POSTPROCESS);
-			weather_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_WEATHER);
-			voxel_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_VOXEL);
-			terrain_cbuffer->Bind(context, GfxShaderStage::PS, CBUFFER_SLOT_TERRAIN);
+			material_cbuffer->Bind(command_context, GfxShaderStage::PS, CBUFFER_SLOT_MATERIAL);
+			frame_cbuffer->Bind(command_context, GfxShaderStage::PS, CBUFFER_SLOT_FRAME);
+			light_cbuffer->Bind(command_context, GfxShaderStage::PS, CBUFFER_SLOT_LIGHT);
+			shadow_cbuffer->Bind(command_context, GfxShaderStage::PS, CBUFFER_SLOT_SHADOW);
+			postprocess_cbuffer->Bind(command_context, GfxShaderStage::PS, CBUFFER_SLOT_POSTPROCESS);
+			weather_cbuffer->Bind(command_context, GfxShaderStage::PS, CBUFFER_SLOT_WEATHER);
+			voxel_cbuffer->Bind(command_context, GfxShaderStage::PS, CBUFFER_SLOT_VOXEL);
+			terrain_cbuffer->Bind(command_context, GfxShaderStage::PS, CBUFFER_SLOT_TERRAIN);
 
 			command_context->SetSampler(GfxShaderStage::PS, 0, linear_wrap_sampler.get());
 			command_context->SetSampler(GfxShaderStage::PS, 1, point_wrap_sampler.get());
@@ -1421,7 +1422,7 @@ namespace adria
 		compute_cbuf_data.delta_time = dt;
 
 		ID3D11DeviceContext* context = gfx->GetContext();
-		compute_cbuffer->Update(context, compute_cbuf_data);
+		compute_cbuffer->Update(gfx->GetCommandContext(), compute_cbuf_data);
 	}
 	void Renderer::UpdateOcean(float dt)
 	{
@@ -1509,7 +1510,7 @@ namespace adria
 			static FFTCBuffer fft_cbuf_data{ .seq_count = RESOLUTION };
 			static GfxConstantBuffer<FFTCBuffer> fft_cbuffer(gfx);
 
-			fft_cbuffer.Bind(context, GfxShaderStage::CS, 10);
+			fft_cbuffer.Bind(command_context, GfxShaderStage::CS, 10);
 			//fft horizontal
 			{
 				ShaderManager::GetShaderProgram(ShaderProgram::OceanFFT_Horizontal)->Bind(context);
@@ -1523,7 +1524,7 @@ namespace adria
 					static ID3D11UnorderedAccessView* null_uav = nullptr;
 
 					fft_cbuf_data.subseq_count = p;
-					fft_cbuffer.Update(context, fft_cbuf_data);
+					fft_cbuffer.Update(command_context, fft_cbuf_data);
 
 					context->CSSetShaderResources(0, 1, srv);
 					context->CSSetUnorderedAccessViews(0, 1, uav, nullptr);
@@ -1547,7 +1548,7 @@ namespace adria
 					static ID3D11UnorderedAccessView* null_uav = nullptr;
 
 					fft_cbuf_data.subseq_count = p;
-					fft_cbuffer.Update(context, fft_cbuf_data);
+					fft_cbuffer.Update(command_context, fft_cbuf_data);
 
 					context->CSSetShaderResources(0, 1, srv);
 					context->CSSetUnorderedAccessViews(0, 1, uav, nullptr);
@@ -1627,7 +1628,7 @@ namespace adria
 		weather_cbuf_data.I = sky_params[(size_t)ESkyParam_I];
 		weather_cbuf_data.Z = sky_params[(size_t)ESkyParam_Z];
 
-		weather_cbuffer->Update(context, weather_cbuf_data);
+		weather_cbuffer->Update(gfx->GetCommandContext(), weather_cbuf_data);
 	}
 	void Renderer::UpdateParticles(float dt)
 	{
@@ -1680,7 +1681,7 @@ namespace adria
 		ID3D11DeviceContext* context = gfx->GetContext();
 		terrain_cbuf_data.texture_scale = TerrainComponent::texture_scale;
 		terrain_cbuf_data.ocean_active = reg.size<Ocean>() != 0;
-		terrain_cbuffer->Update(context, terrain_cbuf_data);
+		terrain_cbuffer->Update(gfx->GetCommandContext(), terrain_cbuf_data);
 	}
 	void Renderer::UpdateVoxelData()
 	{
@@ -1708,7 +1709,7 @@ namespace adria
 		voxel_cbuf_data.max_distance = renderer_settings.voxel_max_distance;
 		voxel_cbuf_data.grid_center = center;
 
-		voxel_cbuffer->Update(gfx->GetContext(), voxel_cbuf_data);
+		voxel_cbuffer->Update(gfx->GetCommandContext(), voxel_cbuf_data);
 	}
 	void Renderer::CameraFrustumCulling()
 	{
@@ -1802,14 +1803,14 @@ namespace adria
 					
 					object_cbuf_data.model = transform.current_transform * parent_transform;
 					object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
-					object_cbuffer->Update(context, object_cbuf_data);
+					object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 					material_cbuf_data.albedo_factor = material.albedo_factor;
 					material_cbuf_data.metallic_factor = material.metallic_factor;
 					material_cbuf_data.roughness_factor = material.roughness_factor;
 					material_cbuf_data.emissive_factor = material.emissive_factor;
 					material_cbuf_data.alpha_cutoff = material.alpha_cutoff;
-					material_cbuffer->Update(context, material_cbuf_data);
+					material_cbuffer->Update(gfx->GetCommandContext(), material_cbuf_data);
 
 					static ID3D11ShaderResourceView* const null_view = nullptr;
 
@@ -1864,7 +1865,7 @@ namespace adria
 
 				object_cbuf_data.model = transform.current_transform;
 				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
-				object_cbuffer->Update(context, object_cbuf_data);
+				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 				if (terrain.grass_texture != INVALID_TEXTURE_HANDLE)
 				{
@@ -1904,7 +1905,7 @@ namespace adria
 
 				object_cbuf_data.model = transform.current_transform;
 				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
-				object_cbuffer->Update(context, object_cbuf_data);
+				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 				{
@@ -1932,7 +1933,7 @@ namespace adria
 
 		static GfxConstantBuffer<DecalCBuffer> decal_cbuffer(gfx);
 		static DecalCBuffer decal_cbuf_data{};
-		decal_cbuffer.Bind(context, GfxShaderStage::PS, 11);
+		decal_cbuffer.Bind(command_context, GfxShaderStage::PS, 11);
 
 		command_context->BeginRenderPass(decal_pass);
 		{
@@ -1948,11 +1949,11 @@ namespace adria
 				decal.modify_gbuffer_normals ? ShaderManager::GetShaderProgram(ShaderProgram::Decals_ModifyNormals)->Bind(context) : ShaderManager::GetShaderProgram(ShaderProgram::Decals)->Bind(context); //refactor this 
 
 				decal_cbuf_data.decal_type = static_cast<int32>(decal.decal_type);
-				decal_cbuffer.Update(context, decal_cbuf_data);
+				decal_cbuffer.Update(command_context, decal_cbuf_data);
 
 				object_cbuf_data.model = decal.decal_model_matrix;
 				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
-				object_cbuffer->Update(context, object_cbuf_data);
+				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 				ID3D11ShaderResourceView* srvs[] = { g_TextureManager.GetTextureDescriptor(decal.albedo_decal_texture), 
 													 g_TextureManager.GetTextureDescriptor(decal.normal_decal_texture),
@@ -1981,7 +1982,7 @@ namespace adria
 			postprocess_cbuf_data.noise_scale = Vector2((float)width / 8, (float)height / 8);
 			postprocess_cbuf_data.ssao_power = renderer_settings.ssao_power;
 			postprocess_cbuf_data.ssao_radius = renderer_settings.ssao_radius;
-			postprocess_cbuffer->Update(context, postprocess_cbuf_data);
+			postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 		}
 
 		command_context->BeginRenderPass(ssao_pass);
@@ -2013,7 +2014,7 @@ namespace adria
 			postprocess_cbuf_data.hbao_r2 = renderer_settings.hbao_radius * renderer_settings.hbao_radius;
 			postprocess_cbuf_data.hbao_radius_to_screen = renderer_settings.hbao_radius * 0.5f * float(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
 			postprocess_cbuf_data.hbao_power = renderer_settings.hbao_power;
-			postprocess_cbuffer->Update(context, postprocess_cbuf_data);
+			postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 		}
 
 		command_context->BeginRenderPass(hbao_pass);
@@ -2103,7 +2104,7 @@ namespace adria
 				Matrix camera_view = camera->View();
 				light_cbuf_data.position = Vector4::Transform(light_cbuf_data.position, camera_view);
 				light_cbuf_data.direction = Vector4::Transform(light_cbuf_data.direction, camera_view);
-				light_cbuffer->Update(context, light_cbuf_data);
+				light_cbuffer->Update(gfx->GetCommandContext(), light_cbuf_data);
 			}
 
 			//shadow mapping
@@ -2236,7 +2237,7 @@ namespace adria
 			Matrix camera_view = camera->View();
 			light_cbuf_data.position = Vector4::Transform(light_cbuf_data.position, camera_view);
 			light_cbuf_data.direction = Vector4::Transform(light_cbuf_data.direction, camera_view);
-			light_cbuffer->Update(context, light_cbuf_data);
+			light_cbuffer->Update(gfx->GetCommandContext(), light_cbuf_data);
 
 			PassVolumetric(light);
 		}
@@ -2327,7 +2328,7 @@ namespace adria
 				Matrix camera_view = camera->View();
 				light_cbuf_data.position = XMVector4Transform(light_cbuf_data.position, camera_view);
 				light_cbuf_data.direction = XMVector4Transform(light_cbuf_data.direction, camera_view);
-				light_cbuffer->Update(context, light_cbuf_data);
+				light_cbuffer->Update(gfx->GetCommandContext(), light_cbuf_data);
 
 				PassVolumetric(light);
 			}
@@ -2407,10 +2408,10 @@ namespace adria
 
 			object_cbuf_data.model = transform.current_transform;
 			object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
-			object_cbuffer->Update(context, object_cbuf_data);
+			object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 			material_cbuf_data.albedo_factor = material.albedo_factor;
-			material_cbuffer->Update(context, material_cbuf_data);
+			material_cbuffer->Update(gfx->GetCommandContext(), material_cbuf_data);
 			auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
 
 			context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
@@ -2634,7 +2635,7 @@ namespace adria
 		shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
 		shadow_cbuf_data.shadow_matrices[0] = camera->View().Invert() * shadow_cbuf_data.lightviewprojection;
-		shadow_cbuffer->Update(context, shadow_cbuf_data);
+		shadow_cbuffer->Update(gfx->GetCommandContext(), shadow_cbuf_data);
 
 		ID3D11ShaderResourceView* null_srv[1] = { nullptr };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, null_srv);
@@ -2663,7 +2664,7 @@ namespace adria
 		shadow_cbuf_data.shadow_map_size = SHADOW_MAP_SIZE;
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
 		shadow_cbuf_data.shadow_matrices[0] = camera->View().Invert() * shadow_cbuf_data.lightviewprojection;
-		shadow_cbuffer->Update(context, shadow_cbuf_data);
+		shadow_cbuffer->Update(gfx->GetCommandContext(), shadow_cbuf_data);
 
 		ID3D11ShaderResourceView* null_srv[1] = { nullptr };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, null_srv);
@@ -2691,7 +2692,7 @@ namespace adria
 			auto const& [V, P] = LightViewProjection_Point(light, i, light_bounding_frustum);
 			shadow_cbuf_data.lightviewprojection = V * P;
 			shadow_cbuf_data.lightview = V;
-			shadow_cbuffer->Update(context, shadow_cbuf_data);
+			shadow_cbuffer->Update(gfx->GetCommandContext(), shadow_cbuf_data);
 
 			ID3D11ShaderResourceView* null_srv[1] = { nullptr };
 			context->PSSetShaderResources(TEXTURE_SLOT_SHADOWCUBE, 1, null_srv);
@@ -2731,7 +2732,7 @@ namespace adria
 			light_view_projections[i] = V * P;
 			shadow_cbuf_data.lightview = V;
 			shadow_cbuf_data.lightviewprojection = light_view_projections[i];
-			shadow_cbuffer->Update(context, shadow_cbuf_data);
+			shadow_cbuffer->Update(gfx->GetCommandContext(), shadow_cbuf_data);
 
 			command_context->BeginRenderPass(cascade_shadow_pass[i]);
 			{
@@ -2756,7 +2757,7 @@ namespace adria
 		shadow_cbuf_data.split3 = split_distances[3];
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
 		shadow_cbuf_data.visualize = static_cast<int>(false);
-		shadow_cbuffer->Update(context, shadow_cbuf_data);
+		shadow_cbuffer->Update(gfx->GetCommandContext(), shadow_cbuf_data);
 	}
 	void Renderer::PassShadowMapCommon()
 	{
@@ -2781,7 +2782,7 @@ namespace adria
 
 					object_cbuf_data.model = transform.current_transform * parent_transform;
 					object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
-					object_cbuffer->Update(context, object_cbuf_data);
+					object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 					mesh.Draw(context);
 				}
 			}
@@ -2818,7 +2819,7 @@ namespace adria
 
 				object_cbuf_data.model = transform.current_transform * parent_transform;
 				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
-				object_cbuffer->Update(context, object_cbuf_data);
+				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 				mesh.Draw(context);
 			}
 
@@ -2839,7 +2840,7 @@ namespace adria
 
 				object_cbuf_data.model = transform.current_transform * parent_transform;
 				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
-				object_cbuffer->Update(context, object_cbuf_data);
+				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 				auto view = g_TextureManager.GetTextureDescriptor(material->albedo_texture);
 				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
@@ -2897,7 +2898,7 @@ namespace adria
 
 		object_cbuf_data.model = Matrix::CreateTranslation(camera->Position());
 		object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
-		object_cbuffer->Update(context, object_cbuf_data);
+		object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 		command_context->SetRasterizerState(cull_none.get());
 		command_context->SetDepthStencilState(leq_depth.get(), 0);
@@ -2974,10 +2975,10 @@ namespace adria
 			{
 				object_cbuf_data.model = transform.current_transform;
 				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
-				object_cbuffer->Update(context, object_cbuf_data);
+				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 				
 				material_cbuf_data.diffuse = material.diffuse;
-				material_cbuffer->Update(context, material_cbuf_data);
+				material_cbuffer->Update(gfx->GetCommandContext(), material_cbuf_data);
 
 				renderer_settings.ocean_tesselation ? mesh.Draw(context, D3D11_PRIMITIVE_TOPOLOGY_3_CONTROL_POINT_PATCHLIST) : mesh.Draw(context);
 			}
@@ -3029,10 +3030,10 @@ namespace adria
 			{
 				object_cbuf_data.model = Matrix::Identity;
 				object_cbuf_data.transposed_inverse_model = Matrix::Identity;
-				object_cbuffer->Update(context, object_cbuf_data);
+				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 				material_cbuf_data.diffuse = Vector3(1, 0, 0);
-				material_cbuffer->Update(context, material_cbuf_data);
+				material_cbuffer->Update(gfx->GetCommandContext(), material_cbuf_data);
 
 				command_context->SetRasterizerState(wireframe.get());
 				command_context->SetDepthStencilState(no_depth_test.get(), 0);
@@ -3070,12 +3071,12 @@ namespace adria
 
 			object_cbuf_data.model = transform.current_transform;
 			object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
-			object_cbuffer->Update(context, object_cbuf_data);
+			object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 				
 			material_cbuf_data.diffuse = material.diffuse;
 			material_cbuf_data.albedo_factor = material.albedo_factor;
 
-			material_cbuffer->Update(context, material_cbuf_data);
+			material_cbuffer->Update(gfx->GetCommandContext(), material_cbuf_data);
 
 			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{
@@ -3116,7 +3117,7 @@ namespace adria
 			light_ss.w = 1.0f;
 		}
 		light_cbuf_data.screenspace_position = light_ss;
-		light_cbuffer->Update(context, light_cbuf_data);
+		light_cbuffer->Update(gfx->GetCommandContext(), light_cbuf_data);
 
 		{
 			ID3D11ShaderResourceView* depth_srv_array[1] = { depth_target->SRV() };
@@ -3176,7 +3177,7 @@ namespace adria
 
 		postprocess_cbuf_data.ssr_ray_hit_threshold = renderer_settings.ssr_ray_hit_threshold;
 		postprocess_cbuf_data.ssr_ray_step = renderer_settings.ssr_ray_step;
-		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
+		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
 		ID3D11ShaderResourceView* srv_array[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
@@ -3226,7 +3227,7 @@ namespace adria
 			float f_max_dist = std::max(abs(light_cbuf_data.screenspace_position.x), abs(light_cbuf_data.screenspace_position.y));
 			if (f_max_dist >= 1.0f) light_cbuf_data.color = Vector4::Transform(light_cbuf_data.color, Matrix::CreateScale((max_light_dist - f_max_dist), (max_light_dist - f_max_dist), (max_light_dist - f_max_dist)));
 
-			light_cbuffer->Update(context, light_cbuf_data);
+			light_cbuffer->Update(gfx->GetCommandContext(), light_cbuf_data);
 		}
 
 		command_context->SetBlendState(additive_blend.get());
@@ -3274,7 +3275,7 @@ namespace adria
 		static ID3D11ShaderResourceView* const srv_null[3] = { nullptr, nullptr, nullptr };
 
 		postprocess_cbuf_data.dof_params = XMVectorSet(renderer_settings.dof_near_blur, renderer_settings.dof_near, renderer_settings.dof_far, renderer_settings.dof_far_blur);
-		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
+		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
@@ -3368,7 +3369,7 @@ namespace adria
 		AdriaGfxScopedAnnotation(command_context, "Velocity Buffer Pass");
 
 		postprocess_cbuf_data.velocity_buffer_scale = renderer_settings.velocity_buffer_scale;
-		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
+		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
 		command_context->BeginRenderPass(velocity_buffer_pass);
 		{
@@ -3417,7 +3418,7 @@ namespace adria
 		postprocess_cbuf_data.fog_type = static_cast<int32>(renderer_settings.fog_type);
 		postprocess_cbuf_data.fog_start = renderer_settings.fog_start;
 		postprocess_cbuf_data.fog_color = XMVectorSet(renderer_settings.fog_color[0], renderer_settings.fog_color[1], renderer_settings.fog_color[2], 1);
-		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
+		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
 		ID3D11ShaderResourceView* srv_array[] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 
@@ -3439,7 +3440,7 @@ namespace adria
 		AdriaGfxScopedAnnotation(command_context, "Tone Map Pass");
 		
 		postprocess_cbuf_data.tone_map_exposure = renderer_settings.tone_map_exposure;
-		postprocess_cbuffer->Update(context, postprocess_cbuf_data);
+		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
 		ID3D11ShaderResourceView* const srv_array[1] = { postprocess_textures[!postprocess_index]->SRV() };
 		static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
@@ -3522,10 +3523,10 @@ namespace adria
 
 			object_cbuf_data.model = transform.current_transform;
 			object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
-			object_cbuffer->Update(context, object_cbuf_data);
+			object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 			material_cbuf_data.diffuse = material.diffuse;
 			material_cbuf_data.albedo_factor = material.albedo_factor;
-			material_cbuffer->Update(context, material_cbuf_data);
+			material_cbuffer->Update(gfx->GetCommandContext(), material_cbuf_data);
 
 			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{

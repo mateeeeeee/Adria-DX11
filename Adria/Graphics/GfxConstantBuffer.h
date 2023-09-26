@@ -1,5 +1,7 @@
 #pragma once
+#include "GfxBuffer.h"
 #include "GfxDevice.h"
+#include "GfxCommandContext.h"
 
 namespace adria
 {
@@ -16,17 +18,17 @@ namespace adria
 		GfxConstantBuffer(GfxDevice* gfx, bool dynamic = true);
 		GfxConstantBuffer(GfxDevice* gfx, CBuffer const& initialdata, bool dynamic = true);
 
-		void Update(ID3D11DeviceContext* context, void const* data, uint32 data_size);
-		void Update(ID3D11DeviceContext* context, CBuffer const& buffer_data);
+		void Update(GfxCommandContext* context, void const* data, uint32 data_size);
+		void Update(GfxCommandContext* context, CBuffer const& buffer_data);
 
-		void Bind(ID3D11DeviceContext* context, GfxShaderStage stage, uint32 slot) const;
+		void Bind(GfxCommandContext* context, GfxShaderStage stage, uint32 slot) const;
 		ID3D11Buffer* const Buffer() const 
 		{
-			return buffer.Get();
+			return buffer->GetNative();
 		}
 
 	private:
-		ArcPtr<ID3D11Buffer> buffer = nullptr;
+		std::unique_ptr<GfxBuffer> buffer = nullptr;
 		bool dynamic;
 	};
 
@@ -34,84 +36,44 @@ namespace adria
 	template<typename CBuffer>
 	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(GfxDevice* gfx, CBuffer const& initialdata, bool dynamic /*= true*/) : dynamic{ dynamic }
 	{
-		D3D11_BUFFER_DESC bd;
-		ZeroMemory(&bd, sizeof(bd));
-		bd.Usage = dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
-		bd.ByteWidth = GetCBufferSize(sizeof(CBuffer));
-		bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		bd.CPUAccessFlags = dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
+		GfxBufferDesc desc{};
+		desc.resource_usage = dynamic ? GfxResourceUsage::Dynamic : GfxResourceUsage::Default;
+		desc.size = GetCBufferSize(sizeof(CBuffer));
+		desc.bind_flags = GfxBindFlag::ConstantBuffer;
+		desc.cpu_access = dynamic ? GfxCpuAccess::Write : GfxCpuAccess::None;
 
-		D3D11_SUBRESOURCE_DATA sd;
-		ZeroMemory(&sd, sizeof(sd));
-		sd.pSysMem = (void*)&initialdata;
-		HRESULT hr = gfx->GetDevice()->CreateBuffer(&bd, &sd, buffer.GetAddressOf());
-		GFX_CHECK_HR(hr);
+		GfxBufferInitialData data = initialdata;
+		buffer = std::make_unique<GfxBuffer>(gfx, desc, data);
 	}
 
 	template<typename CBuffer>
 	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(GfxDevice* gfx, bool dynamic /*= true*/) : dynamic{ dynamic }
 	{
-		D3D11_BUFFER_DESC bd;
-		ZeroMemory(&bd, sizeof(bd));
-		bd.Usage = dynamic ? D3D11_USAGE_DYNAMIC : D3D11_USAGE_DEFAULT;
-		bd.ByteWidth = GetCBufferSize(sizeof(CBuffer));
-		bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-		bd.CPUAccessFlags = dynamic ? D3D11_CPU_ACCESS_WRITE : 0;
+		GfxBufferDesc desc{};
+		desc.resource_usage = dynamic ? GfxResourceUsage::Dynamic : GfxResourceUsage::Default;
+		desc.size = GetCBufferSize(sizeof(CBuffer));
+		desc.bind_flags = GfxBindFlag::ConstantBuffer;
+		desc.cpu_access = dynamic ? GfxCpuAccess::Write : GfxCpuAccess::None;
 
-		HRESULT hr = gfx->GetDevice()->CreateBuffer(&bd, nullptr, buffer.GetAddressOf());
-		GFX_CHECK_HR(hr);
+		buffer = std::make_unique<GfxBuffer>(gfx, desc);
 	}
 
 	template<typename CBuffer>
-	void GfxConstantBuffer<CBuffer>::Update(ID3D11DeviceContext* context, void const* data, uint32 data_size)
+	void GfxConstantBuffer<CBuffer>::Update(GfxCommandContext* context, void const* data, uint32 data_size)
 	{
-		D3D11_BUFFER_DESC desc{};
-		buffer->GetDesc(&desc);
-
-		if (desc.Usage == D3D11_USAGE_DYNAMIC)
-		{
-			D3D11_MAPPED_SUBRESOURCE mapped_buffer = {};
-			ZeroMemory(&mapped_buffer, sizeof(D3D11_MAPPED_SUBRESOURCE));
-			HRESULT hr = context->Map(buffer.Get(), 0u, D3D11_MAP_WRITE_DISCARD, 0u, &mapped_buffer);
-			GFX_CHECK_HR(hr);
-			memcpy(mapped_buffer.pData, data, data_size);
-			context->Unmap(buffer.Get(), 0);
-		}
-		else context->UpdateSubresource(buffer.Get(), 0, nullptr, &data, data_size, 0);
+		context->UpdateBuffer(buffer.get(), data, data_size);
 	}
 
 	template<typename CBuffer>
-	void GfxConstantBuffer<CBuffer>::Update(ID3D11DeviceContext* context, CBuffer const& buffer_data)
+	void GfxConstantBuffer<CBuffer>::Update(GfxCommandContext* context, CBuffer const& buffer_data)
 	{
 		Update(context, &buffer_data, sizeof(CBuffer));
 	}
 
 	template<typename CBuffer>
-	void GfxConstantBuffer<CBuffer>::Bind(ID3D11DeviceContext* context, GfxShaderStage stage, uint32 slot) const
+	void GfxConstantBuffer<CBuffer>::Bind(GfxCommandContext* context, GfxShaderStage stage, uint32 slot) const
 	{
-		switch (stage)
-		{
-		case GfxShaderStage::VS:
-			context->VSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
-			break;
-		case GfxShaderStage::PS:
-			context->PSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
-			break;
-		case GfxShaderStage::HS:
-			context->HSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
-			break;
-		case GfxShaderStage::DS:
-			context->DSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
-			break;
-		case GfxShaderStage::GS:
-			context->GSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
-			break;
-		case GfxShaderStage::CS:
-			context->CSSetConstantBuffers(slot, 1, buffer.GetAddressOf());
-			break;
-		default:
-			break;
-		}
+		context->SetConstantBuffer(stage, slot, buffer.get());
 	}
 
 }

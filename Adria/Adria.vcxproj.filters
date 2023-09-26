@@ -468,9 +468,6 @@
     <ClInclude Include="Graphics\GfxShaderProgram.h">
       <Filter>Graphics\Old</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxConstantBuffer.h">
-      <Filter>Graphics\Old</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxShaderCompiler.h">
       <Filter>Graphics\Old</Filter>
     </ClInclude>
@@ -481,6 +478,9 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxRenderPass.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxConstantBuffer.h">
       <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>

@@ -186,10 +186,10 @@ namespace adria
 			emitter_cbuffer_data.VelocityVariance = emitter_params.velocity_variance;
 			emitter_cbuffer_data.Collisions = emitter_params.collisions_enabled;
 			emitter_cbuffer_data.CollisionThickness = emitter_params.collision_thickness;
-			emitter_cbuffer.Update(context, emitter_cbuffer_data);
+			emitter_cbuffer.Update(command_context, emitter_cbuffer_data);
 
-			dead_list_count_cbuffer.Bind(context, GfxShaderStage::CS, 11);
-			emitter_cbuffer.Bind(context, GfxShaderStage::CS, 13);
+			dead_list_count_cbuffer.Bind(command_context, GfxShaderStage::CS, 11);
+			emitter_cbuffer.Bind(command_context, GfxShaderStage::CS, 13);
 
 			context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.UAV());
 			uint32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
@@ -239,7 +239,7 @@ namespace adria
 		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxScopedAnnotation(command_context, "Particles Rasterize Pass");
 
-		active_list_count_cbuffer.Bind(context, GfxShaderStage::VS, 12);
+		active_list_count_cbuffer.Bind(command_context, GfxShaderStage::VS, 12);
 
 		BindNullVertexBuffer(context);
 		BindIndexBuffer(context, index_buffer.get());
@@ -265,10 +265,9 @@ namespace adria
 		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxScopedAnnotation(command_context, "Particles Sort Pass");
 
-		active_list_count_cbuffer.Bind(context, GfxShaderStage::CS, 11);
-		sort_dispatch_info_cbuffer.Bind(context, GfxShaderStage::CS, 12);
+		active_list_count_cbuffer.Bind(command_context, GfxShaderStage::CS, 11);
+		sort_dispatch_info_cbuffer.Bind(command_context, GfxShaderStage::CS, 12);
 
-		// Write the indirect args to a UAV
 		ID3D11UnorderedAccessView* indirect_sort_args_uav = indirect_sort_args_buffer.UAV();
 		context->CSSetUnorderedAccessViews(0, 1, &indirect_sort_args_uav, nullptr);
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleSortInitArgs)->Bind(context);
@@ -291,9 +290,10 @@ namespace adria
 
 	bool ParticleRenderer::SortInitial()
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
 		bool done = true;
-		UINT numThreadGroups = ((MAX_PARTICLES - 1) >> 9) + 1;
+		uint32 numThreadGroups = ((MAX_PARTICLES - 1) >> 9) + 1;
 		if (numThreadGroups > 1) done = false;
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleSort512)->Bind(context);
 		context->DispatchIndirect(indirect_sort_args_buffer.GetNative(), 0);
@@ -302,16 +302,17 @@ namespace adria
 
 	bool ParticleRenderer::SortIncremental(uint32 presorted)
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
 
 		bool done = true;
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleBitonicSortStep)->Bind(context);
 
-		UINT num_thread_groups = 0;
+		uint32 num_thread_groups = 0;
 		if (MAX_PARTICLES > presorted)
 		{
 			if (MAX_PARTICLES > presorted * 2) done = false;
-			UINT pow2 = presorted;
+			uint32 pow2 = presorted;
 			while (pow2 < MAX_PARTICLES) pow2 *= 2;
 			num_thread_groups = pow2 >> 9;
 		}
@@ -333,7 +334,7 @@ namespace adria
 				sort_dispatch_info.z = 1;
 			}
 			sort_dispatch_info.w = 0;
-			sort_dispatch_info_cbuffer.Update(context, sort_dispatch_info);
+			sort_dispatch_info_cbuffer.Update(command_context, sort_dispatch_info);
 			context->Dispatch(num_thread_groups, 1, 1);
 		}
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleSortInner512)->Bind(context);
