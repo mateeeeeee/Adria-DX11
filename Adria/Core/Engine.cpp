@@ -206,7 +206,7 @@ namespace adria
 
 		gfx = std::make_unique<GfxDevice>(Window::Handle());
 		g_TextureManager.Initialize(gfx.get());
-		ShaderManager::Initialize(gfx->GetDevice());
+		ShaderManager::Initialize(gfx.get());
 		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
 		model_importer = std::make_unique<ModelImporter>(reg, gfx.get());
 

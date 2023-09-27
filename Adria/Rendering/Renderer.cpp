@@ -1135,190 +1135,7 @@ namespace adria
 	}
 	void Renderer::CreateIBLTextures()
 	{
-		auto device = gfx->GetDevice();
-		auto context = gfx->GetContext();
-		auto command_context = gfx->GetCommandContext();
-
-		auto skyboxes = reg.view<Skybox>();
-		ID3D11ShaderResourceView* unfiltered_env_srv = nullptr;
-		for (auto skybox : skyboxes)
-		{
-			auto const& _skybox = skyboxes.get(skybox);
-			unfiltered_env_srv = g_TextureManager.GetTextureDescriptor(_skybox.cubemap_texture);
-			if (unfiltered_env_srv) break;
-		}
-
-		ArcPtr<ID3D11Texture2D> unfiltered_env_tex = nullptr;
-		unfiltered_env_srv->GetResource(reinterpret_cast<ID3D11Resource**>(unfiltered_env_tex.GetAddressOf()));
-
-		D3D11_TEXTURE2D_DESC tex_desc{};
-		unfiltered_env_tex->GetDesc(&tex_desc);
-		//Compute pre-filtered specular environment map.
-		{
-			GfxShaderBytecode cs_blob;
-			GfxShaderCompiler::GetBytecodeFromCompiledShader("Resources/Compiled Shaders/SpmapCS.cso", cs_blob);
-			GfxComputeShader spmap_program{ device, cs_blob };
-
-			ArcPtr<ID3D11Texture2D> env_tex = nullptr;
-			D3D11_TEXTURE2D_DESC env_desc = {};
-			env_desc.Width = tex_desc.Width;
-			env_desc.Height = tex_desc.Height;
-			env_desc.MipLevels = 0;
-			env_desc.ArraySize = 6;
-			env_desc.Format = tex_desc.Format;
-			env_desc.SampleDesc.Count = 1;
-			env_desc.Usage = D3D11_USAGE_DEFAULT;
-			env_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_RENDER_TARGET;
-			env_desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_GENERATE_MIPS;
-			GFX_CHECK_HR(device->CreateTexture2D(&env_desc, nullptr, env_tex.GetAddressOf()));
-
-			D3D11_SHADER_RESOURCE_VIEW_DESC env_srv_desc = {};
-			env_srv_desc.Format = env_desc.Format;
-			env_srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-			env_srv_desc.TextureCube.MostDetailedMip = 0;
-			env_srv_desc.TextureCube.MipLevels = -1;
-			GFX_CHECK_HR(device->CreateShaderResourceView(env_tex.Get(), &env_srv_desc, env_srv.GetAddressOf()));
-
-			//Copy 0th mipmap level into destination environment map.
-			for (uint32 arraySlice = 0; arraySlice < 6; ++arraySlice)
-			{
-				const uint32 subresourceIndex = D3D11CalcSubresource(0, arraySlice, tex_desc.MipLevels);
-				context->CopySubresourceRegion(env_tex.Get(), subresourceIndex, 0, 0, 0, unfiltered_env_tex.Get(), subresourceIndex, nullptr);
-			}
-
-			DECLSPEC_ALIGN(16) struct RoughnessCBuffer
-			{
-				float roughness;
-				float padding[3];
-			};
-
-			GfxConstantBuffer<RoughnessCBuffer> roughness_cb(gfx);
-			spmap_program.Bind(context);
-			roughness_cb.Bind(command_context, GfxShaderStage::CS, 0);
-			context->CSSetShaderResources(0, 1, &unfiltered_env_srv);
-
-			float const delta_roughness = 1.0f / (std::max)(float(tex_desc.MipLevels - 1), 1.0f);
-
-			uint32 size = (std::max)(tex_desc.Width, tex_desc.Height);
-			RoughnessCBuffer spmap_constants{};
-
-			ArcPtr<ID3D11UnorderedAccessView> env_uav;
-			D3D11_UNORDERED_ACCESS_VIEW_DESC env_uav_desc{};
-			env_uav_desc.Format = env_desc.Format;
-			env_uav_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-
-			env_uav_desc.Texture2DArray.FirstArraySlice = 0;
-			env_uav_desc.Texture2DArray.ArraySize = env_desc.ArraySize;
-
-			for (uint32 level = 1; level < tex_desc.MipLevels; ++level, size /= 2)
-			{
-				const uint32 numGroups = std::max<uint32>(1, size / 32);
-
-				env_uav_desc.Texture2DArray.MipSlice = level;
-
-				GFX_CHECK_HR(device->CreateUnorderedAccessView(env_tex.Get(), &env_uav_desc, env_uav.GetAddressOf()));
-
-				spmap_constants = { level * delta_roughness };
-
-				roughness_cb.Update(command_context, spmap_constants);
-				context->CSSetUnorderedAccessViews(0, 1, env_uav.GetAddressOf(), nullptr);
-				context->Dispatch(numGroups, numGroups, 6);
-			}
-
-			ID3D11Buffer* null_buffer[] = { nullptr };
-			context->CSSetConstantBuffers(0, 1, null_buffer);
-			ID3D11UnorderedAccessView* nullUAV[] = { nullptr };
-			context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
-		}
-		// Compute diffuse irradiance cubemap.
-		{
-			GfxShaderBytecode cs_blob;
-			GfxShaderCompiler::GetBytecodeFromCompiledShader("Resources/Compiled Shaders/IrmapCS.cso", cs_blob);
-			GfxComputeShader irmap_program(device, cs_blob);
-
-			ArcPtr<ID3D11Texture2D> irmap_tex = nullptr;
-			D3D11_TEXTURE2D_DESC irmap_desc{};
-			irmap_desc.Width = 32;
-			irmap_desc.Height = 32;
-			irmap_desc.MipLevels = 1;
-			irmap_desc.ArraySize = 6;
-			irmap_desc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-			irmap_desc.SampleDesc.Count = 1;
-			irmap_desc.Usage = D3D11_USAGE_DEFAULT;
-			irmap_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-			irmap_desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-			GFX_CHECK_HR(device->CreateTexture2D(&irmap_desc, nullptr, irmap_tex.GetAddressOf()));
-
-			D3D11_SHADER_RESOURCE_VIEW_DESC irmap_srv_desc{};
-			irmap_srv_desc.Format = irmap_desc.Format;
-			irmap_srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-			irmap_srv_desc.TextureCube.MostDetailedMip = 0;
-			irmap_srv_desc.TextureCube.MipLevels = -1;
-			GFX_CHECK_HR(device->CreateShaderResourceView(irmap_tex.Get(), &irmap_srv_desc, irmap_srv.GetAddressOf()));
-
-			ArcPtr<ID3D11UnorderedAccessView> irmap_uav;
-
-			D3D11_UNORDERED_ACCESS_VIEW_DESC irmap_uav_desc{};
-			irmap_uav_desc.Format = irmap_desc.Format;
-			irmap_uav_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2DARRAY;
-			irmap_uav_desc.Texture2DArray.MipSlice = 0;
-			irmap_uav_desc.Texture2DArray.FirstArraySlice = 0;
-			irmap_uav_desc.Texture2DArray.ArraySize = irmap_desc.ArraySize;
-
-			GFX_CHECK_HR(device->CreateUnorderedAccessView(irmap_tex.Get(), &irmap_uav_desc, irmap_uav.GetAddressOf()));
-
-			context->CSSetShaderResources(0, 1, env_srv.GetAddressOf());
-			context->CSSetUnorderedAccessViews(0, 1, irmap_uav.GetAddressOf(), nullptr);
-
-			irmap_program.Bind(context);
-			context->Dispatch(irmap_desc.Width / 32, irmap_desc.Height / 32, 6);
-			ID3D11UnorderedAccessView* nullUAV[] = { nullptr };
-			context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
-		}
-
-		// Compute Cook-Torrance BRDF 2D LUT for split-sum approximation.
-		{
-			GfxShaderBytecode cs_blob;
-			GfxShaderCompiler::GetBytecodeFromCompiledShader("Resources/Compiled Shaders/SpbrdfCS.cso", cs_blob);
-			GfxComputeShader BRDFprogram(device, cs_blob);
-
-			ArcPtr<ID3D11Texture2D> brdf_tex = nullptr;
-			D3D11_TEXTURE2D_DESC brdf_desc = {};
-			brdf_desc.Width = 256;
-			brdf_desc.Height = 256;
-			brdf_desc.MipLevels = 1;
-			brdf_desc.ArraySize = 1;
-			brdf_desc.Format = DXGI_FORMAT_R16G16_FLOAT;
-			brdf_desc.SampleDesc.Count = 1;
-			brdf_desc.Usage = D3D11_USAGE_DEFAULT;
-			brdf_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
-
-			GFX_CHECK_HR(device->CreateTexture2D(&brdf_desc, nullptr, brdf_tex.GetAddressOf()));
-
-			D3D11_SHADER_RESOURCE_VIEW_DESC brdf_srv_desc = {};
-			brdf_srv_desc.Format = brdf_desc.Format;
-			brdf_srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			brdf_srv_desc.Texture2D.MostDetailedMip = 0;
-			brdf_srv_desc.Texture2D.MipLevels = -1;
-			GFX_CHECK_HR(device->CreateShaderResourceView(brdf_tex.Get(), &brdf_srv_desc, brdf_srv.GetAddressOf()));
-
-			ArcPtr<ID3D11UnorderedAccessView> brdf_uav;
-
-			D3D11_UNORDERED_ACCESS_VIEW_DESC brdf_uav_desc = {};
-			brdf_uav_desc.Format = brdf_desc.Format;
-			brdf_uav_desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
-			brdf_uav_desc.Texture2D.MipSlice = 0;
-
-			GFX_CHECK_HR(device->CreateUnorderedAccessView(brdf_tex.Get(), &brdf_uav_desc, brdf_uav.GetAddressOf()));
-
-			context->CSSetUnorderedAccessViews(0, 1, brdf_uav.GetAddressOf(), nullptr);
-
-			BRDFprogram.Bind(context);
-			context->Dispatch(brdf_desc.Width / 32, brdf_desc.Height / 32, 1);
-			ID3D11UnorderedAccessView* nullUAV[] = { nullptr };
-			context->CSSetUnorderedAccessViews(0, 1, nullUAV, nullptr);
-		}
-
+		//#TODO refactor IBL
 		ibl_textures_generated = true;
 	}
 
@@ -1329,7 +1146,6 @@ namespace adria
 		if (!called)
 		{
 			GfxCommandContext* command_context = gfx->GetCommandContext();
-			ID3D11DeviceContext* context = command_context->GetNative();
 			
 			frame_cbuffer->Bind(command_context,  GfxShaderStage::VS, CBUFFER_SLOT_FRAME);
 			object_cbuffer->Bind(command_context, GfxShaderStage::VS, CBUFFER_SLOT_OBJECT);
@@ -1391,7 +1207,7 @@ namespace adria
 	{
 		compute_cbuf_data.bokeh_blur_threshold = renderer_settings.bokeh_blur_threshold;
 		compute_cbuf_data.bokeh_lum_threshold = renderer_settings.bokeh_lum_threshold;
-		compute_cbuf_data.dof_params = XMVectorSet(renderer_settings.dof_near_blur, renderer_settings.dof_near, renderer_settings.dof_far, renderer_settings.dof_far_blur);
+		compute_cbuf_data.dof_params = Vector4(renderer_settings.dof_near_blur, renderer_settings.dof_near, renderer_settings.dof_far, renderer_settings.dof_far_blur);
 		compute_cbuf_data.bokeh_radius_scale = renderer_settings.bokeh_radius_scale;
 		compute_cbuf_data.bokeh_color_scale = renderer_settings.bokeh_color_scale;
 		compute_cbuf_data.bokeh_fallout = renderer_settings.bokeh_fallout;
@@ -1421,7 +1237,6 @@ namespace adria
 		compute_cbuf_data.wind_direction_y = renderer_settings.wind_direction[1];
 		compute_cbuf_data.delta_time = dt;
 
-		ID3D11DeviceContext* context = gfx->GetContext();
 		compute_cbuffer->Update(gfx->GetCommandContext(), compute_cbuf_data);
 	}
 	void Renderer::UpdateOcean(float dt)
@@ -1444,7 +1259,7 @@ namespace adria
 
 		if (renderer_settings.recreate_initial_spectrum)
 		{
-			ShaderManager::GetShaderProgram(ShaderProgram::OceanInitialSpectrum)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::OceanInitialSpectrum)->Bind(command_context);
 
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
 
@@ -1467,7 +1282,7 @@ namespace adria
 			ID3D11ShaderResourceView*  srv[] = { ping_pong_phase_textures[pong_phase]->SRV()};
 			ID3D11UnorderedAccessView* uav[] = { ping_pong_phase_textures[!pong_phase]->UAV() };
 
-			ShaderManager::GetShaderProgram(ShaderProgram::OceanPhase)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::OceanPhase)->Bind(command_context);
 
 			context->CSSetShaderResources(0, 1, srv);
 			context->CSSetUnorderedAccessViews(0, 1, uav, nullptr);
@@ -1486,7 +1301,7 @@ namespace adria
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
 
-			ShaderManager::GetShaderProgram(ShaderProgram::OceanSpectrum)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::OceanSpectrum)->Bind(command_context);
 
 			context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav), uav, nullptr);
@@ -1513,7 +1328,7 @@ namespace adria
 			fft_cbuffer.Bind(command_context, GfxShaderStage::CS, 10);
 			//fft horizontal
 			{
-				ShaderManager::GetShaderProgram(ShaderProgram::OceanFFT_Horizontal)->Bind(context);
+				ShaderManager::GetShaderProgram(ShaderProgram::OceanFFT_Horizontal)->Bind(command_context);
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 
@@ -1538,7 +1353,7 @@ namespace adria
 			}
 			//fft vertical
 			{
-				ShaderManager::GetShaderProgram(ShaderProgram::OceanFFT_Vertical)->Bind(context);
+				ShaderManager::GetShaderProgram(ShaderProgram::OceanFFT_Vertical)->Bind(command_context);
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 					ID3D11ShaderResourceView* srv[] = { ping_pong_spectrum_textures[!pong_spectrum]->SRV() };
@@ -1565,7 +1380,7 @@ namespace adria
 		{
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			static ID3D11UnorderedAccessView* null_uav = nullptr;
-			ShaderManager::GetShaderProgram(ShaderProgram::OceanNormalMap)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::OceanNormalMap)->Bind(command_context);
 
 			ID3D11ShaderResourceView* final_spectrum = ping_pong_spectrum_textures[!pong_spectrum]->SRV();
 			ID3D11UnorderedAccessView* normal_map_uav = ocean_normal_map->UAV();
@@ -1581,8 +1396,6 @@ namespace adria
 	}
 	void Renderer::UpdateWeather(float dt)
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
-
 		static float total_time = 0.0f;
 		total_time += dt;
 
@@ -1662,8 +1475,8 @@ namespace adria
 			auto& light = light_view.get(e);
 
 			light_data.color = light.color * light.energy;
-			light_data.position  = XMVector4Transform(light.position, camera->View());
-			light_data.direction = XMVector4Transform(light.direction, camera->View());
+			light_data.position  = Vector4::Transform(light.position, camera->View());
+			light_data.direction = Vector4::Transform(light.direction, camera->View());
 			light_data.range = light.range;
 			light_data.type = static_cast<int>(light.type);
 			light_data.inner_cosine = light.inner_cosine;
@@ -1678,7 +1491,6 @@ namespace adria
 	}
 	void Renderer::UpdateTerrainData()
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
 		terrain_cbuf_data.texture_scale = TerrainComponent::texture_scale;
 		terrain_cbuf_data.ocean_active = reg.size<Ocean>() != 0;
 		terrain_cbuffer->Update(gfx->GetCommandContext(), terrain_cbuf_data);
@@ -1789,7 +1601,7 @@ namespace adria
 		{
 			for (auto const& [params, entities] : batched_entities)
 			{
-				ShaderManager::GetShaderProgram(params.shader_program)->Bind(context);
+				ShaderManager::GetShaderProgram(params.shader_program)->Bind(command_context);
 				if (params.double_sided) command_context->SetRasterizerState(cull_none.get()); 
 				for (auto e : entities)
 				{
@@ -1856,7 +1668,7 @@ namespace adria
 			}
 			
 			auto terrain_view = reg.view<Mesh, Transform, AABB, TerrainComponent>();
-			ShaderManager::GetShaderProgram(ShaderProgram::GBuffer_Terrain)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::GBuffer_Terrain)->Bind(command_context);
 			for (auto e : terrain_view)
 			{
 				auto [mesh, transform, aabb, terrain] = terrain_view.get<Mesh, Transform, AABB, TerrainComponent>(e);
@@ -1864,7 +1676,7 @@ namespace adria
 				if (!aabb.camera_visible) continue;
 
 				object_cbuf_data.model = transform.current_transform;
-				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert().Transpose();
 				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 				if (terrain.grass_texture != INVALID_TEXTURE_HANDLE)
@@ -1897,14 +1709,14 @@ namespace adria
 			}
 
 			auto foliage_view = reg.view<Mesh, Transform, Material, AABB, Foliage>();
-			ShaderManager::GetShaderProgram(ShaderProgram::GBuffer_Foliage)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::GBuffer_Foliage)->Bind(command_context);
 			for (auto e : foliage_view)
 			{
 				auto [mesh, transform, aabb, material] = foliage_view.get<Mesh, Transform, AABB, Material>(e);
 				if (!aabb.camera_visible) continue;
 
 				object_cbuf_data.model = transform.current_transform;
-				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert().Transpose();
 				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
@@ -1946,13 +1758,14 @@ namespace adria
 			for (auto e : decal_view)
 			{
 				Decal decal = decal_view.get(e);
-				decal.modify_gbuffer_normals ? ShaderManager::GetShaderProgram(ShaderProgram::Decals_ModifyNormals)->Bind(context) : ShaderManager::GetShaderProgram(ShaderProgram::Decals)->Bind(context); //refactor this 
-
+				decal.modify_gbuffer_normals 
+					? ShaderManager::GetShaderProgram(ShaderProgram::Decals_ModifyNormals)->Bind(command_context) 
+					: ShaderManager::GetShaderProgram(ShaderProgram::Decals)->Bind(command_context);
 				decal_cbuf_data.decal_type = static_cast<int32>(decal.decal_type);
 				decal_cbuffer.Update(command_context, decal_cbuf_data);
 
 				object_cbuf_data.model = decal.decal_model_matrix;
-				object_cbuf_data.transposed_inverse_model = XMMatrixTranspose(XMMatrixInverse(nullptr, object_cbuf_data.model));
+				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert().Transpose();
 				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 				ID3D11ShaderResourceView* srvs[] = { g_TextureManager.GetTextureDescriptor(decal.albedo_decal_texture), 
@@ -1991,7 +1804,7 @@ namespace adria
 			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-			ShaderManager::GetShaderProgram(ShaderProgram::SSAO)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::SSAO)->Bind(command_context);
 			context->Draw(4, 0);
 			context->PSSetShaderResources(1, ARRAYSIZE(srv_null), srv_null);
 		}
@@ -2023,7 +1836,7 @@ namespace adria
 			context->PSSetShaderResources(1, ARRAYSIZE(srvs), srvs);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-			ShaderManager::GetShaderProgram(ShaderProgram::HBAO)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::HBAO)->Bind(command_context);
 			context->Draw(4, 0);
 			context->PSSetShaderResources(1, ARRAYSIZE(srv_null), srv_null);
 		}
@@ -2055,10 +1868,10 @@ namespace adria
 
 		if (!ibl_textures_generated) renderer_settings.ibl = false;
 		bool has_ao = renderer_settings.ambient_occlusion != AmbientOcclusion::None;
-		if (has_ao && renderer_settings.ibl) ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR_AO_IBL)->Bind(context);
-		else if (has_ao && !renderer_settings.ibl) ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR_AO)->Bind(context);
-		else if (!has_ao && renderer_settings.ibl) ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR_IBL)->Bind(context);
-		else ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR)->Bind(context);
+		if (has_ao && renderer_settings.ibl) ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR_AO_IBL)->Bind(command_context);
+		else if (has_ao && !renderer_settings.ibl) ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR_AO)->Bind(command_context);
+		else if (!has_ao && renderer_settings.ibl) ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR_IBL)->Bind(command_context);
+		else ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR)->Bind(command_context);
 		context->Draw(4, 0);
 
 		command_context->EndRenderPass();
@@ -2143,7 +1956,7 @@ namespace adria
 				context->IASetInputLayout(nullptr);
 				context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-				ShaderManager::GetShaderProgram(ShaderProgram::LightingPBR)->Bind(context);
+				ShaderManager::GetShaderProgram(ShaderProgram::LightingPBR)->Bind(command_context);
 				context->Draw(4, 0);
 				
 				static ID3D11ShaderResourceView* null_srv[] = { nullptr, nullptr, nullptr };
@@ -2180,7 +1993,7 @@ namespace adria
 			context->CSSetUnorderedAccessViews(1, 1, &debug_uav, nullptr);
 		}
 
-		ShaderManager::GetShaderProgram(ShaderProgram::TiledLighting)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::TiledLighting)->Bind(command_context);
 		context->Dispatch((uint32)std::ceil(width * 1.0f / 16), (uint32)std::ceil(height * 1.0f / 16), 1);
 
 		ID3D11ShaderResourceView* null_srv[4] = { nullptr };
@@ -2256,9 +2069,9 @@ namespace adria
 			ID3D11UnorderedAccessView* clusters_uav = clusters->UAV();
 			context->CSSetUnorderedAccessViews(0, 1, &clusters_uav, nullptr);
 
-			ShaderManager::GetShaderProgram(ShaderProgram::ClusterBuilding)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::ClusterBuilding)->Bind(command_context);
 			context->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
-			ShaderManager::GetShaderProgram(ShaderProgram::ClusterBuilding)->Unbind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::ClusterBuilding)->Unbind(command_context);
 
 			ID3D11UnorderedAccessView* null_uav = nullptr;
 			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
@@ -2271,9 +2084,9 @@ namespace adria
 		ID3D11UnorderedAccessView* uavs[] = { light_counter->UAV(), light_list->UAV(), light_grid->UAV() };
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
 
-		ShaderManager::GetShaderProgram(ShaderProgram::ClusterCulling)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::ClusterCulling)->Bind(command_context);
 		context->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 4);
-		ShaderManager::GetShaderProgram(ShaderProgram::ClusterCulling)->Unbind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::ClusterCulling)->Unbind(command_context);
 
 		ID3D11ShaderResourceView* null_srvs[2] = { nullptr };
 		context->CSSetShaderResources(0, ARRAYSIZE(null_srvs), null_srvs);
@@ -2297,7 +2110,7 @@ namespace adria
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-			ShaderManager::GetShaderProgram(ShaderProgram::ClusterLightingPBR)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::ClusterLightingPBR)->Bind(command_context);
 			context->Draw(4, 0);
 
 			static ID3D11ShaderResourceView* null_srv[6] = { nullptr};
@@ -2383,7 +2196,7 @@ namespace adria
 
 		auto voxel_view = reg.view<Mesh, Transform, Material, Deferred, AABB>();
 
-		ShaderManager::GetShaderProgram(ShaderProgram::Voxelize)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::Voxelize)->Bind(command_context);
 		command_context->SetRasterizerState(cull_none.get());
 
 		D3D11_VIEWPORT vp{};
@@ -2422,13 +2235,13 @@ namespace adria
 			0, 0, nullptr, nullptr);
 
 		context->RSSetState(nullptr);
-		ShaderManager::GetShaderProgram(ShaderProgram::Voxelize)->Unbind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::Voxelize)->Unbind(command_context);
 
 		ID3D11UnorderedAccessView* uavs[] = { voxels_uav, voxel_texture->UAV() };
 		context->CSSetUnorderedAccessViews(0, 2, uavs, nullptr);
-		ShaderManager::GetShaderProgram(ShaderProgram::VoxelCopy)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::VoxelCopy)->Bind(command_context);
 		context->Dispatch(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION / 256, 1, 1);
-		ShaderManager::GetShaderProgram(ShaderProgram::VoxelCopy)->Unbind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::VoxelCopy)->Unbind(command_context);
 
 		static ID3D11UnorderedAccessView* null_uavs[] = { nullptr, nullptr };
 		context->CSSetUnorderedAccessViews(0, 2, null_uavs, nullptr);
@@ -2442,9 +2255,9 @@ namespace adria
 
 			ID3D11ShaderResourceView* srvs[] = { voxels->SRV(), voxel_texture->SRV() };
 			context->CSSetShaderResources(0, 2, srvs);
-			ShaderManager::GetShaderProgram(ShaderProgram::VoxelSecondBounce)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::VoxelSecondBounce)->Bind(command_context);
 			context->Dispatch(VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8);
-			ShaderManager::GetShaderProgram(ShaderProgram::VoxelSecondBounce)->Unbind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::VoxelSecondBounce)->Unbind(command_context);
 
 			static ID3D11ShaderResourceView* null_srvs[] = { nullptr, nullptr };
 			context->CSSetShaderResources(0, 2, null_srvs);
@@ -2467,11 +2280,11 @@ namespace adria
 			ID3D11ShaderResourceView* voxel_srv = voxel_texture->SRV();
 			context->VSSetShaderResources(9, 1, &voxel_srv);
 
-			ShaderManager::GetShaderProgram(ShaderProgram::VoxelizeDebug)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::VoxelizeDebug)->Bind(command_context);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 			context->Draw(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION, 0);
-			ShaderManager::GetShaderProgram(ShaderProgram::VoxelizeDebug)->Unbind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::VoxelizeDebug)->Unbind(command_context);
 
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			context->VSSetShaderResources(9, 1, &null_srv);
@@ -2496,9 +2309,9 @@ namespace adria
 
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-			ShaderManager::GetShaderProgram(ShaderProgram::VoxelGI)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::VoxelGI)->Bind(command_context);
 			context->Draw(4, 0);
-			ShaderManager::GetShaderProgram(ShaderProgram::VoxelGI)->Unbind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::VoxelGI)->Unbind(command_context);
 			static ID3D11ShaderResourceView* null_srv[] = { nullptr, nullptr, nullptr };
 			context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
 		}
@@ -2761,11 +2574,12 @@ namespace adria
 	}
 	void Renderer::PassShadowMapCommon()
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
 		auto shadow_view = reg.view<Mesh, Transform, AABB>();
 		if (!renderer_settings.shadow_transparent)
 		{
-			ShaderManager::GetShaderProgram(ShaderProgram::DepthMap)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::DepthMap)->Bind(command_context);
 			for (auto e : shadow_view)
 			{
 				auto& aabb = shadow_view.get<AABB>(e);
@@ -2805,7 +2619,7 @@ namespace adria
 				}
 			}
 
-			ShaderManager::GetShaderProgram(ShaderProgram::DepthMap)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::DepthMap)->Bind(command_context);
 			for (auto e : not_transparent)
 			{
 				auto& transform = shadow_view.get<Transform>(e);
@@ -2823,7 +2637,7 @@ namespace adria
 				mesh.Draw(context);
 			}
 
-			ShaderManager::GetShaderProgram(ShaderProgram::DepthMap_Transparent)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::DepthMap_Transparent)->Bind(command_context);
 			for (auto e : potentially_transparent)
 			{
 				auto& transform = shadow_view.get<Transform>(e);
@@ -2872,14 +2686,14 @@ namespace adria
 		switch (light.type)
 		{
 		case LightType::Directional:
-			if (light.use_cascades) ShaderManager::GetShaderProgram(ShaderProgram::Volumetric_DirectionalCascades)->Bind(context);
-			else ShaderManager::GetShaderProgram(ShaderProgram::Volumetric_Directional)->Bind(context);
+			if (light.use_cascades) ShaderManager::GetShaderProgram(ShaderProgram::Volumetric_DirectionalCascades)->Bind(command_context);
+			else ShaderManager::GetShaderProgram(ShaderProgram::Volumetric_Directional)->Bind(command_context);
 			break;
 		case LightType::Spot:
-			ShaderManager::GetShaderProgram(ShaderProgram::Volumetric_Spot)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::Volumetric_Spot)->Bind(command_context);
 			break;
 		case LightType::Point:
-			ShaderManager::GetShaderProgram(ShaderProgram::Volumetric_Point)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::Volumetric_Point)->Bind(command_context);
 			break;
 		default:
 			ADRIA_ASSERT(false && "Invalid Light Type!");
@@ -2907,7 +2721,7 @@ namespace adria
 		switch (renderer_settings.sky_type)
 		{
 		case SkyType::Skybox:
-			ShaderManager::GetShaderProgram(ShaderProgram::Skybox)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::Skybox)->Bind(command_context);
 			for (auto e : skybox_view)
 			{
 				auto const& skybox = skybox_view.get(e);
@@ -2918,10 +2732,10 @@ namespace adria
 			}
 			break;
 		case SkyType::UniformColor:
-			ShaderManager::GetShaderProgram(ShaderProgram::UniformColorSky)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::UniformColorSky)->Bind(command_context);
 			break;
 		case SkyType::HosekWilkie:
-			ShaderManager::GetShaderProgram(ShaderProgram::HosekWilkieSky)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::HosekWilkieSky)->Bind(command_context);
 			break;
 		default:
 			ADRIA_ASSERT(false);
@@ -2963,8 +2777,8 @@ namespace adria
 		 g_TextureManager.GetTextureDescriptor(foam_handle) };
 		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 
-		renderer_settings.ocean_tesselation ? ShaderManager::GetShaderProgram(ShaderProgram::OceanLOD)->Bind(context)
-						  : ShaderManager::GetShaderProgram(ShaderProgram::Ocean)->Bind(context);
+		renderer_settings.ocean_tesselation ? ShaderManager::GetShaderProgram(ShaderProgram::OceanLOD)->Bind(command_context)
+											: ShaderManager::GetShaderProgram(ShaderProgram::Ocean)->Bind(command_context);
 
 		auto ocean_chunk_view = reg.view<Mesh, Material, Transform, AABB, Ocean>();
 		for (auto ocean_chunk : ocean_chunk_view)
@@ -2984,7 +2798,7 @@ namespace adria
 			}
 		}
 
-		renderer_settings.ocean_tesselation ? ShaderManager::GetShaderProgram(ShaderProgram::OceanLOD)->Unbind(context) : ShaderManager::GetShaderProgram(ShaderProgram::Ocean)->Unbind(context);
+		renderer_settings.ocean_tesselation ? ShaderManager::GetShaderProgram(ShaderProgram::OceanLOD)->Unbind(command_context) : ShaderManager::GetShaderProgram(ShaderProgram::Ocean)->Unbind(command_context);
 
 		static ID3D11ShaderResourceView* null_srv = nullptr;
 		renderer_settings.ocean_tesselation ? context->DSSetShaderResources(0, 1, &null_srv) :
@@ -3037,7 +2851,7 @@ namespace adria
 
 				command_context->SetRasterizerState(wireframe.get());
 				command_context->SetDepthStencilState(no_depth_test.get(), 0);
-				ShaderManager::GetShaderProgram(ShaderProgram::Solid)->Bind(context);
+				ShaderManager::GetShaderProgram(ShaderProgram::Solid)->Bind(command_context);
 				context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 				BindVertexBuffer(context, aabb.aabb_vb.get());
 				BindIndexBuffer(context, aabb_wireframe_ib.get());
@@ -3067,7 +2881,7 @@ namespace adria
 			
 			auto [transform, mesh, material] = forward_view.get<Transform, Mesh, Material>(e);
 
-			ShaderManager::GetShaderProgram(material.shader)->Bind(context);
+			ShaderManager::GetShaderProgram(material.shader)->Bind(command_context);
 
 			object_cbuf_data.model = transform.current_transform;
 			object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
@@ -3125,11 +2939,11 @@ namespace adria
 			context->GSSetShaderResources(0, static_cast<uint32>(lens_flare_textures.size()), lens_flare_textures.data());
 			context->PSSetShaderResources(0, static_cast<uint32>(lens_flare_textures.size()), lens_flare_textures.data());
 
-			ShaderManager::GetShaderProgram(ShaderProgram::LensFlare)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::LensFlare)->Bind(command_context);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 			context->Draw(7, 0);
-			ShaderManager::GetShaderProgram(ShaderProgram::LensFlare)->Unbind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::LensFlare)->Unbind(command_context);
 
 			static ID3D11ShaderResourceView* const srv_null[1] = { nullptr };
 			static std::vector<ID3D11ShaderResourceView*> const lens_null_array(lens_flare_textures.size(), nullptr);
@@ -3151,7 +2965,7 @@ namespace adria
 		context->IASetInputLayout(nullptr);
 
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		ShaderManager::GetShaderProgram(ShaderProgram::Volumetric_Clouds)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::Volumetric_Clouds)->Bind(command_context);
 		context->Draw(4, 0);
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr, nullptr };
@@ -3184,7 +2998,7 @@ namespace adria
 		context->IASetInputLayout(nullptr);
 
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		ShaderManager::GetShaderProgram(ShaderProgram::SSR)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::SSR)->Bind(command_context);
 		context->Draw(4, 0);
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr, nullptr };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
@@ -3238,7 +3052,7 @@ namespace adria
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-			ShaderManager::GetShaderProgram(ShaderProgram::GodRays)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::GodRays)->Bind(command_context);
 			context->Draw(4, 0);
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 		}
@@ -3254,7 +3068,7 @@ namespace adria
 
 		if (renderer_settings.bokeh)
 		{
-			ShaderManager::GetShaderProgram(ShaderProgram::BokehGenerate)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::BokehGenerate)->Bind(command_context);
 			ID3D11ShaderResourceView* srv_array[2] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 			uint32 initial_count = 0;
 			ID3D11UnorderedAccessView* bokeh_uav = bokeh_buffer->UAV();
@@ -3266,7 +3080,7 @@ namespace adria
 			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
 			static ID3D11ShaderResourceView* null_srvs[2] = { nullptr, nullptr };
 			context->CSSetShaderResources(0, 2, null_srvs);
-			ShaderManager::GetShaderProgram(ShaderProgram::BokehGenerate)->Unbind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::BokehGenerate)->Unbind(command_context);
 		}
 
 		BlurTexture(hdr_render_target.get());
@@ -3280,7 +3094,7 @@ namespace adria
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		ShaderManager::GetShaderProgram(ShaderProgram::DOF)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::DOF)->Bind(command_context);
 		context->Draw(4, 0);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 
@@ -3318,14 +3132,14 @@ namespace adria
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
 			context->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
 
-			ShaderManager::GetShaderProgram(ShaderProgram::BokehDraw)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::BokehDraw)->Bind(command_context);
 			command_context->SetBlendState(additive_blend.get());
 			context->DrawInstancedIndirect(bokeh_indirect_draw_buffer->GetNative(), 0);
 			command_context->SetBlendState(nullptr);
 			static ID3D11ShaderResourceView* null_srv = nullptr;
 			context->VSSetShaderResources(0, 1, &null_srv);
 			context->PSSetShaderResources(0, 1, &null_srv);
-			ShaderManager::GetShaderProgram(ShaderProgram::BokehDraw)->Unbind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::BokehDraw)->Unbind(command_context);
 		}
 	}
 	void Renderer::PassBloom()
@@ -3344,7 +3158,7 @@ namespace adria
 		context->CSSetShaderResources(0, 1, srv); 
 
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav), uav, nullptr);
-		ShaderManager::GetShaderProgram(ShaderProgram::BloomExtract)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::BloomExtract)->Bind(command_context);
 		context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 		context->CSSetShaderResources(0, 1, null_srv);
 		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
@@ -3354,7 +3168,7 @@ namespace adria
 		ID3D11ShaderResourceView* const srv2[2] = { postprocess_textures[!postprocess_index]->SRV(), bloom_extract_texture->SRV() };
 		context->CSSetShaderResources(0, 2, srv2);
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav2), uav2, nullptr);
-		ShaderManager::GetShaderProgram(ShaderProgram::BloomCombine)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::BloomCombine)->Bind(command_context);
 		context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 
 		context->CSSetShaderResources(0, 2, null_srv);
@@ -3379,7 +3193,7 @@ namespace adria
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 			context->IASetInputLayout(nullptr);
 			context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-			ShaderManager::GetShaderProgram(ShaderProgram::VelocityBuffer)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::VelocityBuffer)->Bind(command_context);
 			context->Draw(4, 0);
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 		}
@@ -3401,7 +3215,7 @@ namespace adria
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
-		ShaderManager::GetShaderProgram(ShaderProgram::MotionBlur)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::MotionBlur)->Bind(command_context);
 		context->Draw(4, 0);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
@@ -3425,7 +3239,7 @@ namespace adria
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		ShaderManager::GetShaderProgram(ShaderProgram::Fog)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::Fog)->Bind(command_context);
 		context->Draw(4, 0);
 
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
@@ -3452,13 +3266,13 @@ namespace adria
 		switch (renderer_settings.tone_map_op)
 		{
 		case ToneMap::Reinhard:
-			ShaderManager::GetShaderProgram(ShaderProgram::ToneMap_Reinhard)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::ToneMap_Reinhard)->Bind(command_context);
 			break;
 		case ToneMap::Linear:
-			ShaderManager::GetShaderProgram(ShaderProgram::ToneMap_Linear)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::ToneMap_Linear)->Bind(command_context);
 			break;
 		case ToneMap::Hable:
-			ShaderManager::GetShaderProgram(ShaderProgram::ToneMap_Hable)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::ToneMap_Hable)->Bind(command_context);
 			break;
 		default:
 			ADRIA_ASSERT(false && "Unsupported Basic effect!");
@@ -3480,7 +3294,7 @@ namespace adria
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		ShaderManager::GetShaderProgram(ShaderProgram::FXAA)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::FXAA)->Bind(command_context);
 		context->Draw(4, 0);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
@@ -3497,7 +3311,7 @@ namespace adria
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		ShaderManager::GetShaderProgram(ShaderProgram::TAA)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::TAA)->Bind(command_context);
 		context->Draw(4, 0);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
@@ -3519,7 +3333,7 @@ namespace adria
 		command_context->SetBlendState(alpha_blend.get());
 		{
 			auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
-			ShaderManager::GetShaderProgram(ShaderProgram::Sun)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::Sun)->Bind(command_context);
 
 			object_cbuf_data.model = transform.current_transform;
 			object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
@@ -3541,7 +3355,8 @@ namespace adria
 
 	void Renderer::BlurTexture(GfxTexture const* src)
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
 		std::array<ID3D11UnorderedAccessView*, 2> uavs{};
 		std::array<ID3D11ShaderResourceView*, 2>  srvs{};
 		
@@ -3563,7 +3378,7 @@ namespace adria
 
 		context->CSSetShaderResources(0, 1, &src_srv);
 		context->CSSetUnorderedAccessViews(0, 1, &uavs[0], nullptr);
-		ShaderManager::GetShaderProgram(ShaderProgram::Blur_Horizontal)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::Blur_Horizontal)->Bind(command_context);
 		context->Dispatch((uint32)std::ceil(width * 1.0f / 1024), height, 1);
 
 		//unbind intermediate from uav
@@ -3573,7 +3388,7 @@ namespace adria
 		//and set as srv
 		context->CSSetShaderResources(0, 1, &srvs[0]);
 		context->CSSetUnorderedAccessViews(0, 1, &uavs[1], nullptr);
-		ShaderManager::GetShaderProgram(ShaderProgram::Blur_Vertical)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::Blur_Vertical)->Bind(command_context);
 
 		context->Dispatch(width, (uint32)std::ceil(height * 1.0f / 1024), 1);
 		//unbind destination as uav
@@ -3583,25 +3398,28 @@ namespace adria
 	}
 	void Renderer::CopyTexture(GfxTexture const* src)
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
 
 		ID3D11ShaderResourceView* srv[] = { src->SRV() };
 		context->PSSetShaderResources(0, 1, srv);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		ShaderManager::GetShaderProgram(ShaderProgram::Copy)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::Copy)->Bind(command_context);
 		context->Draw(4, 0);
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr };
 		context->PSSetShaderResources(0, 1, srv_null);
 	}
 	void Renderer::AddTextures(GfxTexture const* src1, GfxTexture const* src2)
 	{
-		ID3D11DeviceContext* context = gfx->GetContext();
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		ID3D11DeviceContext* context = command_context->GetNative();
+
 		ID3D11ShaderResourceView* srv[] = { src1->SRV(), src2->SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv), srv);
 		context->IASetInputLayout(nullptr);
 		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
-		ShaderManager::GetShaderProgram(ShaderProgram::Add)->Bind(context);
+		ShaderManager::GetShaderProgram(ShaderProgram::Add)->Bind(command_context);
 		context->Draw(4, 0);
 		static ID3D11ShaderResourceView* const srv_null[] = { nullptr, nullptr };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);

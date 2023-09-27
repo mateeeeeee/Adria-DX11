@@ -1,6 +1,4 @@
 #pragma once
-#include <DirectXMath.h>
-#include "Core/CoreTypes.h"
 #include <array>
 
 namespace adria

@@ -83,9 +83,6 @@
     <Filter Include="External\SimpleMath">
       <UniqueIdentifier>{72fd1772-5308-4a07-b844-7b25e0a140a0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Graphics\Old">
-      <UniqueIdentifier>{04a6fe1b-33de-4cc1-b6cc-d72473373c47}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -192,13 +189,14 @@
     <ClCompile Include="Graphics\GfxQuery.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
-      <Filter>Graphics\Old</Filter>
-    </ClCompile>
     <ClCompile Include="Graphics\GfxProfiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
     <ClCompile Include="Graphics\GfxScopedAnnotation.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxShaderProgram.cpp" />
+    <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
   </ItemGroup>
@@ -465,12 +463,6 @@
     <ClInclude Include="Graphics\GfxInputLayout.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxShaderProgram.h">
-      <Filter>Graphics\Old</Filter>
-    </ClInclude>
-    <ClInclude Include="Graphics\GfxShaderCompiler.h">
-      <Filter>Graphics\Old</Filter>
-    </ClInclude>
     <ClInclude Include="Graphics\GfxProfiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
@@ -481,6 +473,12 @@
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxConstantBuffer.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxShaderProgram.h">
+      <Filter>Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Graphics\GfxShaderCompiler.h">
       <Filter>Graphics</Filter>
     </ClInclude>
   </ItemGroup>

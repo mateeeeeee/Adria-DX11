@@ -1,14 +1,14 @@
+#include <algorithm>
+#include <cmath>
 #include "SkyModel.h"
 #include "Math/Constants.h"
 #include "Utilities/HosekDataRGB.h"
-#include <algorithm>
-#include <cmath>
+
 
 using namespace DirectX;
 
 namespace adria
 {
-
 	namespace
 	{
 		inline double EvaluateSpline(double const* spline, size_t stride, double value)
@@ -65,21 +65,20 @@ namespace adria
 			return result;
 		}
 	}
-
 	SkyParameters CalculateSkyParameters(float turbidity, float albedo, Vector3 const& sun_direction)
 	{
 		float sun_theta = std::acos(std::clamp(sun_direction.y, 0.f, 1.f));
 
 		SkyParameters params{};
-		for (size_t i = 0; i < ESkyParam_Z; ++i)
+		for (uint16 i = 0; i < ESkyParam_Z; ++i)
 		{
-			auto& param = params[i];
+			Vector3& param = params[i];
 			param.x = (float)Evaluate(datasetsRGB[0] + i, 9, turbidity, albedo, sun_theta);
 			param.y = (float)Evaluate(datasetsRGB[1] + i, 9, turbidity, albedo, sun_theta);
 			param.z = (float)Evaluate(datasetsRGB[2] + i, 9, turbidity, albedo, sun_theta);
 		}
 
-		auto& paramZ = params[ESkyParam_Z];
+		Vector3& paramZ = params[ESkyParam_Z];
 		paramZ.x = (float)Evaluate(datasetsRGBRad[0], 1, turbidity, albedo, sun_theta);
 		paramZ.y = (float)Evaluate(datasetsRGBRad[1], 1, turbidity, albedo, sun_theta);
 		paramZ.z = (float)Evaluate(datasetsRGBRad[2], 1, turbidity, albedo, sun_theta);
@@ -98,5 +97,4 @@ namespace adria
 		params[ESkyParam_Z] = params[ESkyParam_Z] / (S.Dot(Vector3(0.2126f, 0.7152f, 0.0722f)));
 		return params;
 	}
-
 }

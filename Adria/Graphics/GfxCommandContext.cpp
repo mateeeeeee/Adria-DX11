@@ -182,7 +182,8 @@ namespace adria
 
 	void GfxCommandContext::SetIndexBuffer(GfxBuffer* index_buffer, uint32 offset)
 	{
-		command_context->IASetIndexBuffer(index_buffer->GetNative(), ConvertGfxFormat(index_buffer->GetDesc().format), offset);
+		if (index_buffer) command_context->IASetIndexBuffer(index_buffer->GetNative(), ConvertGfxFormat(index_buffer->GetDesc().format), offset);
+		else command_context->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
 	}
 
 	void GfxCommandContext::SetVertexBuffer(GfxBuffer* vertex_buffer, uint32 slot /*= 0*/)
@@ -198,8 +199,8 @@ namespace adria
 		std::vector<uint32> offsets(vertex_buffers.size());
 		for (uint32 i = 0; i < vertex_buffers.size(); ++i)
 		{
-			d3d11_buffers[i] = vertex_buffers[i]->GetNative();
-			strides[i] = vertex_buffers[i]->GetDesc().stride;
+			d3d11_buffers[i] = vertex_buffers[i] ? vertex_buffers[i]->GetNative() : nullptr;
+			strides[i] = vertex_buffers[i] ? vertex_buffers[i]->GetDesc().stride : 0;
 			offsets[i] = 0;
 		}
 		command_context->IASetVertexBuffers(start_slot, (uint32)vertex_buffers.size(), d3d11_buffers.data(), strides.data(), offsets.data());
@@ -259,7 +260,8 @@ namespace adria
 		if (current_input_layout != il)
 		{
 			current_input_layout = il;
-			command_context->IASetInputLayout(*il);
+			if (il) command_context->IASetInputLayout(*il);
+			else command_context->IASetInputLayout(nullptr);
 		}
 	}
 
@@ -346,7 +348,7 @@ namespace adria
 		if (shader != current_vs)
 		{
 			current_vs = shader;
-			shader->Bind(command_context);
+			command_context->VSSetShader(shader ? *shader : nullptr, nullptr, 0);
 		}
 	}
 
@@ -355,7 +357,7 @@ namespace adria
 		if (shader != current_ps)
 		{
 			current_ps = shader;
-			shader->Bind(command_context);
+			command_context->PSSetShader(shader ? *shader : nullptr, nullptr, 0);
 		}
 	}
 
@@ -364,7 +366,7 @@ namespace adria
 		if (shader != current_hs)
 		{
 			current_hs = shader;
-			shader->Bind(command_context);
+			command_context->HSSetShader(shader ? *shader : nullptr, nullptr, 0);
 		}
 	}
 
@@ -373,7 +375,7 @@ namespace adria
 		if (shader != current_ds)
 		{
 			current_ds = shader;
-			shader->Bind(command_context);
+			command_context->DSSetShader(shader ? *shader : nullptr, nullptr, 0);
 		}
 	}
 
@@ -382,7 +384,7 @@ namespace adria
 		if (shader != current_gs)
 		{
 			current_gs = shader;
-			shader->Bind(command_context);
+			command_context->GSSetShader(shader ? *shader : nullptr, nullptr, 0);
 		}
 	}
 
@@ -391,7 +393,7 @@ namespace adria
 		if (shader != current_cs)
 		{
 			current_cs = shader;
-			shader->Bind(command_context);
+			command_context->CSSetShader(shader ? *shader : nullptr, nullptr, 0);
 		}
 	}
 
@@ -404,7 +406,7 @@ namespace adria
 	void GfxCommandContext::SetConstantBuffers(GfxShaderStage stage, uint32 start, std::span<GfxBuffer*> buffers)
 	{
 		std::vector<ID3D11Buffer*> d3d11_buffers(buffers.size());
-		for (uint32 i = 0; i < buffers.size(); ++i) d3d11_buffers[i] = buffers[i]->GetNative();
+		for (uint32 i = 0; i < buffers.size(); ++i) d3d11_buffers[i] = buffers[i] ?  buffers[i]->GetNative() : nullptr;
 		switch (stage)
 		{
 		case GfxShaderStage::VS:

@@ -180,6 +180,7 @@
     <ClCompile Include="Graphics\GfxQuery.cpp" />
     <ClCompile Include="Graphics\GfxScopedAnnotation.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
+    <ClCompile Include="Graphics\GfxShaderProgram.cpp" />
     <ClCompile Include="Graphics\GfxStates.cpp" />
     <ClCompile Include="Input\Input.cpp" />
     <ClCompile Include="Logging\Logger.cpp" />

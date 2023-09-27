@@ -1,9 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <d3d11.h>
 #include "GfxFormat.h"
-#include "GfxShader.h"
 
 namespace adria
 {
@@ -28,6 +26,7 @@ namespace adria
 	};
 
 	class GfxDevice;
+	struct GfxShaderBytecode;
 	class GfxInputLayout
 	{
 	public:

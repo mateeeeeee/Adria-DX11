@@ -6,6 +6,8 @@
 #include "ShaderManager.h"
 #include "Graphics/GfxShaderProgram.h"
 #include "Graphics/GfxShaderCompiler.h"
+#include "Graphics/GfxDevice.h"
+#include "Graphics/GfxInputLayout.h"
 #include "Logging/Logger.h"
 #include "Utilities/Timer.h"
 #include "Utilities/HashMap.h"
@@ -18,7 +20,7 @@ namespace adria
 {
 	namespace
 	{
-		ID3D11Device* device;
+		GfxDevice* device;
 		std::unique_ptr<FileWatcher> file_watcher;
 		DelegateHandle file_modified_handle;
 
@@ -28,8 +30,8 @@ namespace adria
 		HashMap<ShaderId, std::unique_ptr<GfxDomainShader>>		ds_shader_map;
 		HashMap<ShaderId, std::unique_ptr<GfxGeometryShader>>	gs_shader_map;
 		HashMap<ShaderId, std::unique_ptr<GfxComputeShader>>	cs_shader_map;
+		HashMap<ShaderId, std::unique_ptr<GfxInputLayout>>		input_layout_map;
 		HashMap<ShaderId, HashSet<fs::path>>					dependent_files_map;
-		HashMap<ShaderId, GfxInputLayout2>						input_layout_map;
 
 		HashMap<ShaderProgram, GfxGraphicsShaderProgram>		gfx_shader_program_map;
 		HashMap<ShaderProgram, GfxComputeShaderProgram>			compute_shader_program_map;
@@ -393,27 +395,27 @@ namespace adria
 			{
 			case GfxShaderStage::VS:
 				if(first_compile) vs_shader_map[shader] = std::make_unique<GfxVertexShader>(device, output.shader_bytecode);
-				else vs_shader_map[shader]->Recreate(device, output.shader_bytecode);
+				else vs_shader_map[shader]->Recreate(output.shader_bytecode);
 				break;
 			case GfxShaderStage::PS:
 				if (first_compile) ps_shader_map[shader] = std::make_unique<GfxPixelShader>(device, output.shader_bytecode);
-				else ps_shader_map[shader]->Recreate(device, output.shader_bytecode);
+				else ps_shader_map[shader]->Recreate(output.shader_bytecode);
 				break;
 			case GfxShaderStage::HS:
 				if (first_compile) hs_shader_map[shader] = std::make_unique<GfxHullShader>(device, output.shader_bytecode);
-				else hs_shader_map[shader]->Recreate(device, output.shader_bytecode);
+				else hs_shader_map[shader]->Recreate(output.shader_bytecode);
 				break;
 			case GfxShaderStage::DS:
 				if (first_compile) ds_shader_map[shader] = std::make_unique<GfxDomainShader>(device, output.shader_bytecode);
-				else ds_shader_map[shader]->Recreate(device, output.shader_bytecode);
+				else ds_shader_map[shader]->Recreate(output.shader_bytecode);
 				break;
 			case GfxShaderStage::GS:
 				if (first_compile) gs_shader_map[shader] = std::make_unique<GfxGeometryShader>(device, output.shader_bytecode);
-				else gs_shader_map[shader]->Recreate(device, output.shader_bytecode);
+				else gs_shader_map[shader]->Recreate(output.shader_bytecode);
 				break;
 			case GfxShaderStage::CS:
 				if (first_compile) cs_shader_map[shader] = std::make_unique<GfxComputeShader>(device, output.shader_bytecode);
-				else cs_shader_map[shader]->Recreate(device, output.shader_bytecode);
+				else cs_shader_map[shader]->Recreate(output.shader_bytecode);
 				break;
 			default:
 				ADRIA_ASSERT(false);
@@ -429,70 +431,72 @@ namespace adria
 				ShaderId shader = (ShaderId)s;
 				if (GetStage(shader) != GfxShaderStage::VS) continue;
 				
-				if (shader != VS_Foliage) input_layout_map.emplace(std::piecewise_construct, 
-																   std::forward_as_tuple(shader),
-																   std::forward_as_tuple(device, vs_shader_map[shader]->GetBytecode()));
+				if (shader != VS_Foliage)
+
+					input_layout_map[shader] = std::make_unique<GfxInputLayout>(device, vs_shader_map[shader]->GetBytecode());
 				else
 				{
-					std::vector<D3D11_INPUT_ELEMENT_DESC> foliage_input_desc = {
-						{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-						{ "TEX", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-						{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 20, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-						{ "INSTANCE_OFFSET", 0, DXGI_FORMAT_R32G32B32_FLOAT, 1, 0, D3D11_INPUT_PER_INSTANCE_DATA, 1 },
-						{ "INSTANCE_ROTATION", 0, DXGI_FORMAT_R32_FLOAT, 1, 12, D3D11_INPUT_PER_INSTANCE_DATA, 1 }
+					GfxInputLayoutDesc foliage_input_desc = {
+						.elements = 
+						{
+							GfxInputLayoutDesc::GfxInputElement{ "POSITION", 0, GfxFormat::R32G32B32_FLOAT, 0, 0, GfxInputClassification::PerVertexData },
+							GfxInputLayoutDesc::GfxInputElement{ "TEX", 0, GfxFormat::R32G32_FLOAT, 0, 12, GfxInputClassification::PerVertexData },
+							GfxInputLayoutDesc::GfxInputElement{ "NORMAL", 0, GfxFormat::R32G32B32_FLOAT, 0, 20, GfxInputClassification::PerVertexData },
+							GfxInputLayoutDesc::GfxInputElement{ "INSTANCE_OFFSET", 0, GfxFormat::R32G32B32_FLOAT, 1, 0, GfxInputClassification::PerInstanceData },
+							GfxInputLayoutDesc::GfxInputElement{ "INSTANCE_ROTATION", 0, GfxFormat::R32_FLOAT, 1, 12, GfxInputClassification::PerInstanceData }
+						} 
 					};
-					input_layout_map.emplace(std::piecewise_construct,
-						std::forward_as_tuple(shader),
-						std::forward_as_tuple(device, vs_shader_map[shader]->GetBytecode(), foliage_input_desc));
+
+					input_layout_map[shader] = std::make_unique<GfxInputLayout>(device, vs_shader_map[shader]->GetBytecode(), foliage_input_desc);
 				}
 			}
 
-			gfx_shader_program_map[ShaderProgram::Skybox].SetVertexShader(vs_shader_map[VS_Sky].get()).SetPixelShader(ps_shader_map[PS_Skybox].get()).SetInputLayout(&input_layout_map[VS_Sky]); 
-			gfx_shader_program_map[ShaderProgram::HosekWilkieSky].SetVertexShader(vs_shader_map[VS_Sky].get()).SetPixelShader(ps_shader_map[PS_HosekWilkieSky].get()).SetInputLayout(&input_layout_map[VS_Sky]); 
-			gfx_shader_program_map[ShaderProgram::UniformColorSky].SetVertexShader(vs_shader_map[VS_Sky].get()).SetPixelShader(ps_shader_map[PS_UniformColorSky].get()).SetInputLayout(&input_layout_map[VS_Sky]); 
-			gfx_shader_program_map[ShaderProgram::Texture].SetVertexShader(vs_shader_map[VS_Texture].get()).SetPixelShader(ps_shader_map[PS_Texture].get()).SetInputLayout(&input_layout_map[VS_Texture]); 
-			gfx_shader_program_map[ShaderProgram::Solid].SetVertexShader(vs_shader_map[VS_Solid].get()).SetPixelShader(ps_shader_map[PS_Solid].get()).SetInputLayout(&input_layout_map[VS_Solid]); 
-			gfx_shader_program_map[ShaderProgram::Sun].SetVertexShader(vs_shader_map[VS_Sun].get()).SetPixelShader(ps_shader_map[PS_Sun].get()).SetInputLayout(&input_layout_map[VS_Sun]); 
-			gfx_shader_program_map[ShaderProgram::Billboard].SetVertexShader(vs_shader_map[VS_Billboard].get()).SetPixelShader(ps_shader_map[PS_Billboard].get()).SetInputLayout(&input_layout_map[VS_Billboard]); 
-			gfx_shader_program_map[ShaderProgram::Decals].SetVertexShader(vs_shader_map[VS_Decals].get()).SetPixelShader(ps_shader_map[PS_Decals].get()).SetInputLayout(&input_layout_map[VS_Decals]); 
-			gfx_shader_program_map[ShaderProgram::Decals_ModifyNormals].SetVertexShader(vs_shader_map[VS_Decals].get()).SetPixelShader(ps_shader_map[PS_DecalsModifyNormals].get()).SetInputLayout(&input_layout_map[VS_Decals]); 
-			gfx_shader_program_map[ShaderProgram::GBuffer_Terrain].SetVertexShader(vs_shader_map[VS_GBufferTerrain].get()).SetPixelShader(ps_shader_map[PS_GBufferTerrain].get()).SetInputLayout(&input_layout_map[VS_GBufferTerrain]); 
-			gfx_shader_program_map[ShaderProgram::GBufferPBR].SetVertexShader(vs_shader_map[VS_GBufferPBR].get()).SetPixelShader(ps_shader_map[PS_GBufferPBR].get()).SetInputLayout(&input_layout_map[VS_GBufferPBR]); 
-			gfx_shader_program_map[ShaderProgram::GBufferPBR_Mask].SetVertexShader(vs_shader_map[VS_GBufferPBR].get()).SetPixelShader(ps_shader_map[PS_GBufferPBR_Mask].get()).SetInputLayout(&input_layout_map[VS_GBufferPBR]); 
-			gfx_shader_program_map[ShaderProgram::AmbientPBR].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::AmbientPBR_AO].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_AO].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::AmbientPBR_IBL].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_IBL].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::AmbientPBR_AO_IBL].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_AO_IBL].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::LightingPBR].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_LightingPBR].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::ClusterLightingPBR].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_ClusterLightingPBR].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::ToneMap_Reinhard].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Reinhard].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::ToneMap_Linear].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Linear].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::ToneMap_Hable].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Hable].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
+			gfx_shader_program_map[ShaderProgram::Skybox].SetVertexShader(vs_shader_map[VS_Sky].get()).SetPixelShader(ps_shader_map[PS_Skybox].get()).SetInputLayout(input_layout_map[VS_Sky].get());
+			gfx_shader_program_map[ShaderProgram::HosekWilkieSky].SetVertexShader(vs_shader_map[VS_Sky].get()).SetPixelShader(ps_shader_map[PS_HosekWilkieSky].get()).SetInputLayout(input_layout_map[VS_Sky].get());
+			gfx_shader_program_map[ShaderProgram::UniformColorSky].SetVertexShader(vs_shader_map[VS_Sky].get()).SetPixelShader(ps_shader_map[PS_UniformColorSky].get()).SetInputLayout(input_layout_map[VS_Sky].get());
+			gfx_shader_program_map[ShaderProgram::Texture].SetVertexShader(vs_shader_map[VS_Texture].get()).SetPixelShader(ps_shader_map[PS_Texture].get()).SetInputLayout(input_layout_map[VS_Texture].get());
+			gfx_shader_program_map[ShaderProgram::Solid].SetVertexShader(vs_shader_map[VS_Solid].get()).SetPixelShader(ps_shader_map[PS_Solid].get()).SetInputLayout(input_layout_map[VS_Solid].get());
+			gfx_shader_program_map[ShaderProgram::Sun].SetVertexShader(vs_shader_map[VS_Sun].get()).SetPixelShader(ps_shader_map[PS_Sun].get()).SetInputLayout(input_layout_map[VS_Sun].get());
+			gfx_shader_program_map[ShaderProgram::Billboard].SetVertexShader(vs_shader_map[VS_Billboard].get()).SetPixelShader(ps_shader_map[PS_Billboard].get()).SetInputLayout(input_layout_map[VS_Billboard].get());
+			gfx_shader_program_map[ShaderProgram::Decals].SetVertexShader(vs_shader_map[VS_Decals].get()).SetPixelShader(ps_shader_map[PS_Decals].get()).SetInputLayout(input_layout_map[VS_Decals].get());
+			gfx_shader_program_map[ShaderProgram::Decals_ModifyNormals].SetVertexShader(vs_shader_map[VS_Decals].get()).SetPixelShader(ps_shader_map[PS_DecalsModifyNormals].get()).SetInputLayout(input_layout_map[VS_Decals].get());
+			gfx_shader_program_map[ShaderProgram::GBuffer_Terrain].SetVertexShader(vs_shader_map[VS_GBufferTerrain].get()).SetPixelShader(ps_shader_map[PS_GBufferTerrain].get()).SetInputLayout(input_layout_map[VS_GBufferTerrain].get());
+			gfx_shader_program_map[ShaderProgram::GBufferPBR].SetVertexShader(vs_shader_map[VS_GBufferPBR].get()).SetPixelShader(ps_shader_map[PS_GBufferPBR].get()).SetInputLayout(input_layout_map[VS_GBufferPBR].get());
+			gfx_shader_program_map[ShaderProgram::GBufferPBR_Mask].SetVertexShader(vs_shader_map[VS_GBufferPBR].get()).SetPixelShader(ps_shader_map[PS_GBufferPBR_Mask].get()).SetInputLayout(input_layout_map[VS_GBufferPBR].get());
+			gfx_shader_program_map[ShaderProgram::AmbientPBR].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::AmbientPBR_AO].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_AO].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::AmbientPBR_IBL].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_IBL].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::AmbientPBR_AO_IBL].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_AO_IBL].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::LightingPBR].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_LightingPBR].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::ClusterLightingPBR].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_ClusterLightingPBR].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::ToneMap_Reinhard].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Reinhard].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::ToneMap_Linear].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Linear].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::ToneMap_Hable].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Hable].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 
-			gfx_shader_program_map[ShaderProgram::FXAA].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_FXAA].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::TAA].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_TAA].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::Copy].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_Copy].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::Add].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_Add].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::SSAO].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_SSAO].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::HBAO].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_HBAO].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::SSR].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_SSR].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::GodRays].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_GodRays].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::DOF].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_DepthOfField].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::LensFlare].SetVertexShader(vs_shader_map[VS_LensFlare].get()).SetGeometryShader(gs_shader_map[GS_LensFlare].get()).SetPixelShader(ps_shader_map[PS_LensFlare].get()).SetInputLayout(&input_layout_map[VS_LensFlare]); 
-			gfx_shader_program_map[ShaderProgram::BokehDraw].SetVertexShader(vs_shader_map[VS_Bokeh].get()).SetGeometryShader(gs_shader_map[GS_Bokeh].get()).SetPixelShader(ps_shader_map[PS_Bokeh].get()).SetInputLayout(&input_layout_map[VS_Bokeh]); 
+			gfx_shader_program_map[ShaderProgram::FXAA].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_FXAA].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::TAA].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_TAA].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::Copy].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_Copy].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::Add].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_Add].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::SSAO].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_SSAO].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::HBAO].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_HBAO].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::SSR].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_SSR].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::GodRays].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_GodRays].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::DOF].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_DepthOfField].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::LensFlare].SetVertexShader(vs_shader_map[VS_LensFlare].get()).SetGeometryShader(gs_shader_map[GS_LensFlare].get()).SetPixelShader(ps_shader_map[PS_LensFlare].get()).SetInputLayout(input_layout_map[VS_LensFlare].get());
+			gfx_shader_program_map[ShaderProgram::BokehDraw].SetVertexShader(vs_shader_map[VS_Bokeh].get()).SetGeometryShader(gs_shader_map[GS_Bokeh].get()).SetPixelShader(ps_shader_map[PS_Bokeh].get()).SetInputLayout(input_layout_map[VS_Bokeh].get());
 
-			gfx_shader_program_map[ShaderProgram::Volumetric_Clouds].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricClouds].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::VelocityBuffer].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VelocityBuffer].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::MotionBlur].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_MotionBlur].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::Fog].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_Fog].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
+			gfx_shader_program_map[ShaderProgram::Volumetric_Clouds].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricClouds].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::VelocityBuffer].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VelocityBuffer].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::MotionBlur].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_MotionBlur].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::Fog].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_Fog].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 
-			gfx_shader_program_map[ShaderProgram::DepthMap].SetVertexShader(vs_shader_map[VS_DepthMap].get()).SetPixelShader(ps_shader_map[PS_DepthMap].get()).SetInputLayout(&input_layout_map[VS_DepthMap]); 
-			gfx_shader_program_map[ShaderProgram::DepthMap_Transparent].SetVertexShader(vs_shader_map[VS_DepthMapTransparent].get()).SetPixelShader(ps_shader_map[PS_DepthMapTransparent].get()).SetInputLayout(&input_layout_map[VS_DepthMapTransparent]); 
+			gfx_shader_program_map[ShaderProgram::DepthMap].SetVertexShader(vs_shader_map[VS_DepthMap].get()).SetPixelShader(ps_shader_map[PS_DepthMap].get()).SetInputLayout(input_layout_map[VS_DepthMap].get());
+			gfx_shader_program_map[ShaderProgram::DepthMap_Transparent].SetVertexShader(vs_shader_map[VS_DepthMapTransparent].get()).SetPixelShader(ps_shader_map[PS_DepthMapTransparent].get()).SetInputLayout(input_layout_map[VS_DepthMapTransparent].get());
 
-			gfx_shader_program_map[ShaderProgram::Volumetric_Directional].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricLight_Directional].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::Volumetric_DirectionalCascades].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricLight_DirectionalWithCascades].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::Volumetric_Spot].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricLight_Spot].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
-			gfx_shader_program_map[ShaderProgram::Volumetric_Point].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricLight_Point].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
+			gfx_shader_program_map[ShaderProgram::Volumetric_Directional].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricLight_Directional].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::Volumetric_DirectionalCascades].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricLight_DirectionalWithCascades].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::Volumetric_Spot].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricLight_Spot].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::Volumetric_Point].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricLight_Point].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 
 			compute_shader_program_map[ShaderProgram::Blur_Horizontal].SetComputeShader(cs_shader_map[CS_BlurHorizontal].get()); 
 			compute_shader_program_map[ShaderProgram::Blur_Vertical].SetComputeShader(cs_shader_map[CS_BlurVertical].get()); 
@@ -513,13 +517,13 @@ namespace adria
 			compute_shader_program_map[ShaderProgram::VoxelCopy].SetComputeShader(cs_shader_map[CS_VoxelCopy].get()); 
 			compute_shader_program_map[ShaderProgram::VoxelSecondBounce].SetComputeShader(cs_shader_map[CS_VoxelSecondBounce].get()); 
 
-			gfx_shader_program_map[ShaderProgram::Ocean].SetVertexShader(vs_shader_map[VS_Ocean].get()).SetPixelShader(ps_shader_map[PS_Ocean].get()).SetInputLayout(&input_layout_map[VS_Ocean]); 
+			gfx_shader_program_map[ShaderProgram::Ocean].SetVertexShader(vs_shader_map[VS_Ocean].get()).SetPixelShader(ps_shader_map[PS_Ocean].get()).SetInputLayout(input_layout_map[VS_Ocean].get());
 			gfx_shader_program_map[ShaderProgram::OceanLOD].SetVertexShader(vs_shader_map[VS_OceanLOD].get()).SetHullShader(hs_shader_map[HS_OceanLOD].get()).SetDomainShader(ds_shader_map[DS_OceanLOD].get()).
-				SetPixelShader(ps_shader_map[PS_OceanLOD].get()).SetInputLayout(&input_layout_map[VS_OceanLOD]);
+				SetPixelShader(ps_shader_map[PS_OceanLOD].get()).SetInputLayout(input_layout_map[VS_OceanLOD].get());
 				
-			gfx_shader_program_map[ShaderProgram::Voxelize].SetVertexShader(vs_shader_map[VS_Voxelize].get()).SetGeometryShader(gs_shader_map[GS_Voxelize].get()).SetPixelShader(ps_shader_map[PS_Voxelize].get()).SetInputLayout(&input_layout_map[VS_Voxelize]); 
-			gfx_shader_program_map[ShaderProgram::VoxelizeDebug].SetVertexShader(vs_shader_map[VS_VoxelizeDebug].get()).SetGeometryShader(gs_shader_map[GS_VoxelizeDebug].get()).SetPixelShader(ps_shader_map[PS_VoxelizeDebug].get()).SetInputLayout(&input_layout_map[VS_VoxelizeDebug]); 
-			gfx_shader_program_map[ShaderProgram::VoxelGI].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VoxelGI].get()).SetInputLayout(&input_layout_map[VS_ScreenQuad]); 
+			gfx_shader_program_map[ShaderProgram::Voxelize].SetVertexShader(vs_shader_map[VS_Voxelize].get()).SetGeometryShader(gs_shader_map[GS_Voxelize].get()).SetPixelShader(ps_shader_map[PS_Voxelize].get()).SetInputLayout(input_layout_map[VS_Voxelize].get());
+			gfx_shader_program_map[ShaderProgram::VoxelizeDebug].SetVertexShader(vs_shader_map[VS_VoxelizeDebug].get()).SetGeometryShader(gs_shader_map[GS_VoxelizeDebug].get()).SetPixelShader(ps_shader_map[PS_VoxelizeDebug].get()).SetInputLayout(input_layout_map[VS_VoxelizeDebug].get());
+			gfx_shader_program_map[ShaderProgram::VoxelGI].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VoxelGI].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 
 			compute_shader_program_map[ShaderProgram::Picker].SetComputeShader(cs_shader_map[CS_Picker].get()); 
 
@@ -531,8 +535,8 @@ namespace adria
 			compute_shader_program_map[ShaderProgram::ParticleSort512].SetComputeShader(cs_shader_map[CS_ParticleSort512].get()); 
 			compute_shader_program_map[ShaderProgram::ParticleSortInner512].SetComputeShader(cs_shader_map[CS_ParticleSortInner512].get()); 
 			compute_shader_program_map[ShaderProgram::ParticleSortInitArgs].SetComputeShader(cs_shader_map[CS_ParticleSortInitArgs].get()); 
-			gfx_shader_program_map[ShaderProgram::Particles].SetVertexShader(vs_shader_map[VS_Particles].get()).SetPixelShader(ps_shader_map[PS_Particles].get()).SetInputLayout(&input_layout_map[VS_Particles]); 
-			gfx_shader_program_map[ShaderProgram::GBuffer_Foliage].SetVertexShader(vs_shader_map[VS_Foliage].get()).SetPixelShader(ps_shader_map[PS_Foliage].get()).SetInputLayout(&input_layout_map[VS_Foliage]);
+			gfx_shader_program_map[ShaderProgram::Particles].SetVertexShader(vs_shader_map[VS_Particles].get()).SetPixelShader(ps_shader_map[PS_Particles].get()).SetInputLayout(input_layout_map[VS_Particles].get());
+			gfx_shader_program_map[ShaderProgram::GBuffer_Foliage].SetVertexShader(vs_shader_map[VS_Foliage].get()).SetPixelShader(ps_shader_map[PS_Foliage].get()).SetInputLayout(input_layout_map[VS_Foliage].get());
 		}
 		void CompileAllShaders()
 		{
@@ -562,7 +566,7 @@ namespace adria
 		}
 	}
 
-	void ShaderManager::Initialize(ID3D11Device* _device)
+	void ShaderManager::Initialize(GfxDevice* _device)
 	{
 		device = _device;
 		file_watcher = std::make_unique<FileWatcher>();

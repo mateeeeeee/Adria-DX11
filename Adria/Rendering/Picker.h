@@ -1,11 +1,10 @@
 #pragma once
 #include <memory>
-#include <DirectXMath.h>
 #include "ShaderManager.h"
 #include "Graphics/GfxBuffer.h"
 #include "Graphics/GfxDevice.h" 
+#include "Graphics/GfxCommandContext.h" 
 #include "Graphics/GfxShaderProgram.h" 
-#include "Logging/Logger.h"
 
 namespace adria
 {
@@ -35,15 +34,16 @@ namespace adria
 			picking_buffer->CreateUAV();
 		}
 
-		PickingData Pick(ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* normal_srv)
+		PickingData Pick(GfxReadOnlyDescriptor depth_srv, GfxReadOnlyDescriptor normal_srv)
 		{
-			ID3D11DeviceContext* context = gfx->GetContext();
+			GfxCommandContext* command_context = gfx->GetCommandContext();
+			ID3D11DeviceContext* context = command_context->GetNative();
 			ID3D11ShaderResourceView* shader_views[2] = { depth_srv, normal_srv };
 			context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
 			ID3D11UnorderedAccessView* lights_uav = picking_buffer->UAV();
 			context->CSSetUnorderedAccessViews(0, 1, &lights_uav, nullptr);
 
-			ShaderManager::GetShaderProgram(ShaderProgram::Picker)->Bind(context);
+			ShaderManager::GetShaderProgram(ShaderProgram::Picker)->Bind(command_context);
 			context->Dispatch(1, 1, 1);
 
 			ID3D11ShaderResourceView* null_srv[2] = { nullptr };
