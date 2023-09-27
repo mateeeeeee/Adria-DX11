@@ -41,7 +41,7 @@ namespace adria
 		}
 	}
 
-	void ParticleRenderer::Render(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* particle_srv)
+	void ParticleRenderer::Render(Emitter const& emitter_params, GfxReadOnlyDescriptor depth_srv, GfxReadOnlyDescriptor particle_srv)
 	{
 		if (emitter_params.reset_emitter)
 		{
@@ -79,10 +79,10 @@ namespace adria
 
 	void ParticleRenderer::CreateIndexBuffer()
 	{
-		std::vector<UINT> indices(MAX_PARTICLES * 6);
-		UINT base = 0;
-		size_t offset = 0;
-		for (size_t i = 0; i < MAX_PARTICLES; i++)
+		std::vector<uint32> indices(MAX_PARTICLES * 6);
+		uint32 base = 0;
+		uint32 offset = 0;
+		for (uint32 i = 0; i < MAX_PARTICLES; i++)
 		{
 			indices[offset + 0] = base + 0;
 			indices[offset + 1] = base + 1;
@@ -127,53 +127,48 @@ namespace adria
 	void ParticleRenderer::InitializeDeadList() 
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
-
+		
 		uint32 initial_count[] = { 0 };
-		ID3D11UnorderedAccessView* dead_list_uavs[] = { dead_list_buffer.UAV() };
-		context->CSSetUnorderedAccessViews(0, 1, dead_list_uavs, initial_count);
+		GfxReadWriteDescriptor dead_list_uavs[] = { dead_list_buffer.UAV() };
+		command_context->SetReadWriteDescriptors(GfxShaderStage::CS, 0, dead_list_uavs, initial_count);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleInitDeadList)->Bind(command_context);
-		context->Dispatch((UINT)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+		command_context->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleInitDeadList)->Unbind(command_context);
 
-		ZeroMemory(dead_list_uavs, sizeof(dead_list_uavs));
-		context->CSSetUnorderedAccessViews(0, 1, dead_list_uavs, nullptr);
+		command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, ARRAYSIZE(dead_list_uavs));
 	}
 
 	void ParticleRenderer::ResetParticles()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
-
-		ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV() };
+		
+		GfxReadWriteDescriptor uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV() };
 		uint32 initial_counts[] = { (uint32)-1, (uint32)-1 };
-		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
+		command_context->SetReadWriteDescriptors(GfxShaderStage::CS, 0, uavs, initial_counts);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleReset)->Bind(command_context);
-		context->Dispatch((UINT)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+		command_context->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleReset)->Unbind(command_context);
 
-		ZeroMemory(uavs, sizeof(uavs));
-		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
+		command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, ARRAYSIZE(uavs));
 	}
 
 	void ParticleRenderer::Emit(Emitter const& emitter_params)
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxScopedAnnotation(command_context,"Particles Emit Pass");
 
 		if (emitter_params.number_to_emit > 0)
 		{
 			ShaderManager::GetShaderProgram(ShaderProgram::ParticleEmit)->Bind(command_context);
 
-			ID3D11UnorderedAccessView* uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV(), dead_list_buffer.UAV() };
+			GfxReadWriteDescriptor uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV(), dead_list_buffer.UAV() };
 			uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1 };
-			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
+			command_context->SetReadWriteDescriptors(GfxShaderStage::CS, 0, uavs, initial_counts);
 
-			ID3D11ShaderResourceView* srvs[] = { random_texture->SRV() };
-			context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
+			GfxReadOnlyDescriptor srvs[] = { random_texture->SRV() };
+			command_context->SetReadOnlyDescriptors(GfxShaderStage::CS, 0, srvs);
 
 			EmitterCBuffer emitter_cbuffer_data{};
 			emitter_cbuffer_data.ElapsedTime = emitter_params.elapsed_time;
@@ -193,15 +188,12 @@ namespace adria
 			dead_list_count_cbuffer.Bind(command_context, GfxShaderStage::CS, 11);
 			emitter_cbuffer.Bind(command_context, GfxShaderStage::CS, 13);
 
-			context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.UAV());
-			uint32 thread_groups_x = (UINT)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
-			context->Dispatch(thread_groups_x, 1, 1);
+			command_context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.UAV());
+			uint32 thread_groups_x = (uint32)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
+			command_context->Dispatch(thread_groups_x, 1, 1);
 
-			ZeroMemory(srvs, sizeof(srvs));
-			context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
-
-			ZeroMemory(uavs, sizeof(uavs));
-			context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
+			command_context->UnsetReadOnlyDescriptors(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
+			command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, ARRAYSIZE(uavs));
 
 			ShaderManager::GetShaderProgram(ShaderProgram::ParticleEmit)->Unbind(command_context);
 		}
@@ -210,73 +202,66 @@ namespace adria
 	void ParticleRenderer::Simulate(ID3D11ShaderResourceView* depth_srv)
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxScopedAnnotation(command_context, "Particles Simulate Pass");
 
-		ID3D11UnorderedAccessView* uavs[] = {
+		GfxReadWriteDescriptor uavs[] = {
 			particle_bufferA.UAV(), particle_bufferB.UAV(),
 			dead_list_buffer.UAV(), alive_index_buffer.UAV(),
 			view_space_positions_buffer.UAV(), indirect_render_args_buffer.UAV() };
 		uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1, 0, (uint32)-1, (uint32)-1 };
-		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, initial_counts);
+		command_context->SetReadWriteDescriptors(GfxShaderStage::CS, 0, uavs, initial_counts);
 
-		ID3D11ShaderResourceView* srvs[] = { depth_srv };
-		context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
+		GfxReadOnlyDescriptor srvs[] = { depth_srv };
+		command_context->SetReadOnlyDescriptors(GfxShaderStage::CS, 0, srvs);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleSimulate)->Bind(command_context);
-		context->Dispatch((UINT)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+		command_context->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 
-		ZeroMemory(uavs, sizeof(uavs));
-		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
+		command_context->UnsetReadOnlyDescriptors(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
+		command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, ARRAYSIZE(uavs));
 
-		ZeroMemory(srvs, sizeof(srvs));
-		context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
-
-		context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.UAV());
+		command_context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.UAV());
 	}
 
-	void ParticleRenderer::Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* particle_srv)
+	void ParticleRenderer::Rasterize(Emitter const& emitter_params, GfxReadOnlyDescriptor depth_srv, GfxReadOnlyDescriptor particle_srv)
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxScopedAnnotation(command_context, "Particles Rasterize Pass");
 
 		active_list_count_cbuffer.Bind(command_context, GfxShaderStage::VS, 12);
 
-		BindNullVertexBuffer(context);
-		BindIndexBuffer(context, index_buffer.get());
-		context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		command_context->SetVertexBuffer(nullptr);
+		command_context->SetIndexBuffer(index_buffer.get());
+		command_context->SetTopology(GfxPrimitiveTopology::TriangleList);
+		
+		GfxReadOnlyDescriptor vs_srvs[] = { particle_bufferA.SRV(), view_space_positions_buffer.SRV(), alive_index_buffer.SRV() };
+		GfxReadOnlyDescriptor ps_srvs[] = { particle_srv, depth_srv };
 
-		ID3D11ShaderResourceView* vs_srvs[] = { particle_bufferA.SRV(), view_space_positions_buffer.SRV(), alive_index_buffer.SRV() };
-		ID3D11ShaderResourceView* ps_srvs[] = { particle_srv, depth_srv };
-		context->VSSetShaderResources(0, ARRAYSIZE(vs_srvs), vs_srvs);
-		context->PSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
+		command_context->SetReadOnlyDescriptors(GfxShaderStage::VS, 0, vs_srvs);
+		command_context->SetReadOnlyDescriptors(GfxShaderStage::PS, 0, ps_srvs);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::Particles)->Bind(command_context);
-		context->DrawIndexedInstancedIndirect(indirect_render_args_buffer.GetNative(), 0);
-
-		ZeroMemory(vs_srvs, sizeof(vs_srvs));
-		context->VSSetShaderResources(0, ARRAYSIZE(vs_srvs), vs_srvs);
-		ZeroMemory(ps_srvs, sizeof(ps_srvs));
-		context->PSSetShaderResources(0, ARRAYSIZE(ps_srvs), ps_srvs);
+		command_context->DrawIndexedIndirect(indirect_render_args_buffer, 0);
+		
+		command_context->UnsetReadOnlyDescriptors(GfxShaderStage::VS, 0, ARRAYSIZE(vs_srvs));
+		command_context->UnsetReadOnlyDescriptors(GfxShaderStage::PS, 0, ARRAYSIZE(ps_srvs));
 	}
 
 	void ParticleRenderer::Sort()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxScopedAnnotation(command_context, "Particles Sort Pass");
 
 		active_list_count_cbuffer.Bind(command_context, GfxShaderStage::CS, 11);
 		sort_dispatch_info_cbuffer.Bind(command_context, GfxShaderStage::CS, 12);
 
-		ID3D11UnorderedAccessView* indirect_sort_args_uav = indirect_sort_args_buffer.UAV();
-		context->CSSetUnorderedAccessViews(0, 1, &indirect_sort_args_uav, nullptr);
+		GfxReadWriteDescriptor indirect_sort_args_uav = indirect_sort_args_buffer.UAV();
+		command_context->SetReadWriteDescriptor(GfxShaderStage::CS, 0, indirect_sort_args_uav);
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleSortInitArgs)->Bind(command_context);
-		context->Dispatch(1, 1, 1);
+		command_context->Dispatch(1, 1, 1);
 
-		ID3D11UnorderedAccessView* uav = alive_index_buffer.UAV();
-		context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+		GfxReadWriteDescriptor uav = alive_index_buffer.UAV();
+		command_context->SetReadWriteDescriptor(GfxShaderStage::CS, 0, uav);
 
 		bool done = SortInitial();
 		uint32 presorted = 512;
@@ -287,26 +272,25 @@ namespace adria
 		}
 
 		uav = nullptr;
-		context->CSSetUnorderedAccessViews(0, 1, &uav, nullptr);
+		command_context->SetReadWriteDescriptor(GfxShaderStage::CS, 0, nullptr);
+
 	}
 
 	bool ParticleRenderer::SortInitial()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		bool done = true;
 		uint32 numThreadGroups = ((MAX_PARTICLES - 1) >> 9) + 1;
 		if (numThreadGroups > 1) done = false;
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleSort512)->Bind(command_context);
-		context->DispatchIndirect(indirect_sort_args_buffer.GetNative(), 0);
+		command_context->DispatchIndirect(indirect_sort_args_buffer, 0);
 		return done;
 	}
 
 	bool ParticleRenderer::SortIncremental(uint32 presorted)
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
-
+		
 		bool done = true;
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleBitonicSortStep)->Bind(command_context);
 
@@ -337,10 +321,10 @@ namespace adria
 			}
 			sort_dispatch_info.w = 0;
 			sort_dispatch_info_cbuffer.Update(command_context, sort_dispatch_info);
-			context->Dispatch(num_thread_groups, 1, 1);
+			command_context->Dispatch(num_thread_groups, 1, 1);
 		}
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleSortInner512)->Bind(command_context);
-		context->Dispatch(num_thread_groups, 1, 1);
+		command_context->Dispatch(num_thread_groups, 1, 1);
 
 		return done;
 	}

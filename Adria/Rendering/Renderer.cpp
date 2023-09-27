@@ -213,7 +213,7 @@ namespace adria
 			Vector3 target_pos = XMLoadFloat3(&scene_bounding_sphere.Center);
 			Matrix V = XMMatrixLookAtLH(light_pos, target_pos, Vector3::Up);
 			Vector3 sphere_centerLS = Vector3::Transform(target_pos, V);
-			
+
 			float l = sphere_centerLS.x - scene_bounding_sphere.Radius;
 			float b = sphere_centerLS.y - scene_bounding_sphere.Radius;
 			float n = sphere_centerLS.z - scene_bounding_sphere.Radius;
@@ -274,8 +274,6 @@ namespace adria
 			return gauss;
 		}
 
-		static constexpr GfxReadOnlyDescriptor NULL_SRVS[] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
-		static constexpr GfxReadWriteDescriptor NULL_UAVS[] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 	}
 
 	Renderer::Renderer(registry& reg, GfxDevice* gfx, uint32 width, uint32 height)
@@ -350,7 +348,7 @@ namespace adria
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		ID3D11DeviceContext* context = command_context->GetNative();
-		if (renderer_settings.anti_aliasing & EAntiAliasing_FXAA)
+		if (renderer_settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			command_context->BeginRenderPass(fxaa_pass);
 			PassToneMap();
@@ -370,7 +368,7 @@ namespace adria
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		ID3D11DeviceContext* context = command_context->GetNative();
-		if (renderer_settings.anti_aliasing & EAntiAliasing_FXAA)
+		if (renderer_settings.anti_aliasing & AntiAliasing_FXAA)
 		{
 			command_context->BeginRenderPass(fxaa_pass);
 			PassToneMap();
@@ -607,8 +605,6 @@ namespace adria
 	}
 	void Renderer::CreateRenderStates()
 	{
-		ID3D11Device* device = gfx->GetDevice();
-
 		additive_blend = std::make_unique<GfxBlendState>(gfx, AdditiveBlendStateDesc());
 		alpha_blend = std::make_unique<GfxBlendState>(gfx, AlphaBlendStateDesc());
 
@@ -1136,7 +1132,7 @@ namespace adria
 	void Renderer::CreateIBLTextures()
 	{
 		//#TODO refactor IBL
-		ibl_textures_generated = true;
+		ibl_textures_generated = false;
 	}
 
 	void Renderer::BindGlobals()
@@ -1664,7 +1660,7 @@ namespace adria
 
 					mesh.Draw(context);
 				}
-				if (params.double_sided) context->RSSetState(nullptr); 
+				if (params.double_sided) command_context->SetRasterizerState(nullptr);
 			}
 			
 			auto terrain_view = reg.view<Mesh, Transform, AABB, TerrainComponent>();
@@ -1774,7 +1770,7 @@ namespace adria
 				context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
 				context->DrawIndexed(cube_ib->GetCount(), 0, 0);
 			}
-			context->RSSetState(nullptr);
+			command_context->SetRasterizerState(nullptr);
 		}
 		command_context->EndRenderPass();
 	}
@@ -1968,7 +1964,7 @@ namespace adria
 
 
 		}
-		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+		command_context->SetBlendState(nullptr);
 	}
 	void Renderer::PassDeferredTiledLighting()
 	{
@@ -2054,7 +2050,7 @@ namespace adria
 
 			PassVolumetric(light);
 		}
-		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+		command_context->SetBlendState(nullptr);
 		command_context->EndRenderPass();
 	}
 	void Renderer::PassDeferredClusteredLighting()
@@ -2147,7 +2143,7 @@ namespace adria
 			}
 		}
 		command_context->EndRenderPass();
-		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+		command_context->SetBlendState(nullptr);
 	}
 	void Renderer::PassForward()
 	{
@@ -2234,7 +2230,7 @@ namespace adria
 		context->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr,
 			0, 0, nullptr, nullptr);
 
-		context->RSSetState(nullptr);
+		command_context->SetRasterizerState(nullptr);
 		ShaderManager::GetShaderProgram(ShaderProgram::Voxelize)->Unbind(command_context);
 
 		ID3D11UnorderedAccessView* uavs[] = { voxels_uav, voxel_texture->UAV() };
@@ -2316,7 +2312,7 @@ namespace adria
 			context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
 		}
 		command_context->EndRenderPass();
-		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+		command_context->SetBlendState(nullptr);
 	}
 	void Renderer::PassPostprocessing()
 	{
@@ -2337,7 +2333,7 @@ namespace adria
 			if (!light_data.active || !light_data.lens_flare) continue;
 			PassLensFlare(light_data);
 		}
-		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+		command_context->SetBlendState(nullptr);
 
 		command_context->EndRenderPass();
 		postprocess_index = !postprocess_index;
@@ -2413,13 +2409,13 @@ namespace adria
 					command_context->BeginRenderPass(postprocess_passes[!postprocess_index]);
 					command_context->SetBlendState(additive_blend.get());
 					CopyTexture(sun_target.get());
-					context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+					command_context->SetBlendState(nullptr);
 					command_context->EndRenderPass();
 				}
 			}
 		}
 
-		if (renderer_settings.anti_aliasing & EAntiAliasing_TAA)
+		if (renderer_settings.anti_aliasing & AntiAliasing_TAA)
 		{
 			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
 			PassTAA();
@@ -2457,7 +2453,7 @@ namespace adria
 			command_context->SetRasterizerState(shadow_depth_bias.get());
 			LightFrustumCulling(LightType::Directional);
 			PassShadowMapCommon();
-			context->RSSetState(nullptr);
+			command_context->SetRasterizerState(nullptr);
 		}
 		command_context->EndRenderPass();
 		ID3D11ShaderResourceView* shadow_depth_srv[1] = { shadow_depth_map->SRV() };
@@ -2486,7 +2482,7 @@ namespace adria
 			command_context->SetRasterizerState(shadow_depth_bias.get());
 			LightFrustumCulling(LightType::Spot);
 			PassShadowMapCommon();
-			context->RSSetState(nullptr);
+			command_context->SetRasterizerState(nullptr);
 		}
 		command_context->EndRenderPass();
 		ID3D11ShaderResourceView* shadow_depth_srv[1] = { shadow_depth_map->SRV() };
@@ -2515,7 +2511,7 @@ namespace adria
 				command_context->SetRasterizerState(shadow_depth_bias.get());
 				LightFrustumCulling(LightType::Point);
 				PassShadowMapCommon();
-				context->RSSetState(nullptr);
+				command_context->SetRasterizerState(nullptr);
 			}
 			command_context->EndRenderPass();
 		}
@@ -2555,7 +2551,7 @@ namespace adria
 			command_context->EndRenderPass();
 		}
 
-		context->RSSetState(nullptr);
+		command_context->SetRasterizerState(nullptr);
 		ID3D11ShaderResourceView* srv[] = { shadow_cascade_maps->SRV() };
 		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWARRAY, 1, srv);
 
@@ -2746,7 +2742,7 @@ namespace adria
 		BindIndexBuffer(context, cube_ib.get());
 		context->DrawIndexed(cube_ib->GetCount(), 0, 0);
 		command_context->SetDepthStencilState(nullptr, 0);
-		context->RSSetState(nullptr);
+		command_context->SetRasterizerState(nullptr);
 	}
 	void Renderer::PassOcean()
 	{
@@ -2807,8 +2803,8 @@ namespace adria
 		context->PSSetShaderResources(1, 1, &null_srv);
 		context->PSSetShaderResources(2, 1, &null_srv);
 
-		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
-		if (renderer_settings.ocean_wireframe) context->RSSetState(nullptr);
+		command_context->SetBlendState(nullptr);
+		if (renderer_settings.ocean_wireframe) command_context->SetRasterizerState(nullptr);
 	}
 	void Renderer::PassParticles()
 	{
@@ -2828,7 +2824,7 @@ namespace adria
 			particle_renderer.Render(emitter_params, depth_target->SRV(), g_TextureManager.GetTextureDescriptor(emitter_params.particle_texture));
 		}
 
-		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+		command_context->SetBlendState(nullptr);
 		command_context->EndRenderPass();
 	}
 
@@ -2856,7 +2852,7 @@ namespace adria
 				BindVertexBuffer(context, aabb.aabb_vb.get());
 				BindIndexBuffer(context, aabb_wireframe_ib.get());
 				context->DrawIndexed(aabb_wireframe_ib->GetCount(), 0, 0);
-				context->RSSetState(nullptr);
+				command_context->SetRasterizerState(nullptr);
 				command_context->SetDepthStencilState(nullptr, 0);
 
 				aabb.draw_aabb = false;
@@ -2906,7 +2902,7 @@ namespace adria
 			if (states) ResolveCustomRenderState(*states, true);
 		}
 
-		if (transparent) context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+		if (transparent) command_context->SetBlendState(nullptr);
 	}
 
 	void Renderer::PassLensFlare(Light const& light)
@@ -3056,7 +3052,7 @@ namespace adria
 			context->Draw(4, 0);
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 		}
-		context->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+		command_context->SetBlendState(nullptr);
 	}
 	void Renderer::PassDepthOfField()
 	{
@@ -3176,7 +3172,7 @@ namespace adria
 	}
 	void Renderer::PassVelocityBuffer()
 	{
-		if (!renderer_settings.motion_blur && !(renderer_settings.anti_aliasing & EAntiAliasing_TAA)) return;
+		if (!renderer_settings.motion_blur && !(renderer_settings.anti_aliasing & AntiAliasing_TAA)) return;
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Velocity Buffer Pass", profiling_enabled);
@@ -3283,7 +3279,7 @@ namespace adria
 	}
 	void Renderer::PassFXAA()
 	{
-		ADRIA_ASSERT(renderer_settings.anti_aliasing & EAntiAliasing_FXAA);
+		ADRIA_ASSERT(renderer_settings.anti_aliasing & AntiAliasing_FXAA);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "FXAA Pass", profiling_enabled);

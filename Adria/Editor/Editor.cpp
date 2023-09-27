@@ -1509,7 +1509,6 @@ namespace adria
 
             if (ImGui::TreeNode("Postprocessing"))
             {
-                //ambient occlusion
                 {
                     const char* ao_types[] = { "None", "SSAO", "HBAO" };
                     static int current_ao_type = 0;
@@ -1529,7 +1528,6 @@ namespace adria
 
                     if (renderer_settings.ambient_occlusion == AmbientOcclusion::SSAO && ImGui::TreeNodeEx("SSAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
-                        //ImGui::Checkbox("SSAO", &settings.ssao);
                         ImGui::SliderFloat("Power", &renderer_settings.ssao_power, 1.0f, 16.0f);
                         ImGui::SliderFloat("Radius", &renderer_settings.ssao_radius, 0.5f, 4.0f);
 
@@ -1538,7 +1536,6 @@ namespace adria
                     }
                     if (renderer_settings.ambient_occlusion == AmbientOcclusion::HBAO && ImGui::TreeNodeEx("HBAO", ImGuiTreeNodeFlags_OpenOnDoubleClick))
                     {
-                        //ImGui::Checkbox("SSAO", &settings.ssao);
                         ImGui::SliderFloat("Power", &renderer_settings.hbao_power, 1.0f, 16.0f);
                         ImGui::SliderFloat("Radius", &renderer_settings.hbao_radius, 0.25f, 8.0f);
 
@@ -1560,19 +1557,19 @@ namespace adria
                     ImGui::Checkbox("TAA", &taa);
                     if (fxaa)
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing | EAntiAliasing_FXAA);
+                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_FXAA);
                     }
                     else
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing & (~EAntiAliasing_FXAA));
+                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_FXAA));
                     }
                     if (taa)
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing | EAntiAliasing_TAA);
+                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing | AntiAliasing_TAA);
                     }
                     else
                     {
-                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing & (~EAntiAliasing_TAA));
+                        renderer_settings.anti_aliasing = static_cast<AntiAliasing>(renderer_settings.anti_aliasing & (~AntiAliasing_TAA));
                     }
                     
                     ImGui::TreePop();
@@ -1631,7 +1628,7 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
-                if ((renderer_settings.motion_blur || (renderer_settings.anti_aliasing & EAntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
+                if ((renderer_settings.motion_blur || (renderer_settings.anti_aliasing & AntiAliasing_TAA)) && ImGui::TreeNodeEx("Velocity Buffer", 0))
                 {
                     ImGui::SliderFloat("Motion Blur Scale", &renderer_settings.velocity_buffer_scale, 32.0f, 128.0f);
                     ImGui::TreePop();
@@ -1640,8 +1637,8 @@ namespace adria
                 if (renderer_settings.fog && ImGui::TreeNodeEx("Fog", 0))
                 {
                     const char* fog_types[] = { "Exponential", "Exponential Height"};
-                    static int current_fog_type = 0; // Here we store our selection data as an index.
-                    const char* combo_label = fog_types[current_fog_type];  // Label to preview before opening the combo (technically it could be anything)
+                    static int current_fog_type = 0; 
+                    const char* combo_label = fog_types[current_fog_type];  
                     if (ImGui::BeginCombo("Fog Type", combo_label, 0))
                     {
                         for (int n = 0; n < IM_ARRAYSIZE(fog_types); n++)

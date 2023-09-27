@@ -11,6 +11,8 @@ namespace adria
 {
 	namespace
 	{
+		const GfxReadOnlyDescriptor NULL_SRVS[16] = { nullptr };
+		const GfxReadWriteDescriptor NULL_UAVS[16] = { nullptr };
 		constexpr D3D_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopology(GfxPrimitiveTopology topology)
 		{
 			switch (topology)
@@ -35,8 +37,6 @@ namespace adria
 
 	void GfxCommandContext::Begin()
 	{
-		annotation = nullptr;
-
 		current_vs = nullptr;
 		current_ps = nullptr;
 		current_hs = nullptr;
@@ -494,6 +494,31 @@ namespace adria
 		}
 	}
 
+	void GfxCommandContext::UnsetReadOnlyDescriptors(GfxShaderStage stage, uint32 start, uint32 count)
+	{
+		switch (stage)
+		{
+		case GfxShaderStage::VS:
+			command_context->VSSetShaderResources(start, count, NULL_SRVS);
+			break;
+		case GfxShaderStage::PS:
+			command_context->PSSetShaderResources(start, count, NULL_SRVS);
+			break;
+		case GfxShaderStage::HS:
+			command_context->HSSetShaderResources(start, count, NULL_SRVS);
+			break;
+		case GfxShaderStage::DS:
+			command_context->DSSetShaderResources(start, count, NULL_SRVS);
+			break;
+		case GfxShaderStage::GS:
+			command_context->GSSetShaderResources(start, count, NULL_SRVS);
+			break;
+		case GfxShaderStage::CS:
+			command_context->CSSetShaderResources(start, count, NULL_SRVS);
+			break;
+		}
+	}
+
 	void GfxCommandContext::SetReadWriteDescriptor(GfxShaderStage stage, uint32 slot, GfxReadWriteDescriptor descriptor)
 	{
 		GfxReadWriteDescriptor descriptors[] = { descriptor };
@@ -504,6 +529,19 @@ namespace adria
 	{
 		ADRIA_ASSERT_MSG(stage == GfxShaderStage::CS, "Read Write descriptors are supported only in CS stage");
 		command_context->CSSetUnorderedAccessViews(start, (uint32)descriptors.size(), descriptors.data(), nullptr);
+	}
+
+	void GfxCommandContext::SetReadWriteDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadWriteDescriptor> descriptors, std::span<uint32> initial_counts)
+	{
+		ADRIA_ASSERT_MSG(stage == GfxShaderStage::CS, "Read Write descriptors are supported only in CS stage");
+		ADRIA_ASSERT(descriptors.size() == initial_counts.size());
+		command_context->CSSetUnorderedAccessViews(start, (uint32)descriptors.size(), descriptors.data(), initial_counts.data());
+	}
+
+	void GfxCommandContext::UnsetReadWriteDescriptors(GfxShaderStage stage, uint32 start, uint32 count)
+	{
+		ADRIA_ASSERT_MSG(stage == GfxShaderStage::CS, "Read Write descriptors are supported only in CS stage");
+		command_context->CSSetUnorderedAccessViews(start, count, NULL_UAVS, nullptr);
 	}
 
 	void GfxCommandContext::GenerateMips(GfxReadOnlyDescriptor srv)
@@ -528,12 +566,12 @@ namespace adria
 
 	void GfxCommandContext::BeginEvent(char const* event_name)
 	{
-		if(false) annotation->BeginEvent(ToWideString(event_name).c_str());
+		annotation->BeginEvent(ToWideString(event_name).c_str());
 	}
 
 	void GfxCommandContext::EndEvent()
 	{
-		if (false) annotation->EndEvent();
+		annotation->EndEvent();
 	}
 
 }

@@ -22,9 +22,9 @@ namespace adria
 		void Update(GfxCommandContext* context, CBuffer const& buffer_data);
 
 		void Bind(GfxCommandContext* context, GfxShaderStage stage, uint32 slot) const;
-		ID3D11Buffer* const Buffer() const 
+		GfxBuffer* Buffer() const
 		{
-			return buffer->GetNative();
+			return buffer.get();
 		}
 
 	private:

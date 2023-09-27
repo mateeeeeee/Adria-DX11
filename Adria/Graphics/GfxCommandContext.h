@@ -93,9 +93,11 @@ namespace adria
 		void SetSamplers(GfxShaderStage stage, uint32 start, std::span<GfxSampler*> samplers);
 		void SetReadOnlyDescriptor(GfxShaderStage stage, uint32 slot, GfxReadOnlyDescriptor descriptor);
 		void SetReadOnlyDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadOnlyDescriptor> descriptors);
+		void UnsetReadOnlyDescriptors(GfxShaderStage stage, uint32 start, uint32 count);
 		void SetReadWriteDescriptor(GfxShaderStage stage, uint32 slot, GfxReadWriteDescriptor descriptor);
 		void SetReadWriteDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadWriteDescriptor> descriptors);
-
+		void SetReadWriteDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadWriteDescriptor> descriptors, std::span<uint32> initial_counts);
+		void UnsetReadWriteDescriptors(GfxShaderStage stage, uint32 start, uint32 count);
 		void GenerateMips(GfxReadOnlyDescriptor srv);
 
 		void BeginQuery(GfxQuery* query);

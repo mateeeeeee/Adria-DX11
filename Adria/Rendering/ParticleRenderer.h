@@ -16,7 +16,7 @@ namespace adria
 
 	class ParticleRenderer
 	{
-		static constexpr size_t MAX_PARTICLES = 400 * 1024;
+		static constexpr uint32 MAX_PARTICLES = 400 * 1024;
 
 		struct GPUParticleA
 		{
@@ -75,8 +75,8 @@ namespace adria
 		void Update(float dt, Emitter& emitter_params);
 
 		void Render(Emitter const& emitter_params,
-					ID3D11ShaderResourceView* depth_srv, 
-					ID3D11ShaderResourceView* particle_srv);
+					GfxReadOnlyDescriptor depth_srv, 
+					GfxReadOnlyDescriptor particle_srv);
 
 	private:
 		GfxDevice* gfx;
@@ -105,8 +105,8 @@ namespace adria
 		void InitializeDeadList();
 		void ResetParticles();
 		void Emit(Emitter const& emitter_params);
-		void Simulate(ID3D11ShaderResourceView* depth_srv);
-		void Rasterize(Emitter const& emitter_params, ID3D11ShaderResourceView* depth_srv, ID3D11ShaderResourceView* particle_srv);
+		void Simulate(GfxReadOnlyDescriptor depth_srv);
+		void Rasterize(Emitter const& emitter_params, GfxReadOnlyDescriptor depth_srv, GfxReadOnlyDescriptor particle_srv);
 		void Sort();
 		
 		bool SortInitial();

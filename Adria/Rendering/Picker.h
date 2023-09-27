@@ -37,19 +37,17 @@ namespace adria
 		PickingData Pick(GfxReadOnlyDescriptor depth_srv, GfxReadOnlyDescriptor normal_srv)
 		{
 			GfxCommandContext* command_context = gfx->GetCommandContext();
-			ID3D11DeviceContext* context = command_context->GetNative();
-			ID3D11ShaderResourceView* shader_views[2] = { depth_srv, normal_srv };
-			context->CSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
-			ID3D11UnorderedAccessView* lights_uav = picking_buffer->UAV();
-			context->CSSetUnorderedAccessViews(0, 1, &lights_uav, nullptr);
-
+			//ID3D11DeviceContext* context = command_context->GetNative();
+			GfxReadOnlyDescriptor srvs[2] = { depth_srv, normal_srv };
+			command_context->SetReadOnlyDescriptors(GfxShaderStage::CS, 0, srvs);
+			GfxReadWriteDescriptor lights_uav = picking_buffer->UAV();
+			command_context->SetReadWriteDescriptor(GfxShaderStage::CS, 0, lights_uav);
+			
 			ShaderManager::GetShaderProgram(ShaderProgram::Picker)->Bind(command_context);
-			context->Dispatch(1, 1, 1);
+			command_context->Dispatch(1, 1, 1);
 
-			ID3D11ShaderResourceView* null_srv[2] = { nullptr };
-			context->CSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
-			ID3D11UnorderedAccessView* null_uav = nullptr;
-			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
+			command_context->UnsetReadOnlyDescriptors(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
+			command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, 1);
 
 			PickingData const* data = (PickingData const*)picking_buffer->MapForRead();
 			PickingData picking_data = *data;

@@ -283,9 +283,9 @@ namespace adria
 
 	enum AntiAliasing : uint8
 	{
-		EAntiAliasing_None = 0x0,
-		EAntiAliasing_FXAA = 0x1,
-		EAntiAliasing_TAA = 0x2
+		AntiAliasing_None = 0x0,
+		AntiAliasing_FXAA = 0x1,
+		AntiAliasing_TAA = 0x2
 	};
 
 	enum GBufferSlot : uint8
