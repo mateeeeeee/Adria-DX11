@@ -1482,7 +1482,7 @@ namespace adria
 			
 			lights_data.push_back(light_data);
 		}
-		lights->Update(lights_data);
+		lights->Update(lights_data.data(), lights_data.size() * sizeof(LightSBuffer));
 
 	}
 	void Renderer::UpdateTerrainData()
