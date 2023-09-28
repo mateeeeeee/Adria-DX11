@@ -1246,37 +1246,37 @@ namespace adria
 		if (renderer_settings.recreate_initial_spectrum)
 		{
 			ShaderManager::GetShaderProgram(ShaderProgram::OceanInitialSpectrum)->Bind(command_context);
-			GfxReadWriteDescriptor uav[] = { ocean_initial_spectrum->UAV() };
-			command_context->SetReadWriteDescriptors(GfxShaderStage::CS, 0, uav);
+			GfxShaderResourceRW uav[] = { ocean_initial_spectrum->UAV() };
+			command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uav);
 			command_context->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
-			command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, 1);
+			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
 			renderer_settings.recreate_initial_spectrum = false;
 		}
 
 		//phase
 		{
-			GfxReadOnlyDescriptor  srv[] = { ping_pong_phase_textures[pong_phase]->SRV()};
-			GfxReadWriteDescriptor uav[] = { ping_pong_phase_textures[!pong_phase]->UAV() };
+			GfxShaderResourceRO  srv[] = { ping_pong_phase_textures[pong_phase]->SRV()};
+			GfxShaderResourceRW uav[] = { ping_pong_phase_textures[!pong_phase]->UAV() };
 
 			ShaderManager::GetShaderProgram(ShaderProgram::OceanPhase)->Bind(command_context);
-			command_context->SetReadOnlyDescriptors(GfxShaderStage::CS, 0, srv);
-			command_context->SetReadWriteDescriptors(GfxShaderStage::CS, 0, uav);
+			command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srv);
+			command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uav);
 			command_context->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
-			command_context->UnsetReadOnlyDescriptors(GfxShaderStage::CS, 0, 1);
-			command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, 1);
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 1);
+			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
 			pong_phase = !pong_phase;
 		}
 
 		//spectrum
 		{
-			GfxReadOnlyDescriptor  srvs[]	= { ping_pong_phase_textures[pong_phase]->SRV(), ocean_initial_spectrum->SRV() };
-			GfxReadWriteDescriptor  uav[]	= { ping_pong_spectrum_textures[pong_spectrum]->UAV() };
+			GfxShaderResourceRO  srvs[]	= { ping_pong_phase_textures[pong_phase]->SRV(), ocean_initial_spectrum->SRV() };
+			GfxShaderResourceRW  uav[]	= { ping_pong_spectrum_textures[pong_spectrum]->UAV() };
 			ShaderManager::GetShaderProgram(ShaderProgram::OceanSpectrum)->Bind(command_context);
-			command_context->SetReadOnlyDescriptors(GfxShaderStage::CS, 0, srvs);
-			command_context->SetReadWriteDescriptors(GfxShaderStage::CS, 0, uav);
+			command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srvs);
+			command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uav);
 			command_context->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
-			command_context->UnsetReadOnlyDescriptors(GfxShaderStage::CS, 0, 2);
-			command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, 1);
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 2);
+			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
 			pong_spectrum = !pong_spectrum;
 		}
 
@@ -1296,17 +1296,17 @@ namespace adria
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 
-					GfxReadOnlyDescriptor  srv[] = { ping_pong_spectrum_textures[!pong_spectrum]->SRV()};
-					GfxReadWriteDescriptor uav[] = { ping_pong_spectrum_textures[pong_spectrum]->UAV() };
+					GfxShaderResourceRO  srv[] = { ping_pong_spectrum_textures[!pong_spectrum]->SRV()};
+					GfxShaderResourceRW uav[] = { ping_pong_spectrum_textures[pong_spectrum]->UAV() };
 
 					fft_cbuf_data.subseq_count = p;
 					fft_cbuffer.Update(command_context, fft_cbuf_data);
 
-					command_context->SetReadOnlyDescriptors(GfxShaderStage::CS, 0, srv);
-					command_context->SetReadWriteDescriptors(GfxShaderStage::CS, 0, uav);
+					command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srv);
+					command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uav);
 					command_context->Dispatch(RESOLUTION, 1, 1);
-					command_context->UnsetReadOnlyDescriptors(GfxShaderStage::CS, 0, 1);
-					command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, 1);
+					command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 1);
+					command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
 					pong_spectrum = !pong_spectrum;
 				}
 			}
@@ -1315,17 +1315,17 @@ namespace adria
 				ShaderManager::GetShaderProgram(ShaderProgram::OceanFFT_Vertical)->Bind(command_context);
 				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
-					GfxReadOnlyDescriptor  srv[]  = { ping_pong_spectrum_textures[!pong_spectrum]->SRV() };
-					GfxReadWriteDescriptor uav[]  = { ping_pong_spectrum_textures[pong_spectrum]->UAV() };
+					GfxShaderResourceRO  srv[]  = { ping_pong_spectrum_textures[!pong_spectrum]->SRV() };
+					GfxShaderResourceRW uav[]  = { ping_pong_spectrum_textures[pong_spectrum]->UAV() };
 
 					fft_cbuf_data.subseq_count = p;
 					fft_cbuffer.Update(command_context, fft_cbuf_data);
 
-					command_context->SetReadOnlyDescriptors(GfxShaderStage::CS, 0, srv);
-					command_context->SetReadWriteDescriptors(GfxShaderStage::CS, 0, uav);
+					command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srv);
+					command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uav);
 					command_context->Dispatch(RESOLUTION, 1, 1);
-					command_context->UnsetReadOnlyDescriptors(GfxShaderStage::CS, 0, 1);
-					command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, 1);
+					command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 1);
+					command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
 					pong_spectrum = !pong_spectrum;
 				}
 			}
@@ -1334,15 +1334,15 @@ namespace adria
 		{
 			ShaderManager::GetShaderProgram(ShaderProgram::OceanNormalMap)->Bind(command_context);
 
-			GfxReadOnlyDescriptor  final_spectrum = ping_pong_spectrum_textures[!pong_spectrum]->SRV();
-			GfxReadWriteDescriptor normal_map_uav = ocean_normal_map->UAV();
+			GfxShaderResourceRO  final_spectrum = ping_pong_spectrum_textures[!pong_spectrum]->SRV();
+			GfxShaderResourceRW normal_map_uav = ocean_normal_map->UAV();
 
-			command_context->SetReadOnlyDescriptor(GfxShaderStage::CS, 0, final_spectrum);
-			command_context->SetReadWriteDescriptor(GfxShaderStage::CS, 0, normal_map_uav);
+			command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, final_spectrum);
+			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, normal_map_uav);
 			command_context->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
 
-			command_context->SetReadOnlyDescriptor(GfxShaderStage::CS, 0, nullptr);
-			command_context->SetReadWriteDescriptor(GfxShaderStage::CS, 0, nullptr);
+			command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, nullptr);
+			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, nullptr);
 		}
 	}
 	void Renderer::UpdateWeather(float dt)
@@ -1524,7 +1524,7 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "GBuffer Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "GBuffer Pass");
 
-		command_context->UnsetReadOnlyDescriptors(GfxShaderStage::PS, 0, (uint32)gbuffer.size() + 1);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, (uint32)gbuffer.size() + 1);
 		struct BatchParams
 		{
 			ShaderProgram shader_program;
@@ -1572,43 +1572,43 @@ namespace adria
 					material_cbuf_data.alpha_cutoff = material.alpha_cutoff;
 					material_cbuffer->Update(gfx->GetCommandContext(), material_cbuf_data);
 
-					static GfxReadOnlyDescriptor const null_view = nullptr;
+					static GfxShaderResourceRO const null_view = nullptr;
 
 					if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 					{
 						auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
-						command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
+						command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
 					}
 
 					if (material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE)
 					{
 						auto view = g_TextureManager.GetTextureDescriptor(material.metallic_roughness_texture);
-						command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_ROUGHNESS_METALLIC, view);
+						command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_ROUGHNESS_METALLIC, view);
 					}
 					else
 					{
-						command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_ROUGHNESS_METALLIC, nullptr);
+						command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_ROUGHNESS_METALLIC, nullptr);
 					}
 
 					if (material.normal_texture != INVALID_TEXTURE_HANDLE)
 					{
 						auto view = g_TextureManager.GetTextureDescriptor(material.normal_texture);
-						command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_NORMAL, view);
+						command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_NORMAL, view);
 
 					}
 					else
 					{
-						command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_NORMAL, nullptr);
+						command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_NORMAL, nullptr);
 					}
 
 					if (material.emissive_texture != INVALID_TEXTURE_HANDLE)
 					{
 						auto view = g_TextureManager.GetTextureDescriptor(material.emissive_texture);
-						command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_EMISSIVE, view);
+						command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_EMISSIVE, view);
 					}
 					else
 					{
-						command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_EMISSIVE, nullptr);
+						command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_EMISSIVE, nullptr);
 					}
 
 					mesh.Draw(command_context);
@@ -1631,28 +1631,28 @@ namespace adria
 				if (terrain.grass_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = g_TextureManager.GetTextureDescriptor(terrain.grass_texture);
-					command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_GRASS, view);
+					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_GRASS, view);
 				}
 				if (terrain.base_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = g_TextureManager.GetTextureDescriptor(terrain.base_texture);
-					command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_BASE, view);
+					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_BASE, view);
 				}
 				if (terrain.rock_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = g_TextureManager.GetTextureDescriptor(terrain.rock_texture);
-					command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_ROCK, view);
+					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_ROCK, view);
 				}
 				if (terrain.sand_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = g_TextureManager.GetTextureDescriptor(terrain.sand_texture);
-					command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_SAND, view);
+					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_SAND, view);
 				}
 
 				if (terrain.layer_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = g_TextureManager.GetTextureDescriptor(terrain.layer_texture);
-					command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_LAYER, view);
+					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_LAYER, view);
 				}
 				mesh.Draw(command_context);
 			}
@@ -1671,7 +1671,7 @@ namespace adria
 				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 				{
 					auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
-					command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
+					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
 				}
 				mesh.Draw(command_context);
 			}
@@ -1716,10 +1716,10 @@ namespace adria
 				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert().Transpose();
 				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
-				GfxReadOnlyDescriptor srvs[] = { g_TextureManager.GetTextureDescriptor(decal.albedo_decal_texture), 
+				GfxShaderResourceRO srvs[] = { g_TextureManager.GetTextureDescriptor(decal.albedo_decal_texture), 
 												 g_TextureManager.GetTextureDescriptor(decal.normal_decal_texture),
 												 depth_target->SRV() };
-				command_context->SetReadOnlyDescriptors(GfxShaderStage::PS, 0, srvs);
+				command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 				command_context->DrawIndexed(cube_ib->GetCount());
 			}
 			command_context->SetRasterizerState(nullptr);
@@ -1733,7 +1733,7 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "SSAO Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "SSAO Pass");
 
-		command_context->UnsetReadOnlyDescriptors(GfxShaderStage::PS, 7, 1);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 7, 1);
 		{
 			for (uint32 i = 0; i < ssao_kernel.size(); ++i) postprocess_cbuf_data.samples[i] = ssao_kernel[i];
 			postprocess_cbuf_data.noise_scale = Vector2((float)width / 8, (float)height / 8);
@@ -1744,18 +1744,18 @@ namespace adria
 
 		command_context->BeginRenderPass(ssao_pass);
 		{
-			GfxReadOnlyDescriptor srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), ssao_random_texture->SRV() };
-			command_context->SetReadOnlyDescriptors(GfxShaderStage::PS, 1, srvs);
+			GfxShaderResourceRO srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), ssao_random_texture->SRV() };
+			command_context->SetShaderResourcesRO(GfxShaderStage::PS, 1, srvs);
 			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 			ShaderManager::GetShaderProgram(ShaderProgram::SSAO)->Bind(command_context);
 			command_context->Draw(4);
-			command_context->UnsetReadOnlyDescriptors(GfxShaderStage::PS, 1, ARRAYSIZE(srvs));
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 1, ARRAYSIZE(srvs));
 		}
 		command_context->EndRenderPass();
 		BlurTexture(ao_texture.get());
-		GfxReadOnlyDescriptor blurred_ssao = blur_texture_final->SRV();
-		command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, 7, blurred_ssao);
+		GfxShaderResourceRO blurred_ssao = blur_texture_final->SRV();
+		command_context->SetShaderResourceRO(GfxShaderStage::PS, 7, blurred_ssao);
 	}
 	void Renderer::PassHBAO()
 	{
@@ -1763,7 +1763,7 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "HBAO Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "HBAO Pass");
 
-		command_context->UnsetReadOnlyDescriptors(GfxShaderStage::PS, 7, 1);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 7, 1);
 		{
 			postprocess_cbuf_data.noise_scale = Vector2((float)width / 8, (float)height / 8);
 			postprocess_cbuf_data.hbao_r2 = renderer_settings.hbao_radius * renderer_settings.hbao_radius;
@@ -1774,19 +1774,19 @@ namespace adria
 
 		command_context->BeginRenderPass(hbao_pass);
 		{
-			GfxReadOnlyDescriptor srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), ssao_random_texture->SRV() };
-			command_context->SetReadOnlyDescriptors(GfxShaderStage::PS, 1, srvs);
+			GfxShaderResourceRO srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), depth_target->SRV(), ssao_random_texture->SRV() };
+			command_context->SetShaderResourcesRO(GfxShaderStage::PS, 1, srvs);
 			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 			ShaderManager::GetShaderProgram(ShaderProgram::HBAO)->Bind(command_context);
 			command_context->Draw(4);
-			command_context->UnsetReadOnlyDescriptors(GfxShaderStage::PS, 1, ARRAYSIZE(srvs));
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 1, ARRAYSIZE(srvs));
 		}
 		command_context->EndRenderPass();
 		BlurTexture(ao_texture.get());
 
-		GfxReadOnlyDescriptor blurred_ssao = blur_texture_final->SRV();
-		command_context->SetReadOnlyDescriptor(GfxShaderStage::PS, 7, blurred_ssao);
+		GfxShaderResourceRO blurred_ssao = blur_texture_final->SRV();
+		command_context->SetShaderResourceRO(GfxShaderStage::PS, 7, blurred_ssao);
 	}
 	void Renderer::PassAmbient()
 	{
@@ -1794,14 +1794,14 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Ambient Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Ambient Pass");
 
-		GfxReadOnlyDescriptor srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(),gbuffer[GBufferSlot_DiffuseRoughness]->SRV(), depth_target->SRV(), gbuffer[GBufferSlot_Emissive]->SRV() };
-		command_context->SetReadOnlyDescriptors(GfxShaderStage::PS, 0, srvs);
+		GfxShaderResourceRO srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(),gbuffer[GBufferSlot_DiffuseRoughness]->SRV(), depth_target->SRV(), gbuffer[GBufferSlot_Emissive]->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 
 		command_context->BeginRenderPass(ambient_pass);
 		if (renderer_settings.ibl)
 		{
-			GfxReadOnlyDescriptor ibl_srvs[] = { env_srv.Get(),irmap_srv.Get(), brdf_srv.Get() };
-			command_context->SetReadOnlyDescriptors(GfxShaderStage::PS, 8, ibl_srvs);
+			GfxShaderResourceRO ibl_srvs[] = { env_srv.Get(),irmap_srv.Get(), brdf_srv.Get() };
+			command_context->SetShaderResourcesRO(GfxShaderStage::PS, 8, ibl_srvs);
 		}
 
 		command_context->SetInputLayout(nullptr);
@@ -1817,8 +1817,8 @@ namespace adria
 
 		command_context->EndRenderPass();
 
-		command_context->UnsetReadOnlyDescriptors(GfxShaderStage::PS, 0, 4);
-		command_context->UnsetReadOnlyDescriptors(GfxShaderStage::PS, 7, 4);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, 4);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 7, 4);
 	}
 	void Renderer::PassDeferredLighting()
 	{
@@ -1885,17 +1885,17 @@ namespace adria
 			//lighting + volumetric fog
 			command_context->BeginRenderPass(lighting_pass);
 			{
-				GfxReadOnlyDescriptor shader_views[3] = { nullptr };
+				GfxShaderResourceRO shader_views[3] = { nullptr };
 				shader_views[0] = gbuffer[GBufferSlot_NormalMetallic]->SRV();
 				shader_views[1] = gbuffer[GBufferSlot_DiffuseRoughness]->SRV();
 				shader_views[2] = depth_target->SRV();
 
-				command_context->SetReadOnlyDescriptors(GfxShaderStage::PS, 0, shader_views);
+				command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, shader_views);
 				command_context->SetInputLayout(nullptr);
 				command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 				ShaderManager::GetShaderProgram(ShaderProgram::LightingPBR)->Bind(command_context);
 				command_context->Draw(4);
-				command_context->UnsetReadOnlyDescriptors(GfxShaderStage::PS, 0, ARRAYSIZE(shader_views));
+				command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(shader_views));
 				if (light_data.volumetric) PassVolumetric(light_data);
 			}
 			command_context->EndRenderPass();
@@ -1908,34 +1908,34 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Deferred Tiled Lighting Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Deferred Tiled Lighting Pass");
 
-		GfxReadOnlyDescriptor shader_views[3] = { nullptr };
+		GfxShaderResourceRO shader_views[3] = { nullptr };
 		shader_views[0] = gbuffer[GBufferSlot_NormalMetallic]->SRV();
 		shader_views[1] = gbuffer[GBufferSlot_DiffuseRoughness]->SRV();
 		shader_views[2] = depth_target->SRV();
-		command_context->SetReadOnlyDescriptors(GfxShaderStage::CS, 0, shader_views);
+		command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, shader_views);
 
-		GfxReadOnlyDescriptor lights_srv = lights->SRV();
-		command_context->SetReadOnlyDescriptor(GfxShaderStage::CS, 3, lights_srv);
-		GfxReadWriteDescriptor texture_uav = uav_target->UAV();
-		command_context->SetReadWriteDescriptor(GfxShaderStage::CS, 0, texture_uav);
+		GfxShaderResourceRO lights_srv = lights->SRV();
+		command_context->SetShaderResourceRO(GfxShaderStage::CS, 3, lights_srv);
+		GfxShaderResourceRW texture_uav = uav_target->UAV();
+		command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, texture_uav);
 
-		GfxReadWriteDescriptor debug_uav = debug_tiled_texture->UAV();
+		GfxShaderResourceRW debug_uav = debug_tiled_texture->UAV();
 		if (renderer_settings.visualize_tiled)
 		{
-			command_context->SetReadWriteDescriptor(GfxShaderStage::CS, 1, debug_uav);
+			command_context->SetShaderResourceRW(GfxShaderStage::CS, 1, debug_uav);
 		}
 
 		ShaderManager::GetShaderProgram(ShaderProgram::TiledLighting)->Bind(command_context);
 		command_context->Dispatch((uint32)std::ceil(width * 1.0f / 16), (uint32)std::ceil(height * 1.0f / 16), 1);
 
-		command_context->UnsetReadOnlyDescriptors(GfxShaderStage::CS, 0, 4);
-		command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, 1);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 4);
+		command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
 
-		GfxColorDescriptor rtv[] = { hdr_render_target->RTV() };
+		GfxRenderTarget rtv[] = { hdr_render_target->RTV() };
 		command_context->SetRenderTargets(rtv, nullptr);
 		if (renderer_settings.visualize_tiled)
 		{
-			command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 1, 1);
+			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 1, 1);
 			command_context->SetBlendState(alpha_blend.get());
 			AddTextures(uav_target.get(), debug_tiled_texture.get());
 			command_context->SetBlendState(nullptr);
@@ -1989,60 +1989,55 @@ namespace adria
 	void Renderer::PassDeferredClusteredLighting()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Deferred Clustered Lighting Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Deferred Clustered Lighting Pass");
 
 		if (recreate_clusters)
 		{
-			GfxReadWriteDescriptor clusters_uav = clusters->UAV();
-			context->CSSetUnorderedAccessViews(0, 1, &clusters_uav, nullptr);
-
+			GfxShaderResourceRW clusters_uav = clusters->UAV();
+			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, clusters_uav);
+			
 			ShaderManager::GetShaderProgram(ShaderProgram::ClusterBuilding)->Bind(command_context);
-			context->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
+			command_context->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
 			ShaderManager::GetShaderProgram(ShaderProgram::ClusterBuilding)->Unbind(command_context);
 
-			GfxReadWriteDescriptor null_uav = nullptr;
-			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
+			GfxShaderResourceRW null_uav = nullptr;
+			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, nullptr);
 
 			recreate_clusters = false;
 		}
 
-		GfxReadOnlyDescriptor srvs[] = { clusters->SRV(), lights->SRV() };
-		context->CSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
-		GfxReadWriteDescriptor uavs[] = { light_counter->UAV(), light_list->UAV(), light_grid->UAV() };
-		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uavs), uavs, nullptr);
+		GfxShaderResourceRO srvs[] = { clusters->SRV(), lights->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srvs);
+		GfxShaderResourceRW uavs[] = { light_counter->UAV(), light_list->UAV(), light_grid->UAV() };
+		command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uavs);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::ClusterCulling)->Bind(command_context);
-		context->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 4);
+		command_context->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 4);
 		ShaderManager::GetShaderProgram(ShaderProgram::ClusterCulling)->Unbind(command_context);
 
-		GfxReadOnlyDescriptor null_srvs[2] = { nullptr };
-		context->CSSetShaderResources(0, ARRAYSIZE(null_srvs), null_srvs);
-		GfxReadWriteDescriptor null_uavs[3] = { nullptr };
-		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(null_uavs), null_uavs, nullptr);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
+		command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, ARRAYSIZE(uavs));
 
 		command_context->SetBlendState(additive_blend.get());
 
 		command_context->BeginRenderPass(lighting_pass);
 		{
-			GfxReadOnlyDescriptor shader_views[6] = { nullptr };
+			GfxShaderResourceRO shader_views[6] = { nullptr };
 			shader_views[0] = gbuffer[GBufferSlot_NormalMetallic]->SRV();
 			shader_views[1] = gbuffer[GBufferSlot_DiffuseRoughness]->SRV();
 			shader_views[2] = depth_target->SRV();
 			shader_views[3] = lights->SRV();
 			shader_views[4] = light_list->SRV();
 			shader_views[5] = light_grid->SRV();
+			command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, shader_views);
 
-			context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
-
-			context->IASetInputLayout(nullptr);
+			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 			ShaderManager::GetShaderProgram(ShaderProgram::ClusterLightingPBR)->Bind(command_context);
-			context->Draw(4, 0);
+			command_context->Draw(4);
 
-			static GfxReadOnlyDescriptor null_srv[6] = { nullptr};
-			context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(shader_views));
 
 			//Volumetric lighting for non-shadow casting lights
 			std::vector<Light> volumetric_lights{};
@@ -2067,8 +2062,8 @@ namespace adria
 				light_cbuf_data.volumetric_strength = light.volumetric_strength;
 
 				Matrix camera_view = camera->View();
-				light_cbuf_data.position = XMVector4Transform(light_cbuf_data.position, camera_view);
-				light_cbuf_data.direction = XMVector4Transform(light_cbuf_data.direction, camera_view);
+				light_cbuf_data.position = Vector4::Transform(light_cbuf_data.position, camera_view);
+				light_cbuf_data.direction = Vector4::Transform(light_cbuf_data.direction, camera_view);
 				light_cbuffer->Update(gfx->GetCommandContext(), light_cbuf_data);
 
 				PassVolumetric(light);
@@ -2094,7 +2089,6 @@ namespace adria
 	void Renderer::PassVoxelize()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Voxelization Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Voxelization Pass");
 
@@ -2127,12 +2121,11 @@ namespace adria
 		command_context->SetRasterizerState(cull_none.get());
 		command_context->SetViewport(0, 0, VOXEL_RESOLUTION, VOXEL_RESOLUTION);
 
-		GfxReadWriteDescriptor voxels_uav = voxels->UAV();
-		context->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr,
-			0, 1, &voxels_uav, nullptr);
+		GfxShaderResourceRW voxels_uav = voxels->UAV();
+		command_context->GetNative()->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr, 0, 1, &voxels_uav, nullptr);
 
-		GfxReadOnlyDescriptor lights_srv = lights->SRV();
-		context->PSSetShaderResources(10, 1, &lights_srv);
+		GfxShaderResourceRO lights_srv = lights->SRV();
+		command_context->SetShaderResourceRO(GfxShaderStage::PS, 10, lights_srv);
 
 		for (auto e : voxel_view)
 		{
@@ -2147,94 +2140,81 @@ namespace adria
 			material_cbuf_data.albedo_factor = material.albedo_factor;
 			material_cbuffer->Update(gfx->GetCommandContext(), material_cbuf_data);
 			auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
-
-			context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
+			command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
 			mesh.Draw(command_context);
 		}
 
-		context->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr,
-			0, 0, nullptr, nullptr);
+		command_context->GetNative()->OMSetRenderTargetsAndUnorderedAccessViews(0, nullptr, nullptr,
+																				0, 0, nullptr, nullptr);
 
 		command_context->SetRasterizerState(nullptr);
 		ShaderManager::GetShaderProgram(ShaderProgram::Voxelize)->Unbind(command_context);
 
-		GfxReadWriteDescriptor uavs[] = { voxels_uav, voxel_texture->UAV() };
-		context->CSSetUnorderedAccessViews(0, 2, uavs, nullptr);
+		GfxShaderResourceRW uavs[] = { voxels_uav, voxel_texture->UAV() };
+		command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uavs);
 		ShaderManager::GetShaderProgram(ShaderProgram::VoxelCopy)->Bind(command_context);
-		context->Dispatch(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION / 256, 1, 1);
+		command_context->Dispatch(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION / 256, 1, 1);
 		ShaderManager::GetShaderProgram(ShaderProgram::VoxelCopy)->Unbind(command_context);
 
-		static GfxReadWriteDescriptor null_uavs[] = { nullptr, nullptr };
-		context->CSSetUnorderedAccessViews(0, 2, null_uavs, nullptr);
-
-		context->GenerateMips(voxel_texture->SRV());
+		command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, ARRAYSIZE(uavs));
+		command_context->GenerateMips(voxel_texture->SRV());
 
 		if (renderer_settings.voxel_second_bounce)
 		{
-			GfxReadWriteDescriptor uavs[] = { voxel_texture_second_bounce->UAV() };
-			context->CSSetUnorderedAccessViews(0, 1, uavs, nullptr);
+			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, voxel_texture_second_bounce->UAV());
+			GfxShaderResourceRO srvs[] = { voxels->SRV(), voxel_texture->SRV() };
+			command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 
-			GfxReadOnlyDescriptor srvs[] = { voxels->SRV(), voxel_texture->SRV() };
-			context->CSSetShaderResources(0, 2, srvs);
 			ShaderManager::GetShaderProgram(ShaderProgram::VoxelSecondBounce)->Bind(command_context);
-			context->Dispatch(VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8);
+			command_context->Dispatch(VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8, VOXEL_RESOLUTION / 8);
 			ShaderManager::GetShaderProgram(ShaderProgram::VoxelSecondBounce)->Unbind(command_context);
 
-			static GfxReadOnlyDescriptor null_srvs[] = { nullptr, nullptr };
-			context->CSSetShaderResources(0, 2, null_srvs);
-
-			static GfxReadWriteDescriptor null_uavs[] = { nullptr};
-			context->CSSetUnorderedAccessViews(0, 1, null_uavs, nullptr);
-
-			context->GenerateMips(voxel_texture_second_bounce->SRV());
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(srvs));
+			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, nullptr);
+			command_context->GenerateMips(voxel_texture_second_bounce->SRV());
 		}
 	}
 	void Renderer::PassVoxelizeDebug()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Voxelization Debug Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Voxelization Debug Pass");
 
 		command_context->BeginRenderPass(voxel_debug_pass);
 		{
-			GfxReadOnlyDescriptor voxel_srv = voxel_texture->SRV();
-			context->VSSetShaderResources(9, 1, &voxel_srv);
+			GfxShaderResourceRO voxel_srv = voxel_texture->SRV();
+			command_context->SetShaderResourceRO(GfxShaderStage::VS, 9, voxel_srv);
 
 			ShaderManager::GetShaderProgram(ShaderProgram::VoxelizeDebug)->Bind(command_context);
-			context->IASetInputLayout(nullptr);
+			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::PointList);
-			context->Draw(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION, 0);
+			command_context->Draw(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION);
 			ShaderManager::GetShaderProgram(ShaderProgram::VoxelizeDebug)->Unbind(command_context);
 
-			static GfxReadOnlyDescriptor null_srv = nullptr;
-			context->VSSetShaderResources(9, 1, &null_srv);
+			command_context->SetShaderResourceRO(GfxShaderStage::VS, 9, nullptr);
 		}
 		command_context->EndRenderPass();
 	}
 	void Renderer::PassVoxelGI()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Voxel GI Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Voxel GI Pass");
 
 		command_context->SetBlendState(additive_blend.get());
 		command_context->BeginRenderPass(lighting_pass);
 		{
-			GfxReadOnlyDescriptor shader_views[3] = { nullptr };
+			GfxShaderResourceRO shader_views[3] = { nullptr };
 			shader_views[0] = gbuffer[GBufferSlot_NormalMetallic]->SRV();
 			shader_views[1] = depth_target->SRV();
 			shader_views[2] = renderer_settings.voxel_second_bounce ? voxel_texture_second_bounce->SRV() : voxel_texture->SRV();
-			context->PSSetShaderResources(0, ARRAYSIZE(shader_views), shader_views);
-
-			context->IASetInputLayout(nullptr);
+			command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, shader_views);
+			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 			ShaderManager::GetShaderProgram(ShaderProgram::VoxelGI)->Bind(command_context);
-			context->Draw(4, 0);
+			command_context->Draw(4);
 			ShaderManager::GetShaderProgram(ShaderProgram::VoxelGI)->Unbind(command_context);
-			static GfxReadOnlyDescriptor null_srv[] = { nullptr, nullptr, nullptr };
-			context->PSSetShaderResources(0, ARRAYSIZE(null_srv), null_srv);
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(shader_views));
 		}
 		command_context->EndRenderPass();
 		command_context->SetBlendState(nullptr);
@@ -2242,7 +2222,6 @@ namespace adria
 	void Renderer::PassPostprocessing()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Postprocessing Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Postprocessing Pass");
 
@@ -2347,10 +2326,10 @@ namespace adria
 			command_context->EndRenderPass(); 
 			postprocess_index = !postprocess_index;
 
-			auto rtv = prev_hdr_render_target->RTV();
-			context->OMSetRenderTargets(1, &rtv, nullptr);
+			GfxRenderTarget rtvs[] = { prev_hdr_render_target->RTV() };
+			command_context->SetRenderTargets(rtvs, nullptr);
 			CopyTexture(postprocess_textures[!postprocess_index].get());
-			context->OMSetRenderTargets(0, nullptr, nullptr);
+			command_context->SetRenderTargets({}, nullptr);
 		}
 	}
 
@@ -2358,7 +2337,6 @@ namespace adria
 	{
 		ADRIA_ASSERT(light.type == LightType::Directional);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Directional Shadow Map Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Directional Shadow Map Pass");
 		
@@ -2371,8 +2349,7 @@ namespace adria
 		shadow_cbuf_data.shadow_matrices[0] = camera->View().Invert() * shadow_cbuf_data.lightviewprojection;
 		shadow_cbuffer->Update(gfx->GetCommandContext(), shadow_cbuf_data);
 
-		GfxReadOnlyDescriptor null_srv[1] = { nullptr };
-		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, null_srv);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, TEXTURE_SLOT_SHADOW, 1);
 		command_context->BeginRenderPass(shadow_map_pass);
 		{
 			command_context->SetRasterizerState(shadow_depth_bias.get());
@@ -2381,14 +2358,13 @@ namespace adria
 			command_context->SetRasterizerState(nullptr);
 		}
 		command_context->EndRenderPass();
-		GfxReadOnlyDescriptor shadow_depth_srv[1] = { shadow_depth_map->SRV() };
-		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, shadow_depth_srv);
+		GfxShaderResourceRO shadow_depth_srv[1] = { shadow_depth_map->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, TEXTURE_SLOT_SHADOW, shadow_depth_srv);
 	}
 	void Renderer::PassShadowMapSpot(Light const& light)
 	{
 		ADRIA_ASSERT(light.type == LightType::Spot);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Spot Shadow Map Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Spot Shadow Map Pass");
 
@@ -2400,8 +2376,7 @@ namespace adria
 		shadow_cbuf_data.shadow_matrices[0] = camera->View().Invert() * shadow_cbuf_data.lightviewprojection;
 		shadow_cbuffer->Update(gfx->GetCommandContext(), shadow_cbuf_data);
 
-		GfxReadOnlyDescriptor null_srv[1] = { nullptr };
-		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, null_srv);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, TEXTURE_SLOT_SHADOW, 1);
 		command_context->BeginRenderPass(shadow_map_pass);
 		{
 			command_context->SetRasterizerState(shadow_depth_bias.get());
@@ -2410,14 +2385,13 @@ namespace adria
 			command_context->SetRasterizerState(nullptr);
 		}
 		command_context->EndRenderPass();
-		GfxReadOnlyDescriptor shadow_depth_srv[1] = { shadow_depth_map->SRV() };
-		context->PSSetShaderResources(TEXTURE_SLOT_SHADOW, 1, shadow_depth_srv);
+		GfxShaderResourceRO shadow_depth_srv[1] = { shadow_depth_map->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, TEXTURE_SLOT_SHADOW, shadow_depth_srv);
 	}
 	void Renderer::PassShadowMapPoint(Light const& light)
 	{
 		ADRIA_ASSERT(light.type == LightType::Point);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Point Shadow Map Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Point Shadow Map Pass");
 
@@ -2428,9 +2402,7 @@ namespace adria
 			shadow_cbuf_data.lightview = V;
 			shadow_cbuffer->Update(gfx->GetCommandContext(), shadow_cbuf_data);
 
-			GfxReadOnlyDescriptor null_srv[1] = { nullptr };
-			context->PSSetShaderResources(TEXTURE_SLOT_SHADOWCUBE, 1, null_srv);
-
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, TEXTURE_SLOT_SHADOWCUBE, 1);
 			command_context->BeginRenderPass(shadow_cubemap_pass[i]);
 			{
 				command_context->SetRasterizerState(shadow_depth_bias.get());
@@ -2441,14 +2413,13 @@ namespace adria
 			command_context->EndRenderPass();
 		}
 
-		GfxReadOnlyDescriptor srv[] = { shadow_depth_cubemap->SRV() };
-		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWCUBE, 1, srv);
+		GfxShaderResourceRO srv[] = { shadow_depth_cubemap->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, TEXTURE_SLOT_SHADOWCUBE, srv);
 	}
 	void Renderer::PassShadowMapCascades(Light const& light)
 	{
 		ADRIA_ASSERT(light.type == LightType::Directional);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Cascades Shadow Map Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Cascades Shadow Map Pass");
 
@@ -2456,8 +2427,7 @@ namespace adria
 		std::array<Matrix, CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, renderer_settings.split_lambda, split_distances);
 		std::array<Matrix, CASCADE_COUNT> light_view_projections{};
 
-		GfxReadOnlyDescriptor null_srv[] = { nullptr };
-		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWARRAY, 1, null_srv);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, TEXTURE_SLOT_SHADOWARRAY, 1);
 		command_context->SetRasterizerState(shadow_depth_bias.get());
 		
 		for (uint32 i = 0; i < CASCADE_COUNT; ++i)
@@ -2477,8 +2447,8 @@ namespace adria
 		}
 
 		command_context->SetRasterizerState(nullptr);
-		GfxReadOnlyDescriptor srv[] = { shadow_cascade_maps->SRV() };
-		context->PSSetShaderResources(TEXTURE_SLOT_SHADOWARRAY, 1, srv);
+		GfxShaderResourceRO srv[] = { shadow_cascade_maps->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, TEXTURE_SLOT_SHADOWARRAY, srv);
 
 		shadow_cbuf_data.shadow_map_size = SHADOW_CASCADE_SIZE;
 		shadow_cbuf_data.shadow_matrices[0] = camera->View().Invert() * light_view_projections[0];
@@ -2490,13 +2460,12 @@ namespace adria
 		shadow_cbuf_data.split2 = split_distances[2];
 		shadow_cbuf_data.split3 = split_distances[3];
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
-		shadow_cbuf_data.visualize = static_cast<int>(false);
+		shadow_cbuf_data.visualize = static_cast<int32>(false);
 		shadow_cbuffer->Update(gfx->GetCommandContext(), shadow_cbuf_data);
 	}
 	void Renderer::PassShadowMapCommon()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		auto shadow_view = reg.view<Mesh, Transform, AABB>();
 		if (!renderer_settings.shadow_transparent)
 		{
@@ -2578,8 +2547,7 @@ namespace adria
 				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
 				auto view = g_TextureManager.GetTextureDescriptor(material->albedo_texture);
-				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
-
+				command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
 				mesh.Draw(command_context);
 			}
 		}
@@ -2594,14 +2562,13 @@ namespace adria
 		}
 		ADRIA_ASSERT(light.volumetric);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Volumetric Lighting Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Volumetric Lighting Pass");
 
-		GfxReadOnlyDescriptor srv[] = { depth_target->SRV() };
-		context->PSSetShaderResources(2, 1, srv);
+		GfxShaderResourceRO srv[] = { depth_target->SRV() };
+		command_context->SetShaderResourceRO(GfxShaderStage::PS, 2, depth_target->SRV());
 
-		context->IASetInputLayout(nullptr);
+		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		switch (light.type)
 		{
@@ -2618,15 +2585,12 @@ namespace adria
 		default:
 			ADRIA_ASSERT(false && "Invalid Light Type!");
 		}
-		context->Draw(4, 0);
-
-		static GfxReadOnlyDescriptor null_srv = nullptr;
-		context->PSSetShaderResources(2, 1, &null_srv);
+		command_context->Draw(4);
+		command_context->SetShaderResourceRO(GfxShaderStage::PS, 2, nullptr);
 	}
 	void Renderer::PassSky()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Sky Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Sky Pass");
 
@@ -2647,7 +2611,7 @@ namespace adria
 				auto const& skybox = skybox_view.get(e);
 				if (!skybox.active) continue;
 				auto view = g_TextureManager.GetTextureDescriptor(skybox.cubemap_texture);
-				context->PSSetShaderResources(TEXTURE_SLOT_CUBEMAP, 1, &view);
+				command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_CUBEMAP, view);
 				break;
 			}
 			break;
@@ -2662,9 +2626,9 @@ namespace adria
 		}
 
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleList);
-		BindVertexBuffer(context, cube_vb.get());
-		BindIndexBuffer(context, cube_ib.get());
-		context->DrawIndexed(cube_ib->GetCount(), 0, 0);
+		command_context->SetVertexBuffer(cube_vb.get());
+		command_context->SetIndexBuffer(cube_ib.get());
+		command_context->DrawIndexed(cube_ib->GetCount());
 		command_context->SetDepthStencilState(nullptr, 0);
 		command_context->SetRasterizerState(nullptr);
 	}
@@ -2673,7 +2637,6 @@ namespace adria
 		if (reg.size<Ocean>() == 0) return;
 
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Ocean Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Ocean Pass");
 
@@ -2681,7 +2644,7 @@ namespace adria
 		command_context->SetBlendState(alpha_blend.get());
 
 		auto skyboxes = reg.view<Skybox>();
-		GfxReadOnlyDescriptor skybox_srv = nullptr;
+		GfxShaderResourceRO skybox_srv = nullptr;
 		for (auto skybox : skyboxes)
 		{
 			auto const& _skybox = skyboxes.get(skybox);
@@ -2689,13 +2652,13 @@ namespace adria
 			if (skybox_srv) break;
 		}
 
-		GfxReadOnlyDescriptor displacement_map_srv = ping_pong_spectrum_textures[!pong_spectrum]->SRV();
-		renderer_settings.ocean_tesselation ? context->DSSetShaderResources(0, 1, &displacement_map_srv) :
-							context->VSSetShaderResources(0, 1, &displacement_map_srv);
+		GfxShaderResourceRO displacement_map_srv = ping_pong_spectrum_textures[!pong_spectrum]->SRV();
+		renderer_settings.ocean_tesselation
+			? command_context->SetShaderResourceRO(GfxShaderStage::DS, 0, displacement_map_srv) :
+			  command_context->SetShaderResourceRO(GfxShaderStage::VS, 0, displacement_map_srv);
 
-		GfxReadOnlyDescriptor srvs[] = { ocean_normal_map->SRV(), skybox_srv ,
-		 g_TextureManager.GetTextureDescriptor(foam_handle) };
-		context->PSSetShaderResources(0, ARRAYSIZE(srvs), srvs);
+		GfxShaderResourceRO srvs[] = { ocean_normal_map->SRV(), skybox_srv , g_TextureManager.GetTextureDescriptor(foam_handle) };
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 
 		renderer_settings.ocean_tesselation ? ShaderManager::GetShaderProgram(ShaderProgram::OceanLOD)->Bind(command_context)
 											: ShaderManager::GetShaderProgram(ShaderProgram::Ocean)->Bind(command_context);
@@ -2720,12 +2683,11 @@ namespace adria
 
 		renderer_settings.ocean_tesselation ? ShaderManager::GetShaderProgram(ShaderProgram::OceanLOD)->Unbind(command_context) : ShaderManager::GetShaderProgram(ShaderProgram::Ocean)->Unbind(command_context);
 
-		static GfxReadOnlyDescriptor null_srv = nullptr;
-		renderer_settings.ocean_tesselation ? context->DSSetShaderResources(0, 1, &null_srv) :
-							context->VSSetShaderResources(0, 1, &null_srv);
-		context->PSSetShaderResources(0, 1, &null_srv);
-		context->PSSetShaderResources(1, 1, &null_srv);
-		context->PSSetShaderResources(2, 1, &null_srv);
+		static GfxShaderResourceRO null_srv = nullptr;
+		renderer_settings.ocean_tesselation ? 
+			command_context->SetShaderResourceRO(GfxShaderStage::DS, 0, nullptr) :
+			command_context->SetShaderResourceRO(GfxShaderStage::VS, 0, nullptr);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, 3);
 
 		command_context->SetBlendState(nullptr);
 		if (renderer_settings.ocean_wireframe) command_context->SetRasterizerState(nullptr);
@@ -2734,7 +2696,6 @@ namespace adria
 	{
 		if (reg.size<Emitter>() == 0) return;
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Particles Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Particles Pass");
 
@@ -2755,7 +2716,6 @@ namespace adria
 	void Renderer::PassAABB()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		auto aabb_view = reg.view<AABB>();
 		for (auto e : aabb_view)
 		{
@@ -2773,9 +2733,9 @@ namespace adria
 				command_context->SetDepthStencilState(no_depth_test.get(), 0);
 				ShaderManager::GetShaderProgram(ShaderProgram::Solid)->Bind(command_context);
 				command_context->SetTopology(GfxPrimitiveTopology::LineList);
-				BindVertexBuffer(context, aabb.aabb_vb.get());
-				BindIndexBuffer(context, aabb_wireframe_ib.get());
-				context->DrawIndexed(aabb_wireframe_ib->GetCount(), 0, 0);
+				command_context->SetVertexBuffer(aabb.aabb_vb.get());
+				command_context->SetIndexBuffer(aabb_wireframe_ib.get());
+				command_context->DrawIndexed(aabb_wireframe_ib->GetCount());
 				command_context->SetRasterizerState(nullptr);
 				command_context->SetDepthStencilState(nullptr, 0);
 
@@ -2788,11 +2748,9 @@ namespace adria
 	void Renderer::PassForwardCommon(bool transparent)
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		auto forward_view = reg.view<Mesh, Transform, AABB, Material, Forward>();
 
 		if (transparent) command_context->SetBlendState(alpha_blend.get());
-
 		for (auto e : forward_view)
 		{
 			auto [forward, aabb] = forward_view.get<Forward const, AABB const>(e);
@@ -2809,18 +2767,15 @@ namespace adria
 				
 			material_cbuf_data.diffuse = material.diffuse;
 			material_cbuf_data.albedo_factor = material.albedo_factor;
-
 			material_cbuffer->Update(gfx->GetCommandContext(), material_cbuf_data);
 
 			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{
 				auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
-
-				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
+				command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
 			}
 
 			auto const* states = reg.get_if<RenderState>(e);
-				
 			if (states) ResolveCustomRenderState(*states, false);
 			mesh.Draw(command_context);
 			if (states) ResolveCustomRenderState(*states, true);
@@ -2833,7 +2788,6 @@ namespace adria
 	{
 		ADRIA_ASSERT(light.lens_flare);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Lens Flare Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Lens Flare Pass");
 
@@ -2854,42 +2808,37 @@ namespace adria
 		light_cbuffer->Update(gfx->GetCommandContext(), light_cbuf_data);
 
 		{
-			GfxReadOnlyDescriptor depth_srv_array[1] = { depth_target->SRV() };
-			context->GSSetShaderResources(7, ARRAYSIZE(depth_srv_array), depth_srv_array);
-			context->GSSetShaderResources(0, static_cast<uint32>(lens_flare_textures.size()), lens_flare_textures.data());
-			context->PSSetShaderResources(0, static_cast<uint32>(lens_flare_textures.size()), lens_flare_textures.data());
+			GfxShaderResourceRO depth_srv_array[1] = { depth_target->SRV() };
+			command_context->SetShaderResourceRO(GfxShaderStage::GS, 7, depth_target->SRV());
+			command_context->SetShaderResourcesRO(GfxShaderStage::GS, 0, lens_flare_textures);
+			command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, lens_flare_textures);
 
 			ShaderManager::GetShaderProgram(ShaderProgram::LensFlare)->Bind(command_context);
-			context->IASetInputLayout(nullptr);
+			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::PointList);
-			context->Draw(7, 0);
+			command_context->Draw(7);
 			ShaderManager::GetShaderProgram(ShaderProgram::LensFlare)->Unbind(command_context);
 
-			static GfxReadOnlyDescriptor const srv_null[1] = { nullptr };
-			static std::vector<ID3D11ShaderResourceView*> const lens_null_array(lens_flare_textures.size(), nullptr);
-			context->GSSetShaderResources(7, ARRAYSIZE(srv_null), srv_null);
-			context->GSSetShaderResources(0, static_cast<uint32>(lens_null_array.size()), lens_null_array.data());
-			context->PSSetShaderResources(0, static_cast<uint32>(lens_null_array.size()), lens_null_array.data());
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::GS, 0, 8);
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, 7);
 		}
 	}
 	void Renderer::PassVolumetricClouds()
 	{
 		ADRIA_ASSERT(renderer_settings.clouds);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Volumetric Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Volumetric Pass");
 
-		GfxReadOnlyDescriptor const srv_array[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target->SRV()};
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-		context->IASetInputLayout(nullptr);
+		GfxShaderResourceRO srv_array[] = { clouds_textures[0], clouds_textures[1], clouds_textures[2], depth_target->SRV()};
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srv_array);
+		command_context->SetInputLayout(nullptr);
 
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::Volumetric_Clouds)->Bind(command_context);
-		context->Draw(4, 0);
+		command_context->Draw(4);
 
-		static GfxReadOnlyDescriptor const srv_null[] = { nullptr, nullptr, nullptr, nullptr };
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, 4);
 
 		command_context->EndRenderPass();
 		postprocess_index = !postprocess_index;
@@ -2904,30 +2853,26 @@ namespace adria
 	{
 		ADRIA_ASSERT(renderer_settings.ssr);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "SSR Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "SSR Pass");
-
 
 		postprocess_cbuf_data.ssr_ray_hit_threshold = renderer_settings.ssr_ray_hit_threshold;
 		postprocess_cbuf_data.ssr_ray_step = renderer_settings.ssr_ray_step;
 		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
-		GfxReadOnlyDescriptor srv_array[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-		context->IASetInputLayout(nullptr);
+		GfxShaderResourceRO srv_array[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srv_array);
+		command_context->SetInputLayout(nullptr);
 
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::SSR)->Bind(command_context);
-		context->Draw(4, 0);
-		static GfxReadOnlyDescriptor const srv_null[] = { nullptr, nullptr, nullptr };
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
+		command_context->Draw(4);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, 3);
 	}
 	void Renderer::PassGodRays(Light const& light)
 	{
 		ADRIA_ASSERT(light.god_rays);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "God Rays Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "God Rays Pass");
 
@@ -2966,15 +2911,14 @@ namespace adria
 
 		command_context->SetBlendState(additive_blend.get());
 		{
-			GfxReadOnlyDescriptor srv_array[1] = { sun_target->SRV() };
-			static GfxReadOnlyDescriptor const srv_null[1] = { nullptr };
-
-			context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-			context->IASetInputLayout(nullptr);
+			GfxShaderResourceRO srv_array[1] = { sun_target->SRV() };
+	
+			command_context->SetShaderResourceRO(GfxShaderStage::PS, 0, sun_target->SRV());
+			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 			ShaderManager::GetShaderProgram(ShaderProgram::GodRays)->Bind(command_context);
-			context->Draw(4, 0);
-			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
+			command_context->Draw(4);
+			command_context->SetShaderResourceRO(GfxShaderStage::PS, 0, nullptr);
 		}
 		command_context->SetBlendState(nullptr);
 	}
@@ -2989,39 +2933,37 @@ namespace adria
 		if (renderer_settings.bokeh)
 		{
 			ShaderManager::GetShaderProgram(ShaderProgram::BokehGenerate)->Bind(command_context);
-			GfxReadOnlyDescriptor srv_array[2] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
-			uint32 initial_count = 0;
-			GfxReadWriteDescriptor bokeh_uav = bokeh_buffer->UAV();
-			context->CSSetUnorderedAccessViews(0, 1, &bokeh_uav, &initial_count);
-			context->CSSetShaderResources(0, 2, srv_array);
-			context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
+			GfxShaderResourceRO srv_array[2] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
+			uint32 initial_count[] = { 0 };
+			GfxShaderResourceRW bokeh_uav[] = { bokeh_buffer->UAV() };
+			command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, bokeh_uav, initial_count);
+			command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srv_array);
+			command_context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 
-			static GfxReadWriteDescriptor null_uav = nullptr;
-			context->CSSetUnorderedAccessViews(0, 1, &null_uav, nullptr);
-			static GfxReadOnlyDescriptor null_srvs[2] = { nullptr, nullptr };
-			context->CSSetShaderResources(0, 2, null_srvs);
+			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 2);
 			ShaderManager::GetShaderProgram(ShaderProgram::BokehGenerate)->Unbind(command_context);
 		}
 
 		BlurTexture(hdr_render_target.get());
 
-		GfxReadOnlyDescriptor srv_array[3] = { postprocess_textures[!postprocess_index]->SRV(), blur_texture_final->SRV(), depth_target->SRV()};
-		static GfxReadOnlyDescriptor const srv_null[3] = { nullptr, nullptr, nullptr };
+		GfxShaderResourceRO srv_array[3] = { postprocess_textures[!postprocess_index]->SRV(), blur_texture_final->SRV(), depth_target->SRV()};
+		static GfxShaderResourceRO const srv_null[3] = { nullptr, nullptr, nullptr };
 
 		postprocess_cbuf_data.dof_params = XMVectorSet(renderer_settings.dof_near_blur, renderer_settings.dof_near, renderer_settings.dof_far, renderer_settings.dof_far_blur);
 		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-		context->IASetInputLayout(nullptr);
+		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::DOF)->Bind(command_context);
-		context->Draw(4, 0);
+		command_context->Draw(4);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 
 		if (renderer_settings.bokeh)
 		{
-			context->CopyStructureCount(bokeh_indirect_draw_buffer->GetNative(), 0, bokeh_buffer->UAV());
-			GfxReadOnlyDescriptor bokeh = nullptr;
+			command_context->CopyStructureCount(bokeh_indirect_draw_buffer.get(), 0, bokeh_buffer->UAV());
+			GfxShaderResourceRO bokeh = nullptr;
 			switch (renderer_settings.bokeh_type)
 			{
 			case BokehType::Hex:
@@ -3040,7 +2982,7 @@ namespace adria
 				ADRIA_ASSERT(false && "Invalid Bokeh Type");
 			}
 
-			GfxReadOnlyDescriptor bokeh_srv = bokeh_buffer->SRV();
+			GfxShaderResourceRO bokeh_srv = bokeh_buffer->SRV();
 			context->VSSetShaderResources(0, 1, &bokeh_srv);
 			context->PSSetShaderResources(0, 1, &bokeh);
 
@@ -3048,7 +2990,7 @@ namespace adria
 			uint32 strides[1] = { 0 };
 			uint32 offsets[1] = { 0 };
 			context->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
-			context->IASetInputLayout(nullptr);
+			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::PointList);
 			context->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
 
@@ -3056,7 +2998,7 @@ namespace adria
 			command_context->SetBlendState(additive_blend.get());
 			context->DrawInstancedIndirect(bokeh_indirect_draw_buffer->GetNative(), 0);
 			command_context->SetBlendState(nullptr);
-			static GfxReadOnlyDescriptor null_srv = nullptr;
+			static GfxShaderResourceRO null_srv = nullptr;
 			context->VSSetShaderResources(0, 1, &null_srv);
 			context->PSSetShaderResources(0, 1, &null_srv);
 			ShaderManager::GetShaderProgram(ShaderProgram::BokehDraw)->Unbind(command_context);
@@ -3070,11 +3012,11 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Bloom Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Bloom Pass");
 
-		static GfxReadWriteDescriptor const null_uav[1] = { nullptr };
-		static GfxReadOnlyDescriptor  const null_srv[2] = { nullptr };
+		static GfxShaderResourceRW const null_uav[1] = { nullptr };
+		static GfxShaderResourceRO  const null_srv[2] = { nullptr };
 
-		GfxReadWriteDescriptor const uav[1] = { bloom_extract_texture->UAV() };
-		GfxReadOnlyDescriptor const srv[1] = { postprocess_textures[!postprocess_index]->SRV() };
+		GfxShaderResourceRW const uav[1] = { bloom_extract_texture->UAV() };
+		GfxShaderResourceRO const srv[1] = { postprocess_textures[!postprocess_index]->SRV() };
 		context->CSSetShaderResources(0, 1, srv); 
 
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav), uav, nullptr);
@@ -3084,8 +3026,8 @@ namespace adria
 		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
 		context->GenerateMips(bloom_extract_texture->SRV());
 
-		GfxReadWriteDescriptor const uav2[1] = { postprocess_textures[postprocess_index]->UAV() };
-		GfxReadOnlyDescriptor const srv2[2] = { postprocess_textures[!postprocess_index]->SRV(), bloom_extract_texture->SRV() };
+		GfxShaderResourceRW const uav2[1] = { postprocess_textures[postprocess_index]->UAV() };
+		GfxShaderResourceRO const srv2[2] = { postprocess_textures[!postprocess_index]->SRV(), bloom_extract_texture->SRV() };
 		context->CSSetShaderResources(0, 2, srv2);
 		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav2), uav2, nullptr);
 		ShaderManager::GetShaderProgram(ShaderProgram::BloomCombine)->Bind(command_context);
@@ -3107,14 +3049,14 @@ namespace adria
 
 		command_context->BeginRenderPass(velocity_buffer_pass);
 		{
-			GfxReadOnlyDescriptor const srv_array[1] = { depth_target->SRV() };
-			static GfxReadOnlyDescriptor const srv_null[1] = { nullptr };
+			GfxShaderResourceRO const srv_array[1] = { depth_target->SRV() };
+			static GfxShaderResourceRO const srv_null[1] = { nullptr };
 
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-			context->IASetInputLayout(nullptr);
+			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 			ShaderManager::GetShaderProgram(ShaderProgram::VelocityBuffer)->Bind(command_context);
-			context->Draw(4, 0);
+			command_context->Draw(4);
 			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 		}
 		command_context->EndRenderPass();
@@ -3128,15 +3070,15 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Motion Blur Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Motion Blur Pass");
 
-		GfxReadOnlyDescriptor const srv_array[2] = { postprocess_textures[!postprocess_index]->SRV(), velocity_buffer->SRV() };
-		static GfxReadOnlyDescriptor const srv_null[2] = { nullptr, nullptr };
+		GfxShaderResourceRO const srv_array[2] = { postprocess_textures[!postprocess_index]->SRV(), velocity_buffer->SRV() };
+		static GfxShaderResourceRO const srv_null[2] = { nullptr, nullptr };
 
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-		context->IASetInputLayout(nullptr);
+		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::MotionBlur)->Bind(command_context);
-		context->Draw(4, 0);
+		command_context->Draw(4);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
 	void Renderer::PassFog()
@@ -3154,15 +3096,15 @@ namespace adria
 		postprocess_cbuf_data.fog_color = XMVectorSet(renderer_settings.fog_color[0], renderer_settings.fog_color[1], renderer_settings.fog_color[2], 1);
 		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
-		GfxReadOnlyDescriptor srv_array[] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
+		GfxShaderResourceRO srv_array[] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-		context->IASetInputLayout(nullptr);
+		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::Fog)->Bind(command_context);
-		context->Draw(4, 0);
+		command_context->Draw(4);
 
-		static GfxReadOnlyDescriptor const srv_null[] = { nullptr, nullptr };
+		static GfxShaderResourceRO const srv_null[] = { nullptr, nullptr };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
 
@@ -3176,11 +3118,11 @@ namespace adria
 		postprocess_cbuf_data.tone_map_exposure = renderer_settings.tone_map_exposure;
 		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
-		GfxReadOnlyDescriptor const srv_array[1] = { postprocess_textures[!postprocess_index]->SRV() };
-		static GfxReadOnlyDescriptor const srv_null[1] = { nullptr };
+		GfxShaderResourceRO const srv_array[1] = { postprocess_textures[!postprocess_index]->SRV() };
+		static GfxShaderResourceRO const srv_null[1] = { nullptr };
 
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-		context->IASetInputLayout(nullptr);
+		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 
 		switch (renderer_settings.tone_map_op)
@@ -3198,7 +3140,7 @@ namespace adria
 			ADRIA_ASSERT(false && "Unsupported Basic effect!");
 		}
 
-		context->Draw(4, 0);
+		command_context->Draw(4);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
 	void Renderer::PassFXAA()
@@ -3209,13 +3151,13 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "FXAA Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "FXAA Pass");
 
-		static GfxReadOnlyDescriptor const srv_null[] = { nullptr };
-		GfxReadOnlyDescriptor srv_array[1] = { fxaa_texture->SRV() };
+		static GfxShaderResourceRO const srv_null[] = { nullptr };
+		GfxShaderResourceRO srv_array[1] = { fxaa_texture->SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-		context->IASetInputLayout(nullptr);
+		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::FXAA)->Bind(command_context);
-		context->Draw(4, 0);
+		command_context->Draw(4);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
 	void Renderer::PassTAA()
@@ -3225,14 +3167,14 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "TAA Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "TAA Pass");
 
-		static GfxReadOnlyDescriptor const srv_null[] = { nullptr, nullptr, nullptr };
-		GfxReadOnlyDescriptor srv_array[] = { postprocess_textures[!postprocess_index]->SRV(), prev_hdr_render_target->SRV(), velocity_buffer->SRV() };
+		static GfxShaderResourceRO const srv_null[] = { nullptr, nullptr, nullptr };
+		GfxShaderResourceRO srv_array[] = { postprocess_textures[!postprocess_index]->SRV(), prev_hdr_render_target->SRV(), velocity_buffer->SRV() };
 		
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
-		context->IASetInputLayout(nullptr);
+		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::TAA)->Bind(command_context);
-		context->Draw(4, 0);
+		command_context->Draw(4);
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
 
@@ -3285,16 +3227,16 @@ namespace adria
 		srvs[0] = blur_texture_intermediate->SRV();  
 		srvs[1] = blur_texture_final->SRV(); 
 
-		static GfxReadWriteDescriptor const null_uav[1] = { nullptr };
-		static GfxReadOnlyDescriptor const  null_srv[1] = { nullptr };
+		static GfxShaderResourceRW const null_uav[1] = { nullptr };
+		static GfxShaderResourceRO const  null_srv[1] = { nullptr };
 
-		GfxReadWriteDescriptor const blur_uav[1] = { nullptr };
-		GfxReadOnlyDescriptor const  blur_srv[1] = { nullptr };
+		GfxShaderResourceRW const blur_uav[1] = { nullptr };
+		GfxShaderResourceRO const  blur_srv[1] = { nullptr };
 
 		uint32 width = src->GetDesc().width;
 		uint32 height = src->GetDesc().height;
 		
-		GfxReadOnlyDescriptor src_srv = src->SRV();
+		GfxShaderResourceRO src_srv = src->SRV();
 
 		context->CSSetShaderResources(0, 1, &src_srv);
 		context->CSSetUnorderedAccessViews(0, 1, &uavs[0], nullptr);
@@ -3321,13 +3263,13 @@ namespace adria
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		ID3D11DeviceContext* context = command_context->GetNative();
 
-		GfxReadOnlyDescriptor srv[] = { src->SRV() };
+		GfxShaderResourceRO srv[] = { src->SRV() };
 		context->PSSetShaderResources(0, 1, srv);
-		context->IASetInputLayout(nullptr);
+		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::Copy)->Bind(command_context);
-		context->Draw(4, 0);
-		static GfxReadOnlyDescriptor const srv_null[] = { nullptr };
+		command_context->Draw(4);
+		static GfxShaderResourceRO const srv_null[] = { nullptr };
 		context->PSSetShaderResources(0, 1, srv_null);
 	}
 	void Renderer::AddTextures(GfxTexture const* src1, GfxTexture const* src2)
@@ -3335,13 +3277,13 @@ namespace adria
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		ID3D11DeviceContext* context = command_context->GetNative();
 
-		GfxReadOnlyDescriptor srv[] = { src1->SRV(), src2->SRV() };
+		GfxShaderResourceRO srv[] = { src1->SRV(), src2->SRV() };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv), srv);
-		context->IASetInputLayout(nullptr);
+		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::Add)->Bind(command_context);
-		context->Draw(4, 0);
-		static GfxReadOnlyDescriptor const srv_null[] = { nullptr, nullptr };
+		command_context->Draw(4);
+		static GfxShaderResourceRO const srv_null[] = { nullptr, nullptr };
 		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
 	}
 

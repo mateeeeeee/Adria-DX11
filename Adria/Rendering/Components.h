@@ -89,7 +89,7 @@ namespace adria
 		bool use_cascades = false;
 		bool active = true;
 		bool volumetric = false;
-		float volumetric_strength = 1.0f;
+		float volumetric_strength = 0.03f;
 		bool screen_space_contact_shadows = false;
 		float sscs_thickness = 0.5f;
 		float sscs_max_ray_distance = 0.05f;

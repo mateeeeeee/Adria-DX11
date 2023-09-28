@@ -115,7 +115,7 @@ namespace adria
 	void GfxDevice::SetBackbuffer()
 	{
 		command_context->SetViewport(0, 0, width, height);
-		GfxColorDescriptor rtv[] = { backbuffer_rtv.Get() };
+		GfxRenderTarget rtv[] = { backbuffer_rtv.Get() };
 		command_context->SetRenderTargets(rtv);
 	}
 	ID3D11Device* GfxDevice::GetDevice() const
@@ -127,18 +127,13 @@ namespace adria
 		return command_context->GetNative();
 	}
 
-	ID3DUserDefinedAnnotation* GfxDevice::GetAnnotation() const
-	{
-		return command_context->GetAnnotation();
-	}
-
 	void GfxDevice::WaitForGPU()
 	{
 		command_context->WaitForGPU();
 	}
 	void GfxDevice::CreateBackBufferResources(uint32 w, uint32 h)
 	{
-		GfxColorDescriptor null_views[] = { nullptr };
+		GfxRenderTarget null_views[] = { nullptr };
 		command_context->SetRenderTargets(null_views);
 		command_context->Flush();
 
@@ -149,7 +144,7 @@ namespace adria
 		GFX_CHECK_HR(swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)p_buffer.GetAddressOf()));
 		GFX_CHECK_HR(device->CreateRenderTargetView(p_buffer.Get(), nullptr, backbuffer_rtv.GetAddressOf()));
 
-		GfxColorDescriptor rtv[] = { backbuffer_rtv.Get()};
+		GfxRenderTarget rtv[] = { backbuffer_rtv.Get()};
 		command_context->SetRenderTargets(rtv);
 		command_context->SetViewport(0, 0, w, h);
 	}

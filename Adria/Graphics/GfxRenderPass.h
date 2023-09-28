@@ -116,14 +116,14 @@ namespace adria
 
 	struct GfxColorAttachmentDesc
 	{
-		GfxColorDescriptor view;
+		GfxRenderTarget view;
 		GfxLoadAccessOp load_op;
 		GfxClearValue clear_color;
 	};
 
 	struct GfxDepthAttachmentDesc
 	{
-		GfxDepthDescriptor view;
+		GfxDepthTarget view;
 		GfxLoadAccessOp load_op;
 		GfxClearValue clear_depth;
 	};

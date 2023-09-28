@@ -75,8 +75,8 @@ namespace adria
 		void Update(float dt, Emitter& emitter_params);
 
 		void Render(Emitter const& emitter_params,
-					GfxReadOnlyDescriptor depth_srv, 
-					GfxReadOnlyDescriptor particle_srv);
+					GfxShaderResourceRO depth_srv, 
+					GfxShaderResourceRO particle_srv);
 
 	private:
 		GfxDevice* gfx;
@@ -105,8 +105,8 @@ namespace adria
 		void InitializeDeadList();
 		void ResetParticles();
 		void Emit(Emitter const& emitter_params);
-		void Simulate(GfxReadOnlyDescriptor depth_srv);
-		void Rasterize(Emitter const& emitter_params, GfxReadOnlyDescriptor depth_srv, GfxReadOnlyDescriptor particle_srv);
+		void Simulate(GfxShaderResourceRO depth_srv);
+		void Rasterize(Emitter const& emitter_params, GfxShaderResourceRO depth_srv, GfxShaderResourceRO particle_srv);
 		void Sort();
 		
 		bool SortInitial();

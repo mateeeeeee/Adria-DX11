@@ -11,8 +11,8 @@ namespace adria
 {
 	namespace
 	{
-		const GfxReadOnlyDescriptor NULL_SRVS[16] = { nullptr };
-		const GfxReadWriteDescriptor NULL_UAVS[16] = { nullptr };
+		const GfxShaderResourceRO NULL_SRVS[16] = { nullptr };
+		const GfxShaderResourceRW NULL_UAVS[16] = { nullptr };
 		constexpr D3D_PRIMITIVE_TOPOLOGY ConvertPrimitiveTopology(GfxPrimitiveTopology topology)
 		{
 			switch (topology)
@@ -130,9 +130,9 @@ namespace adria
 
 	void GfxCommandContext::BeginRenderPass(GfxRenderPassDesc const& desc)
 	{
-		std::vector<GfxColorDescriptor> render_targets;
+		std::vector<GfxRenderTarget> render_targets;
 		std::unordered_map<uint64, GfxClearValue> clear_values;
-		GfxDepthDescriptor depth_target = nullptr;
+		GfxDepthTarget depth_target = nullptr;
 		bool depth_clear = false;
 		GfxClearValue depth_clear_value;
 
@@ -228,29 +228,29 @@ namespace adria
 		command_context->RSSetScissorRects(1, &rect);
 	}
 
-	void GfxCommandContext::ClearReadWriteDescriptorFloat(GfxReadWriteDescriptor descriptor, const float v[4])
+	void GfxCommandContext::ClearReadWriteDescriptorFloat(GfxShaderResourceRW descriptor, const float v[4])
 	{
 		command_context->ClearUnorderedAccessViewFloat(descriptor, v);
 	}
 
-	void GfxCommandContext::ClearReadWriteDescriptorUint(GfxReadWriteDescriptor descriptor, const uint32 v[4])
+	void GfxCommandContext::ClearReadWriteDescriptorUint(GfxShaderResourceRW descriptor, const uint32 v[4])
 	{
 		command_context->ClearUnorderedAccessViewUint(descriptor, v);
 	}
 
-	void GfxCommandContext::ClearRenderTarget(GfxColorDescriptor rtv, float const* clear_color)
+	void GfxCommandContext::ClearRenderTarget(GfxRenderTarget rtv, float const* clear_color)
 	{
 		command_context->ClearRenderTargetView(rtv, clear_color);
 	}
 
-	void GfxCommandContext::ClearDepth(GfxDepthDescriptor dsv, float depth /*= 1.0f*/, uint8 stencil /*= 0*/, bool clear_stencil /*= false*/)
+	void GfxCommandContext::ClearDepth(GfxDepthTarget dsv, float depth /*= 1.0f*/, uint8 stencil /*= 0*/, bool clear_stencil /*= false*/)
 	{
 		uint32 flags = D3D11_CLEAR_DEPTH;
 		if (clear_stencil) flags |= D3D11_CLEAR_STENCIL;
 		command_context->ClearDepthStencilView(dsv, flags, depth, stencil);
 	}
 
-	void GfxCommandContext::SetRenderTargets(std::span<GfxColorDescriptor> rtvs, GfxDepthDescriptor dsv /*= nullptr*/)
+	void GfxCommandContext::SetRenderTargets(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv /*= nullptr*/)
 	{
 		command_context->OMSetRenderTargets((uint32)rtvs.size(), rtvs.data(), dsv);
 	}
@@ -295,7 +295,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::CopyStructureCount(GfxBuffer* dst_buffer, uint32 dst_buffer_offset, GfxReadWriteDescriptor src_view)
+	void GfxCommandContext::CopyStructureCount(GfxBuffer* dst_buffer, uint32 dst_buffer_offset, GfxShaderResourceRW src_view)
 	{
 		command_context->CopyStructureCount(dst_buffer->GetNative(), dst_buffer_offset, src_view);
 	}
@@ -463,13 +463,13 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::SetReadOnlyDescriptor(GfxShaderStage stage, uint32 slot, GfxReadOnlyDescriptor descriptor)
+	void GfxCommandContext::SetShaderResourceRO(GfxShaderStage stage, uint32 slot, GfxShaderResourceRO descriptor)
 	{
-		GfxReadOnlyDescriptor descriptors[] = { descriptor };
-		SetReadOnlyDescriptors(stage, slot, descriptors);
+		GfxShaderResourceRO descriptors[] = { descriptor };
+		SetShaderResourcesRO(stage, slot, descriptors);
 	}
 
-	void GfxCommandContext::SetReadOnlyDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadOnlyDescriptor> descriptors)
+	void GfxCommandContext::SetShaderResourcesRO(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRO> descriptors)
 	{
 		switch (stage)
 		{
@@ -494,7 +494,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::UnsetReadOnlyDescriptors(GfxShaderStage stage, uint32 start, uint32 count)
+	void GfxCommandContext::UnsetShaderResourcesRO(GfxShaderStage stage, uint32 start, uint32 count)
 	{
 		switch (stage)
 		{
@@ -519,32 +519,32 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::SetReadWriteDescriptor(GfxShaderStage stage, uint32 slot, GfxReadWriteDescriptor descriptor)
+	void GfxCommandContext::SetShaderResourceRW(GfxShaderStage stage, uint32 slot, GfxShaderResourceRW descriptor)
 	{
-		GfxReadWriteDescriptor descriptors[] = { descriptor };
-		SetReadWriteDescriptors(stage, slot, descriptors);
+		GfxShaderResourceRW descriptors[] = { descriptor };
+		SetShaderResourcesRW(stage, slot, descriptors);
 	}
 
-	void GfxCommandContext::SetReadWriteDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadWriteDescriptor> descriptors)
+	void GfxCommandContext::SetShaderResourcesRW(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRW> descriptors)
 	{
 		ADRIA_ASSERT_MSG(stage == GfxShaderStage::CS, "Read Write descriptors are supported only in CS stage");
 		command_context->CSSetUnorderedAccessViews(start, (uint32)descriptors.size(), descriptors.data(), nullptr);
 	}
 
-	void GfxCommandContext::SetReadWriteDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadWriteDescriptor> descriptors, std::span<uint32> initial_counts)
+	void GfxCommandContext::SetShaderResourcesRW(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRW> descriptors, std::span<uint32> initial_counts)
 	{
 		ADRIA_ASSERT_MSG(stage == GfxShaderStage::CS, "Read Write descriptors are supported only in CS stage");
 		ADRIA_ASSERT(descriptors.size() == initial_counts.size());
 		command_context->CSSetUnorderedAccessViews(start, (uint32)descriptors.size(), descriptors.data(), initial_counts.data());
 	}
 
-	void GfxCommandContext::UnsetReadWriteDescriptors(GfxShaderStage stage, uint32 start, uint32 count)
+	void GfxCommandContext::UnsetShaderResourcesRW(GfxShaderStage stage, uint32 start, uint32 count)
 	{
 		ADRIA_ASSERT_MSG(stage == GfxShaderStage::CS, "Read Write descriptors are supported only in CS stage");
 		command_context->CSSetUnorderedAccessViews(start, count, NULL_UAVS, nullptr);
 	}
 
-	void GfxCommandContext::GenerateMips(GfxReadOnlyDescriptor srv)
+	void GfxCommandContext::GenerateMips(GfxShaderResourceRO srv)
 	{
 		command_context->GenerateMips(srv);
 	}

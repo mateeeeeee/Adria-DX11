@@ -162,10 +162,10 @@ namespace adria
 			return CreateDescriptor(GfxSubresourceType_DSV, _desc);
 		}
 
-		GfxReadOnlyDescriptor	SRV(uint64 i = 0) const { return srvs[i].Get(); }
-		GfxReadWriteDescriptor	UAV(uint64 i = 0) const { return uavs[i].Get(); }
-		GfxColorDescriptor		RTV(uint64 i = 0) const { return rtvs[i].Get(); }
-		GfxDepthDescriptor		DSV(uint64 i = 0) const { return dsvs[i].Get(); }
+		GfxShaderResourceRO	SRV(uint64 i = 0) const { return srvs[i].Get(); }
+		GfxShaderResourceRW	UAV(uint64 i = 0) const { return uavs[i].Get(); }
+		GfxRenderTarget		RTV(uint64 i = 0) const { return rtvs[i].Get(); }
+		GfxDepthTarget		DSV(uint64 i = 0) const { return dsvs[i].Get(); }
 
 		ID3D11Resource* GetNative() const { return resource.Get(); }
 		ID3D11Resource* Detach() { return resource.Detach(); }
@@ -175,10 +175,10 @@ namespace adria
 		GfxDevice* gfx;
 		ArcPtr<ID3D11Resource> resource;
 		GfxTextureDesc desc;
-		std::vector<GfxArcReadOnlyDescriptor> srvs;
-		std::vector<GfxArcReadWriteDescriptor> uavs;
-		std::vector<GfxArcColorDescriptor> rtvs;
-		std::vector<GfxArcDepthDescriptor> dsvs;
+		std::vector<GfxArcShaderResourceRO> srvs;
+		std::vector<GfxArcShaderResourceRW> uavs;
+		std::vector<GfxArcRenderTarget> rtvs;
+		std::vector<GfxArcDepthTarget> dsvs;
 
 	private:
 		[[maybe_unused]] uint64 CreateDescriptor(GfxSubresourceType type, GfxTextureSubresourceDesc const& view_desc)

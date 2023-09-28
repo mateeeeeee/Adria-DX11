@@ -295,7 +295,7 @@ TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cube
 	return handle;
 }
 
-GfxReadOnlyDescriptor TextureManager::GetTextureDescriptor(TextureHandle tex_handle) const
+GfxShaderResourceRO TextureManager::GetTextureDescriptor(TextureHandle tex_handle) const
 {
 	if (auto it = texture_map.find(tex_handle); it != texture_map.end()) return it->second.Get();
 	else return nullptr;
@@ -313,7 +313,7 @@ TextureHandle TextureManager::LoadDDSTexture(std::wstring const& name)
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
 		++handle;
-		GfxArcReadOnlyDescriptor view_ptr;
+		GfxArcShaderResourceRO view_ptr;
 		ID3D11Texture2D* tex_ptr = nullptr;
 		if (mipmaps)
 		{

@@ -47,7 +47,7 @@ namespace adria
 		void CopyTexture(GfxTexture& dst, GfxTexture const& src);
 		void CopyTexture(GfxTexture& dst, uint32 dst_mip, uint32 dst_array, GfxTexture const& src, uint32 src_mip, uint32 src_array);
 
-		void CopyStructureCount(GfxBuffer* dst_buffer, uint32 dst_buffer_offset, GfxReadWriteDescriptor src_view);
+		void CopyStructureCount(GfxBuffer* dst_buffer, uint32 dst_buffer_offset, GfxShaderResourceRW src_view);
 
 		GfxMappedSubresource MapBuffer(GfxBuffer* buffer, GfxMapType map_type);
 		void UnmapBuffer(GfxBuffer* buffer);
@@ -70,11 +70,11 @@ namespace adria
 		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height);
 		void SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height);
 
-		void ClearReadWriteDescriptorFloat(GfxReadWriteDescriptor descriptor, const float v[4]);
-		void ClearReadWriteDescriptorUint(GfxReadWriteDescriptor descriptor, const uint32 v[4]);
-		void ClearRenderTarget(GfxColorDescriptor rtv, float const* clear_color);
-		void ClearDepth(GfxDepthDescriptor dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);
-		void SetRenderTargets(std::span<GfxColorDescriptor> rtvs, GfxDepthDescriptor dsv = nullptr);
+		void ClearReadWriteDescriptorFloat(GfxShaderResourceRW descriptor, const float v[4]);
+		void ClearReadWriteDescriptorUint(GfxShaderResourceRW descriptor, const uint32 v[4]);
+		void ClearRenderTarget(GfxRenderTarget rtv, float const* clear_color);
+		void ClearDepth(GfxDepthTarget dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);
+		void SetRenderTargets(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv = nullptr);
 
 		void SetInputLayout(GfxInputLayout* il);
 		void SetDepthStencilState(GfxDepthStencilState* dss, uint32 stencil_ref);
@@ -91,14 +91,14 @@ namespace adria
 		void SetConstantBuffers(GfxShaderStage stage, uint32 start, std::span<GfxBuffer*> buffers);
 		void SetSampler(GfxShaderStage stage, uint32 start, GfxSampler* sampler);
 		void SetSamplers(GfxShaderStage stage, uint32 start, std::span<GfxSampler*> samplers);
-		void SetReadOnlyDescriptor(GfxShaderStage stage, uint32 slot, GfxReadOnlyDescriptor descriptor);
-		void SetReadOnlyDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadOnlyDescriptor> descriptors);
-		void UnsetReadOnlyDescriptors(GfxShaderStage stage, uint32 start, uint32 count);
-		void SetReadWriteDescriptor(GfxShaderStage stage, uint32 slot, GfxReadWriteDescriptor descriptor);
-		void SetReadWriteDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadWriteDescriptor> descriptors);
-		void SetReadWriteDescriptors(GfxShaderStage stage, uint32 start, std::span<GfxReadWriteDescriptor> descriptors, std::span<uint32> initial_counts);
-		void UnsetReadWriteDescriptors(GfxShaderStage stage, uint32 start, uint32 count);
-		void GenerateMips(GfxReadOnlyDescriptor srv);
+		void SetShaderResourceRO(GfxShaderStage stage, uint32 slot, GfxShaderResourceRO descriptor);
+		void SetShaderResourcesRO(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRO> descriptors);
+		void UnsetShaderResourcesRO(GfxShaderStage stage, uint32 start, uint32 count);
+		void SetShaderResourceRW(GfxShaderStage stage, uint32 slot, GfxShaderResourceRW descriptor);
+		void SetShaderResourcesRW(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRW> descriptors);
+		void SetShaderResourcesRW(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRW> descriptors, std::span<uint32> initial_counts);
+		void UnsetShaderResourcesRW(GfxShaderStage stage, uint32 start, uint32 count);
+		void GenerateMips(GfxShaderResourceRO srv);
 
 		void BeginQuery(GfxQuery* query);
 		void EndQuery(GfxQuery* query);
@@ -108,7 +108,6 @@ namespace adria
 		void EndEvent();
 
 		ID3D11DeviceContext4* GetNative() const { return command_context.Get(); }
-		ID3DUserDefinedAnnotation* GetAnnotation() const { return annotation.Get(); }
 	private:
 		GfxDevice* gfx = nullptr;
 		uint32 frame_count = 0;

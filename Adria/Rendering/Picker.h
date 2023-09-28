@@ -34,20 +34,20 @@ namespace adria
 			picking_buffer->CreateUAV();
 		}
 
-		PickingData Pick(GfxReadOnlyDescriptor depth_srv, GfxReadOnlyDescriptor normal_srv)
+		PickingData Pick(GfxShaderResourceRO depth_srv, GfxShaderResourceRO normal_srv)
 		{
 			GfxCommandContext* command_context = gfx->GetCommandContext();
 			//ID3D11DeviceContext* context = command_context->GetNative();
-			GfxReadOnlyDescriptor srvs[2] = { depth_srv, normal_srv };
-			command_context->SetReadOnlyDescriptors(GfxShaderStage::CS, 0, srvs);
-			GfxReadWriteDescriptor lights_uav = picking_buffer->UAV();
-			command_context->SetReadWriteDescriptor(GfxShaderStage::CS, 0, lights_uav);
+			GfxShaderResourceRO srvs[2] = { depth_srv, normal_srv };
+			command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srvs);
+			GfxShaderResourceRW lights_uav = picking_buffer->UAV();
+			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, lights_uav);
 			
 			ShaderManager::GetShaderProgram(ShaderProgram::Picker)->Bind(command_context);
 			command_context->Dispatch(1, 1, 1);
 
-			command_context->UnsetReadOnlyDescriptors(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
-			command_context->UnsetReadWriteDescriptors(GfxShaderStage::CS, 0, 1);
+			command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
+			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
 
 			PickingData const* data = (PickingData const*)picking_buffer->MapForRead();
 			PickingData picking_data = *data;

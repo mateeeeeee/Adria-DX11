@@ -138,15 +138,15 @@ namespace adria
 		//////////////////////////////////////////////////////////////////
 		bool ibl_textures_generated = false;
 		bool recreate_clusters = true;
-		GfxArcReadOnlyDescriptor env_srv;
-		GfxArcReadOnlyDescriptor irmap_srv;
-		GfxArcReadOnlyDescriptor brdf_srv;
+		GfxArcShaderResourceRO env_srv;
+		GfxArcShaderResourceRO irmap_srv;
+		GfxArcShaderResourceRO brdf_srv;
 		BoundingBox light_bounding_box;
 		BoundingFrustum light_bounding_frustum;
 		std::optional<BoundingSphere> scene_bounding_sphere = std::nullopt;
 		std::array<Vector4, SSAO_KERNEL_SIZE> ssao_kernel{};
-		std::vector<GfxReadOnlyDescriptor> lens_flare_textures;
-		std::vector<GfxReadOnlyDescriptor> clouds_textures;
+		std::vector<GfxShaderResourceRO> lens_flare_textures;
+		std::vector<GfxShaderResourceRO> clouds_textures;
 		TextureHandle hex_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle oct_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle circle_bokeh_handle = INVALID_TEXTURE_HANDLE;

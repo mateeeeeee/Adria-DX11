@@ -27,8 +27,6 @@ namespace adria
 
 		ID3D11Device* GetDevice() const;
 		ID3D11DeviceContext* GetContext() const;
-		ID3DUserDefinedAnnotation* GetAnnotation() const;
-
 		GfxCommandContext* GetCommandContext() const { return command_context.get(); }
 
 	private:

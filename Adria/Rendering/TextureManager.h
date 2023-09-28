@@ -24,14 +24,14 @@ namespace adria
 		ADRIA_NODISCARD TextureHandle LoadCubeMap(std::wstring const& name);
 		ADRIA_NODISCARD TextureHandle LoadCubeMap(std::array<std::string, 6> const& cubemap_textures);
 
-		GfxReadOnlyDescriptor GetTextureDescriptor(TextureHandle tex_handle) const;
+		GfxShaderResourceRO GetTextureDescriptor(TextureHandle tex_handle) const;
 		void SetMipMaps(bool mipmaps);
 
 	private:
 		GfxDevice* gfx;
 		bool mipmaps = true;
 		TextureHandle handle = INVALID_TEXTURE_HANDLE;
-		std::unordered_map<TextureHandle, GfxArcReadOnlyDescriptor> texture_map{};
+		std::unordered_map<TextureHandle, GfxArcShaderResourceRO> texture_map{};
 		std::unordered_map<std::wstring, TextureHandle> loaded_textures{};
 
 	private:

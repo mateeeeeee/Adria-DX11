@@ -133,8 +133,8 @@ namespace adria
 		GfxBuffer& operator=(GfxBuffer const&) = delete;
 		~GfxBuffer() = default;
 
-		GfxReadOnlyDescriptor SRV(uint64 i = 0) const { return srvs[i].Get(); }
-		GfxReadWriteDescriptor UAV(uint64 i = 0) const { return uavs[i].Get(); }
+		GfxShaderResourceRO SRV(uint64 i = 0) const { return srvs[i].Get(); }
+		GfxShaderResourceRW UAV(uint64 i = 0) const { return uavs[i].Get(); }
 
 		[[maybe_unused]] uint64 CreateSRV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
@@ -215,8 +215,8 @@ namespace adria
 		GfxDevice* gfx;
 		GfxBufferDesc desc;
 		ArcPtr<ID3D11Buffer> resource;
-		std::vector<GfxArcReadOnlyDescriptor> srvs;
-		std::vector<GfxArcReadWriteDescriptor> uavs;
+		std::vector<GfxArcShaderResourceRO> srvs;
+		std::vector<GfxArcShaderResourceRW> uavs;
 
 	private:
 		uint64 CreateDescriptor(GfxSubresourceType type, GfxBufferSubresourceDesc const& subresource_desc)

@@ -62,17 +62,17 @@ namespace adria
 
 				float position[3] = { 0.0f, 0.0f, 0.0f };
 				model_params.FindArray("translation", position);
-				XMMATRIX translation = XMMatrixTranslation(position[0], position[1], position[2]);
+				Matrix translation = XMMatrixTranslation(position[0], position[1], position[2]);
 
 				float angles[3] = { 0.0f, 0.0f, 0.0f };
 				model_params.FindArray("rotation", angles);
 				std::transform(std::begin(angles), std::end(angles), std::begin(angles), XMConvertToRadians);
-				XMMATRIX rotation = XMMatrixRotationX(angles[0]) * XMMatrixRotationY(angles[1]) * XMMatrixRotationZ(angles[2]);
+				Matrix rotation = XMMatrixRotationX(angles[0]) * XMMatrixRotationY(angles[1]) * XMMatrixRotationZ(angles[2]);
 
 				float scale_factors[3] = { 1.0f, 1.0f, 1.0f };
 				model_params.FindArray("scale", scale_factors);
-				XMMATRIX scale = XMMatrixScaling(scale_factors[0], scale_factors[1], scale_factors[2]);
-				XMMATRIX transform = rotation * scale * translation;
+				Matrix scale = XMMatrixScaling(scale_factors[0], scale_factors[1], scale_factors[2]);
+				Matrix transform = rotation * scale * translation;
 
 				config.scene_models.emplace_back(path, tex_path, transform);
 			}
@@ -111,7 +111,7 @@ namespace adria
 
 				light.light_data.active = light_params.FindOr<bool>("active", true);
 				light.light_data.volumetric = light_params.FindOr<bool>("volumetric", false);
-				light.light_data.volumetric_strength = light_params.FindOr<float>("volumetric_strength", 1.0f);
+				light.light_data.volumetric_strength = light_params.FindOr<float>("volumetric_strength", 0.03f);
 
 				light.light_data.lens_flare = light_params.FindOr<bool>("lens_flare", false);
 				light.light_data.god_rays = light_params.FindOr<bool>("god_rays", false);
