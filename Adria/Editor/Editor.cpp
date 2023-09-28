@@ -1737,6 +1737,14 @@ namespace adria
             ImGuiIO io = ImGui::GetIO();
             static bool enable_profiling = false;
 			ImGui::Checkbox("Enable Profiling", &enable_profiling);
+			
+			static bool cur_enable_profiling = false;
+			if (cur_enable_profiling != enable_profiling)
+			{
+				cur_enable_profiling = enable_profiling;
+				g_GfxProfiler.Initialize(engine->gfx.get());
+			}
+			
 			if (enable_profiling)
 			{
 				static ProfilerState state;
