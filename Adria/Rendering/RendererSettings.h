@@ -29,7 +29,7 @@ namespace adria
 		bool motion_blur = false;
 		float velocity_buffer_scale = 64.0f;
 		//ao
-		AmbientOcclusion ambient_occlusion = AmbientOcclusion::None;
+		AmbientOcclusion ambient_occlusion = AmbientOcclusion::SSAO;
 		float   ssao_power = 4.0f;
 		float   ssao_radius = 1.0f;
 		float   hbao_power = 1.5f;

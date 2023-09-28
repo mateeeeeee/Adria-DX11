@@ -1511,7 +1511,7 @@ namespace adria
             {
                 {
                     const char* ao_types[] = { "None", "SSAO", "HBAO" };
-                    static int current_ao_type = 0;
+                    static int current_ao_type = 1;
                     const char* combo_label = ao_types[current_ao_type];
                     if (ImGui::BeginCombo("Ambient Occlusion", combo_label, 0))
                     {

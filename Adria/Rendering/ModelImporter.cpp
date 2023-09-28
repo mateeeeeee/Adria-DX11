@@ -462,19 +462,19 @@ namespace adria
 				switch (primitive.mode)
 				{
 				case TINYGLTF_MODE_POINTS:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
+					mesh_component.topology = GfxPrimitiveTopology::PointList;
 					break;
 				case TINYGLTF_MODE_LINE:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_LINELIST;
+					mesh_component.topology = GfxPrimitiveTopology::LineList;
 					break;
 				case TINYGLTF_MODE_LINE_STRIP:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_LINESTRIP;
+					mesh_component.topology = GfxPrimitiveTopology::LineStrip;
 					break;
 				case TINYGLTF_MODE_TRIANGLES:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+					mesh_component.topology = GfxPrimitiveTopology::TriangleList;
 					break;
 				case TINYGLTF_MODE_TRIANGLE_STRIP:
-					mesh_component.topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+					mesh_component.topology = GfxPrimitiveTopology::TriangleStrip;
 					break;
 				default:
 					assert(false);

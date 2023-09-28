@@ -1,6 +1,5 @@
 #pragma once
 #include <memory>
-#include <DirectXCollision.h>
 #include "Enums.h"
 #include "Terrain.h"
 #include "TextureManager.h"
@@ -8,12 +7,15 @@
 #include "Math/Constants.h"
 #include "Graphics/GfxVertexFormat.h"
 #include "Graphics/GfxBuffer.h"
+#include "Graphics/GfxStates.h"
 #include "tecs/entity.h"
 
 #define COMPONENT 
 
 namespace adria
 {
+	class GfxCommandContext;
+
 	struct COMPONENT Transform
 	{
 		Matrix starting_transform = Matrix::Identity;
@@ -44,63 +46,13 @@ namespace adria
 		int32 base_vertex_location = 0;  //A value added to each index before reading a vertex from the vertex buffer
 
 		//instancing
-		uint32 instance_count = 0;
+		uint32 instance_count = 1;
 		uint32 start_instance_location = 0; //A value added to each index before reading per-instance data from a vertex buffer
 
-		D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		GfxPrimitiveTopology topology = GfxPrimitiveTopology::TriangleList;
 
-		void Draw(ID3D11DeviceContext* context) const
-		{
-			context->IASetPrimitiveTopology(topology);
-			BindVertexBuffer(context, vertex_buffer.get());
-			if (index_buffer)
-			{
-				BindIndexBuffer(context, index_buffer.get());
-				if (instance_buffer)
-				{
-					BindVertexBuffer(context, instance_buffer.get(), 1);
-					context->DrawIndexedInstanced(indices_count, instance_count, 
-						start_index_location, base_vertex_location, start_instance_location);
-				}
-				else context->DrawIndexed(indices_count, start_index_location, base_vertex_location);
-			}
-			else
-			{
-				if (instance_buffer)
-				{
-					BindVertexBuffer(context, instance_buffer.get(), 1);
-					context->DrawInstanced(vertex_count, instance_count,
-						start_vertex_location, start_instance_location);
-				}
-				else context->Draw(vertex_count, start_vertex_location);
-			}
-		}
-		void Draw(ID3D11DeviceContext* context, D3D11_PRIMITIVE_TOPOLOGY override_topology) const
-		{
-			context->IASetPrimitiveTopology(override_topology);
-			BindVertexBuffer(context, vertex_buffer.get());
-			if (index_buffer)
-			{
-				BindIndexBuffer(context, index_buffer.get());
-				if (instance_buffer)
-				{
-					BindVertexBuffer(context, instance_buffer.get(), 1);
-					context->DrawIndexedInstanced(indices_count, instance_count,
-						start_index_location, base_vertex_location, start_instance_location);
-				}
-				else context->DrawIndexed(indices_count, start_index_location, base_vertex_location);
-			}
-			else
-			{
-				if (instance_buffer)
-				{
-					BindVertexBuffer(context, instance_buffer.get(), 1);
-					context->DrawInstanced(vertex_count, instance_count,
-						start_vertex_location, start_instance_location);
-				}
-				else context->Draw(vertex_count, start_vertex_location);
-			}
-		}
+		void Draw(GfxCommandContext* context) const;
+		void Draw(GfxCommandContext* context, GfxPrimitiveTopology override_topology) const;
 	};
 
 	struct COMPONENT Material

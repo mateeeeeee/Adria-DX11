@@ -192,6 +192,7 @@
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|x64'">pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="Rendering\Camera.cpp" />
+    <ClCompile Include="Rendering\Components.cpp" />
     <ClCompile Include="Rendering\ModelImporter.cpp" />
     <ClCompile Include="Rendering\ParticleRenderer.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />

@@ -195,8 +195,13 @@
     <ClCompile Include="Graphics\GfxScopedAnnotation.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
-    <ClCompile Include="Graphics\GfxShaderProgram.cpp" />
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp">
+      <Filter>Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Components.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Graphics\GfxShaderProgram.cpp">
       <Filter>Graphics</Filter>
     </ClCompile>
   </ItemGroup>
