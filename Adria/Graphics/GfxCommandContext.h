@@ -1,7 +1,7 @@
 #pragma once
 #include <span>
 #include "GfxStates.h"
-#include "GfxDescriptor.h"
+#include "GfxView.h"
 #include "GfxResourceCommon.h"
 #include "GfxShader.h"
 
@@ -74,8 +74,7 @@ namespace adria
 		void ClearReadWriteDescriptorUint(GfxShaderResourceRW descriptor, const uint32 v[4]);
 		void ClearRenderTarget(GfxRenderTarget rtv, float const* clear_color);
 		void ClearDepth(GfxDepthTarget dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);
-		void SetRenderTargets(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv = nullptr);
-
+		
 		void SetInputLayout(GfxInputLayout* il);
 		void SetDepthStencilState(GfxDepthStencilState* dss, uint32 stencil_ref);
 		void SetRasterizerState(GfxRasterizerState* rs);
@@ -91,13 +90,20 @@ namespace adria
 		void SetConstantBuffers(GfxShaderStage stage, uint32 start, std::span<GfxBuffer*> buffers);
 		void SetSampler(GfxShaderStage stage, uint32 start, GfxSampler* sampler);
 		void SetSamplers(GfxShaderStage stage, uint32 start, std::span<GfxSampler*> samplers);
-		void SetShaderResourceRO(GfxShaderStage stage, uint32 slot, GfxShaderResourceRO descriptor);
-		void SetShaderResourcesRO(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRO> descriptors);
+		void SetShaderResourceRO(GfxShaderStage stage, uint32 slot, GfxShaderResourceRO srv);
+		void SetShaderResourcesRO(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRO> srvs);
 		void UnsetShaderResourcesRO(GfxShaderStage stage, uint32 start, uint32 count);
-		void SetShaderResourceRW(GfxShaderStage stage, uint32 slot, GfxShaderResourceRW descriptor);
-		void SetShaderResourcesRW(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRW> descriptors);
-		void SetShaderResourcesRW(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRW> descriptors, std::span<uint32> initial_counts);
-		void UnsetShaderResourcesRW(GfxShaderStage stage, uint32 start, uint32 count);
+		void SetShaderResourceRW(uint32 slot, GfxShaderResourceRW uav);
+		void SetShaderResourcesRW(uint32 start, std::span<GfxShaderResourceRW> uavs);
+		void SetShaderResourcesRW(uint32 start, std::span<GfxShaderResourceRW> uavs, std::span<uint32> initial_counts);
+		void UnsetShaderResourcesRW(uint32 start, uint32 count);
+
+		void SetRenderTarget(GfxRenderTarget rtv, GfxDepthTarget dsv = nullptr);
+		void SetRenderTargets(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv = nullptr);
+
+		void SetRenderTargetsAndShaderResourcesRW(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv,
+			uint32 start_slot, std::span<GfxShaderResourceRW> uavs, std::span<uint32> initial_counts = {});
+
 		void GenerateMips(GfxShaderResourceRO srv);
 
 		void BeginQuery(GfxQuery* query);

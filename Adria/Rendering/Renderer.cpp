@@ -451,25 +451,25 @@ namespace adria
 	{
 		TextureHandle tex_handle{};
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare0.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare1.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare2.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare3.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare4.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare5.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
 		tex_handle = g_TextureManager.LoadTexture("Resources/Textures/lensflare/flare6.jpg");
-		lens_flare_textures.push_back(g_TextureManager.GetTextureDescriptor(tex_handle));
+		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
 		clouds_textures.resize(3);
 
@@ -1247,9 +1247,9 @@ namespace adria
 		{
 			ShaderManager::GetShaderProgram(ShaderProgram::OceanInitialSpectrum)->Bind(command_context);
 			GfxShaderResourceRW uav[] = { ocean_initial_spectrum->UAV() };
-			command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uav);
+			command_context->SetShaderResourcesRW(0, uav);
 			command_context->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
-			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
+			command_context->UnsetShaderResourcesRW(0, 1);
 			renderer_settings.recreate_initial_spectrum = false;
 		}
 
@@ -1260,10 +1260,10 @@ namespace adria
 
 			ShaderManager::GetShaderProgram(ShaderProgram::OceanPhase)->Bind(command_context);
 			command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srv);
-			command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uav);
+			command_context->SetShaderResourcesRW(0, uav);
 			command_context->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
 			command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 1);
-			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
+			command_context->UnsetShaderResourcesRW(0, 1);
 			pong_phase = !pong_phase;
 		}
 
@@ -1273,10 +1273,10 @@ namespace adria
 			GfxShaderResourceRW  uav[]	= { ping_pong_spectrum_textures[pong_spectrum]->UAV() };
 			ShaderManager::GetShaderProgram(ShaderProgram::OceanSpectrum)->Bind(command_context);
 			command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srvs);
-			command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uav);
+			command_context->SetShaderResourcesRW(0, uav);
 			command_context->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
 			command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 2);
-			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
+			command_context->UnsetShaderResourcesRW(0, 1);
 			pong_spectrum = !pong_spectrum;
 		}
 
@@ -1303,10 +1303,10 @@ namespace adria
 					fft_cbuffer.Update(command_context, fft_cbuf_data);
 
 					command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srv);
-					command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uav);
+					command_context->SetShaderResourcesRW(0, uav);
 					command_context->Dispatch(RESOLUTION, 1, 1);
 					command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 1);
-					command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
+					command_context->UnsetShaderResourcesRW(0, 1);
 					pong_spectrum = !pong_spectrum;
 				}
 			}
@@ -1322,10 +1322,10 @@ namespace adria
 					fft_cbuffer.Update(command_context, fft_cbuf_data);
 
 					command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srv);
-					command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uav);
+					command_context->SetShaderResourcesRW(0, uav);
 					command_context->Dispatch(RESOLUTION, 1, 1);
 					command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 1);
-					command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
+					command_context->UnsetShaderResourcesRW(0, 1);
 					pong_spectrum = !pong_spectrum;
 				}
 			}
@@ -1338,11 +1338,11 @@ namespace adria
 			GfxShaderResourceRW normal_map_uav = ocean_normal_map->UAV();
 
 			command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, final_spectrum);
-			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, normal_map_uav);
+			command_context->SetShaderResourceRW(0, normal_map_uav);
 			command_context->Dispatch(RESOLUTION / 32, RESOLUTION / 32, 1);
 
 			command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, nullptr);
-			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, nullptr);
+			command_context->SetShaderResourceRW(0, nullptr);
 		}
 	}
 	void Renderer::UpdateWeather(float dt)
@@ -1576,13 +1576,13 @@ namespace adria
 
 					if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
+						auto view = g_TextureManager.GetTextureView(material.albedo_texture);
 						command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
 					}
 
 					if (material.metallic_roughness_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = g_TextureManager.GetTextureDescriptor(material.metallic_roughness_texture);
+						auto view = g_TextureManager.GetTextureView(material.metallic_roughness_texture);
 						command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_ROUGHNESS_METALLIC, view);
 					}
 					else
@@ -1592,7 +1592,7 @@ namespace adria
 
 					if (material.normal_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = g_TextureManager.GetTextureDescriptor(material.normal_texture);
+						auto view = g_TextureManager.GetTextureView(material.normal_texture);
 						command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_NORMAL, view);
 
 					}
@@ -1603,7 +1603,7 @@ namespace adria
 
 					if (material.emissive_texture != INVALID_TEXTURE_HANDLE)
 					{
-						auto view = g_TextureManager.GetTextureDescriptor(material.emissive_texture);
+						auto view = g_TextureManager.GetTextureView(material.emissive_texture);
 						command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_EMISSIVE, view);
 					}
 					else
@@ -1630,28 +1630,28 @@ namespace adria
 
 				if (terrain.grass_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureDescriptor(terrain.grass_texture);
+					auto view = g_TextureManager.GetTextureView(terrain.grass_texture);
 					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_GRASS, view);
 				}
 				if (terrain.base_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureDescriptor(terrain.base_texture);
+					auto view = g_TextureManager.GetTextureView(terrain.base_texture);
 					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_BASE, view);
 				}
 				if (terrain.rock_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureDescriptor(terrain.rock_texture);
+					auto view = g_TextureManager.GetTextureView(terrain.rock_texture);
 					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_ROCK, view);
 				}
 				if (terrain.sand_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureDescriptor(terrain.sand_texture);
+					auto view = g_TextureManager.GetTextureView(terrain.sand_texture);
 					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_SAND, view);
 				}
 
 				if (terrain.layer_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureDescriptor(terrain.layer_texture);
+					auto view = g_TextureManager.GetTextureView(terrain.layer_texture);
 					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_LAYER, view);
 				}
 				mesh.Draw(command_context);
@@ -1670,7 +1670,7 @@ namespace adria
 
 				if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 				{
-					auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
+					auto view = g_TextureManager.GetTextureView(material.albedo_texture);
 					command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
 				}
 				mesh.Draw(command_context);
@@ -1716,8 +1716,8 @@ namespace adria
 				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert().Transpose();
 				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
-				GfxShaderResourceRO srvs[] = { g_TextureManager.GetTextureDescriptor(decal.albedo_decal_texture), 
-												 g_TextureManager.GetTextureDescriptor(decal.normal_decal_texture),
+				GfxShaderResourceRO srvs[] = { g_TextureManager.GetTextureView(decal.albedo_decal_texture), 
+												 g_TextureManager.GetTextureView(decal.normal_decal_texture),
 												 depth_target->SRV() };
 				command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 				command_context->DrawIndexed(cube_ib->GetCount());
@@ -1917,25 +1917,25 @@ namespace adria
 		GfxShaderResourceRO lights_srv = lights->SRV();
 		command_context->SetShaderResourceRO(GfxShaderStage::CS, 3, lights_srv);
 		GfxShaderResourceRW texture_uav = uav_target->UAV();
-		command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, texture_uav);
+		command_context->SetShaderResourceRW(0, texture_uav);
 
 		GfxShaderResourceRW debug_uav = debug_tiled_texture->UAV();
 		if (renderer_settings.visualize_tiled)
 		{
-			command_context->SetShaderResourceRW(GfxShaderStage::CS, 1, debug_uav);
+			command_context->SetShaderResourceRW(1, debug_uav);
 		}
 
 		ShaderManager::GetShaderProgram(ShaderProgram::TiledLighting)->Bind(command_context);
 		command_context->Dispatch((uint32)std::ceil(width * 1.0f / 16), (uint32)std::ceil(height * 1.0f / 16), 1);
 
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 4);
-		command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
+		command_context->UnsetShaderResourcesRW(0, 1);
 
 		GfxRenderTarget rtv[] = { hdr_render_target->RTV() };
 		command_context->SetRenderTargets(rtv, nullptr);
 		if (renderer_settings.visualize_tiled)
 		{
-			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 1, 1);
+			command_context->UnsetShaderResourcesRW(1, 1);
 			command_context->SetBlendState(alpha_blend.get());
 			AddTextures(uav_target.get(), debug_tiled_texture.get());
 			command_context->SetBlendState(nullptr);
@@ -1995,14 +1995,14 @@ namespace adria
 		if (recreate_clusters)
 		{
 			GfxShaderResourceRW clusters_uav = clusters->UAV();
-			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, clusters_uav);
+			command_context->SetShaderResourceRW(0, clusters_uav);
 			
 			ShaderManager::GetShaderProgram(ShaderProgram::ClusterBuilding)->Bind(command_context);
 			command_context->Dispatch(CLUSTER_SIZE_X, CLUSTER_SIZE_Y, CLUSTER_SIZE_Z);
 			ShaderManager::GetShaderProgram(ShaderProgram::ClusterBuilding)->Unbind(command_context);
 
 			GfxShaderResourceRW null_uav = nullptr;
-			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, nullptr);
+			command_context->SetShaderResourceRW(0, nullptr);
 
 			recreate_clusters = false;
 		}
@@ -2010,14 +2010,14 @@ namespace adria
 		GfxShaderResourceRO srvs[] = { clusters->SRV(), lights->SRV() };
 		command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srvs);
 		GfxShaderResourceRW uavs[] = { light_counter->UAV(), light_list->UAV(), light_grid->UAV() };
-		command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uavs);
+		command_context->SetShaderResourcesRW(0, uavs);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::ClusterCulling)->Bind(command_context);
 		command_context->Dispatch(CLUSTER_SIZE_X / 16, CLUSTER_SIZE_Y / 16, CLUSTER_SIZE_Z / 4);
 		ShaderManager::GetShaderProgram(ShaderProgram::ClusterCulling)->Unbind(command_context);
 
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
-		command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, ARRAYSIZE(uavs));
+		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uavs));
 
 		command_context->SetBlendState(additive_blend.get());
 
@@ -2139,7 +2139,7 @@ namespace adria
 
 			material_cbuf_data.albedo_factor = material.albedo_factor;
 			material_cbuffer->Update(gfx->GetCommandContext(), material_cbuf_data);
-			auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
+			auto view = g_TextureManager.GetTextureView(material.albedo_texture);
 			command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
 			mesh.Draw(command_context);
 		}
@@ -2151,17 +2151,17 @@ namespace adria
 		ShaderManager::GetShaderProgram(ShaderProgram::Voxelize)->Unbind(command_context);
 
 		GfxShaderResourceRW uavs[] = { voxels_uav, voxel_texture->UAV() };
-		command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uavs);
+		command_context->SetShaderResourcesRW(0, uavs);
 		ShaderManager::GetShaderProgram(ShaderProgram::VoxelCopy)->Bind(command_context);
 		command_context->Dispatch(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION / 256, 1, 1);
 		ShaderManager::GetShaderProgram(ShaderProgram::VoxelCopy)->Unbind(command_context);
 
-		command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, ARRAYSIZE(uavs));
+		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uavs));
 		command_context->GenerateMips(voxel_texture->SRV());
 
 		if (renderer_settings.voxel_second_bounce)
 		{
-			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, voxel_texture_second_bounce->UAV());
+			command_context->SetShaderResourceRW(0, voxel_texture_second_bounce->UAV());
 			GfxShaderResourceRO srvs[] = { voxels->SRV(), voxel_texture->SRV() };
 			command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 
@@ -2170,7 +2170,7 @@ namespace adria
 			ShaderManager::GetShaderProgram(ShaderProgram::VoxelSecondBounce)->Unbind(command_context);
 
 			command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(srvs));
-			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, nullptr);
+			command_context->SetShaderResourceRW(0, nullptr);
 			command_context->GenerateMips(voxel_texture_second_bounce->SRV());
 		}
 	}
@@ -2546,7 +2546,7 @@ namespace adria
 				object_cbuf_data.transposed_inverse_model = object_cbuf_data.model.Invert();
 				object_cbuffer->Update(gfx->GetCommandContext(), object_cbuf_data);
 
-				auto view = g_TextureManager.GetTextureDescriptor(material->albedo_texture);
+				auto view = g_TextureManager.GetTextureView(material->albedo_texture);
 				command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
 				mesh.Draw(command_context);
 			}
@@ -2610,7 +2610,7 @@ namespace adria
 			{
 				auto const& skybox = skybox_view.get(e);
 				if (!skybox.active) continue;
-				auto view = g_TextureManager.GetTextureDescriptor(skybox.cubemap_texture);
+				auto view = g_TextureManager.GetTextureView(skybox.cubemap_texture);
 				command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_CUBEMAP, view);
 				break;
 			}
@@ -2648,7 +2648,7 @@ namespace adria
 		for (auto skybox : skyboxes)
 		{
 			auto const& _skybox = skyboxes.get(skybox);
-			skybox_srv = g_TextureManager.GetTextureDescriptor(_skybox.cubemap_texture);
+			skybox_srv = g_TextureManager.GetTextureView(_skybox.cubemap_texture);
 			if (skybox_srv) break;
 		}
 
@@ -2657,7 +2657,7 @@ namespace adria
 			? command_context->SetShaderResourceRO(GfxShaderStage::DS, 0, displacement_map_srv) :
 			  command_context->SetShaderResourceRO(GfxShaderStage::VS, 0, displacement_map_srv);
 
-		GfxShaderResourceRO srvs[] = { ocean_normal_map->SRV(), skybox_srv , g_TextureManager.GetTextureDescriptor(foam_handle) };
+		GfxShaderResourceRO srvs[] = { ocean_normal_map->SRV(), skybox_srv , g_TextureManager.GetTextureView(foam_handle) };
 		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 
 		renderer_settings.ocean_tesselation ? ShaderManager::GetShaderProgram(ShaderProgram::OceanLOD)->Bind(command_context)
@@ -2706,7 +2706,7 @@ namespace adria
 		for (auto emitter : emitters)
 		{
 			Emitter const& emitter_params = emitters.get(emitter);
-			particle_renderer.Render(emitter_params, depth_target->SRV(), g_TextureManager.GetTextureDescriptor(emitter_params.particle_texture));
+			particle_renderer.Render(emitter_params, depth_target->SRV(), g_TextureManager.GetTextureView(emitter_params.particle_texture));
 		}
 
 		command_context->SetBlendState(nullptr);
@@ -2771,7 +2771,7 @@ namespace adria
 
 			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{
-				auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
+				auto view = g_TextureManager.GetTextureView(material.albedo_texture);
 				command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
 			}
 
@@ -2926,7 +2926,6 @@ namespace adria
 	{
 		ADRIA_ASSERT(renderer_settings.dof);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Depth of Field Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Depth of Field Pass");
 
@@ -2936,29 +2935,27 @@ namespace adria
 			GfxShaderResourceRO srv_array[2] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 			uint32 initial_count[] = { 0 };
 			GfxShaderResourceRW bokeh_uav[] = { bokeh_buffer->UAV() };
-			command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, bokeh_uav, initial_count);
+			command_context->SetShaderResourcesRW(0, bokeh_uav, initial_count);
 			command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srv_array);
 			command_context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 
-			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
+			command_context->UnsetShaderResourcesRW(0, 1);
 			command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 2);
 			ShaderManager::GetShaderProgram(ShaderProgram::BokehGenerate)->Unbind(command_context);
 		}
 
 		BlurTexture(hdr_render_target.get());
 
-		GfxShaderResourceRO srv_array[3] = { postprocess_textures[!postprocess_index]->SRV(), blur_texture_final->SRV(), depth_target->SRV()};
-		static GfxShaderResourceRO const srv_null[3] = { nullptr, nullptr, nullptr };
-
+		GfxShaderResourceRO srvs[3] = { postprocess_textures[!postprocess_index]->SRV(), blur_texture_final->SRV(), depth_target->SRV()};
 		postprocess_cbuf_data.dof_params = XMVectorSet(renderer_settings.dof_near_blur, renderer_settings.dof_near, renderer_settings.dof_far, renderer_settings.dof_far_blur);
 		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::DOF)->Bind(command_context);
 		command_context->Draw(4);
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(srvs));
 
 		if (renderer_settings.bokeh)
 		{
@@ -2967,40 +2964,37 @@ namespace adria
 			switch (renderer_settings.bokeh_type)
 			{
 			case BokehType::Hex:
-				bokeh = g_TextureManager.GetTextureDescriptor(hex_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureView(hex_bokeh_handle);
 				break;
 			case BokehType::Oct:
-				bokeh = g_TextureManager.GetTextureDescriptor(oct_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureView(oct_bokeh_handle);
 				break;
 			case BokehType::Circle:
-				bokeh = g_TextureManager.GetTextureDescriptor(circle_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureView(circle_bokeh_handle);
 				break;
 			case BokehType::Cross:
-				bokeh = g_TextureManager.GetTextureDescriptor(cross_bokeh_handle);
+				bokeh = g_TextureManager.GetTextureView(cross_bokeh_handle);
 				break;
 			default:
 				ADRIA_ASSERT(false && "Invalid Bokeh Type");
 			}
 
 			GfxShaderResourceRO bokeh_srv = bokeh_buffer->SRV();
-			context->VSSetShaderResources(0, 1, &bokeh_srv);
-			context->PSSetShaderResources(0, 1, &bokeh);
 
-			ID3D11Buffer* vertexBuffers[1] = { nullptr };
-			uint32 strides[1] = { 0 };
-			uint32 offsets[1] = { 0 };
-			context->IASetVertexBuffers(0, 1, vertexBuffers, strides, offsets);
+			command_context->SetShaderResourceRO(GfxShaderStage::VS, 0, bokeh_srv);
+			command_context->SetShaderResourceRO(GfxShaderStage::PS, 0, bokeh);
+			command_context->SetVertexBuffer(nullptr);
 			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::PointList);
-			context->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
+			command_context->SetIndexBuffer(nullptr);
 
 			ShaderManager::GetShaderProgram(ShaderProgram::BokehDraw)->Bind(command_context);
 			command_context->SetBlendState(additive_blend.get());
-			context->DrawInstancedIndirect(bokeh_indirect_draw_buffer->GetNative(), 0);
+			command_context->DrawIndirect(*bokeh_indirect_draw_buffer, 0);
 			command_context->SetBlendState(nullptr);
 			static GfxShaderResourceRO null_srv = nullptr;
-			context->VSSetShaderResources(0, 1, &null_srv);
-			context->PSSetShaderResources(0, 1, &null_srv);
+			command_context->SetShaderResourceRO(GfxShaderStage::VS, 0, nullptr);
+			command_context->SetShaderResourceRO(GfxShaderStage::PS, 0, nullptr);
 			ShaderManager::GetShaderProgram(ShaderProgram::BokehDraw)->Unbind(command_context);
 		}
 	}
@@ -3008,39 +3002,37 @@ namespace adria
 	{
 		ADRIA_ASSERT(renderer_settings.bloom);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Bloom Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Bloom Pass");
 
-		static GfxShaderResourceRW const null_uav[1] = { nullptr };
-		static GfxShaderResourceRO  const null_srv[2] = { nullptr };
+		GfxShaderResourceRW uav[] = { bloom_extract_texture->UAV() };
+		GfxShaderResourceRO srv[] = { postprocess_textures[!postprocess_index]->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srv);
+		command_context->SetShaderResourcesRW(0, uav);
 
-		GfxShaderResourceRW const uav[1] = { bloom_extract_texture->UAV() };
-		GfxShaderResourceRO const srv[1] = { postprocess_textures[!postprocess_index]->SRV() };
-		context->CSSetShaderResources(0, 1, srv); 
-
-		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav), uav, nullptr);
 		ShaderManager::GetShaderProgram(ShaderProgram::BloomExtract)->Bind(command_context);
-		context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
-		context->CSSetShaderResources(0, 1, null_srv);
-		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
-		context->GenerateMips(bloom_extract_texture->SRV());
+		command_context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 
-		GfxShaderResourceRW const uav2[1] = { postprocess_textures[postprocess_index]->UAV() };
-		GfxShaderResourceRO const srv2[2] = { postprocess_textures[!postprocess_index]->SRV(), bloom_extract_texture->SRV() };
-		context->CSSetShaderResources(0, 2, srv2);
-		context->CSSetUnorderedAccessViews(0, ARRAYSIZE(uav2), uav2, nullptr);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srv));
+		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uav));
+		
+		command_context->GenerateMips(bloom_extract_texture->SRV());
+
+		GfxShaderResourceRW uav2[] = { postprocess_textures[postprocess_index]->UAV() };
+		GfxShaderResourceRO srv2[] = { postprocess_textures[!postprocess_index]->SRV(), bloom_extract_texture->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srv2);
+		command_context->SetShaderResourcesRW(0, uav2);
+
 		ShaderManager::GetShaderProgram(ShaderProgram::BloomCombine)->Bind(command_context);
-		context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
+		command_context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
 
-		context->CSSetShaderResources(0, 2, null_srv);
-		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srv2));
+		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uav2));
 	}
 	void Renderer::PassVelocityBuffer()
 	{
 		if (!renderer_settings.motion_blur && !(renderer_settings.anti_aliasing & AntiAliasing_TAA)) return;
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Velocity Buffer Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Velocity Buffer Pass");
 
@@ -3049,15 +3041,12 @@ namespace adria
 
 		command_context->BeginRenderPass(velocity_buffer_pass);
 		{
-			GfxShaderResourceRO const srv_array[1] = { depth_target->SRV() };
-			static GfxShaderResourceRO const srv_null[1] = { nullptr };
-
-			context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
+			command_context->SetShaderResourceRO(GfxShaderStage::PS, 0, depth_target->SRV());
 			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 			ShaderManager::GetShaderProgram(ShaderProgram::VelocityBuffer)->Bind(command_context);
 			command_context->Draw(4);
-			context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
+			command_context->SetShaderResourceRO(GfxShaderStage::PS, 0,nullptr);
 		}
 		command_context->EndRenderPass();
 	}
@@ -3066,26 +3055,23 @@ namespace adria
 	{
 		ADRIA_ASSERT(renderer_settings.motion_blur);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Motion Blur Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Motion Blur Pass");
 
-		GfxShaderResourceRO const srv_array[2] = { postprocess_textures[!postprocess_index]->SRV(), velocity_buffer->SRV() };
-		static GfxShaderResourceRO const srv_null[2] = { nullptr, nullptr };
+		GfxShaderResourceRO srvs[] = { postprocess_textures[!postprocess_index]->SRV(), velocity_buffer->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
 		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
-
 		ShaderManager::GetShaderProgram(ShaderProgram::MotionBlur)->Bind(command_context);
 		command_context->Draw(4);
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
+
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(srvs));
 	}
 	void Renderer::PassFog()
 	{
 		ADRIA_ASSERT(renderer_settings.fog);
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Fog Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Fog Pass");
 
@@ -3093,35 +3079,32 @@ namespace adria
 		postprocess_cbuf_data.fog_density = renderer_settings.fog_density;
 		postprocess_cbuf_data.fog_type = static_cast<int32>(renderer_settings.fog_type);
 		postprocess_cbuf_data.fog_start = renderer_settings.fog_start;
-		postprocess_cbuf_data.fog_color = XMVectorSet(renderer_settings.fog_color[0], renderer_settings.fog_color[1], renderer_settings.fog_color[2], 1);
+		postprocess_cbuf_data.fog_color = Vector4(renderer_settings.fog_color[0], renderer_settings.fog_color[1], renderer_settings.fog_color[2], 1);
 		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
-		GfxShaderResourceRO srv_array[] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
+		GfxShaderResourceRO srvs[] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
 
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::Fog)->Bind(command_context);
 		command_context->Draw(4);
 
-		static GfxShaderResourceRO const srv_null[] = { nullptr, nullptr };
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(srvs));
 	}
 
 	void Renderer::PassToneMap()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Tone Map Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Tone Map Pass");
 		
 		postprocess_cbuf_data.tone_map_exposure = renderer_settings.tone_map_exposure;
 		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 
-		GfxShaderResourceRO const srv_array[1] = { postprocess_textures[!postprocess_index]->SRV() };
-		static GfxShaderResourceRO const srv_null[1] = { nullptr };
-
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
+		GfxShaderResourceRO srvs[] = { postprocess_textures[!postprocess_index]->SRV() };
+		
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 
@@ -3141,7 +3124,7 @@ namespace adria
 		}
 
 		command_context->Draw(4);
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(srvs));
 	}
 	void Renderer::PassFXAA()
 	{
@@ -3151,47 +3134,45 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "FXAA Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "FXAA Pass");
 
-		static GfxShaderResourceRO const srv_null[] = { nullptr };
-		GfxShaderResourceRO srv_array[1] = { fxaa_texture->SRV() };
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
+		GfxShaderResourceRO srvs[1] = { fxaa_texture->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
+
 		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::FXAA)->Bind(command_context);
 		command_context->Draw(4);
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
+
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(srvs));
 	}
 	void Renderer::PassTAA()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "TAA Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "TAA Pass");
 
-		static GfxShaderResourceRO const srv_null[] = { nullptr, nullptr, nullptr };
-		GfxShaderResourceRO srv_array[] = { postprocess_textures[!postprocess_index]->SRV(), prev_hdr_render_target->SRV(), velocity_buffer->SRV() };
-		
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_array), srv_array);
+		GfxShaderResourceRO srvs[] = { postprocess_textures[!postprocess_index]->SRV(), prev_hdr_render_target->SRV(), velocity_buffer->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
+
 		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::TAA)->Bind(command_context);
 		command_context->Draw(4);
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
+		
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(srvs));
 	}
 
 	void Renderer::DrawSun(entity sun)
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
 		AdriaGfxProfileCondScope(command_context, "Sun Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Sun Pass");
 
-		ID3D11RenderTargetView* rtv = sun_target->RTV();
-		ID3D11DepthStencilView* dsv = depth_target->DSV();
+		GfxRenderTarget rtv = sun_target->RTV();
+		GfxDepthTarget  dsv = depth_target->DSV();
 		
 		float black[4] = { 0.0f };
-		context->ClearRenderTargetView(rtv, black);
-
-		context->OMSetRenderTargets(1, &rtv, dsv);
+		command_context->ClearRenderTarget(rtv, black);
+		command_context->SetRenderTarget(rtv, dsv);
 		command_context->SetBlendState(alpha_blend.get());
 		{
 			auto [transform, mesh, material] = reg.get<Transform, Mesh, Material>(sun);
@@ -3206,85 +3187,74 @@ namespace adria
 
 			if (material.albedo_texture != INVALID_TEXTURE_HANDLE)
 			{
-				auto view = g_TextureManager.GetTextureDescriptor(material.albedo_texture);
-				context->PSSetShaderResources(TEXTURE_SLOT_DIFFUSE, 1, &view);
+				auto view = g_TextureManager.GetTextureView(material.albedo_texture);
+				command_context->SetShaderResourceRO(GfxShaderStage::PS, TEXTURE_SLOT_DIFFUSE, view);
 			}
 			mesh.Draw(command_context);
 		}
 		command_context->SetBlendState(nullptr);
-		context->OMSetRenderTargets(0, nullptr, nullptr);
+		command_context->SetRenderTarget(nullptr, nullptr);
 	}
 
 	void Renderer::BlurTexture(GfxTexture const* src)
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
-		std::array<ID3D11UnorderedAccessView*, 2> uavs{};
-		std::array<ID3D11ShaderResourceView*, 2>  srvs{};
+		std::array<GfxShaderResourceRW, 2>  uavs{};
+		std::array<GfxShaderResourceRO, 2>  srvs{};
 		
 		uavs[0] = blur_texture_intermediate->UAV();  
 		uavs[1] = blur_texture_final->UAV();  
 		srvs[0] = blur_texture_intermediate->SRV();  
 		srvs[1] = blur_texture_final->SRV(); 
 
-		static GfxShaderResourceRW const null_uav[1] = { nullptr };
-		static GfxShaderResourceRO const  null_srv[1] = { nullptr };
-
-		GfxShaderResourceRW const blur_uav[1] = { nullptr };
-		GfxShaderResourceRO const  blur_srv[1] = { nullptr };
+		GfxShaderResourceRW blur_uav[1] = { nullptr };
+		GfxShaderResourceRO blur_srv[1] = { nullptr };
 
 		uint32 width = src->GetDesc().width;
 		uint32 height = src->GetDesc().height;
 		
 		GfxShaderResourceRO src_srv = src->SRV();
 
-		context->CSSetShaderResources(0, 1, &src_srv);
-		context->CSSetUnorderedAccessViews(0, 1, &uavs[0], nullptr);
+		command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, src_srv);
+		command_context->SetShaderResourceRW(0, uavs[0]);
 		ShaderManager::GetShaderProgram(ShaderProgram::Blur_Horizontal)->Bind(command_context);
-		context->Dispatch((uint32)std::ceil(width * 1.0f / 1024), height, 1);
+		command_context->Dispatch((uint32)std::ceil(width * 1.0f / 1024), height, 1);
 
-		//unbind intermediate from uav
-		context->CSSetShaderResources(0, 1, null_srv);
-		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
+		command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, nullptr);
+		command_context->SetShaderResourceRW(0, nullptr);
 
-		//and set as srv
-		context->CSSetShaderResources(0, 1, &srvs[0]);
-		context->CSSetUnorderedAccessViews(0, 1, &uavs[1], nullptr);
+		command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, srvs[0]);
+		command_context->SetShaderResourceRW(0, uavs[1]);
+
 		ShaderManager::GetShaderProgram(ShaderProgram::Blur_Vertical)->Bind(command_context);
-
-		context->Dispatch(width, (uint32)std::ceil(height * 1.0f / 1024), 1);
-		//unbind destination as uav
-		context->CSSetUnorderedAccessViews(0, 1, null_uav, nullptr);
-		context->CSSetShaderResources(0, 1, null_srv);
-
+		command_context->Dispatch(width, (uint32)std::ceil(height * 1.0f / 1024), 1);
+		
+		command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, nullptr);
+		command_context->SetShaderResourceRW(0, nullptr);
 	}
 	void Renderer::CopyTexture(GfxTexture const* src)
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
-
-		GfxShaderResourceRO srv[] = { src->SRV() };
-		context->PSSetShaderResources(0, 1, srv);
+		
+		command_context->SetShaderResourceRO(GfxShaderStage::PS, 0, src->SRV());
 		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::Copy)->Bind(command_context);
 		command_context->Draw(4);
-		static GfxShaderResourceRO const srv_null[] = { nullptr };
-		context->PSSetShaderResources(0, 1, srv_null);
+		command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, nullptr);
 	}
 	void Renderer::AddTextures(GfxTexture const* src1, GfxTexture const* src2)
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		ID3D11DeviceContext* context = command_context->GetNative();
-
+		
 		GfxShaderResourceRO srv[] = { src1->SRV(), src2->SRV() };
-		context->PSSetShaderResources(0, ARRAYSIZE(srv), srv);
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srv);
+
 		command_context->SetInputLayout(nullptr);
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 		ShaderManager::GetShaderProgram(ShaderProgram::Add)->Bind(command_context);
 		command_context->Draw(4);
-		static GfxShaderResourceRO const srv_null[] = { nullptr, nullptr };
-		context->PSSetShaderResources(0, ARRAYSIZE(srv_null), srv_null);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(srv));		
 	}
 
 	void Renderer::ResolveCustomRenderState(RenderState const& state, bool reset)

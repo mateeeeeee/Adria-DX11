@@ -130,13 +130,13 @@ namespace adria
 		
 		uint32 initial_count[] = { 0 };
 		GfxShaderResourceRW dead_list_uavs[] = { dead_list_buffer.UAV() };
-		command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, dead_list_uavs, initial_count);
+		command_context->SetShaderResourcesRW(0, dead_list_uavs, initial_count);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleInitDeadList)->Bind(command_context);
 		command_context->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleInitDeadList)->Unbind(command_context);
 
-		command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, ARRAYSIZE(dead_list_uavs));
+		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(dead_list_uavs));
 	}
 
 	void ParticleRenderer::ResetParticles()
@@ -145,13 +145,13 @@ namespace adria
 		
 		GfxShaderResourceRW uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV() };
 		uint32 initial_counts[] = { (uint32)-1, (uint32)-1 };
-		command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uavs, initial_counts);
+		command_context->SetShaderResourcesRW(0, uavs, initial_counts);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleReset)->Bind(command_context);
 		command_context->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleReset)->Unbind(command_context);
 
-		command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, ARRAYSIZE(uavs));
+		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uavs));
 	}
 
 	void ParticleRenderer::Emit(Emitter const& emitter_params)
@@ -165,7 +165,7 @@ namespace adria
 
 			GfxShaderResourceRW uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV(), dead_list_buffer.UAV() };
 			uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1 };
-			command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uavs, initial_counts);
+			command_context->SetShaderResourcesRW(0, uavs, initial_counts);
 
 			GfxShaderResourceRO srvs[] = { random_texture->SRV() };
 			command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srvs);
@@ -193,7 +193,7 @@ namespace adria
 			command_context->Dispatch(thread_groups_x, 1, 1);
 
 			command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
-			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, ARRAYSIZE(uavs));
+			command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uavs));
 
 			ShaderManager::GetShaderProgram(ShaderProgram::ParticleEmit)->Unbind(command_context);
 		}
@@ -209,7 +209,7 @@ namespace adria
 			dead_list_buffer.UAV(), alive_index_buffer.UAV(),
 			view_space_positions_buffer.UAV(), indirect_render_args_buffer.UAV() };
 		uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1, 0, (uint32)-1, (uint32)-1 };
-		command_context->SetShaderResourcesRW(GfxShaderStage::CS, 0, uavs, initial_counts);
+		command_context->SetShaderResourcesRW(0, uavs, initial_counts);
 
 		GfxShaderResourceRO srvs[] = { depth_srv };
 		command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srvs);
@@ -218,7 +218,7 @@ namespace adria
 		command_context->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
-		command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, ARRAYSIZE(uavs));
+		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uavs));
 
 		command_context->CopyStructureCount(active_list_count_cbuffer.Buffer(), 0, alive_index_buffer.UAV());
 	}
@@ -256,12 +256,12 @@ namespace adria
 		sort_dispatch_info_cbuffer.Bind(command_context, GfxShaderStage::CS, 12);
 
 		GfxShaderResourceRW indirect_sort_args_uav = indirect_sort_args_buffer.UAV();
-		command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, indirect_sort_args_uav);
+		command_context->SetShaderResourceRW(0, indirect_sort_args_uav);
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleSortInitArgs)->Bind(command_context);
 		command_context->Dispatch(1, 1, 1);
 
 		GfxShaderResourceRW uav = alive_index_buffer.UAV();
-		command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, uav);
+		command_context->SetShaderResourceRW(0, uav);
 
 		bool done = SortInitial();
 		uint32 presorted = 512;
@@ -272,7 +272,7 @@ namespace adria
 		}
 
 		uav = nullptr;
-		command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, nullptr);
+		command_context->SetShaderResourceRW(0, nullptr);
 
 	}
 

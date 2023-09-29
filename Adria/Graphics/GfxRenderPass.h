@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <d3d11.h>
 #include "GfxFormat.h"
-#include "GfxDescriptor.h"
+#include "GfxView.h"
 
 namespace adria
 {

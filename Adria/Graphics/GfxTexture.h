@@ -2,7 +2,7 @@
 #include <vector>
 #include "GfxDevice.h"
 #include "GfxResourceCommon.h"
-#include "GfxDescriptor.h"
+#include "GfxView.h"
 #include "GfxFormat.h"
 
 namespace adria

@@ -3,7 +3,7 @@
 #include <array>
 #include <unordered_map>
 #include "Graphics/GfxDevice.h"
-#include "Graphics/GfxDescriptor.h"
+#include "Graphics/GfxView.h"
 #include "Utilities/Singleton.h"
 
 namespace adria
@@ -24,7 +24,7 @@ namespace adria
 		ADRIA_NODISCARD TextureHandle LoadCubeMap(std::wstring const& name);
 		ADRIA_NODISCARD TextureHandle LoadCubeMap(std::array<std::string, 6> const& cubemap_textures);
 
-		GfxShaderResourceRO GetTextureDescriptor(TextureHandle tex_handle) const;
+		GfxShaderResourceRO GetTextureView(TextureHandle tex_handle) const;
 		void SetMipMaps(bool mipmaps);
 
 	private:

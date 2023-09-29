@@ -1105,7 +1105,7 @@ namespace adria
                 if (material && ImGui::CollapsingHeader("Material"))
                 {
 					ImGui::Text("Albedo Texture");
-					ImGui::Image(g_TextureManager.GetTextureDescriptor(material->albedo_texture), ImVec2(48.0f, 48.0f));
+					ImGui::Image(g_TextureManager.GetTextureView(material->albedo_texture), ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(0);
 					if (ImGui::Button("Remove")) material->albedo_texture = INVALID_TEXTURE_HANDLE;
@@ -1124,7 +1124,7 @@ namespace adria
 					ImGui::PopID();
 
 					ImGui::Text("Metallic-Roughness Texture");
-					ImGui::Image(g_TextureManager.GetTextureDescriptor(material->metallic_roughness_texture), ImVec2(48.0f, 48.0f));
+					ImGui::Image(g_TextureManager.GetTextureView(material->metallic_roughness_texture), ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(1);
 					if (ImGui::Button("Remove")) material->metallic_roughness_texture = INVALID_TEXTURE_HANDLE;
@@ -1143,7 +1143,7 @@ namespace adria
 					ImGui::PopID();
 
 					ImGui::Text("Emissive Texture");
-					ImGui::Image(g_TextureManager.GetTextureDescriptor(material->emissive_texture), ImVec2(48.0f, 48.0f));
+					ImGui::Image(g_TextureManager.GetTextureView(material->emissive_texture), ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(2);
 					if (ImGui::Button("Remove")) material->emissive_texture = INVALID_TEXTURE_HANDLE;
@@ -1242,7 +1242,7 @@ namespace adria
                 if (emitter && ImGui::CollapsingHeader("Emitter"))
                 {
 					ImGui::Text("Particle Texture");
-					ImGui::Image(g_TextureManager.GetTextureDescriptor(emitter->particle_texture), ImVec2(48.0f, 48.0f));
+					ImGui::Image(g_TextureManager.GetTextureView(emitter->particle_texture), ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(3);
 					if (ImGui::Button("Remove")) emitter->particle_texture = INVALID_TEXTURE_HANDLE;
@@ -1300,7 +1300,7 @@ namespace adria
 				if (decal && ImGui::CollapsingHeader("Decal"))
 				{
 					ImGui::Text("Decal Albedo Texture");
-					ImGui::Image(g_TextureManager.GetTextureDescriptor(decal->albedo_decal_texture), ImVec2(48.0f, 48.0f));
+					ImGui::Image(g_TextureManager.GetTextureView(decal->albedo_decal_texture), ImVec2(48.0f, 48.0f));
 
 					ImGui::PushID(4);
 					if (ImGui::Button("Remove")) decal->albedo_decal_texture = INVALID_TEXTURE_HANDLE;

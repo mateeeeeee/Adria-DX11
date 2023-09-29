@@ -37,17 +37,16 @@ namespace adria
 		PickingData Pick(GfxShaderResourceRO depth_srv, GfxShaderResourceRO normal_srv)
 		{
 			GfxCommandContext* command_context = gfx->GetCommandContext();
-			//ID3D11DeviceContext* context = command_context->GetNative();
 			GfxShaderResourceRO srvs[2] = { depth_srv, normal_srv };
 			command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srvs);
 			GfxShaderResourceRW lights_uav = picking_buffer->UAV();
-			command_context->SetShaderResourceRW(GfxShaderStage::CS, 0, lights_uav);
+			command_context->SetShaderResourceRW(0, lights_uav);
 			
 			ShaderManager::GetShaderProgram(ShaderProgram::Picker)->Bind(command_context);
 			command_context->Dispatch(1, 1, 1);
 
 			command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
-			command_context->UnsetShaderResourcesRW(GfxShaderStage::CS, 0, 1);
+			command_context->SetShaderResourceRW(0, nullptr);
 
 			PickingData const* data = (PickingData const*)picking_buffer->MapForRead();
 			PickingData picking_data = *data;

@@ -250,11 +250,6 @@ namespace adria
 		command_context->ClearDepthStencilView(dsv, flags, depth, stencil);
 	}
 
-	void GfxCommandContext::SetRenderTargets(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv /*= nullptr*/)
-	{
-		command_context->OMSetRenderTargets((uint32)rtvs.size(), rtvs.data(), dsv);
-	}
-
 	void GfxCommandContext::SetInputLayout(GfxInputLayout* il)
 	{
 		if (current_input_layout != il)
@@ -519,29 +514,43 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::SetShaderResourceRW(GfxShaderStage stage, uint32 slot, GfxShaderResourceRW descriptor)
+	void GfxCommandContext::SetShaderResourceRW(uint32 slot, GfxShaderResourceRW descriptor)
 	{
 		GfxShaderResourceRW descriptors[] = { descriptor };
-		SetShaderResourcesRW(stage, slot, descriptors);
+		SetShaderResourcesRW(slot, descriptors);
 	}
 
-	void GfxCommandContext::SetShaderResourcesRW(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRW> descriptors)
+	void GfxCommandContext::SetShaderResourcesRW(uint32 start, std::span<GfxShaderResourceRW> descriptors)
 	{
-		ADRIA_ASSERT_MSG(stage == GfxShaderStage::CS, "Read Write descriptors are supported only in CS stage");
 		command_context->CSSetUnorderedAccessViews(start, (uint32)descriptors.size(), descriptors.data(), nullptr);
 	}
 
-	void GfxCommandContext::SetShaderResourcesRW(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRW> descriptors, std::span<uint32> initial_counts)
+	void GfxCommandContext::SetShaderResourcesRW(uint32 start, std::span<GfxShaderResourceRW> descriptors, std::span<uint32> initial_counts)
 	{
-		ADRIA_ASSERT_MSG(stage == GfxShaderStage::CS, "Read Write descriptors are supported only in CS stage");
 		ADRIA_ASSERT(descriptors.size() == initial_counts.size());
 		command_context->CSSetUnorderedAccessViews(start, (uint32)descriptors.size(), descriptors.data(), initial_counts.data());
 	}
 
-	void GfxCommandContext::UnsetShaderResourcesRW(GfxShaderStage stage, uint32 start, uint32 count)
+	void GfxCommandContext::UnsetShaderResourcesRW(uint32 start, uint32 count)
 	{
-		ADRIA_ASSERT_MSG(stage == GfxShaderStage::CS, "Read Write descriptors are supported only in CS stage");
 		command_context->CSSetUnorderedAccessViews(start, count, NULL_UAVS, nullptr);
+	}
+
+
+	void GfxCommandContext::SetRenderTarget(GfxRenderTarget rtv, GfxDepthTarget dsv /*= nullptr*/)
+	{
+		command_context->OMSetRenderTargets(1, &rtv, dsv);
+	}
+
+	void GfxCommandContext::SetRenderTargets(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv /*= nullptr*/)
+	{
+		command_context->OMSetRenderTargets((uint32)rtvs.size(), rtvs.data(), dsv);
+	}
+
+	void GfxCommandContext::SetRenderTargetsAndShaderResourcesRW(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv, uint32 start_slot, std::span<GfxShaderResourceRW> uavs, std::span<uint32> initial_counts /*= {}*/)
+	{
+		command_context->OMSetRenderTargetsAndUnorderedAccessViews((uint32)rtvs.size(), rtvs.data(), dsv, start_slot,
+																   (uint32)uavs.size(), uavs.data(), initial_counts.data());
 	}
 
 	void GfxCommandContext::GenerateMips(GfxShaderResourceRO srv)

@@ -295,7 +295,7 @@ TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cube
 	return handle;
 }
 
-GfxShaderResourceRO TextureManager::GetTextureDescriptor(TextureHandle tex_handle) const
+GfxShaderResourceRO TextureManager::GetTextureView(TextureHandle tex_handle) const
 {
 	if (auto it = texture_map.find(tex_handle); it != texture_map.end()) return it->second.Get();
 	else return nullptr;

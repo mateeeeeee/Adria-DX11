@@ -232,7 +232,7 @@
     <ClInclude Include="Graphics\GfxCommandContext.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
     <ClInclude Include="Graphics\GfxDefines.h" />
-    <ClInclude Include="Graphics\GfxDescriptor.h" />
+    <ClInclude Include="Graphics\GfxView.h" />
     <ClInclude Include="Graphics\GfxDevice.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
     <ClInclude Include="Graphics\GfxInputLayout.h" />

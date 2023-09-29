@@ -459,7 +459,7 @@
     <ClInclude Include="Graphics\GfxCommandContext.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxDescriptor.h">
+    <ClInclude Include="Graphics\GfxView.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="Graphics\GfxQuery.h">
