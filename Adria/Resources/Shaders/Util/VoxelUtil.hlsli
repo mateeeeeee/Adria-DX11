@@ -20,32 +20,24 @@ struct VoxelType
     uint NormalMask;
 };
 
-static const float hdr_range = 10.0f;
+static const float HDR_RANGE = 10.0f;
+static const float MAX_VOXEL_LIGHTS = 8;
 
-static const float max_voxel_lights = 8;
-
-// Encode HDR color to a 32 bit uint
-// Alpha is 1 bit + 7 bit HDR remapping
-inline uint EncodeColor(in float4 color)
+uint EncodeColor(float4 color)
 {
-	// normalize color to LDR
-    float hdr = length(color.rgb);
+	float hdr = length(color.rgb);
     color.rgb /= hdr;
 
-	// encode LDR color and HDR range
-    uint3 iColor = uint3(color.rgb * 255.0f);
-    uint iHDR = (uint) (saturate(hdr / hdr_range) * 127);
+	uint3 iColor = uint3(color.rgb * 255.0f);
+    uint iHDR = (uint) (saturate(hdr / HDR_RANGE) * 127);
     uint colorMask = (iHDR << 24u) | (iColor.r << 16u) | (iColor.g << 8u) | iColor.b;
 
-	// encode alpha into highest bit
-    uint iAlpha = (color.a > 0 ? 1u : 0u);
+	uint iAlpha = (color.a > 0 ? 1u : 0u);
     colorMask |= iAlpha << 31u;
-
     return colorMask;
 }
 
-// Decode 32 bit uint into HDR color with 1 bit alpha
-inline float4 DecodeColor(in uint colorMask)
+float4 DecodeColor(uint colorMask)
 {
     float hdr;
     float4 color;
@@ -56,18 +48,15 @@ inline float4 DecodeColor(in uint colorMask)
     color.b = colorMask & 0x000000ff;
 
     hdr /= 127.0f;
+
     color.rgb /= 255.0f;
-
-    color.rgb *= hdr * hdr_range;
-
+    color.rgb *= hdr * HDR_RANGE;
     color.a = (colorMask >> 31u) & 0x00000001;
 
     return color;
 }
 
-// Encode specified normal (normalized) into an unsigned integer. Each axis of
-// the normal is encoded into 9 bits (1 for the sign/ 8 for the value).
-inline uint EncodeNormal(in float3 normal)
+uint EncodeNormal(float3 normal)
 {
     int3 iNormal = int3(normal * 255.0f);
     uint3 iNormalSigns;
@@ -79,8 +68,8 @@ inline uint EncodeNormal(in float3 normal)
     return normalMask;
 }
 
-// Decode specified mask into a float3 normal (normalized).
-inline float3 DecodeNormal(in uint normalMask)
+
+float3 DecodeNormal(uint normalMask)
 {
     int3 iNormal;
     iNormal.x = (normalMask >> 18) & 0x000000ff;
@@ -96,13 +85,11 @@ inline float3 DecodeNormal(in uint normalMask)
     return normal;
 }
 
-// 3D array index to flattened 1D array index
-inline uint Flatten3D(uint3 coord, uint3 dim)
+uint Flatten3D(uint3 coord, uint3 dim)
 {
     return (coord.z * dim.x * dim.y) + (coord.y * dim.x) + coord.x;
 }
-// flattened array index to 3D array index
-inline uint3 Unflatten3D(uint idx, uint3 dim)
+uint3 Unflatten3D(uint idx, uint3 dim)
 {
     const uint z = idx / (dim.x * dim.y);
     idx -= (z * dim.x * dim.y);

@@ -12,29 +12,37 @@ namespace adria
 {
 	namespace 
 	{
-		char const* shaders_cache_directory = "Resources/ShaderCache/";
+		inline static char const* shaders_cache_directory = "Resources/ShaderCache/";
+		inline static char const* shaders_common_directory = "Resources/Shaders/";
+
 		class CShaderInclude : public ID3DInclude
 		{
 		public:
-			CShaderInclude(char const* shader_dir) : shader_dir(shader_dir)
-			{}
+			explicit CShaderInclude(char const* shader_dir) : shader_dir(shader_dir) {}
 
 			HRESULT __stdcall Open(
-				D3D_INCLUDE_TYPE IncludeType,
-				LPCSTR pFileName,
-				LPCVOID pParentData,
-				LPCVOID* ppData,
-				UINT* pBytes)
+				D3D_INCLUDE_TYPE include_type,
+				char const* filename,
+				void const* p_parent_data,
+				void const** pp_data,
+				uint32* bytes)
 			{
+				if (strcmp(filename, "CommonData.hlsli") == 0)
+				{
+					shader_dir = shader_dir;
+				}
+
 				fs::path final_path;
-				switch (IncludeType)
+				switch (include_type)
 				{
 				case D3D_INCLUDE_LOCAL: 
-					final_path = fs::path(shader_dir) / fs::path(pFileName);
+					final_path = fs::path(shader_dir) / fs::path(filename);
 					break;
 				case D3D_INCLUDE_SYSTEM: 
+					final_path = fs::path(shaders_common_directory) / fs::path(filename);
+					break;
 				default:
-					ADRIA_ASSERT_MSG(false, "Includer supports only local includes!");
+					return E_FAIL;
 				}
 				includes.push_back(final_path.string());
 				std::ifstream file_stream(final_path.string());
@@ -46,20 +54,20 @@ namespace adria
 
 					char* buf = new char[contents.size()];
 					contents.copy(buf, contents.size());
-					*ppData = buf;
-					*pBytes = (UINT)contents.size();
+					*pp_data = buf;
+					*bytes = (uint32)contents.size();
 				}
 				else
 				{
-					*ppData = nullptr;
-					*pBytes = 0;
+					*pp_data = nullptr;
+					*bytes = 0;
 				}
 				return S_OK;
 			}
 
-			HRESULT __stdcall Close(LPCVOID pData)
+			HRESULT __stdcall Close(void const* data)
 			{
-				char* buf = (char*)pData;
+				char* buf = (char*)data;
 				delete[] buf;
 				return S_OK;
 			}

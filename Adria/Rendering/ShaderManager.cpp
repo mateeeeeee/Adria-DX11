@@ -51,8 +51,8 @@ namespace adria
 			case VS_ScreenQuad:
 			case VS_LensFlare:
 			case VS_Bokeh:
-			case VS_DepthMap:
-			case VS_DepthMapTransparent:
+			case VS_Shadow:
+			case VS_ShadowTransparent:
 			case VS_Ocean:
 			case VS_OceanLOD:
 			case VS_Voxelize:
@@ -84,7 +84,7 @@ namespace adria
 			case PS_FXAA:
 			case PS_TAA:
 			case PS_Copy:
-			case PS_Add:
+			case PS_AddTextures:
 			case PS_SSAO:
 			case PS_HBAO:
 			case PS_SSR:
@@ -96,8 +96,8 @@ namespace adria
 			case PS_VelocityBuffer:
 			case PS_MotionBlur:
 			case PS_Fog:
-			case PS_DepthMap:
-			case PS_DepthMapTransparent:
+			case PS_Shadow:
+			case PS_ShadowTransparent:
 			case PS_VolumetricLight_Directional:
 			case PS_VolumetricLight_Spot:
 			case PS_VolumetricLight_Point:
@@ -145,7 +145,7 @@ namespace adria
 				return GfxShaderStage::HS;
 			case DS_OceanLOD:
 				return GfxShaderStage::DS;
-			case EShader_Count:
+			case ShaderId_Count:
 			default:
 				return GfxShaderStage::StageCount;
 			}
@@ -213,8 +213,8 @@ namespace adria
 				return "Postprocess/TAA_PS.hlsl";
 			case PS_Copy:
 				return "Postprocess/CopyPS.hlsl";
-			case PS_Add:
-				return "Postprocess/AddPS.hlsl";
+			case PS_AddTextures:
+				return "Postprocess/AddTextures.hlsl";
 			case PS_SSAO:
 				return "Postprocess/SSAO_PS.hlsl";
 			case PS_HBAO:
@@ -245,12 +245,11 @@ namespace adria
 				return "Postprocess/MotionBlurPS.hlsl";
 			case PS_Fog:
 				return "Postprocess/FogPS.hlsl";
-			case VS_DepthMap:
-			case VS_DepthMapTransparent:
-				return "Shadows/DepthMapVS.hlsl";
-			case PS_DepthMap:
-			case PS_DepthMapTransparent:
-				return "Shadows/DepthMapPS.hlsl";
+			case VS_Shadow:
+			case VS_ShadowTransparent:
+			case PS_Shadow:
+			case PS_ShadowTransparent:
+				return "Misc/Shadow.hlsl";
 			case PS_VolumetricLight_Directional:
 				return "Postprocess/VolumetricLightDirectionalPS.hlsl";
 			case PS_VolumetricLight_DirectionalWithCascades:
@@ -265,9 +264,9 @@ namespace adria
 			case CS_BokehGenerate:
 				return "Postprocess/BokehCS.hlsl";
 			case CS_BloomExtract:
-				return "Postprocess/BloomExtractCS.hlsl";
+				return "Postprocess/BloomExtract.hlsl";
 			case CS_BloomCombine:
-				return "Postprocess/BloomCombineCS.hlsl";
+				return "Postprocess/BloomCombine.hlsl";
 			case CS_OceanInitialSpectrum:
 				return "Ocean/InitialSpectrumCS.hlsl";
 			case CS_OceanPhase:
@@ -342,10 +341,31 @@ namespace adria
 				return "Particles/SortInner512CS.hlsl";
 			case CS_ParticleSortInitArgs:
 				return "Particles/InitSortDispatchArgsCS.hlsl";
-			case EShader_Count:
+			case ShaderId_Count:
 			default:
 				return "";
 			}
+		}
+		constexpr std::string GetEntryPoint(ShaderId shader)
+		{
+			switch (shader)
+			{
+			case VS_Shadow: 
+			case VS_ShadowTransparent:
+				return "ShadowVS";
+			case PS_Shadow: 
+			case PS_ShadowTransparent:
+				return "ShadowPS";
+			case PS_AddTextures:
+				return "AddTextures";
+			case CS_BloomExtract:
+				return "BloomExtract";
+			case CS_BloomCombine:
+				return "BloomCombine";
+			default:
+				return "main";
+			}
+			return "main";
 		}
 		constexpr std::vector<GfxShaderMacro> GetShaderMacros(ShaderId shader)
 		{
@@ -365,8 +385,8 @@ namespace adria
 				return { {"LINEAR", "1" } };
 			case PS_ToneMap_Hable:
 				return { {"HABLE", "1" } };
-			case VS_DepthMapTransparent:
-			case PS_DepthMapTransparent:
+			case VS_ShadowTransparent:
+			case PS_ShadowTransparent:
 				return { {"TRANSPARENT", "1"} };
 			case CS_BlurVertical:
 				return { { "VERTICAL", "1" } };
@@ -379,7 +399,7 @@ namespace adria
 
 		void CompileShader(ShaderId shader, bool first_compile = false)
 		{
-			GfxShaderDesc input{ .entrypoint = "main" };
+			GfxShaderDesc input{ .entrypoint = GetEntryPoint(shader) };
 #if _DEBUG
 			input.flags = GfxShaderCompilerFlagBit_Debug | GfxShaderCompilerFlagBit_DisableOptimization;
 #else
@@ -426,7 +446,7 @@ namespace adria
 		void CreateAllPrograms()
 		{
 			using UnderlyingType = std::underlying_type_t<ShaderId>;
-			for (UnderlyingType s = 0; s < EShader_Count; ++s)
+			for (UnderlyingType s = 0; s < ShaderId_Count; ++s)
 			{
 				ShaderId shader = (ShaderId)s;
 				if (GetStage(shader) != GfxShaderStage::VS) continue;
@@ -476,7 +496,7 @@ namespace adria
 			gfx_shader_program_map[ShaderProgram::FXAA].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_FXAA].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::TAA].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_TAA].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::Copy].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_Copy].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
-			gfx_shader_program_map[ShaderProgram::Add].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_Add].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::Add].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AddTextures].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::SSAO].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_SSAO].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::HBAO].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_HBAO].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::SSR].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_SSR].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
@@ -490,8 +510,8 @@ namespace adria
 			gfx_shader_program_map[ShaderProgram::MotionBlur].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_MotionBlur].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::Fog].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_Fog].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 
-			gfx_shader_program_map[ShaderProgram::DepthMap].SetVertexShader(vs_shader_map[VS_DepthMap].get()).SetPixelShader(ps_shader_map[PS_DepthMap].get()).SetInputLayout(input_layout_map[VS_DepthMap].get());
-			gfx_shader_program_map[ShaderProgram::DepthMap_Transparent].SetVertexShader(vs_shader_map[VS_DepthMapTransparent].get()).SetPixelShader(ps_shader_map[PS_DepthMapTransparent].get()).SetInputLayout(input_layout_map[VS_DepthMapTransparent].get());
+			gfx_shader_program_map[ShaderProgram::DepthMap].SetVertexShader(vs_shader_map[VS_Shadow].get()).SetPixelShader(ps_shader_map[PS_Shadow].get()).SetInputLayout(input_layout_map[VS_Shadow].get());
+			gfx_shader_program_map[ShaderProgram::DepthMap_Transparent].SetVertexShader(vs_shader_map[VS_ShadowTransparent].get()).SetPixelShader(ps_shader_map[PS_ShadowTransparent].get()).SetInputLayout(input_layout_map[VS_ShadowTransparent].get());
 
 			gfx_shader_program_map[ShaderProgram::Volumetric_Directional].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricLight_Directional].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::Volumetric_DirectionalCascades].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricLight_DirectionalWithCascades].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
@@ -544,7 +564,7 @@ namespace adria
 			ADRIA_LOG(INFO, "Compiling all shaders...");
 			using UnderlyingType = std::underlying_type_t<ShaderId>;
 
-			std::vector<UnderlyingType> shaders(EShader_Count);
+			std::vector<UnderlyingType> shaders(ShaderId_Count);
 			std::iota(std::begin(shaders), std::end(shaders), 0);
 			std::for_each(
 				std::execution::seq,

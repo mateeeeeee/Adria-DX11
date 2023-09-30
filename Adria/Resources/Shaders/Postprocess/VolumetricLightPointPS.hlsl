@@ -37,10 +37,10 @@ float4 main(VertexOut input) : SV_TARGET
         const float dist = sqrt(dist2);
         L /= dist;
         float SpotFactor = dot(L, normalize(-current_light.direction.xyz));
-        float spotCutOff = current_light.outer_cosine;
+        float spotCutOff = current_light.outerCosine;
         float attenuation = DoAttenuation(dist, current_light.range);
 		[branch]
-        if (current_light.casts_shadows)
+        if (current_light.castsShadows)
         {
             const float zf = current_light.range;
             const float zn = 0.5f;
@@ -61,5 +61,5 @@ float4 main(VertexOut input) : SV_TARGET
         P = P + V * stepSize;
     }
     accumulation /= sampleCount;
-    return max(0, float4(accumulation * current_light.color.rgb * current_light.volumetric_strength, 1));
+    return max(0, float4(accumulation * current_light.color.rgb * current_light.volumetricStrength, 1));
 }

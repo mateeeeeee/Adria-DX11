@@ -5,9 +5,8 @@
 
 namespace adria
 {
-	
-#define DECLARE_CBUFFER_SLOT(name, slot) static constexpr uint16 CBUFFER_SLOT_##name = slot
-#define DECLARE_TEXTURE_SLOT(name, slot) static constexpr uint16 TEXTURE_SLOT_##name = slot
+	#define DECLARE_CBUFFER_SLOT(name, slot) static constexpr uint16 CBUFFER_SLOT_##name = slot
+	#define DECLARE_TEXTURE_SLOT(name, slot) static constexpr uint16 TEXTURE_SLOT_##name = slot
 
 	DECLARE_CBUFFER_SLOT(FRAME, 0);
 	DECLARE_CBUFFER_SLOT(OBJECT, 1);
@@ -30,7 +29,6 @@ namespace adria
 	DECLARE_TEXTURE_SLOT(SHADOWCUBE, 5);
 	DECLARE_TEXTURE_SLOT(SHADOWARRAY, 6);
 
-	//terrain textures
 	DECLARE_TEXTURE_SLOT(GRASS, 0);
 	DECLARE_TEXTURE_SLOT(BASE, 1);
 	DECLARE_TEXTURE_SLOT(ROCK, 2);
@@ -72,7 +70,7 @@ namespace adria
 		PS_FXAA,
 		PS_TAA,
 		PS_Copy,
-		PS_Add,
+		PS_AddTextures,
 		PS_SSAO,
 		PS_HBAO,
 		PS_SSR,
@@ -88,10 +86,10 @@ namespace adria
 		PS_VelocityBuffer,
 		PS_MotionBlur,
 		PS_Fog,
-		VS_DepthMap,
-		PS_DepthMap,
-		VS_DepthMapTransparent,
-		PS_DepthMapTransparent,
+		VS_Shadow,
+		PS_Shadow,
+		VS_ShadowTransparent,
+		PS_ShadowTransparent,
 		PS_VolumetricLight_Directional,
 		PS_VolumetricLight_Spot,
 		PS_VolumetricLight_Point,
@@ -138,7 +136,7 @@ namespace adria
 		CS_ParticleSort512,
 		CS_ParticleSortInner512,
 		CS_ParticleSortInitArgs,
-		EShader_Count
+		ShaderId_Count
 	};
 
 	enum class ShaderProgram : uint8 

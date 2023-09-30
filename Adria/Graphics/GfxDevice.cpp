@@ -44,21 +44,26 @@ namespace adria
 		swapchain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapchain_desc.Flags = 0;
 
-		ID3D11DeviceContext4* context = nullptr;
+		ID3D11DeviceContext* context = nullptr;
+		ID3D11Device* _device = nullptr;
+		D3D_FEATURE_LEVEL feature_level = D3D_FEATURE_LEVEL_12_0;
 		HRESULT hr = D3D11CreateDeviceAndSwapChain(
 			nullptr,
 			D3D_DRIVER_TYPE_HARDWARE,
 			nullptr,
 			swapchain_create_flags,
-			nullptr,
-			0,
+			&feature_level,
+			1,
 			D3D11_SDK_VERSION,
 			&swapchain_desc,
 			swapchain.GetAddressOf(),
-			device.GetAddressOf(),
+			&_device,
 			nullptr,
-			(ID3D11DeviceContext**)&context
+			&context
 		);
+		hr = _device->QueryInterface(__uuidof(ID3D11Device3), (void**)device.GetAddressOf());
+		_device->Release();
+
 		GFX_CHECK_HR(hr);
 		command_context->Create(context);
 		
@@ -118,11 +123,11 @@ namespace adria
 		GfxRenderTarget rtv[] = { backbuffer_rtv.Get() };
 		command_context->SetRenderTargets(rtv);
 	}
-	ID3D11Device* GfxDevice::GetDevice() const
+	ID3D11Device3* GfxDevice::GetDevice() const
 	{
 		return device.Get();
 	}
-	ID3D11DeviceContext* GfxDevice::GetContext() const
+	ID3D11DeviceContext4* GfxDevice::GetContext() const
 	{
 		return command_context->GetNative();
 	}

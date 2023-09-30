@@ -50,17 +50,11 @@
     <Filter Include="Shaders\Postprocess">
       <UniqueIdentifier>{fd629431-83aa-44a4-b2e4-fe3b22ad2ef8}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\Shadows">
-      <UniqueIdentifier>{99a79753-af30-4352-bc3e-f684a6be16b8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\Ocean">
       <UniqueIdentifier>{af6cf165-801a-47d9-b6d1-81e73017ea9a}</UniqueIdentifier>
     </Filter>
     <Filter Include="tecs">
       <UniqueIdentifier>{ef6b7c25-33a2-4670-acc7-6339c48baeb9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\GI">
-      <UniqueIdentifier>{85431048-4aed-423d-835b-d8cbc6efd8d5}</UniqueIdentifier>
     </Filter>
     <Filter Include="Editor">
       <UniqueIdentifier>{82f8fa3a-c2b4-4cd1-9a90-c46b3a0b1dfb}</UniqueIdentifier>
@@ -548,6 +542,12 @@
     <None Include="Graphics\GfxShader.h">
       <Filter>Graphics</Filter>
     </None>
+    <None Include="Resources\Shaders\CommonData.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Resources\Shaders\Common.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\Misc\SkyboxPS.hlsl">
@@ -585,12 +585,6 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\FXAA.hlsl">
       <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Shadows\DepthMapPS.hlsl">
-      <Filter>Shaders\Shadows</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Shadows\DepthMapVS.hlsl">
-      <Filter>Shaders\Shadows</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\VolumetricLightDirectionalPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
@@ -640,10 +634,10 @@
     <FxCompile Include="Resources\Shaders\Postprocess\CopyPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\BloomExtractCS.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\BloomExtract.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\AddPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\AddTextures.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\GodRaysPS.hlsl">
@@ -721,33 +715,6 @@
     <FxCompile Include="Resources\Shaders\Deferred\TiledLightingCS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\GI\VoxelizeVS.hlsl">
-      <Filter>Shaders\GI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GI\VoxelizeGS.hlsl">
-      <Filter>Shaders\GI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GI\VoxelizePS.hlsl">
-      <Filter>Shaders\GI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GI\VoxelDebugVS.hlsl">
-      <Filter>Shaders\GI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GI\VoxelDebugGS.hlsl">
-      <Filter>Shaders\GI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GI\VoxelDebugPS.hlsl">
-      <Filter>Shaders\GI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GI\VoxelCopyCS.hlsl">
-      <Filter>Shaders\GI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GI\VoxelGI_PS.hlsl">
-      <Filter>Shaders\GI</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\GI\VoxelSecondBounceCS.hlsl">
-      <Filter>Shaders\GI</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\Equirect2cubeCS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
@@ -775,7 +742,7 @@
     <FxCompile Include="Resources\Shaders\Postprocess\HBAO_PS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\BloomCombineCS.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\BloomCombine.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\VelocityBufferPS.hlsl">

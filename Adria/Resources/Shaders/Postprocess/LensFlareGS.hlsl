@@ -27,7 +27,7 @@ Texture2D depth_texture : register(t7);
 // Append a screen space quad to the output stream:
 inline void append(inout TriangleStream<GeometryOut> triStream, GeometryOut p1, uint selector, float2 posMod, float2 size)
 {
-    float2 pos = (current_light.screen_space_position.xy - 0.5) * float2(2, -2);
+    float2 pos = (current_light.screenSpacePosition.xy - 0.5) * float2(2, -2);
     float2 moddedPos = pos * posMod;
     float dis = distance(pos, moddedPos);
 
@@ -97,7 +97,7 @@ void main(
    
     flareSize /= ScreenResolution;
 
-    float referenceDepth = saturate(current_light.screen_space_position.z);
+    float referenceDepth = saturate(current_light.screenSpacePosition.z);
 
 	// determine the flare opacity:
 	// These values work well for me, but should be tweakable
@@ -110,7 +110,7 @@ void main(
         for (float x = -range.x; x <= range.x; x += step.x)
         {
             samples += 1.0f;
-            accdepth += depth_texture.SampleLevel(point_clamp_sampler, current_light.screen_space_position.xy + float2(x, y), 0).r >= referenceDepth - 0.001 ? 1 : 0;
+            accdepth += depth_texture.SampleLevel(point_clamp_sampler, current_light.screenSpacePosition.xy + float2(x, y), 0).r >= referenceDepth - 0.001 ? 1 : 0;
         }
     }
     accdepth /= samples;

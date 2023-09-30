@@ -288,7 +288,6 @@ namespace adria
 		CreateOtherResources();
 		CreateResolutionDependentResources(width, height);
 	}
-
 	Renderer::~Renderer()
 	{
 		for (auto& clouds_texture : clouds_textures) clouds_texture->Release();
@@ -1509,7 +1508,6 @@ namespace adria
 		}
 	}
 
-
 	void Renderer::PassPicking()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
@@ -2086,8 +2084,11 @@ namespace adria
 		PassForwardCommon(true);
 		command_context->EndRenderPass();
 	}
+
 	void Renderer::PassVoxelize()
 	{
+		return;
+		ADRIA_ASSERT_MSG(false, "Voxel GI is not working");
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		AdriaGfxProfileCondScope(command_context, "Voxelization Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Voxelization Pass");
@@ -2176,6 +2177,8 @@ namespace adria
 	}
 	void Renderer::PassVoxelizeDebug()
 	{
+		return;
+		ADRIA_ASSERT_MSG(false, "Voxel GI is not working");
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		AdriaGfxProfileCondScope(command_context, "Voxelization Debug Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Voxelization Debug Pass");
@@ -2197,6 +2200,8 @@ namespace adria
 	}
 	void Renderer::PassVoxelGI()
 	{
+		return;
+		ADRIA_ASSERT_MSG(false, "Voxel GI is not working");
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		AdriaGfxProfileCondScope(command_context, "Voxel GI Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Voxel GI Pass");
@@ -2219,6 +2224,7 @@ namespace adria
 		command_context->EndRenderPass();
 		command_context->SetBlendState(nullptr);
 	}
+
 	void Renderer::PassPostprocessing()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
@@ -2712,7 +2718,6 @@ namespace adria
 		command_context->SetBlendState(nullptr);
 		command_context->EndRenderPass();
 	}
-
 	void Renderer::PassAABB()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();

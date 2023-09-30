@@ -105,7 +105,7 @@ void main(uint3 groupId : SV_GroupID,
     {
         StructuredLight light = lights[lightIndex];
                 
-        if (!light.active || light.casts_shadows)
+        if (!light.active || light.castsShadows)
             continue;
         
         bool inFrustum = true;

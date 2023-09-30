@@ -16,7 +16,7 @@ struct VertexOut
 
 float4 main(VertexOut input) : SV_TARGET
 {
-    if (current_light.casts_shadows == 0)
+    if (current_light.castsShadows == 0)
     {
         return 0;
     }
@@ -53,5 +53,5 @@ float4 main(VertexOut input) : SV_TARGET
 		P = P + V * stepSize;
     }
     accumulation /= sampleCount;
-    return max(0, float4(accumulation * current_light.color.rgb * current_light.volumetric_strength, 1));
+    return max(0, float4(accumulation * current_light.color.rgb * current_light.volumetricStrength, 1));
 }

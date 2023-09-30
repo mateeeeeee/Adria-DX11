@@ -31,9 +31,9 @@ float SSCS(float3 pos_vs)
     float depth = depthTx.Sample(point_clamp_sampler, ray_uv);
     float linear_depth = ConvertZToLinearDepth(depth);
 
-    const float SSCS_STEP_LENGTH = current_light.sscs_max_ray_distance / (float) SSCS_MAX_STEPS;
+    const float SSCS_STEP_LENGTH = current_light.sscsMaxRayDistance / (float) SSCS_MAX_STEPS;
 
-    if (linear_depth > current_light.sscs_max_depth_distance)
+    if (linear_depth > current_light.sscsMaxDepthDistance)
         return 1.0f;
 
     float3 ray_direction = normalize(-current_light.direction.xyz);
@@ -60,7 +60,7 @@ float SSCS(float3 pos_vs)
             float depth_delta = ray_projected.z - linear_depth;
 
             // Check if the camera can't "see" the ray (ray depth must be larger than the camera depth, so positive depth_delta)
-            if (depth_delta > 0 && (depth_delta < current_light.sscs_thickness))
+            if (depth_delta > 0 && (depth_delta < current_light.sscsThickness))
             {
                 // Mark as occluded
                 occlusion = 1.0f;
@@ -114,7 +114,7 @@ float4 main(VertexOut pin) : SV_TARGET
             return float4(1, 0, 0, 1);
     }
 
-    if (current_light.casts_shadows)
+    if (current_light.castsShadows)
     {
 
         float shadow_factor = 1.0f;
@@ -132,7 +132,7 @@ float4 main(VertexOut pin) : SV_TARGET
             float fragment_depth = (c1 * major + c0) / major;
             shadow_factor = depthCubeMap.SampleCmpLevelZero(shadow_sampler, normalize(light_to_pixelWS.xyz), fragment_depth);
         }
-        else if (current_light.type == DIRECTIONAL_LIGHT && current_light.use_cascades)
+        else if (current_light.type == DIRECTIONAL_LIGHT && current_light.useCascades)
         {
             float view_depth = Position.z;
             for (uint i = 0; i < 4; ++i)
@@ -160,7 +160,7 @@ float4 main(VertexOut pin) : SV_TARGET
         Lo = Lo * shadow_factor;
     }
     
-    if (current_light.screen_space_shadows)
+    if (current_light.screenSpaceShadows)
         Lo = Lo * SSCS(Position);
 
     return float4(Lo, 1.0f);

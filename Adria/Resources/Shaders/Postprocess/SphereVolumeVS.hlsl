@@ -11,7 +11,7 @@ VertexOut main(uint vid : SV_VERTEXID)
 {
     VertexOut vout;
     
-    float4 pos = ICOSPHERE[vid];
+    float4 pos = IcoSphere[vid];
     float4 world_pos = mul(pos, model);
     vout.PosH = mul(world_pos, viewprojection);
     vout.PosH /= vout.PosH.w;

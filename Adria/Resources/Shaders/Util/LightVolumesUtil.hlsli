@@ -1,4 +1,4 @@
-static const float4 ICOSPHERE[] =
+static const float4 IcoSphere[] =
 {
     float4(0.0, -1.0, 0.0, 1.0),
 	float4(0.42532268166542053, -0.8506541848182678, -0.30901139974594116, 1.0),
@@ -242,7 +242,7 @@ static const float4 ICOSPHERE[] =
 	float4(0.16245555877685547, 0.8506543636322021, 0.49999526143074036, 1.0),
 };
 
-static const float4 CONE[] =
+static const float4 Cone[] =
 {
     float4(0.0, -1.0, 0.0, 1.0),
 	float4(0.0, -0.8944271802902222, 0.4472135901451111, 1.0),

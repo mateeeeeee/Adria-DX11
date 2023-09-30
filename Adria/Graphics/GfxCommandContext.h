@@ -137,10 +137,13 @@ namespace adria
 
 	private:
 		explicit GfxCommandContext(GfxDevice* gfx) : gfx(gfx) {}
-		void Create(ID3D11DeviceContext4* ctx) 
+		void Create(ID3D11DeviceContext* ctx) 
 		{
-			command_context.Attach(ctx);
-			command_context->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)annotation.GetAddressOf());
+			HRESULT hr = ctx->QueryInterface(__uuidof(ID3D11DeviceContext4), (void**)command_context.GetAddressOf());
+			GFX_CHECK_HR(hr);
+			ctx->Release();
+			hr = command_context->QueryInterface(__uuidof(ID3DUserDefinedAnnotation), (void**)annotation.GetAddressOf());
+			GFX_CHECK_HR(hr);
 		}
 	};
 }

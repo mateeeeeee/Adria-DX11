@@ -45,17 +45,17 @@ float4 main(VertexOut input) : SV_TARGET
         L /= dist;
 
         float SpotFactor = dot(L, normalize(-current_light.direction.xyz));
-        float spotCutOff = current_light.outer_cosine;
+        float spotCutOff = current_light.outerCosine;
 
 		[branch]
         if (SpotFactor > spotCutOff)
         {
             float attenuation = DoAttenuation(dist, current_light.range);
-            float conAtt = saturate((SpotFactor - current_light.outer_cosine) / (current_light.inner_cosine - current_light.outer_cosine));
+            float conAtt = saturate((SpotFactor - current_light.outerCosine) / (current_light.innerCosine - current_light.outerCosine));
             conAtt *= conAtt;
             attenuation *= conAtt;
 			[branch]
-            if (current_light.casts_shadows)
+            if (current_light.castsShadows)
             {
                 float4 posShadowMap = mul(float4(P, 1.0), shadow_matrices[0]);
                 float3 UVD = posShadowMap.xyz / posShadowMap.w;
@@ -76,5 +76,5 @@ float4 main(VertexOut input) : SV_TARGET
         P = P + V * stepSize;
     }
     accumulation /= sampleCount;
-    return max(0, float4(accumulation * current_light.color.rgb * current_light.volumetric_strength, 1));
+    return max(0, float4(accumulation * current_light.color.rgb * current_light.volumetricStrength, 1));
 }

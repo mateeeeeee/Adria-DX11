@@ -88,7 +88,7 @@ void main(uint3 groupId : SV_GroupID,
         {
             StructuredLight light = lights[i];
             
-            if (!light.active || light.casts_shadows)
+            if (!light.active || light.castsShadows)
                 continue;
             
             if (visible_light_count < MAX_CLUSTER_LIGHTS && LightIntersectsCluster(light, cluster))
