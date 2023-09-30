@@ -28,7 +28,7 @@ float4 main(VertexOut input) : SV_TARGET
     float3 rayEnd = float3(0.0f, 0.0f, 0.0f);
     const uint sampleCount = 16;
     const float stepSize = length(P - rayEnd) / sampleCount;
-    P = P + V * stepSize * dither(input.PosH.xy);
+    P = P + V * stepSize * BayerDither(input.PosH.xy);
 	[loop]
     for (uint i = 0; i < sampleCount; ++i)
     {

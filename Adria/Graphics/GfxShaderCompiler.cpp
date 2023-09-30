@@ -167,6 +167,7 @@ namespace adria
 			if (CheckCache(cache_path, input, output)) return;
 			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.source_file.c_str(), entrypoint.c_str());
 
+		compile:
 			uint32 shader_compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
 			if (input.flags & GfxShaderCompilerFlagBit_DisableOptimization) shader_compile_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;
 			if (input.flags & GfxShaderCompilerFlagBit_Debug) shader_compile_flags |= D3DCOMPILE_DEBUG;
@@ -192,7 +193,20 @@ namespace adria
 				bytecode_blob.GetAddressOf(), error_blob.GetAddressOf());
 
 			auto const& includes = includer.GetIncludes();
-			if (FAILED(hr) && error_blob) OutputDebugStringA(reinterpret_cast<const char*>(error_blob->GetBufferPointer()));
+			if (FAILED(hr))
+			{
+				if (error_blob)
+				{
+					char const* err_msg = reinterpret_cast<char const*>(error_blob->GetBufferPointer());
+					ADRIA_LOG(ERROR, "%s", err_msg);
+					std::string msg = "Click OK after you have fixed the following errors: \n";
+					msg += err_msg;
+					int32 result = MessageBoxA(NULL, msg.c_str(), NULL, MB_OKCANCEL);
+					if (result == IDOK) goto compile;
+					else if (result == IDCANCEL) return;
+				}
+				return;
+			}
 			for (auto& define : defines)
 			{
 				if (define.Name)		free((void*)define.Name);

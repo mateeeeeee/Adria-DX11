@@ -30,7 +30,7 @@ float4 main(VertexOut input) : SV_TARGET
     const uint sampleCount = 16;
     const float stepSize = length(P - rayEnd) / sampleCount;
 
-    P = P + V * stepSize * dither(input.PosH.xy);
+    P = P + V * stepSize * BayerDither(input.PosH.xy);
     float viewDepth = P.z;
     
 	[loop]

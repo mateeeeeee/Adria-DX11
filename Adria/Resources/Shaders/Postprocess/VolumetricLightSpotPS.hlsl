@@ -33,7 +33,7 @@ float4 main(VertexOut input) : SV_TARGET
     const float stepSize = length(P - rayEnd) / sampleCount;
 
 	// dither ray start to help with undersampling:
-    P = P + V * stepSize * dither(input.PosH.xy);
+    P = P + V * stepSize * BayerDither(input.PosH.xy);
 
 	// Perform ray marching to integrate light volume along view ray:
 	[loop]
