@@ -16,11 +16,11 @@ void BloomExtract(CSInput input)
 {
     uint3 dispatchID = input.DispatchThreadId;
     float2 uv = dispatchID.xy;
-    float3 color = inputTexture[dispatchID.xy].rgb;
+    float3 color = InputTx[dispatchID.xy].rgb;
     //float intensity = dot(color.xyz, float3(0.2126f, 0.7152f, 0.0722f));
     color = min(color, 10.0f); 
-    color = max(color - threshold, 0.0f);
-    outputTexture[dispatchID.xy] = float4(bloom_scale * color, 1.0f);
+    color = max(color - computeData.threshold, 0.0f);
+    OutputTx[dispatchID.xy] = float4(computeData.bloomScale * color, 1.0f);
 }
 
 

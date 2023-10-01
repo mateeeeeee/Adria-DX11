@@ -55,8 +55,6 @@ namespace adria
 			case VS_ShadowTransparent:
 			case VS_Ocean:
 			case VS_OceanLOD:
-			case VS_Voxelize:
-			case VS_VoxelizeDebug:
 			case VS_Foliage:
 			case VS_Particles:
 				return GfxShaderStage::VS;
@@ -104,20 +102,15 @@ namespace adria
 			case PS_VolumetricLight_DirectionalWithCascades:
 			case PS_Ocean:
 			case PS_OceanLOD:
-			case PS_VoxelGI:
-			case PS_Voxelize:
-			case PS_VoxelizeDebug:
 			case PS_Foliage:
 			case PS_Particles:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
-			case GS_Voxelize:
-			case GS_VoxelizeDebug:
 				return GfxShaderStage::GS;
 			case CS_BlurHorizontal:
 			case CS_BlurVertical:
-			case CS_BokehGenerate:
+			case CS_BokehGeneration:
 			case CS_BloomExtract:
 			case CS_BloomCombine:
 			case CS_OceanInitialSpectrum:
@@ -129,8 +122,6 @@ namespace adria
 			case CS_TiledLighting:
 			case CS_ClusterBuilding:
 			case CS_ClusterCulling:
-			case CS_VoxelCopy:
-			case CS_VoxelSecondBounce:
 			case CS_ParticleInitDeadList:
 			case CS_ParticleReset:
 			case CS_ParticleEmit:
@@ -232,11 +223,11 @@ namespace adria
 			case PS_DepthOfField:
 				return "Postprocess/DOF_PS.hlsl";
 			case VS_Bokeh:
-				return "Postprocess/BokehVS.hlsl";
 			case GS_Bokeh:
-				return "Postprocess/BokehGS.hlsl";
 			case PS_Bokeh:
-				return "Postprocess/BokehPS.hlsl";
+				return "Postprocess/Bokeh.hlsl";
+			case CS_BokehGeneration:
+				return "Postprocess/BokehGeneration.hlsl";
 			case PS_VolumetricClouds:
 				return "Postprocess/CloudsPS.hlsl";
 			case PS_VelocityBuffer:
@@ -260,9 +251,7 @@ namespace adria
 				return "Postprocess/VolumetricLightPointPS.hlsl";
 			case CS_BlurHorizontal:
 			case CS_BlurVertical:
-				return "Postprocess/BlurCS.hlsl";
-			case CS_BokehGenerate:
-				return "Postprocess/BokehCS.hlsl";
+				return "Postprocess/Blur.hlsl";
 			case CS_BloomExtract:
 				return "Postprocess/BloomExtract.hlsl";
 			case CS_BloomCombine:
@@ -285,10 +274,6 @@ namespace adria
 				return "Deferred/ClusterBuildingCS.hlsl";
 			case CS_ClusterCulling:
 				return "Deferred/ClusterCullingCS.hlsl";
-			case CS_VoxelCopy:
-				return "GI/VoxelCopyCS.hlsl";
-			case CS_VoxelSecondBounce:
-				return "GI/VoxelSecondBounceCS.hlsl";
 			case VS_Ocean:
 				return "Ocean/OceanVS.hlsl";
 			case PS_Ocean:
@@ -301,20 +286,6 @@ namespace adria
 				return "Ocean/OceanLodDS.hlsl";
 			case PS_OceanLOD:
 				return "Ocean/OceanLodPS.hlsl";
-			case VS_Voxelize:
-				return "GI/VoxelizeVS.hlsl";
-			case GS_Voxelize:
-				return "GI/VoxelizeGS.hlsl";
-			case PS_Voxelize:
-				return "GI/VoxelizePS.hlsl";
-			case VS_VoxelizeDebug:
-				return "GI/VoxelDebugVS.hlsl";
-			case GS_VoxelizeDebug:
-				return "GI/VoxelDebugGS.hlsl";
-			case PS_VoxelizeDebug:
-				return "GI/VoxelDebugPS.hlsl";
-			case PS_VoxelGI:
-				return "GI/VoxelGI_PS.hlsl";
 			case VS_Foliage:
 				return "Misc/FoliageVS.hlsl";
 			case PS_Foliage:
@@ -362,6 +333,18 @@ namespace adria
 				return "BloomExtract";
 			case CS_BloomCombine:
 				return "BloomCombine";
+			case CS_BlurHorizontal:
+				return "BlurHorizontal";
+			case CS_BlurVertical:
+				return "BlurVertical";
+			case VS_Bokeh:
+				return "BokehVS";
+			case GS_Bokeh:
+				return "BokehGS";
+			case PS_Bokeh:
+				return "BokehPS";
+			case CS_BokehGeneration:
+				return "BokehGeneration";
 			default:
 				return "main";
 			}
@@ -520,7 +503,7 @@ namespace adria
 
 			compute_shader_program_map[ShaderProgram::Blur_Horizontal].SetComputeShader(cs_shader_map[CS_BlurHorizontal].get()); 
 			compute_shader_program_map[ShaderProgram::Blur_Vertical].SetComputeShader(cs_shader_map[CS_BlurVertical].get()); 
-			compute_shader_program_map[ShaderProgram::BokehGenerate].SetComputeShader(cs_shader_map[CS_BokehGenerate].get()); 
+			compute_shader_program_map[ShaderProgram::BokehGenerate].SetComputeShader(cs_shader_map[CS_BokehGeneration].get()); 
 			compute_shader_program_map[ShaderProgram::BloomExtract].SetComputeShader(cs_shader_map[CS_BloomExtract].get()); 
 			compute_shader_program_map[ShaderProgram::BloomCombine].SetComputeShader(cs_shader_map[CS_BloomCombine].get()); 
 
@@ -534,17 +517,11 @@ namespace adria
 			compute_shader_program_map[ShaderProgram::TiledLighting].SetComputeShader(cs_shader_map[CS_TiledLighting].get()); 
 			compute_shader_program_map[ShaderProgram::ClusterBuilding].SetComputeShader(cs_shader_map[CS_ClusterBuilding].get()); 
 			compute_shader_program_map[ShaderProgram::ClusterCulling].SetComputeShader(cs_shader_map[CS_ClusterCulling].get()); 
-			compute_shader_program_map[ShaderProgram::VoxelCopy].SetComputeShader(cs_shader_map[CS_VoxelCopy].get()); 
-			compute_shader_program_map[ShaderProgram::VoxelSecondBounce].SetComputeShader(cs_shader_map[CS_VoxelSecondBounce].get()); 
 
 			gfx_shader_program_map[ShaderProgram::Ocean].SetVertexShader(vs_shader_map[VS_Ocean].get()).SetPixelShader(ps_shader_map[PS_Ocean].get()).SetInputLayout(input_layout_map[VS_Ocean].get());
 			gfx_shader_program_map[ShaderProgram::OceanLOD].SetVertexShader(vs_shader_map[VS_OceanLOD].get()).SetHullShader(hs_shader_map[HS_OceanLOD].get()).SetDomainShader(ds_shader_map[DS_OceanLOD].get()).
 				SetPixelShader(ps_shader_map[PS_OceanLOD].get()).SetInputLayout(input_layout_map[VS_OceanLOD].get());
 				
-			gfx_shader_program_map[ShaderProgram::Voxelize].SetVertexShader(vs_shader_map[VS_Voxelize].get()).SetGeometryShader(gs_shader_map[GS_Voxelize].get()).SetPixelShader(ps_shader_map[PS_Voxelize].get()).SetInputLayout(input_layout_map[VS_Voxelize].get());
-			gfx_shader_program_map[ShaderProgram::VoxelizeDebug].SetVertexShader(vs_shader_map[VS_VoxelizeDebug].get()).SetGeometryShader(gs_shader_map[GS_VoxelizeDebug].get()).SetPixelShader(ps_shader_map[PS_VoxelizeDebug].get()).SetInputLayout(input_layout_map[VS_VoxelizeDebug].get());
-			gfx_shader_program_map[ShaderProgram::VoxelGI].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_VoxelGI].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
-
 			compute_shader_program_map[ShaderProgram::Picker].SetComputeShader(cs_shader_map[CS_Picker].get()); 
 
 			compute_shader_program_map[ShaderProgram::ParticleInitDeadList].SetComputeShader(cs_shader_map[CS_ParticleInitDeadList].get()); 

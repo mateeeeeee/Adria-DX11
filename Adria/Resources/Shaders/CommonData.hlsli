@@ -1,6 +1,3 @@
-#ifndef _COMMON_DATA_
-#define _COMMON_DATA_
-
 static const int SSAO_KERNEL_SIZE = 16;
 
 struct FrameData
@@ -140,7 +137,4 @@ struct ComputeData
     float deltaTime;         
     int visualizeTiled;      
     int lightsCountWhite;
-}
-
-
-#endif //_COMMON_DATA_
+};

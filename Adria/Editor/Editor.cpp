@@ -1457,55 +1457,36 @@ namespace adria
 		if (!window_flags[Flag_Renderer]) return;
 		if (ImGui::Begin("Renderer Settings", &window_flags[Flag_Renderer]))
         {
-            if (ImGui::TreeNode("Deferred Settings"))
-            {
-                const char* deferred_types[] = { "Regular", "Tiled", "Clustered" };
-                static int current_deferred_type = 0;
-                const char* combo_label = deferred_types[current_deferred_type];
-                if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
-                {
-                    for (int n = 0; n < IM_ARRAYSIZE(deferred_types); n++)
-                    {
-                        const bool is_selected = (current_deferred_type == n);
-                        if (ImGui::Selectable(deferred_types[n], is_selected)) current_deferred_type = n;
-                        if (is_selected) ImGui::SetItemDefaultFocus();
-                    }
-                    ImGui::EndCombo();
-                }
+			if (ImGui::TreeNode("Deferred Settings"))
+			{
+				const char* deferred_types[] = { "Regular", "Tiled", "Clustered" };
+				static int current_deferred_type = 0;
+				const char* combo_label = deferred_types[current_deferred_type];
+				if (ImGui::BeginCombo("Deferred Type", combo_label, 0))
+				{
+					for (int n = 0; n < IM_ARRAYSIZE(deferred_types); n++)
+					{
+						const bool is_selected = (current_deferred_type == n);
+						if (ImGui::Selectable(deferred_types[n], is_selected)) current_deferred_type = n;
+						if (is_selected) ImGui::SetItemDefaultFocus();
+					}
+					ImGui::EndCombo();
+				}
 
-                renderer_settings.use_tiled_deferred = (current_deferred_type == 1);
-                renderer_settings.use_clustered_deferred = (current_deferred_type == 2);
+				renderer_settings.use_tiled_deferred = (current_deferred_type == 1);
+				renderer_settings.use_clustered_deferred = (current_deferred_type == 2);
 
-                if (renderer_settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
-                {
-                    ImGui::Checkbox("Visualize Tiles", &renderer_settings.visualize_tiled);
-                    if (renderer_settings.visualize_tiled) ImGui::SliderInt("Visualize Scale", &renderer_settings.visualize_max_lights, 1, 32);
+				if (renderer_settings.use_tiled_deferred && ImGui::TreeNodeEx("Tiled Deferred", ImGuiTreeNodeFlags_OpenOnDoubleClick))
+				{
+					ImGui::Checkbox("Visualize Tiles", &renderer_settings.visualize_tiled);
+					if (renderer_settings.visualize_tiled) ImGui::SliderInt("Visualize Scale", &renderer_settings.visualize_max_lights, 1, 32);
 
-                    ImGui::TreePop();
-                    ImGui::Separator();
-                }
+					ImGui::TreePop();
+					ImGui::Separator();
+				}
 
-                ImGui::TreePop();
-            }
-
-            if (ImGui::TreeNode("Global Illumination"))
-            {
-
-                ImGui::Checkbox("Voxel Cone Tracing GI", &renderer_settings.voxel_gi);
-
-                if (renderer_settings.voxel_gi)
-                {
-                    bool voxel_size_changed = ImGui::SliderFloat("Voxel Size", &renderer_settings.voxel_size, 0.125f, 8.0f);
-                    ImGui::SliderInt("Cone Number", &renderer_settings.voxel_num_cones, 1, 6);
-                    ImGui::SliderFloat("Ray Step", &renderer_settings.voxel_ray_step_distance, 0.5f, 5.0f);
-                    ImGui::SliderFloat("Max Distance", &renderer_settings.voxel_max_distance, 1.0f, 50.0f);
-                    ImGui::Checkbox("Second Bounce", &renderer_settings.voxel_second_bounce);
-                    ImGui::Checkbox("Voxel GI Debug", &renderer_settings.voxel_debug);
-                }
-                renderer_settings.voxel_debug = renderer_settings.voxel_debug && renderer_settings.voxel_gi; //voxel debug cannot be true unless voxel_gi is true
-
-                ImGui::TreePop();
-            }
+				ImGui::TreePop();
+			}
 
             if (ImGui::TreeNode("Postprocessing"))
             {
@@ -1678,7 +1659,7 @@ namespace adria
             {
 
 				renderer_settings.recreate_initial_spectrum = ImGui::SliderFloat2("Wind Direction", renderer_settings.wind_direction, 0.0f, 50.0f);
-				ImGui::SliderFloat("Wind speed factor", &renderer_settings.wind_speed, 0.0f, 100.0f);
+				ImGui::SliderFloat("Wind Speed Factor", &renderer_settings.wind_speed, 0.0f, 100.0f);
                 ImGui::ColorEdit3("Ambient Color", renderer_settings.ambient_color);
                 ImGui::SliderFloat("Shadow Softness", &renderer_settings.shadow_softness, 0.01f, 5.0f);
                 ImGui::Checkbox("Transparent Shadows", &renderer_settings.shadow_transparent);

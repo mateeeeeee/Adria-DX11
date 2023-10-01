@@ -1,7 +1,6 @@
 #include "../Util/LightUtil.hlsli"
 #include "../Util/VoxelUtil.hlsli"
 
-
 static const int SSAO_KERNEL_SIZE = 16;
 
 static const int HBAO_NUM_STEPS = 4;
@@ -234,4 +233,19 @@ float ExponentialHeightFog(float4 pos_vs)
     return 1 - fog;
 }
 
-
+bool IsSaturated(float value)
+{
+    return value == saturate(value);
+}
+bool IsSaturated(float2 value)
+{
+    return IsSaturated(value.x) && IsSaturated(value.y);
+}
+bool IsSaturated(float3 value)
+{
+    return IsSaturated(value.x) && IsSaturated(value.y) && IsSaturated(value.z);
+}
+bool IsSaturated(float4 value)
+{
+    return IsSaturated(value.x) && IsSaturated(value.y) && IsSaturated(value.z) && IsSaturated(value.w);
+}
