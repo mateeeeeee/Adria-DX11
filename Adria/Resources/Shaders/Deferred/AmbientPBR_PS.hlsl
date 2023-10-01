@@ -2,7 +2,7 @@
 
 Texture2D normalMetallicTx  : register(t0);
 Texture2D diffuseTx         : register(t1);
-Texture2D<float> depthTx    : register(t2);
+Texture2D<float> DepthTx    : register(t2);
 Texture2D emissiveTx        : register(t3);
 
 
@@ -27,13 +27,13 @@ uint querySpecularTextureLevels()
 
 
 
-struct VertexOut
+struct VSToPS
 {
-    float4 PosH : SV_POSITION;
+    float4 Pos : SV_POSITION;
     float2 Tex : TEX;
 };
 
-float4 main(VertexOut pin) : SV_TARGET
+float4 main(VSToPS pin) : SV_TARGET
 {
     float4 albedo_roughness = diffuseTx.Sample(anisotropic_sampler, pin.Tex);
     float3 albedo = albedo_roughness.rgb;
@@ -57,7 +57,7 @@ float4 main(VertexOut pin) : SV_TARGET
     
     float metallic = NormalMetallic.a;
     
-    float Depth = depthTx.Sample(anisotropic_sampler, pin.Tex);
+    float Depth = DepthTx.Sample(anisotropic_sampler, pin.Tex);
     
     float3 ViewPosition = GetPositionVS(pin.Tex, Depth);
     

@@ -1,7 +1,7 @@
 #include "../Globals/GlobalsVS.hlsli"
 
 
-struct VS_INPUT
+struct VSInput
 {
     float3 Position : POSITION; 
     float2 Uvs      : TEX;
@@ -12,7 +12,7 @@ struct VS_INPUT
 
 
 
-struct VS_OUTPUT
+struct VSOutput
 {
     float4 Position     : SV_POSITION;
     float2 Uvs          : TEX;
@@ -24,9 +24,9 @@ struct VS_OUTPUT
 };
 
 
-VS_OUTPUT main(VS_INPUT input)
+VSOutput main(VSInput input)
 {
-    VS_OUTPUT Output;
+    VSOutput Output;
     
     float4 pos = mul(float4(input.Position, 1.0), model);
     Output.Position = mul(pos, viewprojection);

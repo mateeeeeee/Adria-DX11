@@ -12,28 +12,28 @@ struct LightGrid
 
 Texture2D normalMetallicTx      : register(t0);
 Texture2D diffuseRoughnessTx    : register(t1);
-Texture2D<float> depthTx        : register(t2);
+Texture2D<float> DepthTx        : register(t2);
 
 
 StructuredBuffer<StructuredLight> lights    : register(t3);
 StructuredBuffer<uint> light_index_list     : register(t4);     //MAX_CLUSTER_LIGHTS * 16^3
 StructuredBuffer<LightGrid> light_grid      : register(t5);      //16^3
 
-struct VertexOut
+struct VSToPS
 {
-    float4 PosH : SV_POSITION;
+    float4 Pos : SV_POSITION;
     float2 Tex : TEX;
 };
 
 
-float4 main(VertexOut pin) : SV_TARGET
+float4 main(VSToPS pin) : SV_TARGET
 {
 
     //unpack gbuffer
     float4 NormalMetallic = normalMetallicTx.Sample(linear_wrap_sampler, pin.Tex);
     float3 Normal = 2 * NormalMetallic.rgb - 1.0;
     float metallic = NormalMetallic.a;
-    float depth = depthTx.Sample(linear_wrap_sampler, pin.Tex);
+    float depth = DepthTx.Sample(linear_wrap_sampler, pin.Tex);
     float3 Position = GetPositionVS(pin.Tex, depth);
     float4 AlbedoRoughness = diffuseRoughnessTx.Sample(linear_wrap_sampler, pin.Tex);
     float3 V = normalize(0.0f.xxx - Position);
@@ -47,7 +47,7 @@ float4 main(VertexOut pin) : SV_TARGET
 
     uint2 cluster_dim = ceil(screen_resolution / float2(16, 16));
 
-    uint3 tiles = uint3(uint2(pin.PosH.xy / cluster_dim), z_cluster);
+    uint3 tiles = uint3(uint2(pin.Pos.xy / cluster_dim), z_cluster);
 
     uint tile_index = tiles.x +
                      16 * tiles.y +

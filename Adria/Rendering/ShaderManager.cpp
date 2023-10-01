@@ -45,7 +45,7 @@ namespace adria
 			case VS_Solid:
 			case VS_Billboard:
 			case VS_Sun:
-			case VS_Decals:
+			case VS_Decal:
 			case VS_GBufferTerrain:
 			case VS_GBufferPBR:
 			case VS_FullscreenQuad:
@@ -60,12 +60,10 @@ namespace adria
 				return GfxShaderStage::VS;
 			case PS_Skybox:
 			case PS_HosekWilkieSky:
-			case PS_UniformColorSky:
+			case PS_UniformSky:
 			case PS_Texture:
 			case PS_Solid:
-			case PS_Sun:
-			case PS_Billboard:
-			case PS_Decals:
+			case PS_Decal:
 			case PS_DecalsModifyNormals:
 			case PS_GBufferPBR:
 			case PS_GBufferPBR_Mask:
@@ -146,34 +144,26 @@ namespace adria
 			switch (shader)
 			{
 			case VS_Sky:
-				return "Misc/SkyboxVS.hlsl";
 			case PS_Skybox:
-				return "Misc/SkyboxPS.hlsl";
+				return "Misc/Skybox.hlsl";
 			case PS_HosekWilkieSky:
-				return "Misc/HosekWilkieSkyPS.hlsl";
-			case PS_UniformColorSky:
-				return "Misc/UniformColorSkyPS.hlsl";
+				return "Misc/HosekWilkieSky.hlsl";
+			case PS_UniformSky:
+				return "Misc/UniformSky.hlsl";
 			case VS_Texture:
-				return "Misc/TextureVS.hlsl";
 			case PS_Texture:
-				return "Misc/TexturePS.hlsl";
+				return "Misc/Texture.hlsl";
 			case VS_Solid:
-				return "Misc/SolidVS.hlsl";
 			case PS_Solid:
-				return "Misc/SolidPS.hlsl";
+				return "Misc/Solid.hlsl";
 			case VS_Sun:
-				return "Misc/SunVS.hlsl";
-			case PS_Sun:
-				return "Misc/SunPS.hlsl";
+				return "Misc/Sun.hlsl";
 			case VS_Billboard:
-				return "Misc/BillboardVS.hlsl";
-			case PS_Billboard:
-				return "Misc/BillboardPS.hlsl";
-			case VS_Decals:
-				return "Misc/DecalVS.hlsl";
-			case PS_Decals:
+				return "Misc/Billboard.hlsl";
+			case VS_Decal:
+			case PS_Decal:
 			case PS_DecalsModifyNormals:
-				return "Misc/DecalPS.hlsl";
+				return "Misc/Decal.hlsl";
 			case VS_GBufferPBR:
 				return "Deferred/GBuffer_VS.hlsl";
 			case PS_GBufferPBR:
@@ -285,11 +275,10 @@ namespace adria
 			case PS_OceanLOD:
 				return "Ocean/OceanLodPS.hlsl";
 			case VS_Foliage:
-				return "Misc/FoliageVS.hlsl";
 			case PS_Foliage:
-				return "Misc/FoliagePS.hlsl";
+				return "Misc/Foliage.hlsl";
 			case CS_Picker:
-				return "Misc/PickerCS.hlsl";
+				return "Misc/Picker.hlsl";
 			case VS_Particles:
 				return "Particles/ParticleVS.hlsl";
 			case PS_Particles:
@@ -387,6 +376,37 @@ namespace adria
 				return "VolumetricLighting_Spot";
 			case PS_VolumetricLight_Point:
 				return "VolumetricLighting_Point";
+			case VS_Billboard:
+				return "BillboardVS";
+			case VS_Decal:
+				return "DecalVS";
+			case PS_Decal:
+			case PS_DecalsModifyNormals:
+				return "DecalPS";
+			case VS_Foliage:
+				return "FoliageVS";
+			case PS_Foliage:
+				return "FoliagePS";
+			case PS_HosekWilkieSky:
+				return "HosekWilkieSky";
+			case PS_UniformSky:
+				return "UniformSky";
+			case CS_Picker:
+				return "Picker";
+			case VS_Sky:
+				return "SkyVS";
+			case PS_Skybox:
+				return "SkyboxPS";
+			case VS_Solid:
+				return "SolidVS";
+			case PS_Solid:
+				return "SolidPS";
+			case VS_Sun:
+				return "SunVS";
+			case VS_Texture:
+				return "TextureVS";
+			case PS_Texture:
+				return "TexturePS";
 			default:
 				return "main";
 			}
@@ -498,13 +518,13 @@ namespace adria
 
 			gfx_shader_program_map[ShaderProgram::Skybox].SetVertexShader(vs_shader_map[VS_Sky].get()).SetPixelShader(ps_shader_map[PS_Skybox].get()).SetInputLayout(input_layout_map[VS_Sky].get());
 			gfx_shader_program_map[ShaderProgram::HosekWilkieSky].SetVertexShader(vs_shader_map[VS_Sky].get()).SetPixelShader(ps_shader_map[PS_HosekWilkieSky].get()).SetInputLayout(input_layout_map[VS_Sky].get());
-			gfx_shader_program_map[ShaderProgram::UniformColorSky].SetVertexShader(vs_shader_map[VS_Sky].get()).SetPixelShader(ps_shader_map[PS_UniformColorSky].get()).SetInputLayout(input_layout_map[VS_Sky].get());
+			gfx_shader_program_map[ShaderProgram::UniformColorSky].SetVertexShader(vs_shader_map[VS_Sky].get()).SetPixelShader(ps_shader_map[PS_UniformSky].get()).SetInputLayout(input_layout_map[VS_Sky].get());
 			gfx_shader_program_map[ShaderProgram::Texture].SetVertexShader(vs_shader_map[VS_Texture].get()).SetPixelShader(ps_shader_map[PS_Texture].get()).SetInputLayout(input_layout_map[VS_Texture].get());
 			gfx_shader_program_map[ShaderProgram::Solid].SetVertexShader(vs_shader_map[VS_Solid].get()).SetPixelShader(ps_shader_map[PS_Solid].get()).SetInputLayout(input_layout_map[VS_Solid].get());
-			gfx_shader_program_map[ShaderProgram::Sun].SetVertexShader(vs_shader_map[VS_Sun].get()).SetPixelShader(ps_shader_map[PS_Sun].get()).SetInputLayout(input_layout_map[VS_Sun].get());
-			gfx_shader_program_map[ShaderProgram::Billboard].SetVertexShader(vs_shader_map[VS_Billboard].get()).SetPixelShader(ps_shader_map[PS_Billboard].get()).SetInputLayout(input_layout_map[VS_Billboard].get());
-			gfx_shader_program_map[ShaderProgram::Decals].SetVertexShader(vs_shader_map[VS_Decals].get()).SetPixelShader(ps_shader_map[PS_Decals].get()).SetInputLayout(input_layout_map[VS_Decals].get());
-			gfx_shader_program_map[ShaderProgram::Decals_ModifyNormals].SetVertexShader(vs_shader_map[VS_Decals].get()).SetPixelShader(ps_shader_map[PS_DecalsModifyNormals].get()).SetInputLayout(input_layout_map[VS_Decals].get());
+			gfx_shader_program_map[ShaderProgram::Sun].SetVertexShader(vs_shader_map[VS_Sun].get()).SetPixelShader(ps_shader_map[PS_Texture].get()).SetInputLayout(input_layout_map[VS_Sun].get());
+			gfx_shader_program_map[ShaderProgram::Billboard].SetVertexShader(vs_shader_map[VS_Billboard].get()).SetPixelShader(ps_shader_map[PS_Texture].get()).SetInputLayout(input_layout_map[VS_Billboard].get());
+			gfx_shader_program_map[ShaderProgram::Decals].SetVertexShader(vs_shader_map[VS_Decal].get()).SetPixelShader(ps_shader_map[PS_Decal].get()).SetInputLayout(input_layout_map[VS_Decal].get());
+			gfx_shader_program_map[ShaderProgram::Decals_ModifyNormals].SetVertexShader(vs_shader_map[VS_Decal].get()).SetPixelShader(ps_shader_map[PS_DecalsModifyNormals].get()).SetInputLayout(input_layout_map[VS_Decal].get());
 			gfx_shader_program_map[ShaderProgram::GBuffer_Terrain].SetVertexShader(vs_shader_map[VS_GBufferTerrain].get()).SetPixelShader(ps_shader_map[PS_GBufferTerrain].get()).SetInputLayout(input_layout_map[VS_GBufferTerrain].get());
 			gfx_shader_program_map[ShaderProgram::GBufferPBR].SetVertexShader(vs_shader_map[VS_GBufferPBR].get()).SetPixelShader(ps_shader_map[PS_GBufferPBR].get()).SetInputLayout(input_layout_map[VS_GBufferPBR].get());
 			gfx_shader_program_map[ShaderProgram::GBufferPBR_Mask].SetVertexShader(vs_shader_map[VS_GBufferPBR].get()).SetPixelShader(ps_shader_map[PS_GBufferPBR_Mask].get()).SetInputLayout(input_layout_map[VS_GBufferPBR].get());
@@ -613,7 +633,6 @@ namespace adria
 		file_watcher->AddPathToWatch("Resources/Shaders/");
 		std::ignore = file_watcher->GetFileModifiedEvent().Add(OnShaderFileChanged);
 	}
-
 	void ShaderManager::Destroy()
 	{
 		device = nullptr;
@@ -635,14 +654,12 @@ namespace adria
 		FreeContainer(cs_shader_map);
 		FreeContainer(input_layout_map);
 	}
-
 	GfxShaderProgram* ShaderManager::GetShaderProgram(ShaderProgram shader_program)
 	{
 		bool is_gfx_program = gfx_shader_program_map.contains(shader_program);
 		if (is_gfx_program) return &gfx_shader_program_map[shader_program];
 		else return &compute_shader_program_map[shader_program];
 	}
-
 	void ShaderManager::CheckIfShadersHaveChanged()
 	{
 		file_watcher->CheckWatchedFiles();

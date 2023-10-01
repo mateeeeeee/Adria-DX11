@@ -6,11 +6,11 @@
 
 Texture2D        normalMetallicTx       : register(t0);
 Texture2D        diffuseRoughnessTx     : register(t1);
-Texture2D<float> depthTx                : register(t2);
+Texture2D<float> DepthTx                : register(t2);
 
-Texture2D       ShadowMap       : register(t4);
-TextureCube     ShadowCubeMap   : register(t5);
-Texture2DArray  ShadowCascadeMaps : register(t6);
+Texture2D<float>       ShadowMap       : register(t4);
+TextureCube<float>     ShadowCubeMap   : register(t5);
+Texture2DArray<float>  ShadowCascadeMaps : register(t6);
 
 
 //https://panoskarabelas.com/posts/screen_space_shadows/
@@ -28,7 +28,7 @@ float SSCS(float3 pos_vs)
     ray_projected.xy /= ray_projected.w;
     ray_uv = ray_projected.xy * float2(0.5f, -0.5f) + 0.5f;
 
-    float depth = depthTx.Sample(point_clamp_sampler, ray_uv);
+    float depth = DepthTx.Sample(point_clamp_sampler, ray_uv);
     float linear_depth = ConvertZToLinearDepth(depth);
 
     const float SSCS_STEP_LENGTH = current_light.sscsMaxRayDistance / (float) SSCS_MAX_STEPS;
@@ -54,7 +54,7 @@ float SSCS(float3 pos_vs)
         [branch]
         if (IsSaturated(ray_uv))
         {
-            depth = depthTx.Sample(point_clamp_sampler, ray_uv);
+            depth = DepthTx.Sample(point_clamp_sampler, ray_uv);
             //pute the difference between the ray's and the camera's depth
             linear_depth = ConvertZToLinearDepth(depth);
             float depth_delta = ray_projected.z - linear_depth;
@@ -77,21 +77,21 @@ float SSCS(float3 pos_vs)
 }
 
 
-struct VertexOut
+struct VSToPS
 {
-    float4 PosH : SV_POSITION;
+    float4 Pos : SV_POSITION;
     float2 Tex : TEX;
 };
 
 
-float4 main(VertexOut pin) : SV_TARGET
+float4 main(VSToPS pin) : SV_TARGET
 {
 
     //unpack gbuffer
     float4 NormalMetallic = normalMetallicTx.Sample(linear_wrap_sampler, pin.Tex);
     float3 Normal = 2 * NormalMetallic.rgb - 1.0;
     float metallic = NormalMetallic.a;
-    float depth = depthTx.Sample(linear_wrap_sampler, pin.Tex);
+    float depth = DepthTx.Sample(linear_wrap_sampler, pin.Tex);
     float3 Position = GetPositionVS(pin.Tex, depth);
     float4 AlbedoRoughness = diffuseRoughnessTx.Sample(linear_wrap_sampler, pin.Tex);
     float3 V = normalize(0.0f.xxx - Position);

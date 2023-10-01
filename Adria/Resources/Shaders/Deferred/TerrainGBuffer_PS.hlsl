@@ -7,7 +7,7 @@ Texture2D txRock    : register(t2);
 Texture2D txSand    : register(t3);
 Texture2D txLayer   : register(t4);
 
-struct VS_OUTPUT
+struct VSOutput
 {
     float4 Position : SV_POSITION;
     float4 PosWS    : POS;
@@ -17,7 +17,7 @@ struct VS_OUTPUT
 };
 
 
-struct PS_GBUFFER_OUT
+struct PSOutput
 {
     float4 NormalMetallic : SV_TARGET0;
     float4 DiffuseRoughness : SV_TARGET1;
@@ -25,9 +25,9 @@ struct PS_GBUFFER_OUT
 };
 
 
-PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float3 emissive, float roughness, float metallic, float ao)
+PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float3 emissive, float roughness, float metallic, float ao)
 {
-    PS_GBUFFER_OUT Out;
+    PSOutput Out;
 
     Out.NormalMetallic = float4(0.5 * NormalVS + 0.5, metallic);
     Out.DiffuseRoughness = float4(BaseColor, roughness);
@@ -37,7 +37,7 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float3 emissive, f
 
 
 
-PS_GBUFFER_OUT main(VS_OUTPUT In)
+PSOutput main(VSOutput In)
 {
 
     In.Uvs.y = 1 - In.Uvs.y;

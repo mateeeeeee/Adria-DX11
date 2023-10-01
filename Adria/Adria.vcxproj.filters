@@ -553,10 +553,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Resources\Shaders\Misc\SkyboxPS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\SkyboxVS.hlsl">
+    <FxCompile Include="Resources\Shaders\Misc\Skybox.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\AmbientPBR_PS.hlsl">
@@ -640,28 +637,16 @@
     <FxCompile Include="Resources\Shaders\Ocean\SpectrumCS.hlsl">
       <Filter>Shaders\Ocean</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\BillboardPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Misc\Billboard.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\BillboardVS.hlsl">
+    <FxCompile Include="Resources\Shaders\Misc\Solid.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\SolidPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Misc\Texture.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\SolidVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\TexturePS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\TextureVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\SunVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\SunPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Misc\Sun.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\MotionBlur.hlsl">
@@ -694,16 +679,13 @@
     <FxCompile Include="Resources\Shaders\Postprocess\MotionVectors.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\HosekWilkieSkyPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Misc\HosekWilkieSky.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\UniformColorSkyPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Misc\UniformSky.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\FoliageVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\FoliagePS.hlsl">
+    <FxCompile Include="Resources\Shaders\Misc\Foliage.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Particles\InitDeadListCS.hlsl">
@@ -736,13 +718,10 @@
     <FxCompile Include="Resources\Shaders\Particles\SortInner512CS.hlsl">
       <Filter>Shaders\Particles</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\PickerCS.hlsl">
+    <FxCompile Include="Resources\Shaders\Misc\Picker.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\DecalVS.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\DecalPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Misc\Decal.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\LensFlare.hlsl">

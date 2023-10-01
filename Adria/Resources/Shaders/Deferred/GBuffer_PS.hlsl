@@ -5,7 +5,7 @@ Texture2D<float4> txMetallicRoughness : register(t1);
 Texture2D<float4> txNormal   : register(t2);
 Texture2D<float4> txEmissive : register(t3);
 
-struct VS_OUTPUT
+struct VSOutput
 {
     float4 Position     : SV_POSITION; 
     float2 Uvs          : TEX;
@@ -16,7 +16,7 @@ struct VS_OUTPUT
     bool  IsFrontFace   : SV_IsFrontFace;
 };
 
-struct PS_GBUFFER_OUT
+struct PSOutput
 {
     float4 NormalMetallic   : SV_TARGET0;
     float4 DiffuseRoughness : SV_TARGET1;
@@ -24,9 +24,9 @@ struct PS_GBUFFER_OUT
 };
 
 
-PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float roughness, float metallic)
+PSOutput PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, float roughness, float metallic)
 {
-    PS_GBUFFER_OUT Out;
+    PSOutput Out;
 
     Out.NormalMetallic = float4(0.5 * NormalVS + 0.5, metallic);
     Out.DiffuseRoughness = float4(BaseColor, roughness);
@@ -34,7 +34,7 @@ PS_GBUFFER_OUT PackGBuffer(float3 BaseColor, float3 NormalVS, float4 emissive, f
     return Out;
 }
 
-PS_GBUFFER_OUT main(VS_OUTPUT In)
+PSOutput main(VSOutput In)
 {
     In.Uvs.y = 1 - In.Uvs.y;
     float4 DiffuseColor = txAlbedo.Sample(linear_wrap_sampler, In.Uvs) * albedo_factor;

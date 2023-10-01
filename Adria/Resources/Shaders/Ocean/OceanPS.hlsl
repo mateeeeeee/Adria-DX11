@@ -14,16 +14,16 @@ struct PS_INPUT
     float2 TexCoord     : TEX;
 };
 
-float4 main(PS_INPUT IN) : SV_TARGET
+float4 main(PS_INPUT input) : SV_TARGET
 {
    
-    float4 NormalFoam = NormalMap.Sample(linear_wrap_sampler, IN.TexCoord);
+    float4 NormalFoam = NormalMap.Sample(linear_wrap_sampler, input.TexCoord);
     
     float FoamFactor = NormalFoam.a;
     
     float3 n = normalize(NormalFoam.xyz);
     
-    float3 vdir = camera_position.xyz - IN.WorldPos.xyz;
+    float3 vdir = camera_position.xyz - input.WorldPos.xyz;
 
     float3 v = normalize(vdir);
     float3 l = reflect(-v, n);
@@ -39,7 +39,7 @@ float4 main(PS_INPUT IN) : SV_TARGET
     float dif = clamp(dot(n, normalize(light_dir.xyz)), 0.f, 1.f);
     float3 water = (1.f - F) * ocean_color * sky_color * dif;
     
-    water += FoamFactor * FoamTexture.Sample(linear_wrap_sampler, IN.TexCoord).rgb; //+perlin_offset
+    water += FoamFactor * FoamTexture.Sample(linear_wrap_sampler, input.TexCoord).rgb; //+perlin_offset
 
     float3 color = sky + water;
 
@@ -75,9 +75,9 @@ static const float3 perlinGradient = float3(0.014, 0.016, 0.022);
     float2 perlin_offset = float2(perlin_offset_x, perlin_offset_y);
     if (factor < 1.0)
     {
-        float2 p0 = Perlin.Sample(LinearWrapSampler, IN.TexCoord * perlinFrequency.x + perlin_offset );
-        float2 p1 = Perlin.Sample(LinearWrapSampler, IN.TexCoord * perlinFrequency.y + perlin_offset );               
-        float2 p2 = Perlin.Sample(LinearWrapSampler, IN.TexCoord * perlinFrequency.z + perlin_offset );
+        float2 p0 = Perlin.Sample(LinearWrapSampler, input.TexCoord * perlinFrequency.x + perlin_offset );
+        float2 p1 = Perlin.Sample(LinearWrapSampler, input.TexCoord * perlinFrequency.y + perlin_offset );               
+        float2 p2 = Perlin.Sample(LinearWrapSampler, input.TexCoord * perlinFrequency.z + perlin_offset );
 
         perl = (p0 * perlinGradient.x + p1 * perlinGradient.y + p2 * perlinGradient.z);
     }

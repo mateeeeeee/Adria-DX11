@@ -2,13 +2,13 @@
 #include "../Globals/GlobalsVS.hlsli"
 
 
-struct VS_INPUT
+struct VSInput
 {
     float3 Pos : POSITION;
     float2 Uvs : TEX;
 };
 
-struct VS_OUTPUT
+struct VSOutput
 {
     float4 WorldPos : POS;
     float2 TexCoord : TEX;
@@ -16,9 +16,9 @@ struct VS_OUTPUT
 
 
 
-VS_OUTPUT main(VS_INPUT vin)
+VSOutput main(VSInput vin)
 {
-    VS_OUTPUT vs_out;
+    VSOutput vs_out;
 
     vs_out.WorldPos = mul(float4(vin.Pos, 1.0), model);
     

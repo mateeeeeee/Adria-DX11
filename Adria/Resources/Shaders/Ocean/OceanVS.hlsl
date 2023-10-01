@@ -4,13 +4,13 @@
 
 
 
-struct VS_INPUT
+struct VSInput
 {
     float3 Pos : POSITION;
     float2 Uvs : TEX;
 };
 
-struct VS_OUTPUT
+struct VSOutput
 {
     float4 Position     : SV_POSITION;
     float4 WorldPos     : POS;
@@ -26,9 +26,9 @@ Texture2D DisplacementMap : register(t0);
 #define LAMBDA 1.2
 
 
-VS_OUTPUT main(VS_INPUT vin)
+VSOutput main(VSInput vin)
 {
-    VS_OUTPUT vout;
+    VSOutput vout;
     
     float4 world_pos = mul(float4(vin.Pos, 1.0), model);
     

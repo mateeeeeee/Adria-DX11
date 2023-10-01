@@ -8,7 +8,7 @@
 
 Texture2D normalMetallicTx : register(t0);
 Texture2D diffuseRoughnessTx : register(t1);
-Texture2D<float> depthTx : register(t2);
+Texture2D<float> DepthTx : register(t2);
 StructuredBuffer<StructuredLight> lights : register(t3);
 
 RWTexture2D<float4> outputTexture : register(u0);
@@ -38,7 +38,7 @@ void main(uint3 groupId : SV_GroupID,
     float2 tex = dispatchThreadId.xy / screen_resolution;
     
    
-    float depth = depthTx.Load(int3(dispatchThreadId.xy, 0));
+    float depth = DepthTx.Load(int3(dispatchThreadId.xy, 0));
     float view_depth = ConvertZToLinearDepth(depth);
    
     
