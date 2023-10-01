@@ -270,7 +270,7 @@ namespace adria
 		void PassGodRays(Light const& light); 
 		void PassDepthOfField(); 
 		void PassBloom(); 
-		void PassVelocityBuffer();
+		void PassMotionVectors();
 		void PassMotionBlur();
 		void PassFog();
 		void PassFXAA();

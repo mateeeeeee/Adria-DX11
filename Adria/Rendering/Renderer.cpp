@@ -2231,7 +2231,7 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Postprocessing Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Postprocessing Pass");
 
-		PassVelocityBuffer();
+		PassMotionVectors();
 
 		auto lights = reg.view<Light>();
 		command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
@@ -3034,7 +3034,7 @@ namespace adria
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srv2));
 		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uav2));
 	}
-	void Renderer::PassVelocityBuffer()
+	void Renderer::PassMotionVectors()
 	{
 		if (!renderer_settings.motion_blur && !(renderer_settings.anti_aliasing & AntiAliasing_TAA)) return;
 		GfxCommandContext* command_context = gfx->GetCommandContext();
@@ -3049,7 +3049,7 @@ namespace adria
 			command_context->SetShaderResourceRO(GfxShaderStage::PS, 0, depth_target->SRV());
 			command_context->SetInputLayout(nullptr);
 			command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
-			ShaderManager::GetShaderProgram(ShaderProgram::VelocityBuffer)->Bind(command_context);
+			ShaderManager::GetShaderProgram(ShaderProgram::MotionVectors)->Bind(command_context);
 			command_context->Draw(4);
 			command_context->SetShaderResourceRO(GfxShaderStage::PS, 0,nullptr);
 		}

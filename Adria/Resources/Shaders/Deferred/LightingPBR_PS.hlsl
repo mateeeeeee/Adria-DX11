@@ -8,9 +8,9 @@ Texture2D        normalMetallicTx       : register(t0);
 Texture2D        diffuseRoughnessTx     : register(t1);
 Texture2D<float> depthTx                : register(t2);
 
-Texture2D       shadowDepthMap  : register(t4);
-TextureCube     depthCubeMap    : register(t5);
-Texture2DArray  cascadeDepthMap : register(t6);
+Texture2D       ShadowMap       : register(t4);
+TextureCube     ShadowCubeMap   : register(t5);
+Texture2DArray  ShadowCascadeMaps : register(t6);
 
 
 //https://panoskarabelas.com/posts/screen_space_shadows/
@@ -130,7 +130,7 @@ float4 main(VertexOut pin) : SV_TARGET
             const float3 m = abs(light_to_pixelWS).xyz;
             const float major = max(m.x, max(m.y, m.z));
             float fragment_depth = (c1 * major + c0) / major;
-            shadow_factor = depthCubeMap.SampleCmpLevelZero(shadow_sampler, normalize(light_to_pixelWS.xyz), fragment_depth);
+            shadow_factor = ShadowCubeMap.SampleCmpLevelZero(shadow_sampler, normalize(light_to_pixelWS.xyz), fragment_depth);
         }
         else if (current_light.type == DIRECTIONAL_LIGHT && current_light.useCascades)
         {
@@ -144,7 +144,7 @@ float4 main(VertexOut pin) : SV_TARGET
                     float3 UVD = pos_shadow_map.xyz / pos_shadow_map.w;
                     UVD.xy = 0.5 * UVD.xy + 0.5;
                     UVD.y = 1.0 - UVD.y;
-                    shadow_factor = CSMCalcShadowFactor_PCF3x3(shadow_sampler, cascadeDepthMap, i, UVD, shadow_map_size, softness);
+                    shadow_factor = CSMCalcShadowFactor_PCF3x3(shadow_sampler, ShadowCascadeMaps, i, UVD, shadow_map_size, softness);
                     break;
                 }
             }    
@@ -155,7 +155,7 @@ float4 main(VertexOut pin) : SV_TARGET
             float3 UVD = pos_shadow_map.xyz / pos_shadow_map.w;
             UVD.xy = 0.5 * UVD.xy + 0.5;
             UVD.y = 1.0 - UVD.y; 
-            shadow_factor = CalcShadowFactor_PCF3x3(shadow_sampler, shadowDepthMap, UVD, shadow_map_size, softness);
+            shadow_factor = CalcShadowFactor_PCF3x3(shadow_sampler, ShadowMap, UVD, shadow_map_size, softness);
         }
         Lo = Lo * shadow_factor;
     }

@@ -4,23 +4,23 @@
 #include "../Util/ShadowUtil.hlsli"
 
 
-Texture2D<float> depthTx : register(t2);
-Texture2D shadowDepthMap : register(t4);
+Texture2D<float> DepthTx : register(t2);
+Texture2D<float> ShadowMap : register(t4);
 
-struct VertexOut
+struct VSToPS
 {
-    float4 PosH : SV_POSITION;
-    float2 Tex  : TEX;
+    float4 Pos : SV_POSITION;
+    float2 Tex : TEX;
 };
 
 
-float4 main(VertexOut input) : SV_TARGET
+float4 main(VSToPS input) : SV_TARGET
 {
     if (current_light.castsShadows == 0)
     {
         return 0;
     }
-    float depth = max(input.PosH.z, depthTx.SampleLevel(linear_clamp_sampler, input.Tex, 2));
+    float depth = max(input.Pos.z, DepthTx.SampleLevel(linear_clamp_sampler, input.Tex, 2));
     float3 P = GetPositionVS(input.Tex, depth);
     float3 V = float3(0.0f, 0.0f, 0.0f) - P;
     float cameraDistance = length(V);
@@ -32,7 +32,7 @@ float4 main(VertexOut input) : SV_TARGET
     float3 rayEnd = float3(0.0f, 0.0f, 0.0f);
     const uint sampleCount = 16;
     const float stepSize = length(P - rayEnd) / sampleCount;
-    P = P + V * stepSize * BayerDither(input.PosH.xy);
+    P = P + V * stepSize * BayerDither(input.Pos.xy);
 	[loop]
     for (uint i = 0; i < sampleCount; ++i)
     {
@@ -45,7 +45,7 @@ float4 main(VertexOut input) : SV_TARGET
         [branch]
         if (IsSaturated(UVD.xy))
         {                          
-            float attenuation = CalcShadowFactor_PCF3x3(shadow_sampler, shadowDepthMap, UVD, shadow_map_size, softness);
+            float attenuation = CalcShadowFactor_PCF3x3(shadow_sampler, ShadowMap, UVD, shadow_map_size, softness);
             //attenuation *= ExponentialFog(cameraDistance - marchedDistance);
             accumulation += attenuation;
         }

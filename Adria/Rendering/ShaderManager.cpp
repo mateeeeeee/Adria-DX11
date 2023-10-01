@@ -91,7 +91,7 @@ namespace adria
 			case PS_DepthOfField:
 			case PS_Bokeh:
 			case PS_VolumetricClouds:
-			case PS_VelocityBuffer:
+			case PS_MotionVectors:
 			case PS_MotionBlur:
 			case PS_Fog:
 			case PS_Shadow:
@@ -201,7 +201,7 @@ namespace adria
 			case PS_FXAA:
 				return "Postprocess/FXAA.hlsl";
 			case PS_TAA:
-				return "Postprocess/TAA_PS.hlsl";
+				return "Postprocess/TAA.hlsl";
 			case PS_CopyTextures:
 				return "Postprocess/CopyTexture.hlsl";
 			case PS_AddTextures:
@@ -211,7 +211,7 @@ namespace adria
 			case PS_HBAO:
 				return "Postprocess/HBAO.hlsl";
 			case PS_SSR:
-				return "Postprocess/SSR_PS.hlsl";
+				return "Postprocess/SSR.hlsl";
 			case VS_LensFlare:
 			case GS_LensFlare:
 			case PS_LensFlare:
@@ -228,10 +228,10 @@ namespace adria
 				return "Postprocess/BokehGeneration.hlsl";
 			case PS_VolumetricClouds:
 				return "Postprocess/VolumetricClouds.hlsl";
-			case PS_VelocityBuffer:
-				return "Postprocess/VelocityBufferPS.hlsl";
+			case PS_MotionVectors:
+				return "Postprocess/MotionVectors.hlsl";
 			case PS_MotionBlur:
-				return "Postprocess/MotionBlurPS.hlsl";
+				return "Postprocess/MotionBlur.hlsl";
 			case PS_Fog:
 				return "Postprocess/Fog.hlsl";
 			case VS_Shadow:
@@ -371,6 +371,14 @@ namespace adria
 			case PS_ToneMap_Linear:
 			case PS_ToneMap_Hable:
 				return "ToneMap";
+			case PS_MotionVectors:
+				return "MotionVectors";
+			case PS_MotionBlur:
+				return "MotionBlur";
+			case PS_TAA:
+				return "TAA";
+			case PS_SSR:
+				return "SSR";
 			default:
 				return "main";
 			}
@@ -515,7 +523,7 @@ namespace adria
 			gfx_shader_program_map[ShaderProgram::BokehDraw].SetVertexShader(vs_shader_map[VS_Bokeh].get()).SetGeometryShader(gs_shader_map[GS_Bokeh].get()).SetPixelShader(ps_shader_map[PS_Bokeh].get()).SetInputLayout(input_layout_map[VS_Bokeh].get());
 
 			gfx_shader_program_map[ShaderProgram::Volumetric_Clouds].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_VolumetricClouds].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
-			gfx_shader_program_map[ShaderProgram::VelocityBuffer].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_VelocityBuffer].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::MotionVectors].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_MotionVectors].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::MotionBlur].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_MotionBlur].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::Fog].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_Fog].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 

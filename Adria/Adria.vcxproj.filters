@@ -595,7 +595,7 @@
     <FxCompile Include="Resources\Shaders\Postprocess\VolumetricLightDirectionalCascadesPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\SSR_PS.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\SSR.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\BloomExtract.hlsl">
@@ -664,7 +664,7 @@
     <FxCompile Include="Resources\Shaders\Misc\SunPS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\MotionBlurPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\MotionBlur.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\TiledLightingCS.hlsl">
@@ -688,13 +688,10 @@
     <FxCompile Include="Resources\Shaders\Deferred\TerrainGBuffer_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\TAA_PS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\BloomCombine.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\VelocityBufferPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\MotionVectors.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\HosekWilkieSkyPS.hlsl">
@@ -789,6 +786,9 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\Shadow.hlsl">
       <Filter>Shaders\Misc</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\TAA.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

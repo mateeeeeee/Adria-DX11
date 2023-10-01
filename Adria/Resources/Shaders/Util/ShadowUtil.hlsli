@@ -1,6 +1,6 @@
 
 
-float CalcShadowFactor_Basic(SamplerComparisonState shadowSampler, Texture2D shadowMap, float3 uvd)
+float CalcShadowFactor_Basic(SamplerComparisonState shadowSampler, Texture2D<float> shadowMap, float3 uvd)
 {
     if (uvd.z > 1.0f) return 1.0;
     return shadowMap.SampleCmpLevelZero(shadowSampler,
@@ -8,7 +8,7 @@ float CalcShadowFactor_Basic(SamplerComparisonState shadowSampler, Texture2D sha
 }
 
 
-float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler, Texture2D shadowMap, 
+float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler, Texture2D<float> shadowMap, 
 							  float3 uvd, int smSize, float softness)
 {
     if (uvd.z > 1.0f) return 1.0;
@@ -34,14 +34,14 @@ float CalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler, Texture2D sh
     return percentLit /= 9.0f;
 }
 
-float CSMCalcShadowFactor_Basic(SamplerComparisonState shadowSampler, Texture2DArray shadowMap, 
+float CSMCalcShadowFactor_Basic(SamplerComparisonState shadowSampler, Texture2DArray<float> shadowMap, 
 								uint index, float3 uvd, int smSize, float softness)
 {
     return shadowMap.SampleCmpLevelZero(shadowSampler,
 		float3(uvd.xy, index), uvd.z).r;
 }
 
-float CSMCalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler, Texture2DArray shadowMap, 
+float CSMCalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler, Texture2DArray<float> shadowMap, 
 								 uint arrayIndex, float3 uvd, int smSize, float softness)
 {
     const float dx = 1.0f / smSize;
@@ -64,7 +64,7 @@ float CSMCalcShadowFactor_PCF3x3(SamplerComparisonState shadowSampler, Texture2D
 }
 
 
-float CalcShadowFactor_PCF5x5(SamplerComparisonState shadowSampler, Texture2D shadowMap,
+float CalcShadowFactor_PCF5x5(SamplerComparisonState shadowSampler, Texture2D<float> shadowMap,
 							  float3 shadowPosH, int smSize, float softness)
 {
     if (shadowPosH.z > 1.0f) return 1.0;
@@ -92,7 +92,7 @@ float CalcShadowFactor_PCF5x5(SamplerComparisonState shadowSampler, Texture2D sh
     return percentLit /= 25.0f;
 }
 
-float CalcShadowFactor_PCF7x7(SamplerComparisonState shadowSampler, Texture2D shadowMap,
+float CalcShadowFactor_PCF7x7(SamplerComparisonState shadowSampler, Texture2D<float> shadowMap,
 							  float3 shadowPosH, int smSize, float softness)
 {
     if (shadowPosH.z > 1.0f) return 1.0;
@@ -181,7 +181,7 @@ static const float2 PoissonSamples[64] =
 	float2(-0.1020106f, 0.6724468f),
 };
 
-float CalcShadowFactor_Poisson(SamplerComparisonState shadowSampler, Texture2D shadowMap, 
+float CalcShadowFactor_Poisson(SamplerComparisonState shadowSampler, Texture2D<float> shadowMap, 
 							   float4 shadowPosH, int smSize, float softness)
 {
     if (shadowPosH.z > 1.0f) return 1.0;
