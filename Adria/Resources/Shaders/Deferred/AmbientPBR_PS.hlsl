@@ -12,11 +12,9 @@ Texture2D<float> ssaoTx : register(t7);
 #endif
 
 #if IBL
-
 TextureCube specularTexture : register(t8);
 TextureCube irradianceTexture : register(t9);
 Texture2D specularBRDF_LUT : register(t10);
-
 
 uint querySpecularTextureLevels()
 {
@@ -24,7 +22,6 @@ uint querySpecularTextureLevels()
     specularTexture.GetDimensions(0, width, height, levels);
     return levels;
 }
-
 #endif
 
 

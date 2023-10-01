@@ -240,13 +240,13 @@ namespace adria
 			case PS_ShadowTransparent:
 				return "Misc/Shadow.hlsl";
 			case PS_VolumetricLight_Directional:
-				return "Postprocess/VolumetricLightDirectionalPS.hlsl";
+				return "Postprocess/VolumetricLighting_Directional.hlsl";
 			case PS_VolumetricLight_DirectionalWithCascades:
-				return "Postprocess/VolumetricLightDirectionalCascadesPS.hlsl";
+				return "Postprocess/VolumetricLighting_Cascades.hlsl";
 			case PS_VolumetricLight_Spot:
-				return "Postprocess/VolumetricLightSpotPS.hlsl";
+				return "Postprocess/VolumetricLighting_Spot.hlsl";
 			case PS_VolumetricLight_Point:
-				return "Postprocess/VolumetricLightPointPS.hlsl";
+				return "Postprocess/VolumetricLighting_Point.hlsl";
 			case CS_BlurHorizontal:
 			case CS_BlurVertical:
 				return "Postprocess/Blur.hlsl";
@@ -379,6 +379,14 @@ namespace adria
 				return "TAA";
 			case PS_SSR:
 				return "SSR";
+			case PS_VolumetricLight_Directional:
+				return "VolumetricLighting_Directional";
+			case PS_VolumetricLight_DirectionalWithCascades:
+				return "VolumetricLighting_Cascades";
+			case PS_VolumetricLight_Spot:
+				return "VolumetricLighting_Spot";
+			case PS_VolumetricLight_Point:
+				return "VolumetricLighting_Point";
 			default:
 				return "main";
 			}

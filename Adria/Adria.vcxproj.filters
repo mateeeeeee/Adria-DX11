@@ -583,16 +583,16 @@
     <FxCompile Include="Resources\Shaders\Postprocess\FXAA.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\VolumetricLightDirectionalPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\VolumetricLighting_Directional.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\VolumetricLightPointPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\VolumetricLighting_Point.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\VolumetricLightSpotPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\VolumetricLighting_Spot.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\VolumetricLightDirectionalCascadesPS.hlsl">
+    <FxCompile Include="Resources\Shaders\Postprocess\VolumetricLighting_Cascades.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\SSR.hlsl">

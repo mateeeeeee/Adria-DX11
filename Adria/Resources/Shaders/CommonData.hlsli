@@ -33,9 +33,7 @@ struct ShadowData
     row_major matrix lightViewProjection;
     row_major matrix lightView;
     row_major matrix shadowMatrices[4];
-    float split0;
-    float split1;
-    float split3;
+    float4 splits;
     float softness;
     int shadowMapSize;
     int visualize;
