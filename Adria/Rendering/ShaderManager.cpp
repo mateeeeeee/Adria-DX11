@@ -160,30 +160,17 @@ namespace adria
 				return "Misc/Sun.hlsl";
 			case VS_Billboard:
 				return "Misc/Billboard.hlsl";
-			case VS_Decal:
-			case PS_Decal:
-			case PS_DecalsModifyNormals:
-				return "Misc/Decal.hlsl";
-			case VS_GBufferPBR:
-				return "Deferred/GBuffer_VS.hlsl";
-			case PS_GBufferPBR:
-			case PS_GBufferPBR_Mask:
-				return "Deferred/GBuffer_PS.hlsl";
-			case VS_GBufferTerrain:
-				return "Deferred/TerrainGBuffer_VS.hlsl";
-			case PS_GBufferTerrain:
-				return "Deferred/TerrainGBuffer_PS.hlsl";
 			case VS_FullscreenQuad:
 				return "Postprocess/FullscreenQuad.hlsl";
 			case PS_AmbientPBR:
 			case PS_AmbientPBR_AO:
 			case PS_AmbientPBR_IBL:
 			case PS_AmbientPBR_AO_IBL:
-				return "Deferred/AmbientPBR_PS.hlsl";
+				return "Lighting/AmbientPBR_PS.hlsl";
 			case PS_LightingPBR:
-				return "Deferred/LightingPBR_PS.hlsl";
+				return "Lighting/LightingPBR_PS.hlsl";
 			case PS_ClusterLightingPBR:
-				return "Deferred/ClusterLightingPBR_PS.hlsl";
+				return "Lighting/ClusterLightingPBR_PS.hlsl";
 			case PS_ToneMap_Reinhard:
 			case PS_ToneMap_Linear:
 			case PS_ToneMap_Hable:
@@ -257,11 +244,11 @@ namespace adria
 			case CS_OceanNormalMap:
 				return "Ocean/NormalMapCS.hlsl";
 			case CS_TiledLighting:
-				return "Deferred/TiledLightingCS.hlsl";
+				return "Lighting/TiledLightingCS.hlsl";
 			case CS_ClusterBuilding:
-				return "Deferred/ClusterBuildingCS.hlsl";
+				return "Lighting/ClusterBuildingCS.hlsl";
 			case CS_ClusterCulling:
-				return "Deferred/ClusterCullingCS.hlsl";
+				return "Lighting/ClusterCullingCS.hlsl";
 			case VS_Ocean:
 				return "Ocean/OceanVS.hlsl";
 			case PS_Ocean:
@@ -274,9 +261,20 @@ namespace adria
 				return "Ocean/OceanLodDS.hlsl";
 			case PS_OceanLOD:
 				return "Ocean/OceanLodPS.hlsl";
+			case VS_GBufferPBR:
+			case PS_GBufferPBR:
+			case PS_GBufferPBR_Mask:
+				return "GBuffer/GBuffer.hlsl";
+			case VS_GBufferTerrain:
+			case PS_GBufferTerrain:
+				return "GBuffer/Terrain.hlsl";
+			case VS_Decal:
+			case PS_Decal:
+			case PS_DecalsModifyNormals:
+				return "GBuffer/Decal.hlsl";
 			case VS_Foliage:
 			case PS_Foliage:
-				return "Misc/Foliage.hlsl";
+				return "GBuffer/Foliage.hlsl";
 			case CS_Picker:
 				return "Misc/Picker.hlsl";
 			case VS_Particles:
@@ -407,6 +405,15 @@ namespace adria
 				return "TextureVS";
 			case PS_Texture:
 				return "TexturePS";
+			case VS_GBufferPBR:
+				return "GBufferVS";
+			case PS_GBufferPBR:
+			case PS_GBufferPBR_Mask:
+				return "GBufferPS";
+			case VS_GBufferTerrain:
+				return "TerrainVS";
+			case PS_GBufferTerrain:
+				return "TerrainPS";
 			default:
 				return "main";
 			}

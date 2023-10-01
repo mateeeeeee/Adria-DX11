@@ -11,7 +11,7 @@ Texture2D diffuseRoughnessTx : register(t1);
 Texture2D<float> DepthTx : register(t2);
 StructuredBuffer<StructuredLight> lights : register(t3);
 
-RWTexture2D<float4> outputTexture : register(u0);
+RWTexture2D<float4> OutputTexture : register(u0);
 RWTexture2D<float4> debugTexture  : register(u1);
 
 groupshared uint min_z;
@@ -168,9 +168,9 @@ void main(uint3 groupId : SV_GroupID,
     }
     
     
-    float4 shading_color = outputTexture.Load(int3(int2(dispatchThreadId.xy), 0)) + float4(Lo, 1.0f);
+    float4 shading_color = OutputTexture.Load(int3(int2(dispatchThreadId.xy), 0)) + float4(Lo, 1.0f);
     
-    outputTexture[dispatchThreadId.xy] = shading_color;
+    OutputTexture[dispatchThreadId.xy] = shading_color;
     
     
     if(visualize_tiled)

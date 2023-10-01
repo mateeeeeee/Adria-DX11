@@ -16,7 +16,7 @@ RWTexture2D<float2> LUT : register(u0);
 
 // Compute Van der Corput radical inverse
 // See: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
-float radicalInverse_VdC(uint bits)
+float RadicalInverse_VdC(uint bits)
 {
 	bits = (bits << 16u) | (bits >> 16u);
 	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
@@ -27,15 +27,15 @@ float radicalInverse_VdC(uint bits)
 }
 
 // Sample i-th point from Hammersley point set of NumSamples points total.
-float2 sampleHammersley(uint i)
+float2 SampleHammersley(uint i)
 {
-	return float2(i * InvNumSamples, radicalInverse_VdC(i));
+	return float2(i * InvNumSamples, RadicalInverse_VdC(i));
 }
 
 // Importance sample GGX normal distribution function for a fixed roughness value.
 // This returns normalized half-vector between Li & Lo.
 // For derivation see: http://blog.tobias-franke.eu/2014/03/30/notes_on_importance_sampling.html
-float3 sampleGGX(float u1, float u2, float roughness)
+float3 SampleGGX(float u1, float u2, float roughness)
 {
 	float alpha = roughness * roughness;
 
@@ -48,17 +48,17 @@ float3 sampleGGX(float u1, float u2, float roughness)
 }
 
 // Single term for separable Schlick-GGX below.
-float gaSchlickG1(float cosTheta, float k)
+float GaSchlickG1(float cosTheta, float k)
 {
 	return cosTheta / (cosTheta * (1.0 - k) + k);
 }
 
 // Schlick-GGX approximation of geometric attenuation function using Smith's method (IBL version).
-float gaSchlickGGX_IBL(float cosLi, float cosLo, float roughness)
+float GaSchlickGGX_IBL(float cosLi, float cosLo, float roughness)
 {
 	float r = roughness;
 	float k = (r * r) / 2.0; // Epic suggests using this roughness remapping for IBL lighting.
-	return gaSchlickG1(cosLi, k) * gaSchlickG1(cosLo, k);
+	return GaSchlickG1(cosLi, k) * GaSchlickG1(cosLo, k);
 }
 
 [numthreads(32, 32, 1)]
@@ -85,10 +85,10 @@ void main(uint2 ThreadID : SV_DispatchThreadID)
 	float DFG2 = 0;
 
 	for(uint i=0; i<NumSamples; ++i) {
-		float2 u = sampleHammersley(i);
+		float2 u = SampleHammersley(i);
 
 		// Sample directly in tangent/shading space since we don't care about reference frame as long as it's consistent.
-		float3 Lh = sampleGGX(u.x, u.y, roughness);
+		float3 Lh = SampleGGX(u.x, u.y, roughness);
 
 		// Compute incident direction (Li) by reflecting viewing direction (Lo) around half-vector (Lh).
 		float3 Li = 2.0 * dot(Lo, Lh) * Lh - Lo;
@@ -98,7 +98,7 @@ void main(uint2 ThreadID : SV_DispatchThreadID)
 		float cosLoLh = max(dot(Lo, Lh), 0.0);
 
 		if(cosLi > 0.0) {
-			float G  = gaSchlickGGX_IBL(cosLi, cosLo, roughness);
+			float G  = GaSchlickGGX_IBL(cosLi, cosLo, roughness);
 			float Gv = G * cosLoLh / (cosLh * cosLo);
 			float Fc = pow(1.0 - cosLoLh, 5);
 

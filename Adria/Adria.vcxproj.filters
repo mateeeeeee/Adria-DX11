@@ -38,14 +38,8 @@
     <Filter Include="Shaders\Util">
       <UniqueIdentifier>{c723d4b3-ef36-4592-8907-e8ea4435dc32}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Shaders\Globals">
-      <UniqueIdentifier>{b10558c8-7d6b-4e5d-b229-681c5f09f937}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders\Misc">
       <UniqueIdentifier>{28351e7a-c9cf-48de-9fff-b61f57418fef}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Shaders\Deferred">
-      <UniqueIdentifier>{21dd1dc9-85c5-4963-9c57-8af901f73a33}</UniqueIdentifier>
     </Filter>
     <Filter Include="Shaders\Postprocess">
       <UniqueIdentifier>{fd629431-83aa-44a4-b2e4-fe3b22ad2ef8}</UniqueIdentifier>
@@ -76,6 +70,15 @@
     </Filter>
     <Filter Include="External\SimpleMath">
       <UniqueIdentifier>{72fd1772-5308-4a07-b844-7b25e0a140a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\GBuffer">
+      <UniqueIdentifier>{f9ee899d-b359-42c6-8ed0-e1c90d7816ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Lighting">
+      <UniqueIdentifier>{21dd1dc9-85c5-4963-9c57-8af901f73a33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\Lighting\IBL">
+      <UniqueIdentifier>{54ddb17a-ba36-4e6f-8e80-087d46656c19}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -504,24 +507,6 @@
     <None Include="Resources\Shaders\Util\ToneMapUtil.hlsli">
       <Filter>Shaders\Util</Filter>
     </None>
-    <None Include="Resources\Shaders\Globals\GlobalsVS.hlsli">
-      <Filter>Shaders\Globals</Filter>
-    </None>
-    <None Include="Resources\Shaders\Globals\GlobalsPS.hlsli">
-      <Filter>Shaders\Globals</Filter>
-    </None>
-    <None Include="Resources\Shaders\Globals\GlobalsCS.hlsli">
-      <Filter>Shaders\Globals</Filter>
-    </None>
-    <None Include="Resources\Shaders\Globals\GlobalsGS.hlsli">
-      <Filter>Shaders\Globals</Filter>
-    </None>
-    <None Include="Resources\Shaders\Globals\GlobalsHS.hlsli">
-      <Filter>Shaders\Globals</Filter>
-    </None>
-    <None Include="Resources\Shaders\Globals\GlobalsDS.hlsli">
-      <Filter>Shaders\Globals</Filter>
-    </None>
     <None Include="Resources\Shaders\Util\LightVolumesUtil.hlsli">
       <Filter>Shaders\Util</Filter>
     </None>
@@ -555,27 +540,6 @@
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\Misc\Skybox.hlsl">
       <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\AmbientPBR_PS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\LightingPBR_PS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\GBuffer_PS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\GBuffer_VS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\IrmapCS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\SpbrdfCS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\SpmapCS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\FXAA.hlsl">
       <Filter>Shaders\Postprocess</Filter>
@@ -652,27 +616,6 @@
     <FxCompile Include="Resources\Shaders\Postprocess\MotionBlur.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\TiledLightingCS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\Equirect2cubeCS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\ClusterBuildingCS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\ClusterCullingCS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\ClusterLightingPBR_PS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\TerrainGBuffer_VS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Deferred\TerrainGBuffer_PS.hlsl">
-      <Filter>Shaders\Deferred</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\BloomCombine.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
@@ -683,9 +626,6 @@
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\UniformSky.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\Foliage.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Particles\InitDeadListCS.hlsl">
@@ -719,9 +659,6 @@
       <Filter>Shaders\Particles</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Misc\Picker.hlsl">
-      <Filter>Shaders\Misc</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Misc\Decal.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\LensFlare.hlsl">
@@ -768,6 +705,48 @@
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\TAA.hlsl">
       <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\GBuffer\Decal.hlsl">
+      <Filter>Shaders\GBuffer</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\GBuffer\Foliage.hlsl">
+      <Filter>Shaders\GBuffer</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\GBuffer\GBuffer.hlsl">
+      <Filter>Shaders\GBuffer</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\GBuffer\Terrain.hlsl">
+      <Filter>Shaders\GBuffer</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\AmbientPBR_PS.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\ClusterBuildingCS.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\ClusterCullingCS.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\ClusterLightingPBR_PS.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\LightingPBR_PS.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\TiledLightingCS.hlsl">
+      <Filter>Shaders\Lighting</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\IrmapCS.hlsl">
+      <Filter>Shaders\Lighting\IBL</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\Equirect2cubeCS.hlsl">
+      <Filter>Shaders\Lighting\IBL</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\SpbrdfCS.hlsl">
+      <Filter>Shaders\Lighting\IBL</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Lighting\SpmapCS.hlsl">
+      <Filter>Shaders\Lighting\IBL</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

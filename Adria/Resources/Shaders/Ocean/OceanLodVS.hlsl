@@ -8,7 +8,7 @@ struct VSInput
     float2 Uvs : TEX;
 };
 
-struct VSOutput
+struct VSToPS
 {
     float4 WorldPos : POS;
     float2 TexCoord : TEX;
@@ -16,9 +16,9 @@ struct VSOutput
 
 
 
-VSOutput main(VSInput vin)
+VSToPS main(VSInput vin)
 {
-    VSOutput vs_out;
+    VSToPS vs_out;
 
     vs_out.WorldPos = mul(float4(vin.Pos, 1.0), model);
     

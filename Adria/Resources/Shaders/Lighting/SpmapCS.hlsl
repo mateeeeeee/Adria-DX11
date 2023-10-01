@@ -17,14 +17,14 @@ cbuffer SpecularMapFilterSettings : register(b0)
 };
 
 
-TextureCube inputTexture : register(t0);
-RWTexture2DArray<float4> outputTexture : register(u0);
+TextureCube InputTexture : register(t0);
+RWTexture2DArray<float4> OutputTexture : register(u0);
 
-SamplerState linear_wrap_sampler : register(s0);
+SamplerState LinearWrapSampler : register(s0);
 
 // Compute Van der Corput radical inverse
 // See: http://holger.dammertz.org/stuff/notes_HammersleyOnHemisphere.html
-float radicalInverse_VdC(uint bits)
+float RadicalInverse_VdC(uint bits)
 {
 	bits = (bits << 16u) | (bits >> 16u);
 	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
@@ -35,15 +35,15 @@ float radicalInverse_VdC(uint bits)
 }
 
 // Sample i-th point from Hammersley point set of NumSamples points total.
-float2 sampleHammersley(uint i)
+float2 SampleHammersley(uint i)
 {
-	return float2(i * InvNumSamples, radicalInverse_VdC(i));
+	return float2(i * InvNumSamples, RadicalInverse_VdC(i));
 }
 
 // Importance sample GGX normal distribution function for a fixed roughness value.
 // This returns normalized half-vector between Li & Lo.
 // For derivation see: http://blog.tobias-franke.eu/2014/03/30/notes_on_importance_sampling.html
-float3 sampleGGX(float u1, float u2, float roughness)
+float3 SampleGGX(float u1, float u2, float roughness)
 {
 	float alpha = roughness * roughness;
 
@@ -57,7 +57,7 @@ float3 sampleGGX(float u1, float u2, float roughness)
 
 // GGX/Towbridge-Reitz normal distribution function.
 // Uses Disney's reparametrization of alpha = roughness^2.
-float ndfGGX(float cosLh, float roughness)
+float NdfGGX(float cosLh, float roughness)
 {
 	float alpha   = roughness * roughness;
 	float alphaSq = alpha * alpha;
@@ -69,10 +69,10 @@ float ndfGGX(float cosLh, float roughness)
 // Calculate normalized sampling direction vector based on current fragment coordinates.
 // This is essentially "inverse-sampling": we reconstruct what the sampling vector would be if we wanted it to "hit"
 // this particular fragment in a cubemap.
-float3 getSamplingVector(uint3 ThreadID)
+float3 GetSamplingVector(uint3 ThreadID)
 {
 	float outputWidth, outputHeight, outputDepth;
-	outputTexture.GetDimensions(outputWidth, outputHeight, outputDepth);
+	OutputTexture.GetDimensions(outputWidth, outputHeight, outputDepth);
 
     float2 st = ThreadID.xy/float2(outputWidth, outputHeight);
     float2 uv = 2.0 * float2(st.x, 1.0-st.y) - 1.0;
@@ -92,7 +92,7 @@ float3 getSamplingVector(uint3 ThreadID)
 }
 
 // Compute orthonormal basis for converting from tanget/shading space to world space.
-void computeBasisVectors(const float3 N, out float3 S, out float3 T)
+void ComputeBasisVectors(const float3 N, out float3 S, out float3 T)
 {
 	// Branchless select non-degenerate T.
 	T = cross(N, float3(0.0, 1.0, 0.0));
@@ -103,7 +103,7 @@ void computeBasisVectors(const float3 N, out float3 S, out float3 T)
 }
 
 // Convert point from tangent/shading space to world space.
-float3 tangentToWorld(const float3 v, const float3 N, const float3 S, const float3 T)
+float3 TangentToWorld(const float3 v, const float3 N, const float3 S, const float3 T)
 {
 	return S * v.x + T * v.y + N * v.z;
 }
@@ -113,25 +113,25 @@ void main(uint3 ThreadID : SV_DispatchThreadID)
 {
 	// Make sure we won't write past output when computing higher mipmap levels.
 	uint outputWidth, outputHeight, outputDepth;
-	outputTexture.GetDimensions(outputWidth, outputHeight, outputDepth);
+	OutputTexture.GetDimensions(outputWidth, outputHeight, outputDepth);
 	if(ThreadID.x >= outputWidth || ThreadID.y >= outputHeight) {
 		return;
 	}
 	
 	// Get input cubemap dimensions at zero mipmap level.
 	float inputWidth, inputHeight, inputLevels;
-	inputTexture.GetDimensions(0, inputWidth, inputHeight, inputLevels);
+	InputTexture.GetDimensions(0, inputWidth, inputHeight, inputLevels);
 
 	// Solid angle associated with a single cubemap texel at zero mipmap level.
 	// This will come in handy for importance sampling below.
 	float wt = 4.0 * PI / (6 * inputWidth * inputHeight);
 	
 	// Approximation: Assume zero viewing angle (isotropic reflections).
-	float3 N = getSamplingVector(ThreadID);
+	float3 N = GetSamplingVector(ThreadID);
 	float3 Lo = N;
 	
 	float3 S, T;
-	computeBasisVectors(N, S, T);
+	ComputeBasisVectors(N, S, T);
 
 	float3 color = 0;
 	float weight = 0;
@@ -139,8 +139,8 @@ void main(uint3 ThreadID : SV_DispatchThreadID)
 	// Convolve environment map using GGX NDF importance sampling.
 	// Weight by cosine term since Epic claims it generally improves quality.
 	for(uint i=0; i<NumSamples; ++i) {
-		float2 u = sampleHammersley(i);
-		float3 Lh = tangentToWorld(sampleGGX(u.x, u.y, roughness), N, S, T);
+		float2 u = SampleHammersley(i);
+		float3 Lh = TangentToWorld(SampleGGX(u.x, u.y, roughness), N, S, T);
 
 		// Compute incident direction (Li) by reflecting viewing direction (Lo) around half-vector (Lh).
 		float3 Li = 2.0 * dot(Lo, Lh) * Lh - Lo;
@@ -154,7 +154,7 @@ void main(uint3 ThreadID : SV_DispatchThreadID)
 
 			// GGX normal distribution function (D term) probability density function.
 			// Scaling by 1/4 is due to change of density in terms of Lh to Li (and since N=V, rest of the scaling factor cancels out).
-			float pdf = ndfGGX(cosLh, roughness) * 0.25;
+			float pdf = NdfGGX(cosLh, roughness) * 0.25;
 
 			// Solid angle associated with this sample.
 			float ws = 1.0 / (NumSamples * pdf);
@@ -162,11 +162,11 @@ void main(uint3 ThreadID : SV_DispatchThreadID)
 			// Mip level to sample from.
 			float mipLevel = max(0.5 * log2(ws / wt) + 1.0, 0.0);
 
-            color += inputTexture.SampleLevel(linear_wrap_sampler, Li, mipLevel).rgb * cosLi;
+            color += InputTexture.SampleLevel(LinearWrapSampler, Li, mipLevel).rgb * cosLi;
 			weight += cosLi;
 		}
 	}
 	color /= weight;
 
-	outputTexture[ThreadID] = float4(color, 1.0);
+	OutputTexture[ThreadID] = float4(color, 1.0);
 }
