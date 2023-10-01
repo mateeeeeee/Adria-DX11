@@ -197,7 +197,7 @@ namespace adria
 			case PS_ToneMap_Reinhard:
 			case PS_ToneMap_Linear:
 			case PS_ToneMap_Hable:
-				return "Postprocess/ToneMapPS.hlsl";
+				return "Postprocess/ToneMap.hlsl";
 			case PS_FXAA:
 				return "Postprocess/FXAA.hlsl";
 			case PS_TAA:
@@ -367,6 +367,10 @@ namespace adria
 				return "LensFlarePS";
 			case VS_FullscreenQuad:
 				return "FullscreenQuad";
+			case PS_ToneMap_Reinhard:
+			case PS_ToneMap_Linear:
+			case PS_ToneMap_Hable:
+				return "ToneMap";
 			default:
 				return "main";
 			}

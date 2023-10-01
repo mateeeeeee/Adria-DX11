@@ -548,6 +548,9 @@
     <None Include="Resources\Shaders\Common.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Resources\Shaders\Constants.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\Misc\SkyboxPS.hlsl">
@@ -577,12 +580,6 @@
     <FxCompile Include="Resources\Shaders\Deferred\SpmapCS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\ScreenQuadVS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\ToneMapPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\FXAA.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
@@ -598,52 +595,13 @@
     <FxCompile Include="Resources\Shaders\Postprocess\VolumetricLightDirectionalCascadesPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\SSAO_PS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\BlurCS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\SSR_PS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\LensFlareGS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\LensFlarePS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\LensFlareVS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\BokehCS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\BokehGS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\BokehPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\BokehVS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\DOF_PS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\CopyPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\BloomExtract.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\AddTextures.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\GodRaysPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\CloudsPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Ocean\FFT_horizontalCS.hlsl">
@@ -709,9 +667,6 @@
     <FxCompile Include="Resources\Shaders\Postprocess\MotionBlurPS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\SphereVolumeVS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Deferred\TiledLightingCS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
@@ -733,13 +688,7 @@
     <FxCompile Include="Resources\Shaders\Deferred\TerrainGBuffer_PS.hlsl">
       <Filter>Shaders\Deferred</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\FogPS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\TAA_PS.hlsl">
-      <Filter>Shaders\Postprocess</Filter>
-    </FxCompile>
-    <FxCompile Include="Resources\Shaders\Postprocess\HBAO_PS.hlsl">
       <Filter>Shaders\Postprocess</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Postprocess\BloomCombine.hlsl">
@@ -799,8 +748,47 @@
     <FxCompile Include="Resources\Shaders\Misc\DecalPS.hlsl">
       <Filter>Shaders\Misc</Filter>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="todo.txt" />
+    <FxCompile Include="Resources\Shaders\Postprocess\LensFlare.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\GodRays.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\HBAO.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\FullscreenQuad.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\Fog.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\DepthOfField.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\CopyTexture.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\BokehGeneration.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\Blur.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\Bokeh.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\SSAO.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\ToneMap.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\VolumetricClouds.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="Resources\Shaders\Misc\Shadow.hlsl">
+      <Filter>Shaders\Misc</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

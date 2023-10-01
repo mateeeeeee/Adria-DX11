@@ -1,5 +1,5 @@
 #include <Common.hlsli>
-#include "../Util/DitherUtil.hlsli"
+#include <Util/DitherUtil.hlsli>
 
 struct VSToPS
 {
