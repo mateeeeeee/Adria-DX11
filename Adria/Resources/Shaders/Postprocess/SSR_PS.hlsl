@@ -1,6 +1,5 @@
 #include "../Globals/GlobalsPS.hlsli"
-
-//wicked engine https://github.com/turanszkij/WickedEngine
+//#include <Common.hlsli>
 
 Texture2D normalMetallicTx      : register(t0);
 Texture2D sceneTx               : register(t1);

@@ -7,7 +7,7 @@ struct PickingData
 };
 
 Texture2D<float> depthTx   : register(t0);
-Texture2D<float4> normalTx : register(t1);
+Texture2D<float4> NormalTx : register(t1);
 
 RWStructuredBuffer<PickingData> PickingBuffer : register(u0);
 
@@ -23,7 +23,7 @@ void main( )
     uv = uv * 2.0f - 1.0f;
     uv.y *= -1.0f;
     float4 positionWS = mul(float4(uv, zw, 1.0f), inverse_view_projection);
-    float3 normalVS = normalTx[mouse_coords].xyz;
+    float3 normalVS = NormalTx[mouse_coords].xyz;
     normalVS = 2.0 * normalVS - 1.0;
 
     PickingData picking_data;

@@ -57,7 +57,7 @@ namespace adria
 		PS_GBufferPBR_Mask,
 		VS_GBufferTerrain,
 		PS_GBufferTerrain,
-		VS_ScreenQuad,
+		VS_FullscreenQuad,
 		PS_AmbientPBR,
 		PS_AmbientPBR_AO,
 		PS_AmbientPBR_IBL,
