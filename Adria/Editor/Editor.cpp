@@ -1527,7 +1527,7 @@ namespace adria
 
                 ImGui::Checkbox("Volumetric Clouds", &renderer_settings.clouds);
                 ImGui::Checkbox("SSR", &renderer_settings.ssr);
-                ImGui::Checkbox("DoF", &renderer_settings.dof);
+                ImGui::Checkbox("Depth of Field", &renderer_settings.dof);
                 ImGui::Checkbox("Bloom", &renderer_settings.bloom);
                 ImGui::Checkbox("Motion Blur", &renderer_settings.motion_blur);
                 ImGui::Checkbox("Fog", &renderer_settings.fog);

@@ -1,3 +1,6 @@
+#ifndef _COMMON_
+#define _COMMON_
+
 #include <CommonData.hlsli>
 
 cbuffer FrameCBuffer  : register(b0)
@@ -8,6 +11,11 @@ cbuffer FrameCBuffer  : register(b0)
 cbuffer ObjectCBuffer : register(b1)
 {
     ObjectData objectData;
+}
+
+cbuffer LightCBuffer : register(b2)
+{
+    LightData lightData;
 }
 
 cbuffer ShadowCBuffer : register(b3)
@@ -90,3 +98,4 @@ inline bool IsSaturated(float4 value)
     return IsSaturated(value.x) && IsSaturated(value.y) && IsSaturated(value.z) && IsSaturated(value.w);
 }
 
+#endif

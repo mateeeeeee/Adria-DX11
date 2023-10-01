@@ -3,7 +3,7 @@
 
 Texture2D normalTx : register(t1);
 Texture2D<float> depthTx : register(t2);
-Texture2D noiseTx : register(t3);  
+Texture2D NoiseTx : register(t3);  
 
 
 
@@ -26,7 +26,7 @@ float4 main(VertexOut pin) : SV_TARGET
     
     float3 Position = GetPositionVS(pin.Tex, depth);
 
-    float3 RandomVec = normalize(2 * noiseTx.Sample(point_wrap_sampler, pin.Tex * ssao_noise_scale).xyz - 1); //use wrap sampler
+    float3 RandomVec = normalize(2 * NoiseTx.Sample(point_wrap_sampler, pin.Tex * ssao_noise_scale).xyz - 1); //use wrap sampler
 
     float3 Tangent = normalize(RandomVec - Normal * dot(RandomVec, Normal));
     float3 Bitangent = cross(Normal, Tangent);

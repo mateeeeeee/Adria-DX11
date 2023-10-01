@@ -1,30 +1,29 @@
-#include "../Globals/GlobalsPS.hlsli"
+#include <Common.hlsli>
 
-struct VertexOut
+struct VSToPS
 {
-    float4 PosH : SV_POSITION;
+    float4 Pos : SV_POSITION;
     float2 Tex : TEX;
 };
 
-Texture2D ldr_scene : register(t0);
+Texture2D LdrSceneTx : register(t0);
 
-float4 main(VertexOut pin) : SV_TARGET
+float4 FXAA(VSToPS input) : SV_TARGET
 {
-    float2 texCoord = pin.Tex;
-    
+    float2 texCoord = input.Tex;
     uint width, height, levels;
-    ldr_scene.GetDimensions(0, width, height, levels); 
+    LdrSceneTx.GetDimensions(0, width, height, levels); 
     float2 resolution = float2(width, height);
 
-    float FXAA_SPAN_MAX = 8.0;
-    float FXAA_REDUCE_MUL = 1.0 / 8.0;
-    float FXAA_REDUCE_MIN = 1.0 / 128.0;
+    const float FXAA_SPAN_MAX = 8.0;
+    const float FXAA_REDUCE_MUL = 1.0 / 8.0;
+    const float FXAA_REDUCE_MIN = 1.0 / 128.0;
     
-    float3 rgbNW = ldr_scene.Sample(linear_wrap_sampler, texCoord + float2(-1.0, -1.0) / resolution, 0).rgb;
-    float3 rgbNE = ldr_scene.Sample(linear_wrap_sampler, texCoord + float2(1.0, -1.0) / resolution, 0).rgb;
-    float3 rgbSW = ldr_scene.Sample(linear_wrap_sampler, texCoord + float2(-1.0, 1.0) / resolution, 0).rgb;
-    float3 rgbSE = ldr_scene.Sample(linear_wrap_sampler, texCoord + float2(1.0, 1.0) / resolution, 0).rgb;
-    float3 rgbM  = ldr_scene.Sample(linear_wrap_sampler, texCoord, 0).rgb;
+    float3 rgbNW = LdrSceneTx.Sample(LinearWrapSampler, texCoord + float2(-1.0, -1.0) / resolution, 0).rgb;
+    float3 rgbNE = LdrSceneTx.Sample(LinearWrapSampler, texCoord + float2(1.0, -1.0) / resolution, 0).rgb;
+    float3 rgbSW = LdrSceneTx.Sample(LinearWrapSampler, texCoord + float2(-1.0, 1.0) / resolution, 0).rgb;
+    float3 rgbSE = LdrSceneTx.Sample(LinearWrapSampler, texCoord + float2(1.0, 1.0) / resolution, 0).rgb;
+    float3 rgbM  = LdrSceneTx.Sample(LinearWrapSampler, texCoord, 0).rgb;
     
     float3 luma = float3(0.299, 0.587, 0.114);
     float lumaNW = dot(rgbNW, luma);
@@ -52,14 +51,14 @@ float4 main(VertexOut pin) : SV_TARGET
     
     float3 rgbA = (1.0 / 2.0) *
     (
-        ldr_scene.Sample(linear_wrap_sampler, texCoord + dir * (1.0 / 3.0 - 0.5), 0).rgb +
-        ldr_scene.Sample(linear_wrap_sampler, texCoord + dir * (2.0 / 3.0 - 0.5), 0).rgb
+        LdrSceneTx.Sample(LinearWrapSampler, texCoord + dir * (1.0 / 3.0 - 0.5), 0).rgb +
+        LdrSceneTx.Sample(LinearWrapSampler, texCoord + dir * (2.0 / 3.0 - 0.5), 0).rgb
     );
     
     float3 rgbB = rgbA * (1.0 / 2.0) + (1.0 / 4.0) *
     (
-       ldr_scene.Sample(linear_wrap_sampler, texCoord + dir * (0.0 / 3.0 - 0.5), 0).rgb +
-       ldr_scene.Sample(linear_wrap_sampler, texCoord + dir * (3.0 / 3.0 - 0.5), 0).rgb
+       LdrSceneTx.Sample(LinearWrapSampler, texCoord + dir * (0.0 / 3.0 - 0.5), 0).rgb +
+       LdrSceneTx.Sample(LinearWrapSampler, texCoord + dir * (3.0 / 3.0 - 0.5), 0).rgb
     );
     
     float lumaB = dot(rgbB, luma);

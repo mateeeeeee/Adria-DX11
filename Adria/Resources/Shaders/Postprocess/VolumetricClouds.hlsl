@@ -1,18 +1,11 @@
+#include <Common.hlsli>
+//#include "../Globals/GlobalsPS.hlsli"
 
-#include "../Globals/GlobalsPS.hlsli"
-
-struct VertexOut
+struct VSToPS
 {
-    float4 PosH : SV_POSITION;
-    float2 Tex : TEX;
+    float4 Pos : SV_POSITION;
+    float2 Tex  : TEX;
 };
-
-
-Texture2D weatherTex    : register(t0);
-Texture3D cloudTex      : register(t1);
-Texture3D worleyTex     : register(t2);
-Texture2D depthTex      : register(t3);
-
 
 
 // Cloud types height density gradients
@@ -22,9 +15,16 @@ Texture2D depthTex      : register(t3);
 #define CONE_STEP 0.1666666
 
 
-
 static const float PLANET_RADIUS = 600000.0f;
 static float3 PLANET_CENTER = float3(0.0f, -PLANET_RADIUS, 0.0f);
+
+Texture2D WeatherTx    : register(t0);
+Texture3D CloudTx      : register(t1);
+Texture3D WorleyTx     : register(t2);
+Texture2D DepthTx      : register(t3);
+
+
+
 
 static const float BAYER_FACTOR = 1.0f / 16.0f;
 static const float BAYER_FILTER[16] =
@@ -46,33 +46,11 @@ static float3 NOISE_KERNEL_CONE_SAMPLING[6] =
 	float3(-0.16852403, 0.14748697, 0.97460106)
 };
 
-
-
-//cbuffer CloudsCBuffer : register(b8)
-//{
-//    float4 LightDir;
-//    float4 LightCol;
-//    float4 AmbientColor;
-//    float4 WindDir;
-//    float WindSpeed;
-//    float Time;
-//    float Crispiness;
-//    float Curliness;
-//    float Coverage;
-//    float Absorption;
-//    float BottomHeight;
-//    float TopHeight;
-//    float DensityFactor;
-//    float CloudType;
-//};
-
-
 float3 ToClipSpaceCoord(float2 tex)
 {
     float2 ray;
     ray.x = 2.0 * tex.x - 1.0;
     ray.y = 1.0 - tex.y * 2.0;
-    
     return float3(ray, 1.0);
 }
 
@@ -86,17 +64,17 @@ float SugarPowder(float d)
     return (1.0f - exp(-2.0f * d));
 }
 
-float HenyeyGreenstein(float sundotrd, float g)
+float HenyeyGreenstein(float cosAngle, float g)
 {
     float gg = g * g;
-    return (1.0f - gg) / pow(1.0f + gg - 2.0f * g * sundotrd, 1.5f);
+    return (1.0f - gg) / pow(1.0f + gg - 2.0f * g * cosAngle, 1.5f);
 }
 
-float GetHeightFraction(float3 inPos)
+float GetHeightFraction(float3 position)
 {
-    float innerRadius = PLANET_RADIUS + clouds_bottom_height;
-    float outerRadius = innerRadius + clouds_top_height;
-    return (length(inPos - PLANET_CENTER) - innerRadius) / (outerRadius - innerRadius);
+    float innerRadius = PLANET_RADIUS + weatherData.cloudsBottomHeight; 
+    float outerRadius = innerRadius + weatherData.cloudsTopHeight; 
+    return (length(position - PLANET_CENTER) - innerRadius) / (outerRadius - innerRadius);
 }
 
 float Remap(float originalValue, float originalMin, float originalMax, float newMin, float newMax)
@@ -106,7 +84,7 @@ float Remap(float originalValue, float originalMin, float originalMax, float new
 
 float2 GetUVProjection(float3 p)
 {
-    float innerRadius = PLANET_RADIUS + clouds_bottom_height;
+    float innerRadius = PLANET_RADIUS + weatherData.cloudsBottomHeight;
     return p.xz / innerRadius + 0.5f;
 }
 
@@ -123,7 +101,7 @@ float GetDensityForCloud(float heightFraction, float cloudType)
 float SampleCloudDensity(float3 p, bool useHighFreq, float lod)
 {
     float heightFraction = GetHeightFraction(p);
-    float3 scroll = wind_dir * (heightFraction * 750.0f + time * wind_speed);
+    float3 scroll = weatherData.windDir * (heightFraction * 750.0f + weatherData.time * weatherData.windSpeed);
     
     float2 UV = GetUVProjection(p);
     float2 dynamicUV = GetUVProjection(p + scroll);
@@ -132,22 +110,22 @@ float SampleCloudDensity(float3 p, bool useHighFreq, float lod)
         return 0.0f;
 
     // low frequency sample
-    float4 lowFreqNoise = cloudTex.SampleLevel(linear_wrap_sampler, float3(UV * crispiness, heightFraction), lod);
+    float4 lowFreqNoise = CloudTx.SampleLevel(LinearWrapSampler, float3(UV * weatherData.crispiness, heightFraction), lod);
     float lowFreqFBM = dot(lowFreqNoise.gba, float3(0.625, 0.25, 0.125));
     float cloudSample = Remap(lowFreqNoise.r, -(1.0f - lowFreqFBM), 1.0f, 0.0f, 1.0f);
 	 
-    float density = GetDensityForCloud(heightFraction, cloud_type);
+    float density = GetDensityForCloud(heightFraction, weatherData.cloudType);
     cloudSample *= density / max(heightFraction, 0.001f);
 
-    float3 weatherNoise = weatherTex.Sample(linear_wrap_sampler, dynamicUV).rgb;
-    float cloudWeatherCoverage = weatherNoise.r * coverage;
+    float3 weatherNoise = WeatherTx.Sample(LinearWrapSampler, dynamicUV).rgb;
+    float cloudWeatherCoverage = weatherNoise.r * weatherData.coverage;
     float cloudSampleWithCoverage = Remap(cloudSample, cloudWeatherCoverage, 1.0f, 0.0f, 1.0f);
     cloudSampleWithCoverage *= cloudWeatherCoverage;
 
     // high frequency sample
     if (useHighFreq)
     {
-        float3 highFreqNoise = worleyTex.SampleLevel(linear_wrap_sampler, float3(dynamicUV * crispiness, heightFraction) * curliness, lod).rgb;
+        float3 highFreqNoise = WorleyTx.SampleLevel(LinearWrapSampler, float3(dynamicUV * weatherData.crispiness, heightFraction) * weatherData.curliness, lod).rgb;
         float highFreqFBM = dot(highFreqNoise.rgb, float3(0.625, 0.25, 0.125));
         float highFreqNoiseModifier = lerp(highFreqFBM, 1.0f - highFreqFBM, clamp(heightFraction * 10.0f, 0.0f, 1.0f));
         cloudSampleWithCoverage = cloudSampleWithCoverage - highFreqNoiseModifier * (1.0 - cloudSampleWithCoverage);
@@ -158,9 +136,9 @@ float SampleCloudDensity(float3 p, bool useHighFreq, float lod)
 }
 
 
-float LightEnergy(float d, float cos_angle)
+float LightEnergy(float d, float cosAngle)
 {
-    return 5.0 * BeerLaw(d) * SugarPowder(d) * HenyeyGreenstein(cos_angle, 0.2f);
+    return 5.0 * BeerLaw(d) * SugarPowder(d) * HenyeyGreenstein(cosAngle, 0.2f);
 }
 
 
@@ -178,7 +156,7 @@ float RaymarchToLight(float3 origin, float stepSize, float3 lightDir, float orig
     const float densityThreshold = 0.3f;
     
     float invDepth = 1.0 / deltaStep;
-    float sigmaDeltaStep = -deltaStep * absorption;
+    float sigmaDeltaStep = -deltaStep * weatherData.absorption;
     float3 pos;
 
     float finalTransmittance = 1.0;
@@ -223,7 +201,7 @@ float4 RaymarchToCloud(float2 texCoord, float3 startPos, float3 endPos, float3 s
     
     uint height, width, levels;
     
-    depthTex.GetDimensions(0, width, height, levels);
+    DepthTx.GetDimensions(0, width, height, levels);
     
     float2 fragCoord = texCoord * float2(width, height);
     int a = int(fragCoord.x) % 4;
@@ -232,10 +210,10 @@ float4 RaymarchToCloud(float2 texCoord, float3 startPos, float3 endPos, float3 s
 
     float3 pos = startPos;
     float density = 0.0f;
-    float LdotV = dot(normalize(light_dir.rgb), normalize(dir));
+    float LdotV = dot(normalize(weatherData.lightDir.rgb), normalize(dir));
 
     float finalTransmittance = 1.0f;
-    float sigmaDeltaStep = -deltaStep * density_factor;
+    float sigmaDeltaStep = -deltaStep * weatherData.densityFactor;
     bool entered = false;
 
     [unroll(steps)]
@@ -251,45 +229,36 @@ float4 RaymarchToCloud(float2 texCoord, float3 startPos, float3 endPos, float3 s
             }
 
             density += densitySample;
-            float lightEnergy = RaymarchToLight(pos, deltaStep * 0.1f, light_dir.rgb, densitySample, LdotV); // SAMPLE LIGHT
+            float lightEnergy = RaymarchToLight(pos, deltaStep * 0.1f, weatherData.lightDir.rgb, densitySample, LdotV);
 
             float height = GetHeightFraction(pos);
-            float4 src = float4(light_color.rgb * lightEnergy + ambient_color.rgb, densitySample); // ACCUMULATE 
+            float4 src = float4(weatherData.lightColor.rgb * lightEnergy + weatherData.ambientColor.rgb, densitySample);
             src.rgb *= src.a;
             finalColor = (1.0 - finalColor.a) * src + finalColor;
 
-            if (finalColor.a >= 0.95) // EARLY EXIT ON FULL OPACITY
+            if (finalColor.a >= 0.95)
                 break;
         }
 
-        if (finalTransmittance <= minTransmittance)
-            break;
-        
+        if (finalTransmittance <= minTransmittance) break;
         pos += dir;
     }
-
-    
     return finalColor;
 }
 
 
 bool IntersectSphere(float3 o, float3 d, out float3 minT, out float3 maxT)
 {
-    
-    float innerRadius = PLANET_RADIUS + clouds_bottom_height;
-    float outerRadius = innerRadius + clouds_top_height;
-	// Intersect inner sphere
+    float innerRadius = PLANET_RADIUS + weatherData.cloudsBottomHeight;
+    float outerRadius = innerRadius + weatherData.cloudsTopHeight;
+	
     float3 sphereToOrigin = (o - PLANET_CENTER);
     float b = dot(d, sphereToOrigin);
     float c = dot(sphereToOrigin, sphereToOrigin);
     float sqrtOpInner = b * b - (c - innerRadius * innerRadius);
 
-	// No solution (we are outside the sphere, looking away from it)
-    float maxSInner;
-    if (sqrtOpInner < 0.0)
-    {
-        return false;
-    }
+	float maxSInner;
+    if (sqrtOpInner < 0.0)  return false;
 	
     float deInner = sqrt(sqrtOpInner);
     float solAInner = -b - deInner;
@@ -297,94 +266,69 @@ bool IntersectSphere(float3 o, float3 d, out float3 minT, out float3 maxT)
 
     maxSInner = max(solAInner, solBInner);
 
-    if (maxSInner < 0.0)
-        return false;
+    if (maxSInner < 0.0) return false;
 
     maxSInner = maxSInner < 0.0 ? 0.0 : maxSInner;
-	
-	// Intersect outer sphere
     float sqrtOpOuter = b * b - (c - outerRadius * outerRadius);
 
-	// No solution - same as inner sphere
-    if (sqrtOpOuter < 0.0)
-    {
-        return false;
-    }
-	
+    if (sqrtOpOuter < 0.0) return false;
+
     float deOuter = sqrt(sqrtOpOuter);
     float solAOuter = -b - deOuter;
     float solBOuter = -b + deOuter;
 
     float maxSOuter = max(solAOuter, solBOuter);
 
-    if (maxSOuter < 0.0)
-        return false;
+    if (maxSOuter < 0.0) return false;
 
     maxSOuter = maxSOuter < 0.0 ? 0.0 : maxSOuter;
 
-	// Compute entering and exiting ray points
     float minSol = min(maxSInner, maxSOuter);
-    
-    if (minSol > PLANET_RADIUS * 0.3f)
-    {
-        return false;
-    }
+    if (minSol > PLANET_RADIUS * 0.3f)  return false;
 
     float maxSol = max(maxSInner, maxSOuter);
 
     minT = o + d * minSol;
     maxT = o + d * maxSol;
-
     return true;
 }
 
 
-struct Output
+struct PSOutput
 {
     float4 color : SV_TARGET;
     float  depth : SV_Depth;
 };
 
-////////////////////////////////////////////////////////////////////////////////////////////////
 
-Output main(VertexOut pin) 
+PSOutput VolumetricClouds(VSToPS pin) 
 {
-    float depth = depthTex.SampleLevel(point_wrap_sampler, pin.Tex, 0.0f).r;
+    float depth = DepthTx.SampleLevel(PointWrapSampler, pin.Tex, 0.0f).r;
     
-    Output output = (Output)0;
+    PSOutput output = (PSOutput)0;
     output.color = 0.0f;
     output.depth = depth;
 
-    if (depth < 0.99999f)
-        return output;
-    
-	//compute ray direction in world space
+    if (depth < 0.99999f) return output;
+
     float4 rayClipSpace = float4(ToClipSpaceCoord(pin.Tex), 1.0);
-    float4 rayView = mul(rayClipSpace, inverse_projection);
+    float4 rayView = mul(rayClipSpace, frameData.inverseProjection);
     rayView = float4(rayView.xy, 1.0, 0.0);
-    
-    float3 worldDir = mul(rayView, inverse_view).xyz;
+    float3 worldDir = mul(rayView, frameData.inverseView).xyz;
     worldDir = normalize(worldDir);
     
     float3 startPos, endPos;
-
-    bool intersect = IntersectSphere(camera_position.xyz, worldDir, startPos, endPos);
-    
+    bool intersect = IntersectSphere(frameData.cameraPosition.xyz, worldDir, startPos, endPos);
     if (intersect)
     {
         float4 cloudsColor = 0.0f;
-
-        float4 cloudDistance;
+        float4 cloudDistance = 0.0f;
         cloudsColor = RaymarchToCloud(pin.Tex, startPos, endPos, float3(0,0,0), cloudDistance);
 
         output.color = cloudsColor;
         output.depth = 0.9999f;
     }
-    
-    
     return output;
-
-   
 }
 
 

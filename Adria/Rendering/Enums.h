@@ -69,7 +69,7 @@ namespace adria
 		PS_ToneMap_Hable,
 		PS_FXAA,
 		PS_TAA,
-		PS_Copy,
+		PS_CopyTextures,
 		PS_AddTextures,
 		PS_SSAO,
 		PS_HBAO,

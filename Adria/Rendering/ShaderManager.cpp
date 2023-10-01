@@ -81,7 +81,7 @@ namespace adria
 			case PS_ToneMap_Hable:
 			case PS_FXAA:
 			case PS_TAA:
-			case PS_Copy:
+			case PS_CopyTextures:
 			case PS_AddTextures:
 			case PS_SSAO:
 			case PS_HBAO:
@@ -202,14 +202,14 @@ namespace adria
 				return "Postprocess/FXAA.hlsl";
 			case PS_TAA:
 				return "Postprocess/TAA_PS.hlsl";
-			case PS_Copy:
-				return "Postprocess/CopyPS.hlsl";
+			case PS_CopyTextures:
+				return "Postprocess/CopyTexture.hlsl";
 			case PS_AddTextures:
 				return "Postprocess/AddTextures.hlsl";
 			case PS_SSAO:
 				return "Postprocess/SSAO_PS.hlsl";
 			case PS_HBAO:
-				return "Postprocess/HBAO_PS.hlsl";
+				return "Postprocess/HBAO.hlsl";
 			case PS_SSR:
 				return "Postprocess/SSR_PS.hlsl";
 			case VS_LensFlare:
@@ -219,9 +219,9 @@ namespace adria
 			case PS_LensFlare:
 				return "Postprocess/LensFlarePS.hlsl";
 			case PS_GodRays:
-				return "Postprocess/GodRaysPS.hlsl";
+				return "Postprocess/GodRays.hlsl";
 			case PS_DepthOfField:
-				return "Postprocess/DOF_PS.hlsl";
+				return "Postprocess/DepthOfField.hlsl";
 			case VS_Bokeh:
 			case GS_Bokeh:
 			case PS_Bokeh:
@@ -229,13 +229,13 @@ namespace adria
 			case CS_BokehGeneration:
 				return "Postprocess/BokehGeneration.hlsl";
 			case PS_VolumetricClouds:
-				return "Postprocess/CloudsPS.hlsl";
+				return "Postprocess/VolumetricClouds.hlsl";
 			case PS_VelocityBuffer:
 				return "Postprocess/VelocityBufferPS.hlsl";
 			case PS_MotionBlur:
 				return "Postprocess/MotionBlurPS.hlsl";
 			case PS_Fog:
-				return "Postprocess/FogPS.hlsl";
+				return "Postprocess/Fog.hlsl";
 			case VS_Shadow:
 			case VS_ShadowTransparent:
 			case PS_Shadow:
@@ -345,6 +345,20 @@ namespace adria
 				return "BokehPS";
 			case CS_BokehGeneration:
 				return "BokehGeneration";
+			case PS_VolumetricClouds:
+				return "VolumetricClouds";
+			case PS_CopyTextures:
+				return "CopyTexture";
+			case PS_DepthOfField:
+				return "DepthOfField";
+			case PS_Fog:
+				return "Fog";
+			case PS_FXAA:
+				return "FXAA";
+			case PS_GodRays:
+				return "GodRays";
+			case PS_HBAO:
+				return "HBAO";
 			default:
 				return "main";
 			}
@@ -478,7 +492,7 @@ namespace adria
 
 			gfx_shader_program_map[ShaderProgram::FXAA].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_FXAA].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::TAA].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_TAA].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
-			gfx_shader_program_map[ShaderProgram::Copy].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_Copy].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::Copy].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_CopyTextures].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::Add].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_AddTextures].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::SSAO].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_SSAO].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::HBAO].SetVertexShader(vs_shader_map[VS_ScreenQuad].get()).SetPixelShader(ps_shader_map[PS_HBAO].get()).SetInputLayout(input_layout_map[VS_ScreenQuad].get());

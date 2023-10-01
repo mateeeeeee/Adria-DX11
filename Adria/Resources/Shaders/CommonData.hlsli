@@ -1,3 +1,6 @@
+#ifndef _COMMON_DATA_
+#define _COMMON_DATA_
+
 static const int SSAO_KERNEL_SIZE = 16;
 
 struct FrameData
@@ -72,6 +75,29 @@ struct WeatherData
     float3 Z;
 };
 
+struct LightData
+{
+    float4 screenSpacePosition;
+    float4 position;
+    float4 direction;
+    float4 color;
+    float range;
+    int type;
+    float outerCosine;
+    float innerCosine;
+    int castsShadows;
+    int useCascades;
+    float volumetricStrength;
+    int screenSpaceShadows;
+    float sscsThickness;
+    float sscsMaxRayDistance;
+    float sscsMaxDepthDistance;
+    float godraysDensity;
+    float godraysWeight;
+    float godraysDecay;
+    float godraysExposure;
+};
+
 struct MaterialData
 {
     float3 ambient;
@@ -138,3 +164,5 @@ struct ComputeData
     int visualizeTiled;      
     int lightsCountWhite;
 };
+
+#endif
