@@ -1,18 +1,13 @@
+#include "ParticleUtil.hlsli"
+#include <Common.hlsli>
 
-#include "ParticleGlobals.hlsli"
-
-Texture2D								RandomBuffer			: register(t0);
-
+Texture2D								RandomTexture		: register(t0);
 RWStructuredBuffer<GPUParticlePartA>	ParticleBufferA		: register(u0);
 RWStructuredBuffer<GPUParticlePartB>	ParticleBufferB		: register(u1);
-
 ConsumeStructuredBuffer<uint>			DeadListToAllocFrom	: register(u2);
 
-
-
-
 [numthreads(1024, 1, 1)]
-void main(uint3 id : SV_DispatchThreadID)
+void ParticleEmitCS(uint3 id : SV_DispatchThreadID)
 {
 	if (id.x < NumDeadParticles && id.x < MaxParticlesThisFrame)
 	{
@@ -20,10 +15,10 @@ void main(uint3 id : SV_DispatchThreadID)
 		GPUParticlePartB pb = (GPUParticlePartB)0;
 
 		float2 uv = float2(id.x / 1024.0, ElapsedTime);
-		float3 randomValues0 = RandomBuffer.SampleLevel(linear_wrap_sampler, uv, 0).xyz;
+		float3 randomValues0 = RandomTexture.SampleLevel(LinearWrapSampler, uv, 0).xyz;
 
         float2 uv2 = float2((id.x + 1) / 1024.0, ElapsedTime);
-        float3 randomValues1 = RandomBuffer.SampleLevel(linear_wrap_sampler, uv2, 0).xyz;
+        float3 randomValues1 = RandomTexture.SampleLevel(LinearWrapSampler, uv2, 0).xyz;
 
         pa.TintAndAlpha = float4(1, 1, 1, 1);
         pa.Rotation = 0;
@@ -39,7 +34,6 @@ void main(uint3 id : SV_DispatchThreadID)
 		pb.EndSize = EndSize;
 
 		uint index = DeadListToAllocFrom.Consume();
-
 		ParticleBufferA[index] = pa;
 		ParticleBufferB[index] = pb;
 	}

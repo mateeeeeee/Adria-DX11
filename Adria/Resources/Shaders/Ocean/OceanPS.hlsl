@@ -7,14 +7,14 @@ Texture2D FoamTexture   : register(t2);
 
 
 
-struct PS_INPUT
+struct VSToPS
 {
     float4 Position     : SV_POSITION;
     float4 WorldPos     : POS;
     float2 TexCoord     : TEX;
 };
 
-float4 main(PS_INPUT input) : SV_TARGET
+float4 main(VSToPS input) : SV_TARGET
 {
    
     float4 NormalFoam = NormalMap.Sample(linear_wrap_sampler, input.TexCoord);

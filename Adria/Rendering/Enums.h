@@ -115,8 +115,8 @@ namespace adria
 		VS_Foliage,
 		PS_Foliage,
 		CS_Picker,
-		VS_Particles,
-		PS_Particles,
+		VS_Particle,
+		PS_Particle,
 		CS_ParticleInitDeadList,
 		CS_ParticleReset,
 		CS_ParticleEmit,
@@ -124,7 +124,7 @@ namespace adria
 		CS_ParticleBitonicSortStep,
 		CS_ParticleSort512,
 		CS_ParticleSortInner512,
-		CS_ParticleSortInitArgs,
+		CS_ParticleInitSortArgs,
 		ShaderId_Count
 	};
 

@@ -56,7 +56,7 @@ namespace adria
 			case VS_Ocean:
 			case VS_OceanLOD:
 			case VS_Foliage:
-			case VS_Particles:
+			case VS_Particle:
 				return GfxShaderStage::VS;
 			case PS_Skybox:
 			case PS_HosekWilkieSky:
@@ -101,7 +101,7 @@ namespace adria
 			case PS_Ocean:
 			case PS_OceanLOD:
 			case PS_Foliage:
-			case PS_Particles:
+			case PS_Particle:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
@@ -127,7 +127,7 @@ namespace adria
 			case CS_ParticleBitonicSortStep:
 			case CS_ParticleSort512:
 			case CS_ParticleSortInner512:
-			case CS_ParticleSortInitArgs:
+			case CS_ParticleInitSortArgs:
 			case CS_Picker:
 				return GfxShaderStage::CS;
 			case HS_OceanLOD:
@@ -277,26 +277,25 @@ namespace adria
 				return "GBuffer/Foliage.hlsl";
 			case CS_Picker:
 				return "Misc/Picker.hlsl";
-			case VS_Particles:
-				return "Particles/ParticleVS.hlsl";
-			case PS_Particles:
-				return "Particles/ParticlePS.hlsl";
+			case VS_Particle:
+			case PS_Particle:
+				return "Particles/Particle.hlsl";
 			case CS_ParticleInitDeadList:
-				return "Particles/InitDeadListCS.hlsl";
+				return "Particles/InitDeadList.hlsl";
 			case CS_ParticleReset:
-				return "Particles/ParticleResetCS.hlsl";
+				return "Particles/ParticleReset.hlsl";
 			case CS_ParticleEmit:
-				return "Particles/ParticleEmitCS.hlsl";
+				return "Particles/ParticleEmit.hlsl";
 			case CS_ParticleSimulate:
-				return "Particles/ParticleSimulateCS.hlsl";
+				return "Particles/ParticleSimulate.hlsl";
 			case CS_ParticleBitonicSortStep:
-				return "Particles/BitonicSortStepCS.hlsl";
+				return "Particles/BitonicSortStep.hlsl";
 			case CS_ParticleSort512:
-				return "Particles/Sort512CS.hlsl";
+				return "Particles/Sort512.hlsl";
 			case CS_ParticleSortInner512:
-				return "Particles/SortInner512CS.hlsl";
-			case CS_ParticleSortInitArgs:
-				return "Particles/InitSortDispatchArgsCS.hlsl";
+				return "Particles/SortInner512.hlsl";
+			case CS_ParticleInitSortArgs:
+				return "Particles/InitSortDispatchArgs.hlsl";
 			case ShaderId_Count:
 			default:
 				return "";
@@ -429,6 +428,26 @@ namespace adria
 				return "ClusterCullingCS";
 			case PS_ClusterLighting:
 				return "ClusterLightingPS";
+			case CS_ParticleInitDeadList:
+				return "InitDeadListCS";
+			case CS_ParticleReset:
+				return "ParticleResetCS";
+			case CS_ParticleEmit:
+				return "ParticleEmitCS";
+			case CS_ParticleSimulate:
+				return "ParticleSimulateCS";
+			case CS_ParticleBitonicSortStep:
+				return "BitonicSortStepCS";
+			case CS_ParticleSort512:
+				return "Sort512CS";
+			case CS_ParticleSortInner512:
+				return "SortInner512CS";
+			case CS_ParticleInitSortArgs:
+				return "InitSortDispatchArgsCS";
+			case VS_Particle:
+				return "ParticleVS";
+			case PS_Particle:
+				return "ParticlePS";
 			default:
 				return "main";
 			}
@@ -615,8 +634,8 @@ namespace adria
 			compute_shader_program_map[ShaderProgram::ParticleBitonicSortStep].SetComputeShader(cs_shader_map[CS_ParticleBitonicSortStep].get()); 
 			compute_shader_program_map[ShaderProgram::ParticleSort512].SetComputeShader(cs_shader_map[CS_ParticleSort512].get()); 
 			compute_shader_program_map[ShaderProgram::ParticleSortInner512].SetComputeShader(cs_shader_map[CS_ParticleSortInner512].get()); 
-			compute_shader_program_map[ShaderProgram::ParticleSortInitArgs].SetComputeShader(cs_shader_map[CS_ParticleSortInitArgs].get()); 
-			gfx_shader_program_map[ShaderProgram::Particles].SetVertexShader(vs_shader_map[VS_Particles].get()).SetPixelShader(ps_shader_map[PS_Particles].get()).SetInputLayout(input_layout_map[VS_Particles].get());
+			compute_shader_program_map[ShaderProgram::ParticleSortInitArgs].SetComputeShader(cs_shader_map[CS_ParticleInitSortArgs].get()); 
+			gfx_shader_program_map[ShaderProgram::Particles].SetVertexShader(vs_shader_map[VS_Particle].get()).SetPixelShader(ps_shader_map[PS_Particle].get()).SetInputLayout(input_layout_map[VS_Particle].get());
 			gfx_shader_program_map[ShaderProgram::GBuffer_Foliage].SetVertexShader(vs_shader_map[VS_Foliage].get()).SetPixelShader(ps_shader_map[PS_Foliage].get()).SetInputLayout(input_layout_map[VS_Foliage].get());
 		}
 		void CompileAllShaders()

@@ -1,20 +1,19 @@
 
-#include "../Globals/GlobalsCS.hlsli"
 
 struct GPUParticlePartA
 {
-    float4 TintAndAlpha;    
-    float Rotation;         
-    uint IsSleeping;        
+    float4  TintAndAlpha;    
+    float   Rotation;         
+    uint    IsSleeping;        
 };
 
 struct GPUParticlePartB
 {
     float3 Position;   
-    float Mass;        
+    float  Mass;        
 
     float3 Velocity;   
-    float Lifespan;    
+    float  Lifespan;    
 
     float DistanceToEye;
     float Age;         
@@ -39,7 +38,7 @@ cbuffer EmitterCBuffer : register(b13)
     float4 EmitterVelocity;
     float4 PositionVariance;
 
-    int MaxParticlesThisFrame;
+    int   MaxParticlesThisFrame;
     float ParticleLifeSpan;
     float StartSize;
     float EndSize;

@@ -1,13 +1,12 @@
 RWBuffer<uint> DispatchArgs : register(u0);
 
-cbuffer NumElementsCB : register(b11)
+cbuffer NumElementsCBuffer : register(b11)
 {
     int4 NumElements;
 };
 
-
 [numthreads(1, 1, 1)]
-void main(uint3 id : SV_DispatchThreadID)
+void InitSortDispatchArgsCS(uint3 dispatchThreadId : SV_DispatchThreadID)
 {
     DispatchArgs[0] = ((NumElements - 1) >> 9) + 1;
     DispatchArgs[1] = 1;

@@ -1,5 +1,5 @@
-#include "ParticleGlobals.hlsli"
-
+#include <Common.hlsli>
+#include "ParticleUtil.hlsli"
 
 
 RWStructuredBuffer<GPUParticlePartA> ParticleBufferA : register(u0);
@@ -15,7 +15,7 @@ Texture2D DepthBuffer : register(t0);
 float3 CalcViewSpacePositionFromDepth(float2 normalizedScreenPosition, int2 texelOffset);
 
 [numthreads(256, 1, 1)]
-void main( uint3 id : SV_DispatchThreadID )
+void ParticleSimulateCS( uint3 id : SV_DispatchThreadID )
 {
     if (id.x == 0)
     {
@@ -29,46 +29,38 @@ void main( uint3 id : SV_DispatchThreadID )
     GroupMemoryBarrierWithGroupSync();
 
     const float3 Gravity = float3(0.0, -9.81, 0.0);
-
 	GPUParticlePartA pa = ParticleBufferA[id.x];
     GPUParticlePartB pb = ParticleBufferB[id.x];
 
     if (pb.Age > 0.0f)
     {
-        pb.Age -= delta_time;
-
-        pa.Rotation += 0.24 * delta_time;
-
-        float3 NewPosition = pb.Position;
+        pb.Age -= computeData.deltaTime;
+        pa.Rotation += 0.24 * computeData.deltaTime;
+        float3 newPosition = pb.Position;
 
         if (pa.IsSleeping == 0)
         {
-            pb.Velocity += pb.Mass * Gravity * delta_time;
-
-			float3 windDir = float3(wind_direction_x, wind_direction_y, 0);
+            pb.Velocity += pb.Mass * Gravity * computeData.deltaTime;
+			float3 windDir = float3(computeData.windDirectionX, computeData.windDirectionX, 0);
             float windLength = length(windDir);
             const float windStrength = 0.1;
-            if (windLength > 0.0f) pb.Velocity += windDir / windLength * windStrength * delta_time;
-			
-			NewPosition += pb.Velocity * delta_time;
+            if (windLength > 0.0f) pb.Velocity += windDir / windLength * windStrength * computeData.deltaTime;
+			newPosition += pb.Velocity * computeData.deltaTime;
         }
 
-        float fScaledLife = 1.0 - saturate(pb.Age / pb.Lifespan);
-		
-		float radius = lerp(pb.StartSize, pb.EndSize, fScaledLife);
+        float scaledLife = 1.0 - saturate(pb.Age / pb.Lifespan);
+		float radius = lerp(pb.StartSize, pb.EndSize, scaledLife);
 		
 		bool killParticle = false;
-
         if (Collisions)
         {
-			float3 viewSpaceParticlePosition = mul(float4(NewPosition, 1), view).xyz;
-			float4 screenSpaceParticlePosition = mul(float4(NewPosition, 1), viewprojection);
+			float3 viewSpaceParticlePosition = mul(float4(newPosition, 1), frameData.view).xyz;
+			float4 screenSpaceParticlePosition = mul(float4(newPosition, 1), frameData.viewprojection);
             screenSpaceParticlePosition.xyz /= screenSpaceParticlePosition.w;
 
 			if (pa.IsSleeping == 0 && screenSpaceParticlePosition.x > -1 && screenSpaceParticlePosition.x < 1 && screenSpaceParticlePosition.y > -1 && screenSpaceParticlePosition.y < 1)
             {
 				float3 viewSpacePosOfDepthBuffer = CalcViewSpacePositionFromDepth(screenSpaceParticlePosition.xy, int2(0, 0));
-
                 if ((viewSpaceParticlePosition.z > viewSpacePosOfDepthBuffer.z) && (viewSpaceParticlePosition.z < viewSpacePosOfDepthBuffer.z + CollisionThickness)) 
                 {
 					float3 surfaceNormal;
@@ -78,14 +70,10 @@ void main( uint3 id : SV_DispatchThreadID )
                     float3 p2 = CalcViewSpacePositionFromDepth(screenSpaceParticlePosition.xy, int2(0, 1));
 
 					float3 viewSpaceNormal = normalize(cross(p2 - p0, p1 - p0));
-
-					surfaceNormal = normalize(mul(-viewSpaceNormal, inverse_view).xyz);
-
+					surfaceNormal = normalize(mul(-viewSpaceNormal, frameData.inverseView).xyz);
 					float3 newVelocity = reflect(pb.Velocity, surfaceNormal);
-
 					pb.Velocity = 0.3 * newVelocity;
-
-					NewPosition = pb.Position + (pb.Velocity * delta_time);
+					newPosition = pb.Position + (pb.Velocity * computeData.deltaTime);
                 }
             }
         }
@@ -95,23 +83,22 @@ void main( uint3 id : SV_DispatchThreadID )
             pa.IsSleeping = 1;
         }
 
-		if (NewPosition.y < -10)
+		if (newPosition.y < -10)
         {
             killParticle = true;
         }
 
-        pb.Position = NewPosition;
+        pb.Position = newPosition;
 
-		float3 vec = NewPosition - camera_position.xyz;
+		float3 vec = newPosition - frameData.cameraPosition.xyz;
         pb.DistanceToEye = length(vec);
 
-		float alpha = lerp(1, 0, saturate(fScaledLife - 0.8) / 0.2);
+		float alpha = lerp(1, 0, saturate(scaledLife - 0.8) / 0.2);
         pa.TintAndAlpha.a = pb.Age <= 0 ? 0 : alpha;
         pa.TintAndAlpha.rgb = float3(1, 1, 1);
 
         float4 viewSpacePositionAndRadius;
-
-        viewSpacePositionAndRadius.xyz = mul(float4(NewPosition, 1), view).xyz;
+        viewSpacePositionAndRadius.xyz = mul(float4(newPosition, 1), frameData.view).xyz;
         viewSpacePositionAndRadius.w = radius;
 
         ViewSpacePositions[id.x] = viewSpacePositionAndRadius;
@@ -136,22 +123,20 @@ void main( uint3 id : SV_DispatchThreadID )
 
 float3 CalcViewSpacePositionFromDepth(float2 normalizedScreenPosition, int2 texelOffset)
 {
-	normalizedScreenPosition.x += (float) texelOffset.x / (float) screen_resolution.x;
-    normalizedScreenPosition.y += (float) texelOffset.y / (float) screen_resolution.y;
+	normalizedScreenPosition.x += (float) texelOffset.x / (float) frameData.screenResolution.x;
+    normalizedScreenPosition.y += (float) texelOffset.y / (float) frameData.screenResolution.y;
 
     float2 uv;
-	uv.x = (0.5 + normalizedScreenPosition.x * 0.5) * (float) screen_resolution.x;
-    uv.y = (1 - (0.5 + normalizedScreenPosition.y * 0.5)) * (float) screen_resolution.y;
+	uv.x = (0.5 + normalizedScreenPosition.x * 0.5) * (float) frameData.screenResolution.x;
+    uv.y = (1 - (0.5 + normalizedScreenPosition.y * 0.5)) * (float) frameData.screenResolution.y;
 
 	float depth = DepthBuffer.Load(uint3(uv.x, uv.y, 0)).x;
-	
 	float4 viewSpacePosOfDepthBuffer;
     viewSpacePosOfDepthBuffer.xy = normalizedScreenPosition.xy;
     viewSpacePosOfDepthBuffer.z = depth;
     viewSpacePosOfDepthBuffer.w = 1;
 
-	viewSpacePosOfDepthBuffer = mul(viewSpacePosOfDepthBuffer, inverse_projection);
+	viewSpacePosOfDepthBuffer = mul(viewSpacePosOfDepthBuffer, frameData.inverseProjection);
     viewSpacePosOfDepthBuffer.xyz /= viewSpacePosOfDepthBuffer.w;
-
     return viewSpacePosOfDepthBuffer.xyz;
 }
