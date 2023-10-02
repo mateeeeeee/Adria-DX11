@@ -111,7 +111,6 @@ namespace adria
 		VS_OceanLOD,
 		HS_OceanLOD,
 		DS_OceanLOD,
-		PS_OceanLOD,
 		VS_Foliage,
 		PS_Foliage,
 		CS_Picker,

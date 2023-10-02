@@ -9,7 +9,7 @@ static const float M_PI_INV = 0.318309886f;
 static const float FLT_MAX = 3.402823466E+38F;
 static const float FLT_EPSILON = 1.19209290E-07F;
 
-float DegreesToRadians(float degrees)
+inline float DegreesToRadians(float degrees)
 {
     return degrees * (M_PI / 180.0f);
 }

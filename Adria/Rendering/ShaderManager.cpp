@@ -99,7 +99,6 @@ namespace adria
 			case PS_VolumetricLight_Point:
 			case PS_VolumetricLight_DirectionalWithCascades:
 			case PS_Ocean:
-			case PS_OceanLOD:
 			case PS_Foliage:
 			case PS_Particle:
 				return GfxShaderStage::PS;
@@ -232,17 +231,17 @@ namespace adria
 			case CS_BloomCombine:
 				return "Postprocess/BloomCombine.hlsl";
 			case CS_OceanInitialSpectrum:
-				return "Ocean/InitialSpectrumCS.hlsl";
+				return "Ocean/InitialSpectrum.hlsl";
 			case CS_OceanPhase:
-				return "Ocean/PhaseCS.hlsl";
+				return "Ocean/Phase.hlsl";
 			case CS_OceanSpectrum:
-				return "Ocean/SpectrumCS.hlsl";
+				return "Ocean/Spectrum.hlsl";
 			case CS_OceanFFT_Horizontal:
-				return "Ocean/FFT_horizontalCS.hlsl";
+				return "Ocean/FFT_Horizontal.hlsl";
 			case CS_OceanFFT_Vertical:
-				return "Ocean/FFT_verticalCS.hlsl";
+				return "Ocean/FFT_Vertical.hlsl";
 			case CS_OceanNormalMap:
-				return "Ocean/NormalMapCS.hlsl";
+				return "Ocean/NormalMap.hlsl";
 			case CS_TiledLighting:
 				return "Lighting/TiledLighting.hlsl";
 			case CS_ClusterBuilding:
@@ -250,17 +249,12 @@ namespace adria
 			case CS_ClusterCulling:
 				return "Lighting/ClusterCulling.hlsl";
 			case VS_Ocean:
-				return "Ocean/OceanVS.hlsl";
 			case PS_Ocean:
-				return "Ocean/OceanPS.hlsl";
+				return "Ocean/Ocean.hlsl";
 			case VS_OceanLOD:
-				return "Ocean/OceanLodVS.hlsl";
 			case HS_OceanLOD:
-				return "Ocean/OceanLodHS.hlsl";
 			case DS_OceanLOD:
-				return "Ocean/OceanLodDS.hlsl";
-			case PS_OceanLOD:
-				return "Ocean/OceanLodPS.hlsl";
+				return "Ocean/OceanLod.hlsl";
 			case VS_GBufferPBR:
 			case PS_GBufferPBR:
 			case PS_GBufferPBR_Mask:
@@ -448,6 +442,28 @@ namespace adria
 				return "ParticleVS";
 			case PS_Particle:
 				return "ParticlePS";
+			case VS_Ocean:
+				return "OceanVS";
+			case PS_Ocean:
+				return "OceanPS";
+			case VS_OceanLOD:
+				return "OceanLodVS";
+			case HS_OceanLOD:
+				return "OceanLodHS";
+			case DS_OceanLOD:
+				return "OceanLodDS";
+			case CS_OceanInitialSpectrum:
+				return "InitialSpectrumCS";
+			case CS_OceanPhase:
+				return "PhaseCS";
+			case CS_OceanSpectrum:
+				return "SpectrumCS";
+			case CS_OceanFFT_Horizontal:
+				return "FFT_HorizontalCS";
+			case CS_OceanFFT_Vertical:
+				return "FFT_VerticalCS";
+			case CS_OceanNormalMap:
+				return "NormalMapCS";
 			default:
 				return "main";
 			}
@@ -623,7 +639,7 @@ namespace adria
 
 			gfx_shader_program_map[ShaderProgram::Ocean].SetVertexShader(vs_shader_map[VS_Ocean].get()).SetPixelShader(ps_shader_map[PS_Ocean].get()).SetInputLayout(input_layout_map[VS_Ocean].get());
 			gfx_shader_program_map[ShaderProgram::OceanLOD].SetVertexShader(vs_shader_map[VS_OceanLOD].get()).SetHullShader(hs_shader_map[HS_OceanLOD].get()).SetDomainShader(ds_shader_map[DS_OceanLOD].get()).
-				SetPixelShader(ps_shader_map[PS_OceanLOD].get()).SetInputLayout(input_layout_map[VS_OceanLOD].get());
+				SetPixelShader(ps_shader_map[PS_Ocean].get()).SetInputLayout(input_layout_map[VS_OceanLOD].get());
 				
 			compute_shader_program_map[ShaderProgram::Picker].SetComputeShader(cs_shader_map[CS_Picker].get()); 
 
