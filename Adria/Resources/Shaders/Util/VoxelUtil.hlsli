@@ -1,3 +1,7 @@
+#ifndef _VOXEL_UTIL_
+#define _VOXEL_UTIL_
+
+
 //https://github.com/turanszkij/WickedEngine
 
 struct VoxelRadiance
@@ -97,3 +101,5 @@ uint3 Unflatten3D(uint idx, uint3 dim)
     const uint x = idx % dim.x;
     return uint3(x, y, z);
 }
+
+#endif

@@ -1,8 +1,6 @@
 #include "../Util/LightUtil.hlsli"
 #include "../Util/VoxelUtil.hlsli"
 
-static const int SSAO_KERNEL_SIZE = 16;
-
 static const int HBAO_NUM_STEPS = 4;
 static const int HBAO_NUM_DIRECTIONS = 8; 
 

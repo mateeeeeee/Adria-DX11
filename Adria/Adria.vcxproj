@@ -319,7 +319,6 @@
     </None>
     <None Include="Resources\Shaders\Util\DitherUtil.hlsli" />
     <None Include="Resources\Shaders\Util\LightUtil.hlsli" />
-    <None Include="Resources\Shaders\Util\LightVolumesUtil.hlsli" />
     <None Include="Resources\Shaders\Util\ShadowUtil.hlsli" />
     <None Include="Resources\Shaders\Util\ToneMapUtil.hlsli" />
     <None Include="Resources\Shaders\Util\VoxelUtil.hlsli" />
@@ -343,7 +342,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Lighting\AmbientPBR_PS.hlsl">
+    <FxCompile Include="Resources\Shaders\Lighting\Ambient.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
@@ -367,7 +366,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Lighting\LightingPBR_PS.hlsl">
+    <FxCompile Include="Resources\Shaders\Lighting\DeferredLighting.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>

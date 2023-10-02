@@ -1,4 +1,3 @@
-
 #include "../Globals/GlobalsPS.hlsli"
 #include "../Util/DitherUtil.hlsli"
 #include "../Util/ShadowUtil.hlsli"
@@ -10,8 +9,8 @@ struct LightGrid
     uint light_count;
 };
 
-Texture2D normalMetallicTx      : register(t0);
-Texture2D diffuseRoughnessTx    : register(t1);
+Texture2D NormalMetallicTx      : register(t0);
+Texture2D DiffuseRoughnessTx    : register(t1);
 Texture2D<float> DepthTx        : register(t2);
 
 
@@ -30,12 +29,12 @@ float4 main(VSToPS pin) : SV_TARGET
 {
 
     //unpack gbuffer
-    float4 NormalMetallic = normalMetallicTx.Sample(linear_wrap_sampler, pin.Tex);
+    float4 NormalMetallic = NormalMetallicTx.Sample(linear_wrap_sampler, pin.Tex);
     float3 Normal = 2 * NormalMetallic.rgb - 1.0;
     float metallic = NormalMetallic.a;
     float depth = DepthTx.Sample(linear_wrap_sampler, pin.Tex);
     float3 Position = GetPositionVS(pin.Tex, depth);
-    float4 AlbedoRoughness = diffuseRoughnessTx.Sample(linear_wrap_sampler, pin.Tex);
+    float4 AlbedoRoughness = DiffuseRoughnessTx.Sample(linear_wrap_sampler, pin.Tex);
     float3 V = normalize(0.0f.xxx - Position);
     float roughness = AlbedoRoughness.a;
     

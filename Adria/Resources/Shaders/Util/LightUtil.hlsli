@@ -1,31 +1,12 @@
+#ifndef _LIGHT_UTIL_
+#define _LIGHT_UTIL_
+
+#include <CommonData.hlsli>
 
 struct LightingResult
 {
     float4 diffuse;
     float4 specular;
-};
-
-struct Light
-{
-    float4 screenSpacePosition;
-    float4 position;
-    float4 direction;
-    float4 color;
-    float range;
-    int type;
-    float outerCosine;
-    float innerCosine;
-    int castsShadows;
-    int useCascades;
-    float volumetricStrength;
-    int screenSpaceShadows;
-    float sscsThickness;
-    float sscsMaxRayDistance;
-    float sscsMaxDepthDistance;
-    float godraysDensity;
-    float godraysWeight;
-    float godraysDecay;
-    float godraysExposure;
 };
 
 //for structured buffer
@@ -272,3 +253,5 @@ float3 DoDirectionalLightPBR(Light light, float3 positionVS, float3 normalVS, fl
     
     return Lo;
 }
+
+#endif

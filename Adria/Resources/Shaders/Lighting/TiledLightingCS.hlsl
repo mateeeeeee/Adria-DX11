@@ -6,8 +6,8 @@
 
 
 
-Texture2D normalMetallicTx : register(t0);
-Texture2D diffuseRoughnessTx : register(t1);
+Texture2D NormalMetallicTx : register(t0);
+Texture2D DiffuseRoughnessTx : register(t1);
 Texture2D<float> DepthTx : register(t2);
 StructuredBuffer<StructuredLight> lights : register(t3);
 
@@ -134,12 +134,12 @@ void main(uint3 groupId : SV_GroupID,
 
     float3 pos_vs = GetPositionVS(tex, depth);
     
-    float4 NormalMetallic = normalMetallicTx.Load(int3(dispatchThreadId.xy, 0));
+    float4 NormalMetallic = NormalMetallicTx.Load(int3(dispatchThreadId.xy, 0));
     
     float3 Normal = 2 * NormalMetallic.rgb - 1.0;
     float metallic = NormalMetallic.a;
     
-    float4 AlbedoRoughness = diffuseRoughnessTx.Load(int3(dispatchThreadId.xy, 0));
+    float4 AlbedoRoughness = DiffuseRoughnessTx.Load(int3(dispatchThreadId.xy, 0));
     
     float3 V = normalize(0.0f.xxx - pos_vs);
     float roughness = AlbedoRoughness.a;

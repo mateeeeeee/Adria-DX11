@@ -1,3 +1,5 @@
+#ifndef _SHADOW_UTIL_
+#define _SHADOW_UTIL_
 
 
 float CalcShadowFactor_Basic(SamplerComparisonState shadowSampler, Texture2D<float> shadowMap, float3 uvd)
@@ -198,3 +200,5 @@ float CalcShadowFactor_Poisson(SamplerComparisonState shadowSampler, Texture2D<f
     }
     return percentLit /= 64;
 }
+
+#endif

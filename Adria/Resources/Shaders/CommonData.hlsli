@@ -73,7 +73,7 @@ struct WeatherData
     float3 Z;
 };
 
-struct LightData
+struct Light
 {
     float4 screenSpacePosition;
     float4 position;

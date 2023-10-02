@@ -507,9 +507,6 @@
     <None Include="Resources\Shaders\Util\ToneMapUtil.hlsli">
       <Filter>Shaders\Util</Filter>
     </None>
-    <None Include="Resources\Shaders\Util\LightVolumesUtil.hlsli">
-      <Filter>Shaders\Util</Filter>
-    </None>
     <None Include="Resources\Shaders\Util\VoxelUtil.hlsli">
       <Filter>Shaders\Util</Filter>
     </None>
@@ -718,7 +715,7 @@
     <FxCompile Include="Resources\Shaders\GBuffer\Terrain.hlsl">
       <Filter>Shaders\GBuffer</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Lighting\AmbientPBR_PS.hlsl">
+    <FxCompile Include="Resources\Shaders\Lighting\Ambient.hlsl">
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Lighting\ClusterBuildingCS.hlsl">
@@ -730,7 +727,7 @@
     <FxCompile Include="Resources\Shaders\Lighting\ClusterLightingPBR_PS.hlsl">
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
-    <FxCompile Include="Resources\Shaders\Lighting\LightingPBR_PS.hlsl">
+    <FxCompile Include="Resources\Shaders\Lighting\DeferredLighting.hlsl">
       <Filter>Shaders\Lighting</Filter>
     </FxCompile>
     <FxCompile Include="Resources\Shaders\Lighting\TiledLightingCS.hlsl">

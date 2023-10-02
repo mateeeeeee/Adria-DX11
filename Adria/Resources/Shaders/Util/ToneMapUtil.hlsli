@@ -1,3 +1,5 @@
+#ifndef _TONE_MAP_UTIL_
+#define _TONE_MAP_UTIL_
 
 static const float GAMMA = 2.2f;
 
@@ -49,3 +51,5 @@ float3 HableToneMapping(float3 color)
     color = pow(color, 1. / GAMMA);
     return color;
 }
+
+#endif

@@ -72,7 +72,7 @@ namespace adria
 			case PS_AmbientPBR_AO:
 			case PS_AmbientPBR_IBL:
 			case PS_AmbientPBR_AO_IBL:
-			case PS_LightingPBR:
+			case PS_DeferredLighting:
 			case PS_ClusterLightingPBR:
 			case PS_ToneMap_Reinhard:
 			case PS_ToneMap_Linear:
@@ -166,9 +166,9 @@ namespace adria
 			case PS_AmbientPBR_AO:
 			case PS_AmbientPBR_IBL:
 			case PS_AmbientPBR_AO_IBL:
-				return "Lighting/AmbientPBR_PS.hlsl";
-			case PS_LightingPBR:
-				return "Lighting/LightingPBR_PS.hlsl";
+				return "Lighting/Ambient.hlsl";
+			case PS_DeferredLighting:
+				return "Lighting/DeferredLighting.hlsl";
 			case PS_ClusterLightingPBR:
 				return "Lighting/ClusterLightingPBR_PS.hlsl";
 			case PS_ToneMap_Reinhard:
@@ -414,6 +414,13 @@ namespace adria
 				return "TerrainVS";
 			case PS_GBufferTerrain:
 				return "TerrainPS";
+			case PS_AmbientPBR:
+			case PS_AmbientPBR_AO:
+			case PS_AmbientPBR_IBL:
+			case PS_AmbientPBR_AO_IBL:
+				return "AmbientPS";
+			case PS_DeferredLighting:
+				return "DeferredLightingPS";
 			default:
 				return "main";
 			}
@@ -539,7 +546,7 @@ namespace adria
 			gfx_shader_program_map[ShaderProgram::AmbientPBR_AO].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_AO].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::AmbientPBR_IBL].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_IBL].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::AmbientPBR_AO_IBL].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_AO_IBL].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
-			gfx_shader_program_map[ShaderProgram::LightingPBR].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_LightingPBR].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::LightingPBR].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_DeferredLighting].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::ClusterLightingPBR].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ClusterLightingPBR].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::ToneMap_Reinhard].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Reinhard].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::ToneMap_Linear].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Linear].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
