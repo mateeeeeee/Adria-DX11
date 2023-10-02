@@ -73,7 +73,7 @@ namespace adria
 			case PS_AmbientPBR_IBL:
 			case PS_AmbientPBR_AO_IBL:
 			case PS_DeferredLighting:
-			case PS_ClusterLightingPBR:
+			case PS_ClusterLighting:
 			case PS_ToneMap_Reinhard:
 			case PS_ToneMap_Linear:
 			case PS_ToneMap_Hable:
@@ -169,8 +169,8 @@ namespace adria
 				return "Lighting/Ambient.hlsl";
 			case PS_DeferredLighting:
 				return "Lighting/DeferredLighting.hlsl";
-			case PS_ClusterLightingPBR:
-				return "Lighting/ClusterLightingPBR_PS.hlsl";
+			case PS_ClusterLighting:
+				return "Lighting/ClusterLighting.hlsl";
 			case PS_ToneMap_Reinhard:
 			case PS_ToneMap_Linear:
 			case PS_ToneMap_Hable:
@@ -244,11 +244,11 @@ namespace adria
 			case CS_OceanNormalMap:
 				return "Ocean/NormalMapCS.hlsl";
 			case CS_TiledLighting:
-				return "Lighting/TiledLightingCS.hlsl";
+				return "Lighting/TiledLighting.hlsl";
 			case CS_ClusterBuilding:
-				return "Lighting/ClusterBuildingCS.hlsl";
+				return "Lighting/ClusterBuilding.hlsl";
 			case CS_ClusterCulling:
-				return "Lighting/ClusterCullingCS.hlsl";
+				return "Lighting/ClusterCulling.hlsl";
 			case VS_Ocean:
 				return "Ocean/OceanVS.hlsl";
 			case PS_Ocean:
@@ -421,6 +421,14 @@ namespace adria
 				return "AmbientPS";
 			case PS_DeferredLighting:
 				return "DeferredLightingPS";
+			case CS_TiledLighting:
+				return "TiledLightingCS";
+			case CS_ClusterBuilding:
+				return "ClusterBuildingCS";
+			case CS_ClusterCulling:
+				return "ClusterCullingCS";
+			case PS_ClusterLighting:
+				return "ClusterLightingPS";
 			default:
 				return "main";
 			}
@@ -547,7 +555,7 @@ namespace adria
 			gfx_shader_program_map[ShaderProgram::AmbientPBR_IBL].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_IBL].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::AmbientPBR_AO_IBL].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_AmbientPBR_AO_IBL].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::LightingPBR].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_DeferredLighting].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
-			gfx_shader_program_map[ShaderProgram::ClusterLightingPBR].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ClusterLightingPBR].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::ClusterLightingPBR].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ClusterLighting].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::ToneMap_Reinhard].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Reinhard].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::ToneMap_Linear].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Linear].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::ToneMap_Hable].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Hable].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());

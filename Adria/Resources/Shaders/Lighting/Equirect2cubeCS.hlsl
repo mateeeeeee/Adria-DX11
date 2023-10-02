@@ -1,15 +1,15 @@
 static const float PI = 3.141592;
 static const float TwoPI = 2 * PI;
 
-Texture2D InputTexture : register(t0);
-RWTexture2DArray<float4> OutputTexture : register(u0);
+Texture2D InputTx : register(t0);
+RWTexture2DArray<float4> OutputTx : register(u0);
 
 SamplerState SamplerDefault : register(s0);
 
 float3 GetSamplingVector(uint3 ThreadID)
 {
     float outputWidth, outputHeight, outputDepth;
-    OutputTexture.GetDimensions(outputWidth, outputHeight, outputDepth);
+    OutputTx.GetDimensions(outputWidth, outputHeight, outputDepth);
 
     float2 st = ThreadID.xy / float2(outputWidth, outputHeight);
     float2 uv = 2.0 * float2(st.x, 1.0 - st.y) - float2(1.0, 1.0);
@@ -50,8 +50,8 @@ void cs_main(uint3 ThreadID : SV_DispatchThreadID)
     float theta = acos(v.y);
 
 	// Sample equirectangular texture.
-    float4 color = InputTexture.SampleLevel(SamplerDefault, float2(phi / TwoPI, theta / PI), 0);
+    float4 color = InputTx.SampleLevel(SamplerDefault, float2(phi / TwoPI, theta / PI), 0);
 
 	// Write out color to output cubemap.
-    OutputTexture[ThreadID] = color;
+    OutputTx[ThreadID] = color;
 }

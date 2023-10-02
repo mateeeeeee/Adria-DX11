@@ -17,8 +17,8 @@ cbuffer SpecularMapFilterSettings : register(b0)
 };
 
 
-TextureCube InputTexture : register(t0);
-RWTexture2DArray<float4> OutputTexture : register(u0);
+TextureCube InputTx : register(t0);
+RWTexture2DArray<float4> OutputTx : register(u0);
 
 SamplerState LinearWrapSampler : register(s0);
 
@@ -72,7 +72,7 @@ float NdfGGX(float cosLh, float roughness)
 float3 GetSamplingVector(uint3 ThreadID)
 {
 	float outputWidth, outputHeight, outputDepth;
-	OutputTexture.GetDimensions(outputWidth, outputHeight, outputDepth);
+	OutputTx.GetDimensions(outputWidth, outputHeight, outputDepth);
 
     float2 st = ThreadID.xy/float2(outputWidth, outputHeight);
     float2 uv = 2.0 * float2(st.x, 1.0-st.y) - 1.0;
@@ -113,14 +113,14 @@ void main(uint3 ThreadID : SV_DispatchThreadID)
 {
 	// Make sure we won't write past output when computing higher mipmap levels.
 	uint outputWidth, outputHeight, outputDepth;
-	OutputTexture.GetDimensions(outputWidth, outputHeight, outputDepth);
+	OutputTx.GetDimensions(outputWidth, outputHeight, outputDepth);
 	if(ThreadID.x >= outputWidth || ThreadID.y >= outputHeight) {
 		return;
 	}
 	
 	// Get input cubemap dimensions at zero mipmap level.
 	float inputWidth, inputHeight, inputLevels;
-	InputTexture.GetDimensions(0, inputWidth, inputHeight, inputLevels);
+	InputTx.GetDimensions(0, inputWidth, inputHeight, inputLevels);
 
 	// Solid angle associated with a single cubemap texel at zero mipmap level.
 	// This will come in handy for importance sampling below.
@@ -162,11 +162,11 @@ void main(uint3 ThreadID : SV_DispatchThreadID)
 			// Mip level to sample from.
 			float mipLevel = max(0.5 * log2(ws / wt) + 1.0, 0.0);
 
-            color += InputTexture.SampleLevel(LinearWrapSampler, Li, mipLevel).rgb * cosLi;
+            color += InputTx.SampleLevel(LinearWrapSampler, Li, mipLevel).rgb * cosLi;
 			weight += cosLi;
 		}
 	}
 	color /= weight;
 
-	OutputTexture[ThreadID] = float4(color, 1.0);
+	OutputTx[ThreadID] = float4(color, 1.0);
 }

@@ -61,7 +61,7 @@ namespace adria
 		PS_AmbientPBR_IBL,
 		PS_AmbientPBR_AO_IBL,
 		PS_DeferredLighting,
-		PS_ClusterLightingPBR,
+		PS_ClusterLighting,
 		PS_ToneMap_Reinhard,
 		PS_ToneMap_Linear,
 		PS_ToneMap_Hable,

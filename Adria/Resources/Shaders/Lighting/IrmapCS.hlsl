@@ -5,8 +5,8 @@ static const float Epsilon = 0.00001;
 static const uint NumSamples = 64 * 1024;
 static const float InvNumSamples = 1.0 / float(NumSamples);
 
-TextureCube InputTexture : register(t0);
-RWTexture2DArray<float4> OutputTexture : register(u0);
+TextureCube InputTx : register(t0);
+RWTexture2DArray<float4> OutputTx : register(u0);
 
 SamplerState LinearWrapSampler : register(s0);
 
@@ -44,7 +44,7 @@ float3 SampleHemisphere(float u1, float u2)
 float3 GetSamplingVector(uint3 ThreadID)
 {
 	float outputWidth, outputHeight, outputDepth;
-	OutputTexture.GetDimensions(outputWidth, outputHeight, outputDepth);
+	OutputTx.GetDimensions(outputWidth, outputHeight, outputDepth);
 
     float2 st = ThreadID.xy/float2(outputWidth, outputHeight);
     float2 uv = 2.0 * float2(st.x, 1.0-st.y) - 1.0;
@@ -98,9 +98,9 @@ void main(uint3 ThreadID : SV_DispatchThreadID)
 		float cosTheta = max(0.0, dot(Li, N));
 
 		// PIs here cancel out because of division by pdf.
-        irradiance += 2.0 * InputTexture.SampleLevel(LinearWrapSampler, Li, 0).rgb * cosTheta;
+        irradiance += 2.0 * InputTx.SampleLevel(LinearWrapSampler, Li, 0).rgb * cosTheta;
     }
 	irradiance /= float(NumSamples);
 
-	OutputTexture[ThreadID] = float4(irradiance, 1.0);
+	OutputTx[ThreadID] = float4(irradiance, 1.0);
 }
