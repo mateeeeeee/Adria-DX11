@@ -9,8 +9,7 @@ struct LightingResult
     float4 specular;
 };
 
-//for structured buffer
-struct StructuredLight
+struct PackedLightData
 {
     float4 position;
     float4 direction;
@@ -25,9 +24,9 @@ struct StructuredLight
     int padd;
 };
 
-Light CreateLightFromStructured(in StructuredLight structured_light)
+LightData ConvertFromPackedLightData(in PackedLightData structured_light)
 {
-    Light l = (Light)0;
+    LightData l = (LightData)0;
     l.castsShadows = structured_light.castsShadows;
     l.color = structured_light.color;
     l.direction = structured_light.direction;
@@ -61,20 +60,20 @@ float DoAttenuation(float distance, float range)
     return att * att;
 }
 
-float4 DoDiffuse(Light light, float3 L, float3 N)
+float4 DoDiffuse(LightData light, float3 L, float3 N)
 {
     float NdotL = max(0, dot(N, L));
     return light.color * NdotL;
 }
 
-float4 DoSpecular(Light light, float shininess, float3 L, float3 N, float3 V)
+float4 DoSpecular(LightData light, float shininess, float3 L, float3 N, float3 V)
 {
     float3 R = normalize(reflect(-L, N));
     float RdotV = max(0.0001, dot(R, V));
     return light.color * pow(RdotV, shininess);
 }
 
-LightingResult DoPointLight(Light light, float shininess, float3 V, float3 P, float3 N)
+LightingResult DoPointLight(LightData light, float shininess, float3 V, float3 P, float3 N)
 {
     LightingResult result;
     light.position.xyz /= light.position.w;
@@ -91,7 +90,7 @@ LightingResult DoPointLight(Light light, float shininess, float3 V, float3 P, fl
     return result;
 }
 
-LightingResult DoDirectionalLight(Light light, float shininess, float3 V, float3 N)
+LightingResult DoDirectionalLight(LightData light, float shininess, float3 V, float3 N)
 {
     LightingResult result;
     N = normalize(N);
@@ -103,7 +102,7 @@ LightingResult DoDirectionalLight(Light light, float shininess, float3 V, float3
     return result;
 }
 
-LightingResult DoSpotLight(Light light, float shininess, float3 V, float3 P, float3 N)
+LightingResult DoSpotLight(LightData light, float shininess, float3 V, float3 P, float3 N)
 {
     LightingResult result;
     
@@ -166,7 +165,7 @@ float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
     return F0 + (max(float3(1.0 - roughness, 1.0 - roughness, 1.0 - roughness), F0) - F0) * pow(max(1.0 - cosTheta, 0.0), 5.0);
 }
 
-float3 DoSpotLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
+float3 DoSpotLightPBR(LightData light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
 {
     float3 F0 = float3(0.04, 0.04, 0.04);
     F0 = lerp(F0, albedo, metallic);
@@ -199,7 +198,7 @@ float3 DoSpotLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V,
     return Lo;
 }
 
-float3 DoPointLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
+float3 DoPointLightPBR(LightData light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
 {
     float3 F0 = float3(0.04, 0.04, 0.04);
     F0 = lerp(F0, albedo, metallic);
@@ -227,7 +226,7 @@ float3 DoPointLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V
     return Lo;
 }
 
-float3 DoDirectionalLightPBR(Light light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
+float3 DoDirectionalLightPBR(LightData light, float3 positionVS, float3 normalVS, float3 V, float3 albedo, float metallic, float roughness)
 {
     float3 F0 = float3(0.04, 0.04, 0.04);
     F0 = lerp(F0, albedo, metallic);

@@ -5,7 +5,6 @@ static const int SSAO_KERNEL_SIZE = 16;
 
 struct FrameData
 {
-    float4 globalAmbient;
     row_major matrix view;
     row_major matrix projection;
     row_major matrix viewprojection;
@@ -15,6 +14,7 @@ struct FrameData
     row_major matrix prevView;
     row_major matrix prevProjection;
     row_major matrix prevViewProjection;
+    float4 globalAmbient;
     float4 cameraPosition;
     float4 cameraForward;
     float  cameraNear;
@@ -73,7 +73,7 @@ struct WeatherData
     float3 Z;
 };
 
-struct Light
+struct LightData
 {
     float4 screenSpacePosition;
     float4 position;

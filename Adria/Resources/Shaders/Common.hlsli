@@ -15,7 +15,7 @@ cbuffer ObjectCBuffer : register(b1)
 
 cbuffer LightCBuffer : register(b2)
 {
-    Light lightData;
+    LightData lightData;
 }
 
 cbuffer ShadowCBuffer : register(b3)

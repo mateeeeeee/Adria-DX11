@@ -13,7 +13,7 @@ Texture2D NormalMetallicTx      : register(t0);
 Texture2D DiffuseRoughnessTx    : register(t1);
 Texture2D<float> DepthTx        : register(t2);
 
-StructuredBuffer<StructuredLight> LightsBuffer      : register(t3);
+StructuredBuffer<PackedLightData> LightsBuffer      : register(t3);
 StructuredBuffer<uint> LightIndexList               : register(t4);    
 StructuredBuffer<LightGrid> LightGridBuffer         : register(t5);   
 
@@ -51,9 +51,8 @@ float4 ClusterLightingPS(VSToPS input) : SV_TARGET
     for (uint i = 0; i < lightCount; i++)
     {
         uint lightIndex = LightIndexList[lightOffset + i];
-        StructuredLight structuredLight = LightsBuffer[lightIndex];
-        
-        Light light = CreateLightFromStructured(structuredLight);
+        PackedLightData packedLightData = LightsBuffer[lightIndex];
+        LightData light = ConvertFromPackedLightData(packedLightData);
 
         switch (light.type)
         {

@@ -10,7 +10,6 @@ namespace adria
 {
 	DECLSPEC_ALIGN(16) struct FrameCBuffer
 	{
-		Vector4 global_ambient;
 		Matrix view;
 		Matrix projection;
 		Matrix viewprojection;
@@ -20,6 +19,7 @@ namespace adria
 		Matrix previous_view;
 		Matrix previous_projection;
 		Matrix previous_view_projection;
+		Vector4 global_ambient;
 		Vector4 camera_position;
 		Vector4 camera_forward;
 		float camera_near;

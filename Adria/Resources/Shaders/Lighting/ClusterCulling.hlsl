@@ -22,15 +22,15 @@ struct LightGrid
 
 
 StructuredBuffer<ClusterAABB> ClustersBuffer      : register(t0);
-StructuredBuffer<StructuredLight> LightsBuffer    : register(t1);
+StructuredBuffer<PackedLightData> LightsBuffer    : register(t1);
 
 RWStructuredBuffer<uint> LightIndexCounter    : register(u0); 
 RWStructuredBuffer<uint> LightIndexList       : register(u1); 
 RWStructuredBuffer<LightGrid> LightGridBuffer : register(u2); 
 
-groupshared StructuredLight SharedLights[GROUP_SIZE];
+groupshared PackedLightData SharedLights[GROUP_SIZE];
 
-bool LightIntersectsCluster(StructuredLight light, ClusterAABB cluster)
+bool LightIntersectsCluster(PackedLightData light, ClusterAABB cluster)
 {
     if (light.type == DIRECTIONAL_LIGHT) return true;
     float3 closest = max(cluster.MinPoint, min(light.position, cluster.MaxPoint)).xyz;
@@ -65,7 +65,7 @@ void ClusterCullingCS(uint3 groupId : SV_GroupID,
         if(groupIndex < batchSize)
         {
             uint lightIndex = lightOffset + groupIndex;
-            StructuredLight light = LightsBuffer[lightIndex];
+            PackedLightData light = LightsBuffer[lightIndex];
             SharedLights[groupIndex] = light;
         }
         
@@ -73,7 +73,7 @@ void ClusterCullingCS(uint3 groupId : SV_GroupID,
 
         for (uint i = 0; i < batchSize; i++)
         {
-            StructuredLight light = LightsBuffer[i];
+            PackedLightData light = LightsBuffer[i];
             if (!light.active || light.castsShadows) continue;
             if (visibleLightCount < MAX_CLUSTER_LIGHTS && LightIntersectsCluster(light, cluster))
             {

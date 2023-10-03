@@ -7,7 +7,7 @@
 Texture2D NormalMetallicTx : register(t0);
 Texture2D DiffuseRoughnessTx : register(t1);
 Texture2D<float> DepthTx : register(t2);
-StructuredBuffer<StructuredLight> LightsBuffer : register(t3);
+StructuredBuffer<PackedLightData> LightsBuffer : register(t3);
 
 RWTexture2D<float4> OutputTx : register(u0);
 RWTexture2D<float4> DebugTx  : register(u1);
@@ -88,7 +88,7 @@ void TiledLightingCS(uint3 groupId : SV_GroupID,
     
     for (uint lightIndex = groupIndex; lightIndex < totalLights; lightIndex += TILED_GROUP_SIZE * TILED_GROUP_SIZE)
     {
-        StructuredLight light = LightsBuffer[lightIndex];       
+        PackedLightData light = LightsBuffer[lightIndex];       
         if (!light.active || light.castsShadows) continue;
         
         bool inFrustum = true;
@@ -128,8 +128,8 @@ void TiledLightingCS(uint3 groupId : SV_GroupID,
     {
         for (int i = 0; i < TileNumLights; ++i)
         {
-            StructuredLight structuredLight = LightsBuffer[TileLightIndices[i]];
-            Light light = CreateLightFromStructured(structuredLight);
+            PackedLightData packedLightData = LightsBuffer[TileLightIndices[i]];
+            LightData light = ConvertFromPackedLightData(packedLightData);
             switch (light.type)
             {
                 case DIRECTIONAL_LIGHT:
