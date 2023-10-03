@@ -254,7 +254,7 @@ namespace adria
 				input_desc.elements[i].aligned_byte_offset = D3D11_APPEND_ALIGNED_ELEMENT;
 				input_desc.elements[i].input_slot_class = GfxInputClassification::PerVertexData;
 
-				if (strncmp(param_desc.SemanticName, "INSTANCE", 8) == 0)
+				if (input_desc.elements[i].semantic_name.starts_with("INSTANCE"))
 				{
 					input_desc.elements[i].input_slot = 1;
 					input_desc.elements[i].input_slot_class = GfxInputClassification::PerInstanceData;
