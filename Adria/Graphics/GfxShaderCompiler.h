@@ -14,7 +14,7 @@ namespace adria
 	struct GfxInputLayoutDesc;
 	namespace GfxShaderCompiler
 	{
-		void CompileShader(GfxShaderDesc const& input, GfxShaderCompileOutput& output);
+		bool CompileShader(GfxShaderDesc const& input, GfxShaderCompileOutput& output);
 		void GetBytecodeFromCompiledShader(char const* filename, GfxShaderBytecode& blob);
 		void FillInputLayoutDesc(GfxShaderBytecode const& blob, GfxInputLayoutDesc& input_desc);
 	}

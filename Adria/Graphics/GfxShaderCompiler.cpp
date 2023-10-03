@@ -123,41 +123,41 @@ namespace adria
 			std::memcpy(blob.GetPointer(), bytecode_blob->GetBufferPointer(), blob.GetLength());
 		}
 
-		void CompileShader(GfxShaderDesc const& input,
+		bool CompileShader(GfxShaderDesc const& input,
 			GfxShaderCompileOutput& output)
 		{
 			output = GfxShaderCompileOutput{};
-			std::string entrypoint, model;
+			std::string default_entrypoint, model;
 			switch (input.stage)
 			{
 			case GfxShaderStage::VS:
-				entrypoint = "vs_main";
+				default_entrypoint = "vs_main";
 				model = "vs_5_0";
 				break;
 			case GfxShaderStage::PS:
-				entrypoint = "ps_main";
+				default_entrypoint = "ps_main";
 				model = "ps_5_0";
 				break;
 			case GfxShaderStage::HS:
-				entrypoint = "hs_main";
+				default_entrypoint = "hs_main";
 				model = "hs_5_0";
 				break;
 			case GfxShaderStage::DS:
-				entrypoint = "ds_main";
+				default_entrypoint = "ds_main";
 				model = "ds_5_0";
 				break;
 			case GfxShaderStage::GS:
-				entrypoint = "gs_main";
+				default_entrypoint = "gs_main";
 				model = "gs_5_0";
 				break;
 			case GfxShaderStage::CS:
-				entrypoint = "cs_main";
+				default_entrypoint = "cs_main";
 				model = "cs_5_0";
 				break;
 			default:
-				ADRIA_ASSERT(false && "Unsupported Shader Stage!");
+				ADRIA_ASSERT_MSG(false, "Unsupported Shader Stage!");
 			}
-			entrypoint = input.entrypoint.empty() ? entrypoint : input.entrypoint;
+			default_entrypoint = input.entrypoint.empty() ? default_entrypoint : input.entrypoint;
 
 			std::string macro_key;
 			for (GfxShaderMacro const& macro : input.macros)
@@ -170,10 +170,10 @@ namespace adria
 			std::string build_string = input.flags & GfxShaderCompilerFlagBit_Debug ? "debug" : "release";
 			char cache_path[256];
 			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", shaders_cache_directory,
-				GetFilenameWithoutExtension(input.source_file).c_str(), entrypoint.c_str(), macro_hash, build_string.c_str());
+				GetFilenameWithoutExtension(input.source_file).c_str(), default_entrypoint.c_str(), macro_hash, build_string.c_str());
 
-			if (CheckCache(cache_path, input, output)) return;
-			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.source_file.c_str(), entrypoint.c_str());
+			if (CheckCache(cache_path, input, output)) return true;
+			ADRIA_LOG(INFO, "Shader '%s.%s' not found in cache. Compiling...", input.source_file.c_str(), default_entrypoint.c_str());
 
 		compile:
 			uint32 shader_compile_flags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -197,7 +197,7 @@ namespace adria
 
 			CShaderInclude includer(GetParentPath(input.source_file).c_str());
 			HRESULT hr = D3DCompileFromFile(ToWideString(input.source_file).c_str(), defines.data(),
-				&includer, entrypoint.c_str(), model.c_str(), shader_compile_flags, 0,
+				&includer, default_entrypoint.c_str(), model.c_str(), shader_compile_flags, 0,
 				bytecode_blob.GetAddressOf(), error_blob.GetAddressOf());
 
 			auto const& includes = includer.GetIncludes();
@@ -211,9 +211,9 @@ namespace adria
 					msg += err_msg;
 					int32 result = MessageBoxA(NULL, msg.c_str(), NULL, MB_OKCANCEL);
 					if (result == IDOK) goto compile;
-					else if (result == IDCANCEL) return;
+					else if (result == IDCANCEL) return false;
 				}
-				return;
+				return false;
 			}
 			for (auto& define : defines)
 			{
@@ -229,6 +229,7 @@ namespace adria
 			output.includes.push_back(input.source_file);
 			output.hash = shader_hash;
 			SaveToCache(cache_path, output);
+			return true;
 		}
 
 
@@ -237,12 +238,12 @@ namespace adria
 			ArcPtr<ID3D11ShaderReflection> vertex_shader_reflection = nullptr;
 			GFX_CHECK_HR(D3DReflect(blob.GetPointer(), blob.GetLength(), IID_ID3D11ShaderReflection, (void**)vertex_shader_reflection.GetAddressOf()));
 
-			D3D11_SHADER_DESC shaderDesc;
-			vertex_shader_reflection->GetDesc(&shaderDesc);
+			D3D11_SHADER_DESC shader_desc;
+			vertex_shader_reflection->GetDesc(&shader_desc);
 
 			input_desc.elements.clear();
-			input_desc.elements.resize(shaderDesc.InputParameters);
-			for (uint32 i = 0; i < shaderDesc.InputParameters; i++)
+			input_desc.elements.resize(shader_desc.InputParameters);
+			for (uint32 i = 0; i < shader_desc.InputParameters; i++)
 			{
 				D3D11_SIGNATURE_PARAMETER_DESC param_desc;
 				vertex_shader_reflection->GetInputParameterDesc(i, &param_desc);
@@ -252,6 +253,12 @@ namespace adria
 				input_desc.elements[i].input_slot = 0;
 				input_desc.elements[i].aligned_byte_offset = D3D11_APPEND_ALIGNED_ELEMENT;
 				input_desc.elements[i].input_slot_class = GfxInputClassification::PerVertexData;
+
+				if (strncmp(param_desc.SemanticName, "INSTANCE", 8) == 0)
+				{
+					input_desc.elements[i].input_slot = 1;
+					input_desc.elements[i].input_slot_class = GfxInputClassification::PerInstanceData;
+				}
 
 				if (param_desc.Mask == 1)
 				{

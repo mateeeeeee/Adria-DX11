@@ -512,7 +512,9 @@ namespace adria
 			input.macros = GetShaderMacros(shader);
 
 			GfxShaderCompileOutput output{};
-			GfxShaderCompiler::CompileShader(input, output);
+			bool result = GfxShaderCompiler::CompileShader(input, output);
+			if (!result) return;
+
 			switch (input.stage)
 			{
 			case GfxShaderStage::VS:
@@ -553,24 +555,7 @@ namespace adria
 				ShaderId shader = (ShaderId)s;
 				if (GetStage(shader) != GfxShaderStage::VS) continue;
 				
-				if (shader != VS_Foliage)
-
-					input_layout_map[shader] = std::make_unique<GfxInputLayout>(device, vs_shader_map[shader]->GetBytecode());
-				else
-				{
-					GfxInputLayoutDesc foliage_input_desc = {
-						.elements = 
-						{
-							GfxInputLayoutDesc::GfxInputElement{ "POSITION", 0, GfxFormat::R32G32B32_FLOAT, 0, 0, GfxInputClassification::PerVertexData },
-							GfxInputLayoutDesc::GfxInputElement{ "TEX", 0, GfxFormat::R32G32_FLOAT, 0, 12, GfxInputClassification::PerVertexData },
-							GfxInputLayoutDesc::GfxInputElement{ "NORMAL", 0, GfxFormat::R32G32B32_FLOAT, 0, 20, GfxInputClassification::PerVertexData },
-							GfxInputLayoutDesc::GfxInputElement{ "INSTANCE_OFFSET", 0, GfxFormat::R32G32B32_FLOAT, 1, 0, GfxInputClassification::PerInstanceData },
-							GfxInputLayoutDesc::GfxInputElement{ "INSTANCE_ROTATION", 0, GfxFormat::R32_FLOAT, 1, 12, GfxInputClassification::PerInstanceData }
-						} 
-					};
-
-					input_layout_map[shader] = std::make_unique<GfxInputLayout>(device, vs_shader_map[shader]->GetBytecode(), foliage_input_desc);
-				}
+				input_layout_map[shader] = std::make_unique<GfxInputLayout>(device, vs_shader_map[shader]->GetBytecode());
 			}
 
 			gfx_shader_program_map[ShaderProgram::Skybox].SetVertexShader(vs_shader_map[VS_Sky].get()).SetPixelShader(ps_shader_map[PS_Skybox].get()).SetInputLayout(input_layout_map[VS_Sky].get());
