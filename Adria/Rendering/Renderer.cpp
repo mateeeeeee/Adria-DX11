@@ -2647,6 +2647,8 @@ namespace adria
 		AdriaGfxScopedAnnotation(command_context, "Ocean Pass");
 
 		if (renderer_settings.ocean_wireframe) command_context->SetRasterizerState(wireframe.get());
+		else command_context->SetRasterizerState(cull_none.get());
+
 		command_context->SetBlendState(alpha_blend.get());
 
 		auto skyboxes = reg.view<Skybox>();
@@ -2696,7 +2698,7 @@ namespace adria
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, 3);
 
 		command_context->SetBlendState(nullptr);
-		if (renderer_settings.ocean_wireframe) command_context->SetRasterizerState(nullptr);
+		command_context->SetRasterizerState(nullptr);
 	}
 	void Renderer::PassParticles()
 	{
