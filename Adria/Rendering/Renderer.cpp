@@ -10,6 +10,7 @@
 #include "Graphics/GfxStates.h"
 #include "Graphics/GfxScopedAnnotation.h"
 #include "Math/Constants.h"
+#include "Math/Halton.h"
 #include "Utilities/Random.h"
 #include "DDSTextureLoader.h"
 
@@ -410,8 +411,22 @@ namespace adria
 		camera = _camera;
 		frame_cbuf_data.global_ambient = Vector4{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1.0f };
 
+		static uint32 frame_index = 0;
+		float jitter_x = 0.0f, jitter_y = 0.0f;
+		if (HasAllFlags(renderer_settings.anti_aliasing, AntiAliasing_TAA))
+		{
+			constexpr HaltonSequence<16, 2> x;
+			constexpr HaltonSequence<16, 3> y;
+			jitter_x = x[frame_index % 16];
+			jitter_y = y[frame_index % 16];
+			jitter_x = ((jitter_x - 0.5f) / width) * 2;
+			jitter_y = ((jitter_y - 0.5f) / height) * 2;
+		}
+
 		frame_cbuf_data.camera_near = camera->Near();
 		frame_cbuf_data.camera_far = camera->Far();
+		frame_cbuf_data.camera_jitter_x = jitter_x;
+		frame_cbuf_data.camera_jitter_y = jitter_y;
 		frame_cbuf_data.camera_position = Vector4(camera->Position());
 		frame_cbuf_data.camera_forward = Vector4(camera->Forward());
 		frame_cbuf_data.view = camera->View();
@@ -436,6 +451,7 @@ namespace adria
 		frame_cbuf_data.previous_view = camera->View();
 		frame_cbuf_data.previous_projection = camera->Proj();
 		frame_cbuf_data.previous_view_projection = camera->ViewProj(); 
+		++frame_index;
 	}
 	PickingData Renderer::GetLastPickingData() const
 	{

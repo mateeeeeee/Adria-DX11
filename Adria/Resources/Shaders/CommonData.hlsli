@@ -19,6 +19,7 @@ struct FrameData
     float4 cameraForward;
     float  cameraNear;
     float  cameraFar;
+    float2 cameraJitter;
     float2 screenResolution;
     float2 mouseNormalizedCoords;
 };

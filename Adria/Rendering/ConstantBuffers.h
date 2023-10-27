@@ -24,6 +24,8 @@ namespace adria
 		Vector4 camera_forward;
 		float camera_near;
 		float camera_far;
+		float camera_jitter_x;
+		float camera_jitter_y;
 		float screen_resolution_x;
 		float screen_resolution_y;
 		float mouse_normalized_coords_x;

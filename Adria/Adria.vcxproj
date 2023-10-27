@@ -252,6 +252,7 @@
     <ClInclude Include="Math\ComputeNormals.h" />
     <ClInclude Include="Math\ComputeTangentFrame.h" />
     <ClInclude Include="Math\Constants.h" />
+    <ClInclude Include="Math\Halton.h" />
     <ClInclude Include="Math\MathTypes.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Rendering\Camera.h" />
