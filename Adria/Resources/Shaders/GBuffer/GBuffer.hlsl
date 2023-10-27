@@ -27,6 +27,7 @@ VSToPS GBufferVS(VSInput input)
     
     float4 pos = mul(float4(input.Position, 1.0), objectData.model);
     Output.Position = mul(pos, frameData.viewprojection);
+    Output.Position.xy += frameData.cameraJitter * Output.Position.w;
     Output.Uvs = input.Uvs;
 
     float3 worldSpaceNormal = mul(input.Normal, (float3x3) objectData.transposedInverseModel);
