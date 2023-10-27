@@ -1,5 +1,7 @@
-# Adria-DX11
 
+<img align="left" src="Adria/Resources/Icons/adria_logo.jpg" width="120px"/>
+
+# Adria-DX11
 Graphics engine written in C++/DirectX11. For successful build you will need textures that you can find [here](https://github.com/mateeeeeee/Adria-DX11/releases/tag/1.0).
 
 ## Features
