@@ -1790,6 +1790,7 @@ namespace adria
 						state.accumulating_frame_count = 0;
 					}
 
+					float total_time_ms = 0.0f;
 					for (uint64 i = 0; i < time_stamps.size(); i++)
 					{
 						float value = time_stamps[i].time_in_ms;
@@ -1812,7 +1813,9 @@ namespace adria
 							pAccumulatingTimeStamp->minimum = std::min<float>(pAccumulatingTimeStamp->minimum, time_stamps[i].time_in_ms);
 							pAccumulatingTimeStamp->maximum = std::max<float>(pAccumulatingTimeStamp->maximum, time_stamps[i].time_in_ms);
 						}
+						total_time_ms += value;
 					}
+					ImGui::Text("Total: %7.2f %s", total_time_ms, "ms");
 					state.accumulating_frame_count++;
 				}
 			}
