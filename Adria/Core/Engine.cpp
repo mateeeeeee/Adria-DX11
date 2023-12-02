@@ -200,31 +200,31 @@ namespace adria
 
 	using namespace tecs;
 
-	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }, scene_viewport_data{}
+	Engine::Engine(EngineInit const& init) : window(init.window), vsync{ init.vsync }, scene_viewport_data{}
 	{
 		g_ThreadPool.Initialize();
 
-		gfx = std::make_unique<GfxDevice>(Window::Handle());
+		gfx = std::make_unique<GfxDevice>(window);
 		g_TextureManager.Initialize(gfx.get());
 		ShaderManager::Initialize(gfx.get());
-		renderer = std::make_unique<Renderer>(reg, gfx.get(), Window::Width(), Window::Height());
+		renderer = std::make_unique<Renderer>(reg, gfx.get(), window->Width(), window->Height());
 		model_importer = std::make_unique<ModelImporter>(reg, gfx.get());
 
 		InputEvents& input_events = g_Input.GetInputEvents();
 
 		std::ignore = input_events.window_resized_event.AddMember(&GfxDevice::ResizeBackbuffer, *gfx);
 		std::ignore = input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
-		std::ignore = input_events.left_mouse_clicked_event.Add([this](int32 mx, int32 my) { renderer->OnLeftMouseClicked(); });
+		std::ignore = input_events.left_mouse_clicked.Add([this](int32 mx, int32 my) { renderer->OnLeftMouseClicked(); });
 		std::ignore = input_events.f5_pressed_event.Add(ShaderManager::CheckIfShadersHaveChanged);
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value())
 		{
 			InitializeScene(scene_config.value());
-			scene_config.value().camera_params.aspect_ratio = static_cast<float>(Window::Width()) / Window::Height();
+			scene_config.value().camera_params.aspect_ratio = static_cast<float>(window->Width()) / window->Height();
 			camera = std::make_unique<Camera>(scene_config.value().camera_params);
 		}
-		else Window::Quit(1);
+		else window->Quit(1);
 
 		std::ignore = input_events.window_resized_event.AddMember(&Camera::OnResize, *camera);
 		std::ignore = input_events.scroll_mouse_event.AddMember(&Camera::Zoom, *camera);
@@ -240,9 +240,9 @@ namespace adria
 		g_ThreadPool.Destroy();
 	}
 
-	void Engine::HandleWindowMessage(WindowMessage const& msg_data)
+	void Engine::OnWindowEvent(WindowEventData const& data)
 	{
-		g_Input.HandleWindowMessage(msg_data);
+		g_Input.OnWindowEvent(data);
 	}
 
 	void Engine::Run(RendererSettings const& settings)
@@ -251,7 +251,7 @@ namespace adria
 		float const dt = timer.MarkInSeconds();
 
 		g_Input.Tick();
-		if (Window::IsActive())
+		if (window->IsActive())
 		{
 			Update(dt);
 			Render(settings);
@@ -294,11 +294,10 @@ namespace adria
 			scene_viewport_data.mouse_position_x = g_Input.GetMousePositionX();
 			scene_viewport_data.mouse_position_y = g_Input.GetMousePositionY();
 			
-			auto [pos_x, pos_y] = Window::Position();
-			scene_viewport_data.scene_viewport_pos_x = static_cast<float>(pos_x);
-			scene_viewport_data.scene_viewport_pos_y = static_cast<float>(pos_y);
-			scene_viewport_data.scene_viewport_size_x = static_cast<float>(Window::Width());
-			scene_viewport_data.scene_viewport_size_y = static_cast<float>(Window::Height());
+			scene_viewport_data.scene_viewport_pos_x = static_cast<float>(window->PositionX());
+			scene_viewport_data.scene_viewport_pos_y = static_cast<float>(window->PositionY());
+			scene_viewport_data.scene_viewport_size_x = static_cast<float>(window->Width());
+			scene_viewport_data.scene_viewport_size_y = static_cast<float>(window->Height());
 		}
 	}
 

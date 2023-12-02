@@ -39,32 +39,33 @@ int APIENTRY wWinMain(
     {
 		std::string log_file = log.AsStringOr("adria.log");
 		int32 log_level = loglevel.AsIntOr(0);
-		ADRIA_REGISTER_LOGGER(new FileLogger(log_file.c_str(), static_cast<ELogLevel>(log_level)));
-		ADRIA_REGISTER_LOGGER(new OutputDebugStringLogger(static_cast<ELogLevel>(log_level)));
+		ADRIA_REGISTER_LOGGER(new FileLogger(log_file.c_str(), static_cast<LogLevel>(log_level)));
+		ADRIA_REGISTER_LOGGER(new OutputDebugStringLogger(static_cast<LogLevel>(log_level)));
 
 		WindowInit window_init{};
 		window_init.instance = hInstance;
 		window_init.width = width.AsIntOr(1080);
 		window_init.height = height.AsIntOr(720);
-		window_init.title = title.AsStringOr("Adria");
+		std::string window_title = title.AsStringOr("Adria");
+		window_init.title = window_title.c_str();
 		window_init.maximize = maximize;
-		Window::Initialize(window_init);
+		Window window(window_init);
+		g_Input.Initialize(&window);
 
         EngineInit engine_init{};
         engine_init.vsync = vsync;
+		engine_init.window = &window;
         engine_init.scene_file = scene.AsStringOr("scene.json");
 
         EditorInit editor_init{};
         editor_init.engine_init = std::move(engine_init);
 
         Editor editor{ editor_init };
-        Window::SetCallback([&editor](WindowMessage const& msg_data) {editor.HandleWindowMessage(msg_data); });
-
-        while (Window::Loop())
+		window.GetWindowEvent().Add([&](WindowEventData const& msg_data) {editor.OnWindowEvent(msg_data); });
+        while (window.Loop())
         {
             editor.Run();
         }
-        Window::Destroy();
     }
     //MemoryDebugger::CheckLeaks();
 }

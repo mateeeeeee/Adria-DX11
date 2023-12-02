@@ -9,7 +9,8 @@
 
 namespace adria
 {
-	struct WindowMessage;
+	struct WindowEventData;
+	class Window;
 	class GfxDevice;
 	class Renderer;
 	class ModelImporter;
@@ -18,6 +19,7 @@ namespace adria
 	struct EngineInit
 	{
 		bool vsync = false;
+		Window* window = nullptr;
 		std::string scene_file = "scene.json";
 	};
 
@@ -35,21 +37,22 @@ namespace adria
 		Engine& operator=(Engine&&) = delete;
 		~Engine();
 
-		void HandleWindowMessage(WindowMessage const& msg_data);
+		void OnWindowEvent(WindowEventData const&);
 
 		void Run(RendererSettings const& settings);
 		void Present();
 
 	private:
-		bool vsync;
+		Window* window = nullptr;
 		tecs::registry reg;
 		std::unique_ptr<Camera> camera;
 		std::unique_ptr<GfxDevice> gfx;
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<ModelImporter> model_importer;
 
-		SceneViewport scene_viewport_data;
+		bool vsync;
 		bool editor_active = true;
+		SceneViewport scene_viewport_data;
 
 	private:
 

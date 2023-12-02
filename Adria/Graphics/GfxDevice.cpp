@@ -1,6 +1,7 @@
 #include <dxgidebug.h>
 #include "GfxDevice.h"
 #include "GfxCommandContext.h"
+#include "Core/Window.h"
 
 
 namespace adria
@@ -14,13 +15,10 @@ namespace adria
 		}
 	}
 
-	GfxDevice::GfxDevice(void* handle) : command_context(new GfxCommandContext(this))
+	GfxDevice::GfxDevice(Window* window) : window(window), command_context(new GfxCommandContext(this))
 	{
-		HWND window_handle = static_cast<HWND>(handle);
-		RECT rect;
-		GetClientRect(window_handle, &rect);
-		width	= rect.right - rect.left;
-		height	= rect.bottom - rect.top;
+		width	= window->Width();
+		height	= window->Height();
 
 		std::atexit(ReportLiveObjects);
 		uint32 swapchain_create_flags = 0;
@@ -39,7 +37,7 @@ namespace adria
 		swapchain_desc.SampleDesc.Quality = 0;
 		swapchain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapchain_desc.BufferCount = GFX_BACKBUFFER_COUNT;
-		swapchain_desc.OutputWindow = window_handle;
+		swapchain_desc.OutputWindow = (HWND)window->Handle();
 		swapchain_desc.Windowed = TRUE;
 		swapchain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapchain_desc.Flags = 0;

@@ -9,6 +9,7 @@
 namespace adria
 {
     struct Material;
+    struct WindowEventData;
     struct ImGuiLogger;
     
 	struct EditorInit
@@ -37,7 +38,7 @@ namespace adria
 
         explicit Editor(EditorInit const& init);
         ~Editor();
-        void HandleWindowMessage(WindowMessage const& msg_data);
+        void OnWindowEvent(WindowEventData const&);
         void Run();
 
 	private:

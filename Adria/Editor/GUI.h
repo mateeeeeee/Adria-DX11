@@ -3,7 +3,7 @@
 namespace adria
 {
 	class GfxDevice;
-	struct WindowMessage;
+	struct WindowEventData;
 
 	class GUI
 	{
@@ -13,7 +13,7 @@ namespace adria
 		~GUI();
 		void Begin() const;
 		void End() const;
-		void HandleWindowMessage(WindowMessage const&) const;
+		void HandleWindowMessage(WindowEventData const&) const;
 		void ToggleVisibility();
 		bool IsVisible() const;
 

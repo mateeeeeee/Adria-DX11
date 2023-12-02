@@ -31,7 +31,7 @@ namespace adria
 		ImWchar const icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
 		io.Fonts->AddFontFromFileTTF("Resources/Fonts/" FONT_ICON_FILE_NAME_FA, 15.0f, &font_config, icon_ranges);
 
-		ImGui_ImplWin32_Init(Window::Handle());
+		ImGui_ImplWin32_Init(gfx->GetWindow()->Handle());
 		ImGui_ImplDX11_Init(gfx->GetDevice(), gfx->GetContext());
 
 		ImGuiStyle& style = ImGui::GetStyle();
@@ -70,7 +70,6 @@ namespace adria
 			ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 		}
 
-		// ImGui - child windows
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
 			ImGui::UpdatePlatformWindows();
@@ -78,10 +77,9 @@ namespace adria
 		}
 
 	}
-	void GUI::HandleWindowMessage(WindowMessage const& msg_data) const
+	void GUI::HandleWindowMessage(WindowEventData const& data) const
 	{
-		ImGui_ImplWin32_WndProcHandler(static_cast<HWND>(msg_data.handle),
-			msg_data.msg, msg_data.wparam, msg_data.lparam);
+		ImGui_ImplWin32_WndProcHandler(static_cast<HWND>(data.handle), data.msg, data.wparam, data.lparam);
 	}
 	void GUI::ToggleVisibility()
 	{

@@ -9,11 +9,13 @@
 
 namespace adria
 {
+	class Window;
 	class GfxCommandContext;
+
 	class GfxDevice
 	{
 	public:
-		explicit GfxDevice(void* handle);
+		explicit GfxDevice(Window* window);
 		GfxDevice(GfxDevice const&) = delete;
 		GfxDevice(GfxDevice&&) = default;
 		GfxDevice& operator=(GfxDevice const&) = delete;
@@ -28,8 +30,10 @@ namespace adria
 		ID3D11Device3* GetDevice() const;
 		ID3D11DeviceContext4* GetContext() const;
 		GfxCommandContext* GetCommandContext() const { return command_context.get(); }
+		Window* GetWindow() const { return window; }
 
 	private:
+		Window* window;
 		uint32 width, height;
 		ArcPtr<ID3D11Device3> device = nullptr;
 		ArcPtr<IDXGISwapChain> swapchain = nullptr;

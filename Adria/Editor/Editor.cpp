@@ -1,6 +1,7 @@
 #include "Editor.h"
 #include <nfd.h>
 #include "Core/Logger.h"
+#include "Core/Window.h"
 #include "Rendering/Renderer.h"
 #include "Graphics/GfxDevice.h"
 #include "Rendering/ModelImporter.h"
@@ -138,9 +139,9 @@ namespace adria
     class EditorLogger : public ILogger
     {
     public:
-        EditorLogger(ImGuiLogger* logger, ELogLevel logger_level = ELogLevel::LOG_DEBUG) : logger{ logger }, logger_level{ logger_level } {}
+        EditorLogger(ImGuiLogger* logger, LogLevel logger_level = LogLevel::LOG_DEBUG) : logger{ logger }, logger_level{ logger_level } {}
 
-        virtual void Log(ELogLevel level, char const* entry, char const* file, uint32_t line) override
+        virtual void Log(LogLevel level, char const* entry, char const* file, uint32_t line) override
         {
 			if (level < logger_level) return;
 			std::string log_entry = GetLogTime() + LevelToString(level) + std::string(entry) + "\n";
@@ -148,7 +149,7 @@ namespace adria
         }
     private:
         ImGuiLogger* logger;
-        ELogLevel logger_level;
+        LogLevel logger_level;
     };
 
     Editor::Editor(EditorInit const& init) : engine(), editor_log(new ImGuiLogger{})
@@ -164,9 +165,9 @@ namespace adria
     {
     }
 
-	void Editor::HandleWindowMessage(WindowMessage const& msg_data)
+	void Editor::OnWindowEvent(WindowEventData const& msg_data)
     {
-        engine->HandleWindowMessage(msg_data);
+        engine->OnWindowEvent(msg_data);
         gui->HandleWindowMessage(msg_data);
     }
 
@@ -274,7 +275,11 @@ namespace adria
 
     void Editor::HandleInput()
     {
-		if (scene_focused && g_Input.IsKeyDown(KeyCode::I)) gui->ToggleVisibility();
+		if (scene_focused && g_Input.IsKeyDown(KeyCode::I))
+		{
+			gui->ToggleVisibility();
+			g_Input.SetMouseVisibility(gui->IsVisible());
+		}
 		if (scene_focused && g_Input.IsKeyDown(KeyCode::G)) gizmo_enabled = !gizmo_enabled;
         if (gizmo_enabled && gui->IsVisible())
         {
