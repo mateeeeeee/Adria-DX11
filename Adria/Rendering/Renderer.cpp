@@ -4,7 +4,7 @@
 #include "Components.h"
 #include "ShaderManager.h"
 #include "SkyModel.h"
-#include "Logging/Logger.h"
+#include "Core/Logger.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxCommandContext.h"
 #include "Graphics/GfxStates.h"
@@ -403,7 +403,7 @@ namespace adria
 	{
 		return offscreen_ldr_render_target.get();
 	}
-	void Renderer::NewFrame(Camera const* _camera)
+	void Renderer::Tick(Camera const* _camera)
 	{
 		BindGlobals();
 		g_GfxProfiler.NewFrame();

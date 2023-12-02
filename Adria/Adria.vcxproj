@@ -169,10 +169,11 @@
     <ClCompile Include="..\ThirdParty\ImGui\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="..\ThirdParty\SimpleMath\SimpleMath.cpp" />
     <ClCompile Include="Core\Engine.cpp" />
+    <ClCompile Include="Core\Input.cpp" />
+    <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\GUI.cpp" />
-    <ClCompile Include="Events\EventQueue.cpp" />
     <ClCompile Include="Graphics\GfxCommandContext.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
     <ClCompile Include="Graphics\GfxInputLayout.cpp" />
@@ -182,8 +183,6 @@
     <ClCompile Include="Graphics\GfxShaderCompiler.cpp" />
     <ClCompile Include="Graphics\GfxShaderProgram.cpp" />
     <ClCompile Include="Graphics\GfxStates.cpp" />
-    <ClCompile Include="Input\Input.cpp" />
-    <ClCompile Include="Logging\Logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -221,13 +220,12 @@
     <ClInclude Include="Core\CoreTypes.h" />
     <ClInclude Include="Core\Engine.h" />
     <ClInclude Include="Core\Defines.h" />
+    <ClInclude Include="Core\Input.h" />
+    <ClInclude Include="Core\Logger.h" />
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\Windows.h" />
     <ClInclude Include="Editor\Editor.h" />
     <ClInclude Include="Editor\GUI.h" />
-    <ClInclude Include="Events\Delegate.h" />
-    <ClInclude Include="Events\EventQueue.h" />
-    <ClInclude Include="Events\IEvent.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
     <ClInclude Include="Graphics\GfxCommandContext.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
@@ -246,8 +244,6 @@
     <ClInclude Include="Graphics\GfxStates.h" />
     <ClInclude Include="Graphics\GfxTexture.h" />
     <ClInclude Include="Graphics\GfxVertexFormat.h" />
-    <ClInclude Include="Input\Input.h" />
-    <ClInclude Include="Logging\Logger.h" />
     <ClInclude Include="Math\BoundingVolumeHelpers.h" />
     <ClInclude Include="Math\ComputeNormals.h" />
     <ClInclude Include="Math\ComputeTangentFrame.h" />
@@ -270,9 +266,6 @@
     <ClInclude Include="Rendering\Terrain.h" />
     <ClInclude Include="Rendering\TextureManager.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Tasks\Task.h" />
-    <ClInclude Include="Tasks\TaskManager.h" />
-    <ClInclude Include="Tasks\ThreadPool.h" />
     <ClInclude Include="tecs\component_pool.h" />
     <ClInclude Include="tecs\entity.h" />
     <ClInclude Include="tecs\entity_view.h" />
@@ -281,24 +274,27 @@
     <ClInclude Include="Utilities\AllocatorUtil.h" />
     <ClInclude Include="Utilities\AutoRefCountPtr.h" />
     <ClInclude Include="Utilities\CLIParser.h" />
+    <ClInclude Include="Utilities\ConcurrentQueue.h" />
+    <ClInclude Include="Utilities\Delegate.h" />
     <ClInclude Include="Utilities\EnumUtil.h" />
     <ClInclude Include="Utilities\FilesUtil.h" />
     <ClInclude Include="Utilities\FileWatcher.h" />
     <ClInclude Include="Utilities\HashMap.h" />
     <ClInclude Include="Utilities\HashSet.h" />
+    <ClInclude Include="Utilities\HashUtil.h" />
     <ClInclude Include="Utilities\Heightmap.h" />
+    <ClInclude Include="Utilities\HosekDataRGB.h" />
+    <ClInclude Include="Utilities\Image.h" />
     <ClInclude Include="Utilities\JsonUtil.h" />
     <ClInclude Include="Utilities\LinearAllocator.h" />
-    <ClInclude Include="Utilities\RingAllocator.h" />
-    <ClInclude Include="Utilities\RingBuffer.h" />
-    <ClInclude Include="Utilities\ConcurrentQueue.h" />
-    <ClInclude Include="Utilities\HashUtil.h" />
-    <ClInclude Include="Utilities\Image.h" />
     <ClInclude Include="Utilities\MemoryDebugger.h" />
     <ClInclude Include="Utilities\Random.h" />
+    <ClInclude Include="Utilities\RingAllocator.h" />
+    <ClInclude Include="Utilities\RingBuffer.h" />
     <ClInclude Include="Utilities\Singleton.h" />
     <ClInclude Include="Utilities\StringUtil.h" />
     <ClInclude Include="Utilities\TemplatesUtil.h" />
+    <ClInclude Include="Utilities\ThreadPool.h" />
     <ClInclude Include="Utilities\Timer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -324,7 +320,6 @@
     <None Include="Resources\Shaders\Util\ToneMapUtil.hlsli" />
     <None Include="Resources\Shaders\Util\VoxelUtil.hlsli" />
     <None Include="scene.json" />
-    <None Include="Utilities\HosekDataRGB.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\GBuffer\Decal.hlsl">

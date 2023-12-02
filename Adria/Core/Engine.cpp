@@ -1,13 +1,13 @@
 #include "Engine.h"
 #include "Window.h"
 #include "Math/Constants.h"
-#include "Logging/Logger.h"
-#include "Tasks/TaskManager.h"
+#include "Core/Logger.h"
 #include "Editor/GUI.h"
 #include "Graphics/GfxDevice.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/ModelImporter.h"
 #include "Rendering/ShaderManager.h"
+#include "Utilities/ThreadPool.h"
 #include "Utilities/Random.h"
 #include "Utilities/Timer.h"
 #include "Utilities/JsonUtil.h"
@@ -202,7 +202,7 @@ namespace adria
 
 	Engine::Engine(EngineInit const& init) : vsync{ init.vsync }, scene_viewport_data{}
 	{
-		g_TaskManager.Initialize();
+		g_ThreadPool.Initialize();
 
 		gfx = std::make_unique<GfxDevice>(Window::Handle());
 		g_TextureManager.Initialize(gfx.get());
@@ -237,7 +237,7 @@ namespace adria
 		ShaderManager::Destroy();
 		g_TextureManager.Destroy();
 		gfx = nullptr;
-		g_TaskManager.Destroy();
+		g_ThreadPool.Destroy();
 	}
 
 	void Engine::HandleWindowMessage(WindowMessage const& msg_data)
@@ -250,7 +250,7 @@ namespace adria
 		static AdriaTimer timer;
 		float const dt = timer.MarkInSeconds();
 
-		g_Input.NewFrame();
+		g_Input.Tick();
 		if (Window::IsActive())
 		{
 			Update(dt);
@@ -262,7 +262,7 @@ namespace adria
 	{
 		camera->Tick(dt);
 		renderer->SetSceneViewportData(scene_viewport_data);
-		renderer->NewFrame(camera.get());
+		renderer->Tick(camera.get());
 		renderer->Update(dt);
 	}
 

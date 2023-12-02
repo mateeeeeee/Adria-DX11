@@ -45,7 +45,7 @@ namespace adria
 		Renderer(tecs::registry& reg, GfxDevice* gfx, uint32 width, uint32 height); 
 		~Renderer();
 
-		void NewFrame(Camera const*);
+		void Tick(Camera const*);
 		void Update(float dt);
 		
 		void SetProfiling(bool profiling) { profiling_enabled = profiling; }

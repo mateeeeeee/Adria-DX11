@@ -71,7 +71,7 @@ namespace adria
 		EndQuery(&query);
 		bool32 result = false;
 		while (!GetQueryData(&query, &result, sizeof(result)));
-		ADRIA_ASSERT(result == true);
+		ADRIA_ASSERT(result != 0);
 	}
 
 	void GfxCommandContext::Draw(uint32 vertex_count, uint32 instance_count /*= 1*/, uint32 start_vertex_location /*= 0*/, uint32 start_instance_location /*= 0*/)

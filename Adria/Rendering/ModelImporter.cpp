@@ -10,10 +10,10 @@
 
 #include "ModelImporter.h"
 #include "TextureManager.h"
+#include "Core/Logger.h"
 #include "tecs/registry.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxVertexFormat.h"
-#include "Logging/Logger.h"
 #include "Math/BoundingVolumeHelpers.h"
 #include "Math/ComputeTangentFrame.h"
 #include "Utilities/FilesUtil.h"

@@ -1,9 +1,8 @@
 #pragma once
 #include <array>
 #include <unordered_map>
-#include "Core/CoreTypes.h"
-#include "Core/Windows.h"
-#include "Events/Delegate.h"
+#include "Windows.h"
+#include "Utilities/Delegate.h"
 #include "Utilities/Singleton.h"
 
 namespace adria
@@ -56,7 +55,7 @@ namespace adria
     {
         friend class Singleton<Input>;
     public:
-        void NewFrame();
+        void Tick();
         void HandleWindowMessage(WindowMessage const&);
 
         bool GetKey(KeyCode key)    /*const*/   { return keys[key]; }                         

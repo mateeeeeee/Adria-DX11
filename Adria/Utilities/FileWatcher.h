@@ -3,13 +3,13 @@
 #include <chrono>
 #include "HashMap.h"
 #include "Core/CoreTypes.h"
-#include "Events/Delegate.h"
+#include "Utilities/Delegate.h"
 
 namespace fs = std::filesystem;
 
 namespace adria
 {
-	enum class EFileStatus : uint8
+	enum class FileStatus : uint8
 	{ 
 		Created, 
 		Modified, 

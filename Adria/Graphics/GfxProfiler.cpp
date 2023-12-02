@@ -2,8 +2,7 @@
 #include "GfxQuery.h"
 #include "GfxDevice.h"
 #include "GfxCommandContext.h"
-#include "Core/Defines.h"
-#include "Logging/Logger.h"
+#include "Core/Logger.h"
 
 namespace adria
 {

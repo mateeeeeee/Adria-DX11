@@ -4,11 +4,11 @@
 #include <execution>
 #include <filesystem>
 #include "ShaderManager.h"
+#include "Core/Logger.h"
 #include "Graphics/GfxShaderProgram.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxInputLayout.h"
-#include "Logging/Logger.h"
 #include "Utilities/Timer.h"
 #include "Utilities/HashMap.h"
 #include "Utilities/HashSet.h"

@@ -3,7 +3,7 @@
 
 #include "Core/Window.h"
 #include "Core/Engine.h"
-#include "Logging/Logger.h"
+#include "Core/Logger.h"
 #include "Editor/Editor.h"
 #include "Utilities/MemoryDebugger.h"
 #include "Utilities/CLIParser.h"

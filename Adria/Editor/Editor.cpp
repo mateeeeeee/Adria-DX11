@@ -1,9 +1,9 @@
 #include "Editor.h"
 #include <nfd.h>
+#include "Core/Logger.h"
 #include "Rendering/Renderer.h"
 #include "Graphics/GfxDevice.h"
 #include "Rendering/ModelImporter.h"
-#include "Logging/Logger.h"
 #include "Utilities/FilesUtil.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/Random.h"

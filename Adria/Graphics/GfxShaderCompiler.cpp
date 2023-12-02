@@ -1,11 +1,10 @@
 #include <d3dcompiler.h> 
 #include "GfxShaderCompiler.h"
 #include "GfxInputLayout.h"
+#include "Core/Logger.h" 
 #include "Utilities/HashUtil.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
-#include "Core/Defines.h" 
-#include "Logging/Logger.h" 
 #include "cereal/archives/binary.hpp"
 
 namespace adria

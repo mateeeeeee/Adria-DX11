@@ -1,8 +1,7 @@
 #pragma once
 #include <memory>
 #include <optional>
-#include "Events/EventQueue.h"
-#include "Input/Input.h"
+#include "Input.h"
 #include "tecs/registry.h"
 #include "Rendering/Camera.h"
 #include "Rendering/RendererSettings.h"

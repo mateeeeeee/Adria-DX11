@@ -3,7 +3,7 @@
 #include <stb_image.h>
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb_image_write.h>
-#include "Logging/Logger.h"
+#include "Core/Logger.h"
 
 namespace adria
 {
@@ -17,7 +17,7 @@ namespace adria
 			float* pixels = stbi_loadf(image_file.data(), &width, &height, &channels, desired_channels);
 			if (!pixels) 
 			{ 
-				ADRIA_LOG(ERROR, "Loading Image File %s unsuccessful", image_file.data()); 
+				ADRIA_LOG(ERROR, "Loading image file %s unsuccessful", image_file.data()); 
 			}
 			else  _pixels.reset(reinterpret_cast<uint8*>(pixels));
 		}
@@ -26,7 +26,7 @@ namespace adria
 			stbi_uc* pixels = stbi_load(image_file.data(), &width, &height, &channels, desired_channels);
 			if (!pixels)
 			{
-				ADRIA_LOG(ERROR, "Loading Image File %s unsuccessful", image_file.data());
+				ADRIA_LOG(ERROR, "Loading image file %s unsuccessful", image_file.data());
 			}
 			else _pixels.reset(pixels);
 		}
