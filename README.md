@@ -10,7 +10,6 @@ Graphics engine written in C++/DirectX11. For successful build you will need tex
 * Clustered deferred rendering
 * Physically based shading
 * Image based lighting
-* Voxel Cone GI 
 * Normal mapping
 * Shadows
     - PCF Shadows for directional, spot and point lights
@@ -87,8 +86,8 @@ Graphics engine written in C++/DirectX11. For successful build you will need tex
   </tr>
  </table>
  
- Image Based Lighting 
-![alt text](Screenshots/ibl.png "Image Based Lighting ")
+ Film Effects
+![alt text](Screenshots/film.png "Film Effects")
  
 Ocean and Lens Flare
 ![alt text](Screenshots/ocean_lens_flare.png "Ocean and Lens Flare")
