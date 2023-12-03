@@ -186,6 +186,7 @@
     <ClCompile Include="Utilities\StringUtil.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\EditorLogger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\CoreTypes.h">
@@ -461,6 +462,9 @@
     </ClInclude>
     <ClInclude Include="Utilities\Timer.h">
       <Filter>Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\EditorLogger.h">
+      <Filter>Editor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -173,6 +173,7 @@
     <ClCompile Include="Core\Logger.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
+    <ClCompile Include="Editor\EditorLogger.cpp" />
     <ClCompile Include="Editor\GUI.cpp" />
     <ClCompile Include="Graphics\GfxCommandContext.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
@@ -225,6 +226,7 @@
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\Windows.h" />
     <ClInclude Include="Editor\Editor.h" />
+    <ClInclude Include="Editor\EditorLogger.h" />
     <ClInclude Include="Editor\GUI.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
     <ClInclude Include="Graphics\GfxCommandContext.h" />

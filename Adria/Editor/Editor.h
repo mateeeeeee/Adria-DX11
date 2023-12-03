@@ -10,7 +10,7 @@ namespace adria
 {
     struct Material;
     struct WindowEventData;
-    struct ImGuiLogger;
+    struct EditorLogger;
     
 	struct EditorInit
 	{
@@ -44,7 +44,7 @@ namespace adria
 	private:
         std::unique_ptr<Engine> engine;
 		std::unique_ptr<GUI> gui;
-        std::unique_ptr<ImGuiLogger> editor_log;
+        EditorLogger* editor_logger;
         tecs::entity selected_entity = tecs::null_entity;
         bool gizmo_enabled = false;
         bool scene_focused = false;
