@@ -706,5 +706,8 @@
     <FxCompile Include="Resources\Shaders\Particles\SortInner512.hlsl">
       <Filter>Shaders\Particles</Filter>
     </FxCompile>
+    <FxCompile Include="Resources\Shaders\Postprocess\FilmEffects.hlsl">
+      <Filter>Shaders\Postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

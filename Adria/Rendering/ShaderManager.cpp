@@ -101,6 +101,7 @@ namespace adria
 			case PS_Ocean:
 			case PS_Foliage:
 			case PS_Particle:
+			case PS_FilmEffects:
 				return GfxShaderStage::PS;
 			case GS_LensFlare:
 			case GS_Bokeh:
@@ -210,6 +211,8 @@ namespace adria
 				return "Postprocess/MotionBlur.hlsl";
 			case PS_Fog:
 				return "Postprocess/Fog.hlsl";
+			case PS_FilmEffects:
+				return "Postprocess/FilmEffects.hlsl";
 			case VS_Shadow:
 			case VS_ShadowTransparent:
 			case PS_Shadow:
@@ -359,6 +362,8 @@ namespace adria
 				return "TAA";
 			case PS_SSR:
 				return "SSR";
+			case PS_FilmEffects:
+				return "FilmEffects";
 			case PS_VolumetricLight_Directional:
 				return "VolumetricLighting_Directional";
 			case PS_VolumetricLight_DirectionalWithCascades:
@@ -579,6 +584,7 @@ namespace adria
 			gfx_shader_program_map[ShaderProgram::ToneMap_Reinhard].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Reinhard].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::ToneMap_Linear].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Linear].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::ToneMap_Hable].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Hable].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::FilmEffects].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_FilmEffects].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 
 			gfx_shader_program_map[ShaderProgram::FXAA].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_FXAA].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::TAA].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_TAA].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());

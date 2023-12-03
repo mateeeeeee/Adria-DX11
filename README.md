@@ -5,47 +5,47 @@
 Graphics engine written in C++/DirectX11. For successful build you will need textures that you can find [here](https://github.com/mateeeeeee/Adria-DX11/releases/tag/1.0).
 
 ## Features
-* Deferred + Forward Rendering 
-* Tiled Deferred Rendering 
-* Clustered Deferred Rendering
-* Voxel Cone Tracing Global Illumination
-* Physically Based Shading
-* Image Based Lighting
-* Normal Mapping
+* Deferred + forward rendering 
+* Tiled deferred rendering 
+* Clustered deferred rendering
+* Physically based shading
+* Image based lighting
+* Voxel Cone GI 
+* Normal mapping
 * Shadows
-    - PCF Shadows for Directional, Spot and Point lights
-    - Cascade Shadow Maps for Directional Lights
+    - PCF Shadows for directional, spot and point lights
+    - Cascade shadow maps for directional lights
 * Volumetric Lighting
-    - Directional Lights with Shadow Maps
-    - Directional Lights with Cascade Shadow Maps
+    - Directional lights with shadow maps
+    - Directional lights with cascade shadow maps
     - Point and Spot Lights 
 * HDR and Tone Mapping
 * Bloom
 * Depth Of Field + Bokeh  
     - Bokeh shapes supported - Hexagon, Octagon, Circle, Cross
 * Ambient Occlusion: SSAO, HBAO
+* Film effects: Lens distortion, Chromatic aberration, Vignette, Film grain
 * SSR
 * SSCS
-* Deferred Decals
+* Deferred decals
 * FXAA
 * TAA
-* God Rays
-* Lens Flare
+* God rays
+* Lens flare
 * Fog
-* Motion Blur
-* Volumetric Clouds
+* Motion blur
+* Volumetric clouds
 * Ocean FFT
-    - Adaptive Tesselation
+    - Adaptive tesselation
     - Foam
-* Procedural Terrain with Instanced Foliage and Trees
-* Hosek-Wilkie Sky Model
+* Procedural terrain with instanced foliage and trees
+* Hosek-Wilkie sky model
 * Particles
-* ImGui Editor
-* Model Loading with tinygltf
+* ImGui editor
+* Model loading with tinygltf
 * Profiler
-* Shader Hot Reloading
-* Entity-Component System
-* Camera and Light Frustum Culling
+* Shader hot reloading
+* ECS
 
 
 ## Dependencies

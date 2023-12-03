@@ -1646,6 +1646,32 @@ namespace adria
                     ImGui::TreePop();
                     ImGui::Separator();
                 }
+				if (ImGui::TreeNodeEx("Film Effects", ImGuiTreeNodeFlags_None))
+				{
+					ImGui::Checkbox("Lens Distortion", &renderer_settings.lens_distortion_enabled);
+					ImGui::Checkbox("Chromatic Aberration", &renderer_settings.chromatic_aberration_enabled);
+					ImGui::Checkbox("Vignette", &renderer_settings.vignette_enabled);
+					ImGui::Checkbox("Film Grain", &renderer_settings.film_grain_enabled);
+					if (renderer_settings.lens_distortion_enabled)
+					{
+						ImGui::SliderFloat("Lens Distortion Intensity", &renderer_settings.lens_distortion_intensity, -1.0f, 1.0f);
+					}
+					if (renderer_settings.chromatic_aberration_enabled)
+					{
+						ImGui::SliderFloat("Chromatic Aberration Intensity", &renderer_settings.chromatic_aberration_intensity, 0.0f, 40.0f);
+					}
+					if (renderer_settings.vignette_enabled)
+					{
+						ImGui::SliderFloat("Vignette Intensity", &renderer_settings.vignette_intensity, 0.0f, 2.0f);
+					}
+					if (renderer_settings.film_grain_enabled)
+					{
+						ImGui::SliderFloat("Film Grain Scale", &renderer_settings.film_grain_scale, 0.01f, 20.0f);
+						ImGui::SliderFloat("Film Grain Amount", &renderer_settings.film_grain_amount, 0.0f, 20.0f);
+						ImGui::SliderFloat("Film Grain Seed Update Rate", &renderer_settings.film_grain_seed_update_rate, 0.0f, 0.1f);
+					}
+					ImGui::TreePop();
+				}
                 if (ImGui::TreeNodeEx("Tone Mapping", 0))
                 {
                     ImGui::SliderFloat("Exposure", &renderer_settings.tone_map_exposure, 0.01f, 10.0f);

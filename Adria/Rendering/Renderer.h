@@ -75,6 +75,7 @@ namespace adria
 		bool pick_in_current_frame = false;
 		Picker picker;
 		PickingData last_picking_data;
+		float current_dt = 0.0f;
 
 		//textures
 		std::vector<std::unique_ptr<GfxTexture>> gbuffer;
@@ -273,6 +274,7 @@ namespace adria
 		void PassMotionVectors();
 		void PassMotionBlur();
 		void PassFog();
+		void PassFilmEffects();
 		void PassFXAA();
 		void PassTAA();
 		void PassToneMap();

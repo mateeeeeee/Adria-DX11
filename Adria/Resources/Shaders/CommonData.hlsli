@@ -130,6 +130,17 @@ struct PostprocessData
     float   hbaoR2;
     float   hbaoRadiusToScreen;
     float   hbaoPower;
+
+    bool    lensDistortionEnabled;
+	float   lensDistortionIntensity;
+	bool    chromaticAberrationEnabled;
+	float   chromaticAberrationIntensity;
+	bool    vignetteEnabled;
+	float   vignetteIntensity;
+	bool    filmGrainEnabled;
+	float   filmGrainScale;
+	float   filmGrainAmount;
+	uint    filmGrainSeed;
 };
 
 struct ComputeData

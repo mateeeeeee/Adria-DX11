@@ -104,11 +104,24 @@ namespace adria
 		Vector4 fog_color;
 		float   fog_falloff;
 		float   fog_density;
-		float	  fog_start;
-		int32	  fog_type;
+		float	fog_start;
+		int32	fog_type;
 		float   hbao_r2;
 		float   hbao_radius_to_screen;
 		float   hbao_power;
+
+		bool32  lens_distortion_enabled;
+		float	lens_distortion_intensity;
+		bool32  chromatic_aberration_enabled;
+		float   chromatic_aberration_intensity;
+		bool32  vignette_enabled;
+		float   vignette_intensity;
+		bool32  film_grain_enabled;
+		float   film_grain_scale;
+		float   film_grain_amount;
+		uint32  film_grain_seed;
+		uint32  input_idx;
+		uint32  output_idx;
 	};
 
 	DECLSPEC_ALIGN(16) struct ComputeCBuffer

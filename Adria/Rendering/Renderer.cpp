@@ -297,6 +297,7 @@ namespace adria
 
 	void Renderer::Update(float dt)
 	{
+		current_dt = dt;
 		UpdateLights();
 		UpdateTerrainData();
 		UpdateVoxelData();
@@ -2264,15 +2265,6 @@ namespace adria
 		command_context->EndRenderPass();
 		postprocess_index = !postprocess_index;
 
-		if (renderer_settings.dof)
-		{
-			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
-			PassDepthOfField();
-			command_context->EndRenderPass();
-
-			postprocess_index = !postprocess_index;
-		}
-
 		if (renderer_settings.clouds)
 		{
 			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
@@ -2295,6 +2287,25 @@ namespace adria
 		{
 			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
 			PassSSR();
+			command_context->EndRenderPass();
+
+			postprocess_index = !postprocess_index;
+		}
+
+		if (renderer_settings.vignette_enabled || renderer_settings.film_grain_enabled
+			|| renderer_settings.chromatic_aberration_enabled || renderer_settings.lens_distortion_enabled)
+		{
+			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
+			PassFilmEffects();
+			command_context->EndRenderPass();
+
+			postprocess_index = !postprocess_index;
+		}
+
+		if (renderer_settings.dof)
+		{
+			command_context->BeginRenderPass(postprocess_passes[postprocess_index]);
+			PassDepthOfField();
 			command_context->EndRenderPass();
 
 			postprocess_index = !postprocess_index;
@@ -3115,7 +3126,45 @@ namespace adria
 
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(srvs));
 	}
+	void Renderer::PassFilmEffects()
+	{
+		GfxCommandContext* command_context = gfx->GetCommandContext();
+		AdriaGfxProfileCondScope(command_context, "Film Effects Pass", profiling_enabled);
+		AdriaGfxScopedAnnotation(command_context, "Film Effects Pass");
 
+		auto GetFilmGrainSeed = [](float dt, float seed_update_rate)
+		{
+			static uint32 seed_counter = 0;
+			static float time_counter = 0.0;
+			time_counter += dt;
+			if (time_counter >= seed_update_rate)
+			{
+				++seed_counter;
+				time_counter = 0.0;
+			}
+			return seed_counter;
+		};
+
+		postprocess_cbuf_data.lens_distortion_enabled = renderer_settings.lens_distortion_enabled;
+		postprocess_cbuf_data.lens_distortion_intensity = renderer_settings.lens_distortion_intensity;
+		postprocess_cbuf_data.chromatic_aberration_enabled = renderer_settings.chromatic_aberration_enabled;
+		postprocess_cbuf_data.chromatic_aberration_intensity = renderer_settings.chromatic_aberration_intensity;
+		postprocess_cbuf_data.vignette_enabled = renderer_settings.vignette_enabled;
+		postprocess_cbuf_data.vignette_intensity = renderer_settings.vignette_intensity;
+		postprocess_cbuf_data.film_grain_enabled = renderer_settings.film_grain_enabled;
+		postprocess_cbuf_data.film_grain_scale = renderer_settings.film_grain_scale;
+		postprocess_cbuf_data.film_grain_amount = renderer_settings.film_grain_amount;
+		postprocess_cbuf_data.film_grain_seed = GetFilmGrainSeed(current_dt, renderer_settings.film_grain_seed_update_rate);
+		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
+
+		GfxShaderResourceRO srv_array[] = { postprocess_textures[!postprocess_index]->SRV() };
+		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srv_array);
+		command_context->SetInputLayout(nullptr);
+		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
+		ShaderManager::GetShaderProgram(ShaderProgram::FilmEffects)->Bind(command_context);
+		command_context->Draw(4);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, 1);
+	}
 	void Renderer::PassToneMap()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
