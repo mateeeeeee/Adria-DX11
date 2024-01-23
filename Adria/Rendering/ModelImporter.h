@@ -3,7 +3,7 @@
 #include <array>
 #include <vector>
 #include "Components.h"
-#include "Core/CoreTypes.h"
+#include "Core/Paths.h"
 #include "Math/ComputeNormals.h"
 #include "Utilities/Heightmap.h"
 #include "tecs/entity.h"
@@ -123,7 +123,7 @@ namespace adria
         float end_size = 5.0f;
         float mass = 0.0003f;
         float particles_per_second = 100.0f;
-        std::string texture_path = "Resources/Textures/Particles/fire.png";
+        std::string texture_path = paths::TexturesDir() + "Particles/fire.png";
         bool blend = true;
         bool collisions = false;
         int32 collision_thickness = 40;
@@ -132,8 +132,8 @@ namespace adria
     struct DecalParameters
     {
         std::string name = "Decal";
-        std::string albedo_texture_path = "Resources/Textures/Decals/Decal_00_Albedo.tga";
-        std::string normal_texture_path = "Resources/Textures/Decals/Decal_00_Normal.png";
+        std::string albedo_texture_path = paths::TexturesDir() + "Decals/Decal_00_Albedo.tga";
+        std::string normal_texture_path = paths::TexturesDir() + "Decals/Decal_00_Normal.png";
         float rotation = 0.0f;
         float size = 50.0f;
         DecalType decal_type = DecalType::Project_XY;

@@ -2,6 +2,7 @@
 #include "GfxShaderCompiler.h"
 #include "GfxInputLayout.h"
 #include "Core/Logger.h" 
+#include "Core/Paths.h" 
 #include "Utilities/HashUtil.h"
 #include "Utilities/StringUtil.h"
 #include "Utilities/FilesUtil.h"
@@ -11,8 +12,8 @@ namespace adria
 {
 	namespace 
 	{
-		inline static char const* shaders_cache_directory = "Resources/ShaderCache/";
-		inline static char const* shaders_common_directory = "Resources/Shaders/";
+		inline static std::string shaders_cache_directory = paths::ShaderCacheDir();
+		inline static std::string shaders_common_directory = paths::ShaderDir();
 
 		class CShaderInclude : public ID3DInclude
 		{
@@ -26,11 +27,6 @@ namespace adria
 				void const** pp_data,
 				uint32* bytes)
 			{
-				if (strcmp(filename, "CommonData.hlsli") == 0)
-				{
-					shader_dir = shader_dir;
-				}
-
 				fs::path final_path;
 				switch (include_type)
 				{
@@ -168,7 +164,7 @@ namespace adria
 
 			std::string build_string = input.flags & GfxShaderCompilerFlagBit_Debug ? "debug" : "release";
 			char cache_path[256];
-			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", shaders_cache_directory,
+			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", shaders_cache_directory.c_str(),
 				GetFilenameWithoutExtension(input.source_file).c_str(), default_entrypoint.c_str(), macro_hash, build_string.c_str());
 
 			if (CheckCache(cache_path, input, output)) return true;

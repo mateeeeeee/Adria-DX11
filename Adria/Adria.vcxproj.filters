@@ -186,7 +186,12 @@
     <ClCompile Include="Utilities\StringUtil.cpp">
       <Filter>Utilities</Filter>
     </ClCompile>
-    <ClCompile Include="Editor\EditorLogger.cpp" />
+    <ClCompile Include="Core\Paths.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor\EditorLogger.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\CoreTypes.h">
@@ -465,6 +470,9 @@
     </ClInclude>
     <ClInclude Include="Editor\EditorLogger.h">
       <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Paths.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

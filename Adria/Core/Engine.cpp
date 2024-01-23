@@ -2,6 +2,7 @@
 #include "Window.h"
 #include "Math/Constants.h"
 #include "Core/Logger.h"
+#include "Core/Paths.h"
 #include "Editor/GUI.h"
 #include "Graphics/GfxDevice.h"
 #include "Rendering/Renderer.h"
@@ -37,7 +38,7 @@ namespace adria
 			json models, lights, camera, skybox;
 			try
 			{
-				JsonParams scene_params = json::parse(std::ifstream(scene_file));
+				JsonParams scene_params = json::parse(std::ifstream(paths::IniDir() + scene_file));
 				models = scene_params.FindJsonArray("models");
 				lights = scene_params.FindJsonArray("lights");
 				camera = scene_params.FindJson("camera");
@@ -189,7 +190,7 @@ namespace adria
 				{
 					ADRIA_LOG(WARNING, "Skybox texture not found or is incorrectly specified!  \
 										Size of texture array has to be either 1 or 6! Fallback to the default one...");
-					config.skybox_params.cubemap = L"Resources/Textures/Skybox/sunsetcube1024.dds";
+					config.skybox_params.cubemap = ToWideString(paths::TexturesDir()) + L"Skybox/sunsetcube1024.dds";
 				}
 			}
 

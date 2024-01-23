@@ -5,6 +5,7 @@
 #include <filesystem>
 #include "ShaderManager.h"
 #include "Core/Logger.h"
+#include "Core/Paths.h"
 #include "Graphics/GfxShaderProgram.h"
 #include "Graphics/GfxShaderCompiler.h"
 #include "Graphics/GfxDevice.h"
@@ -512,7 +513,7 @@ namespace adria
 #else
 			input.flags = GfxShaderCompilerFlagBit_None;
 #endif
-			input.source_file = "Resources/Shaders/" + GetShaderSource(shader);
+			input.source_file = paths::ShaderDir() + GetShaderSource(shader);
 			input.stage = GetStage(shader);
 			input.macros = GetShaderMacros(shader);
 
@@ -678,7 +679,7 @@ namespace adria
 		device = _device;
 		file_watcher = std::make_unique<FileWatcher>();
 		CompileAllShaders();
-		file_watcher->AddPathToWatch("Resources/Shaders/");
+		file_watcher->AddPathToWatch(paths::ShaderDir());
 		std::ignore = file_watcher->GetFileModifiedEvent().Add(OnShaderFileChanged);
 	}
 	void ShaderManager::Destroy()

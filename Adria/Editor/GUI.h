@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 
 namespace adria
 {
@@ -18,6 +19,7 @@ namespace adria
 		bool IsVisible() const;
 
 	private:
+		std::string ini_file;
 		bool visible = true;
 	};
 }
