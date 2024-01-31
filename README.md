@@ -18,7 +18,7 @@ Graphics engine written in C++/DirectX11. For successful build you will need tex
     - Directional lights with shadow maps
     - Directional lights with cascade shadow maps
     - Point and Spot Lights 
-* HDR and Tone Mapping
+* HDR and Tone Mapping (Hable, Reinhard, Tony McMapface)
 * Bloom
 * Depth Of Field + Bokeh  
     - Bokeh shapes supported - Hexagon, Octagon, Circle, Cross
