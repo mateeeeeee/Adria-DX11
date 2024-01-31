@@ -65,6 +65,7 @@ namespace adria
 		PS_ToneMap_Reinhard,
 		PS_ToneMap_Linear,
 		PS_ToneMap_Hable,
+		PS_ToneMap_TonyMcMapface,
 		PS_FXAA,
 		PS_TAA,
 		PS_CopyTextures,
@@ -149,6 +150,7 @@ namespace adria
 		ToneMap_Reinhard,
 		ToneMap_Hable,
 		ToneMap_Linear,
+		ToneMap_TonyMcMapface,
 		FXAA,
 		TAA,
 		Copy,
@@ -212,7 +214,8 @@ namespace adria
 	{
 		Reinhard,
 		Hable,
-		Linear
+		Linear,
+		TonyMcMapface
 	};
 
 	enum class LightType : int32

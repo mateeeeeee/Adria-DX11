@@ -489,6 +489,8 @@ namespace adria
 		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare6.jpg");
 		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
+
+
 		clouds_textures.resize(3);
 
 		ID3D11Device* device = gfx->GetDevice();
@@ -513,6 +515,7 @@ namespace adria
 		circle_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Circle.dds");
 		cross_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Cross.dds");
 
+		lut_tony_mcmapface_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "tony_mc_mapface.dds");
 	}
 	void Renderer::CreateBuffers()
 	{
@@ -3196,6 +3199,10 @@ namespace adria
 			break;
 		case ToneMap::Hable:
 			ShaderManager::GetShaderProgram(ShaderProgram::ToneMap_Hable)->Bind(command_context);
+			break;
+		case ToneMap::TonyMcMapface:
+			command_context->SetShaderResourceRO(GfxShaderStage::PS, 1, g_TextureManager.GetTextureView(lut_tony_mcmapface_handle));
+			ShaderManager::GetShaderProgram(ShaderProgram::ToneMap_TonyMcMapface)->Bind(command_context);
 			break;
 		default:
 			ADRIA_ASSERT(false && "Unsupported Basic effect!");

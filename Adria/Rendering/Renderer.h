@@ -148,6 +148,7 @@ namespace adria
 		std::array<Vector4, SSAO_KERNEL_SIZE> ssao_kernel{};
 		std::vector<GfxShaderResourceRO> lens_flare_textures;
 		std::vector<GfxShaderResourceRO> clouds_textures;
+		TextureHandle lut_tony_mcmapface_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle hex_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle oct_bokeh_handle = INVALID_TEXTURE_HANDLE;
 		TextureHandle circle_bokeh_handle = INVALID_TEXTURE_HANDLE;

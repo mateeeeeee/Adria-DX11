@@ -78,6 +78,7 @@ namespace adria
 			case PS_ToneMap_Reinhard:
 			case PS_ToneMap_Linear:
 			case PS_ToneMap_Hable:
+			case PS_ToneMap_TonyMcMapface:
 			case PS_FXAA:
 			case PS_TAA:
 			case PS_CopyTextures:
@@ -175,6 +176,7 @@ namespace adria
 			case PS_ToneMap_Reinhard:
 			case PS_ToneMap_Linear:
 			case PS_ToneMap_Hable:
+			case PS_ToneMap_TonyMcMapface:
 				return "Postprocess/ToneMap.hlsl";
 			case PS_FXAA:
 				return "Postprocess/FXAA.hlsl";
@@ -354,6 +356,7 @@ namespace adria
 			case PS_ToneMap_Reinhard:
 			case PS_ToneMap_Linear:
 			case PS_ToneMap_Hable:
+			case PS_ToneMap_TonyMcMapface:
 				return "ToneMap";
 			case PS_MotionVectors:
 				return "MotionVectors";
@@ -493,6 +496,8 @@ namespace adria
 				return { {"LINEAR", "1" } };
 			case PS_ToneMap_Hable:
 				return { {"HABLE", "1" } };
+			case PS_ToneMap_TonyMcMapface:
+				return { {"TONY_MCMAPFACE", "1" } };
 			case VS_ShadowTransparent:
 			case PS_ShadowTransparent:
 				return { {"TRANSPARENT", "1"} };
@@ -585,6 +590,7 @@ namespace adria
 			gfx_shader_program_map[ShaderProgram::ToneMap_Reinhard].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Reinhard].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::ToneMap_Linear].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Linear].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::ToneMap_Hable].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_Hable].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
+			gfx_shader_program_map[ShaderProgram::ToneMap_TonyMcMapface].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_ToneMap_TonyMcMapface].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 			gfx_shader_program_map[ShaderProgram::FilmEffects].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_FilmEffects].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());
 
 			gfx_shader_program_map[ShaderProgram::FXAA].SetVertexShader(vs_shader_map[VS_FullscreenQuad].get()).SetPixelShader(ps_shader_map[PS_FXAA].get()).SetInputLayout(input_layout_map[VS_FullscreenQuad].get());

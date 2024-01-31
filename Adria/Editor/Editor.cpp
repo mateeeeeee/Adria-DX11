@@ -1560,7 +1560,7 @@ namespace adria
                 if (ImGui::TreeNodeEx("Tone Mapping", 0))
                 {
                     ImGui::SliderFloat("Exposure", &renderer_settings.tone_map_exposure, 0.01f, 10.0f);
-                    static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR" };
+                    static char const* const operators[] = { "REINHARD", "HABLE", "LINEAR", "TONY MCMAPFACE" };
                     static int tone_map_operator = static_cast<int>(renderer_settings.tone_map_op);
                     ImGui::ListBox("Tone Map Operator", &tone_map_operator, operators, IM_ARRAYSIZE(operators));
                     renderer_settings.tone_map_op = static_cast<ToneMap>(tone_map_operator);
