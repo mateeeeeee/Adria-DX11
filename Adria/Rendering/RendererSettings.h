@@ -6,7 +6,7 @@ namespace adria
 
 	struct RendererSettings
 	{
-		float ambient_color[3] = { 15.0f / 255.0f, 15.0f / 255.0f, 15.0f / 255.0f };
+		float ambient_color[3] = { 2.0f / 255.0f, 2.0f / 255.0f, 2.0f / 255.0f };
 		float wind_direction[2] = { 10.0f, 10.0f };
 
 		bool fog = false;
