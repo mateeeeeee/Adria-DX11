@@ -399,11 +399,11 @@ namespace adria
 
 					params.terrain_grid = std::move(terrain_params);
                     params.layer_params = layer_params;
-					params.grass_texture = paths::TexturesDir() + "Terrain/terrain_grass.dds";
-					params.rock_texture =  paths::TexturesDir() + "Terrain/grass2.dds";
-					params.base_texture =  paths::TexturesDir() + "Terrain/terrain_grass.dds";
-					params.sand_texture =  paths::TexturesDir() + "Terrain/mud.jpg";
-					params.layer_texture = paths::TexturesDir() + "layer.tga";
+					params.grass_texture = paths::TexturesDir() + "Terrain/grass2.dds";
+					params.rock_texture =  paths::TexturesDir() + "Terrain/rock.dds";
+					params.base_texture =  paths::TexturesDir() + "Terrain/darkdirt.dds";
+					params.sand_texture =  paths::TexturesDir() + "Terrain/sand2.jpg";
+					params.layer_texture = paths::TexturesDir() + "Terrain/layer.tga";
 
 					engine->model_importer->LoadTerrain(params);
 				}
