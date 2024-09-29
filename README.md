@@ -5,30 +5,20 @@
 Graphics engine written in C++/DirectX11.
 
 ## Features
-* Deferred + forward rendering 
-* Tiled deferred rendering 
-* Clustered deferred rendering
+* Tiled and Clustered deferred rendering 
 * Physically based shading
-* Image based lighting
-* Normal mapping
 * Shadows
     - PCF Shadows for directional, spot and point lights
     - Cascade shadow maps for directional lights
-* Volumetric Lighting
-    - Directional lights with shadow maps
-    - Directional lights with cascade shadow maps
-    - Point and Spot Lights 
+* Volumetric Lighting (2D Raymarching)
 * HDR and Tone Mapping (Hable, Reinhard, Tony McMapface)
 * Bloom
 * Depth Of Field + Bokeh  
-    - Bokeh shapes supported - Hexagon, Octagon, Circle, Cross
 * Ambient Occlusion: SSAO, HBAO
 * Film effects: Lens distortion, Chromatic aberration, Vignette, Film grain
 * SSR
-* SSCS
 * Deferred decals
-* FXAA
-* TAA
+* Antialiasing: FXAA, TAA
 * God rays
 * Lens flare
 * Fog
@@ -40,27 +30,9 @@ Graphics engine written in C++/DirectX11.
 * Procedural terrain with instanced foliage and trees
 * Hosek-Wilkie sky model
 * Particles
-* ImGui editor
-* Model loading with tinygltf
+* Editor
 * Profiler
 * Shader hot reloading
-* ECS
-
-
-## Dependencies
-[tinygltf](https://github.com/syoyo/tinygltf)
-
-[ImGui](https://github.com/ocornut/imgui)
-
-[ImGuizmo](https://github.com/CedricGuillemet/ImGuizmo)
-
-[ImGuiFileDialog](https://github.com/aiekick/ImGuiFileDialog)
-
-[stb](https://github.com/nothings/stb)
-
-[FastNoiseLite](https://github.com/Auburn/FastNoiseLite)
-
-[json](https://github.com/nlohmann/json)
 
 ## Screenshots
 
@@ -72,17 +44,6 @@ Graphics engine written in C++/DirectX11.
   <tr>
     <td><img src="Screenshots/tiled.png"></td>
     <td><img src="Screenshots/tiled_visualization.png"></td>
-  </tr>
- </table>
- 
- <table>
-  <tr>
-     <td>Voxel Cone Tracing Global Illumination</td>
-     <td>Voxelized Scene</td>
-     </tr>
-  <tr>
-    <td><img src="Screenshots/gi.png"></td>
-    <td><img src="Screenshots/gi_debug.png"></td>
   </tr>
  </table>
  
