@@ -55,7 +55,7 @@ int APIENTRY wWinMain(
         EngineInit engine_init{};
         engine_init.vsync = vsync;
 		engine_init.window = &window;
-        engine_init.scene_file = scene.AsStringOr("brutalism.json");
+        engine_init.scene_file = scene.AsStringOr("sponza.json");
 
         EditorInit editor_init{};
         editor_init.engine_init = std::move(engine_init);

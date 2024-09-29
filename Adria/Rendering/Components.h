@@ -3,7 +3,6 @@
 #include "Enums.h"
 #include "Terrain.h"
 #include "TextureManager.h"
-#include "Core/CoreTypes.h"
 #include "Math/Constants.h"
 #include "Graphics/GfxVertexFormat.h"
 #include "Graphics/GfxBuffer.h"

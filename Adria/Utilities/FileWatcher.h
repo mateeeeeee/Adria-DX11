@@ -2,7 +2,6 @@
 #include <filesystem>
 #include <chrono>
 #include "HashMap.h"
-#include "Core/CoreTypes.h"
 #include "Utilities/Delegate.h"
 
 namespace fs = std::filesystem;

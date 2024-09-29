@@ -28,14 +28,15 @@
   "lights": [
     {
       "type": "directional",
-      "color": [ 1.0, 0.9, 0.99 ],
-      "direction": [ 0.1, -1.0, 0.25 ],
+      "color": [ 1.0, 1.0, 1.0 ],
+      "direction": [ 0.14, -0.04, -0.03 ],
       "energy": 8.0,
       "shadows": true,
       "cascades": true,
-      "volumetric": false,
+      "volumetric": true,
+      "lens_flare": true,
       "mesh": "quad",
-      "size": 250
+      "size": 150
     }
   ]
 }		

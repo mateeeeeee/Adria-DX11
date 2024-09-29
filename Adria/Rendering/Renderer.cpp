@@ -1816,7 +1816,7 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Ambient Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Ambient Pass");
 
-		GfxShaderResourceRO srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(),gbuffer[GBufferSlot_DiffuseRoughness]->SRV(), depth_target->SRV(), gbuffer[GBufferSlot_Emissive]->SRV() };
+		GfxShaderResourceRO srvs[] = { gbuffer[GBufferSlot_NormalMetallic]->SRV(), gbuffer[GBufferSlot_DiffuseRoughness]->SRV(), depth_target->SRV(), gbuffer[GBufferSlot_Emissive]->SRV() };
 		command_context->SetShaderResourcesRO(GfxShaderStage::PS, 0, srvs);
 
 		command_context->BeginRenderPass(ambient_pass);
