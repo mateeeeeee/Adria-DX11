@@ -173,7 +173,7 @@ namespace adria
 
 	private:
 		GfxDevice* gfx;
-		ArcPtr<ID3D11Resource> resource;
+		Ref<ID3D11Resource> resource;
 		GfxTextureDesc desc;
 		std::vector<GfxArcShaderResourceRO> srvs;
 		std::vector<GfxArcShaderResourceRW> uavs;
@@ -291,7 +291,7 @@ namespace adria
 					srv_desc.Texture3D.MipLevels = mip_count;
 				}
 
-				ArcPtr<ID3D11ShaderResourceView> srv;
+				Ref<ID3D11ShaderResourceView> srv;
 				HRESULT hr = device->CreateShaderResourceView(resource.Get(), &srv_desc, srv.GetAddressOf());
 				if (SUCCEEDED(hr))
 				{
@@ -361,7 +361,7 @@ namespace adria
 					uav_desc.Texture3D.WSize = -1;
 				}
 
-				ArcPtr<ID3D11UnorderedAccessView> uav;
+				Ref<ID3D11UnorderedAccessView> uav;
 				HRESULT hr = device->CreateUnorderedAccessView(resource.Get(), &uav_desc, uav.GetAddressOf());
 				if (SUCCEEDED(hr))
 				{
@@ -447,7 +447,7 @@ namespace adria
 					rtv_desc.Texture3D.WSize = -1;
 				}
 
-				ArcPtr<ID3D11RenderTargetView> rtv;
+				Ref<ID3D11RenderTargetView> rtv;
 				HRESULT hr = device->CreateRenderTargetView(resource.Get(), &rtv_desc, rtv.GetAddressOf());
 				if (SUCCEEDED(hr))
 				{
@@ -526,7 +526,7 @@ namespace adria
 					}
 				}
 
-				ArcPtr<ID3D11DepthStencilView> dsv;
+				Ref<ID3D11DepthStencilView> dsv;
 				HRESULT hr = device->CreateDepthStencilView(resource.Get(), &dsv_desc, dsv.GetAddressOf());
 				if (SUCCEEDED(hr))
 				{

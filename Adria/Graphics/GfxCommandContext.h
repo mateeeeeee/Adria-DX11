@@ -117,8 +117,8 @@ namespace adria
 	private:
 		GfxDevice* gfx = nullptr;
 		uint32 frame_count = 0;
-		ArcPtr<ID3D11DeviceContext4> command_context = nullptr;
-		ArcPtr<ID3DUserDefinedAnnotation> annotation = nullptr;
+		Ref<ID3D11DeviceContext4> command_context = nullptr;
+		Ref<ID3DUserDefinedAnnotation> annotation = nullptr;
 
 		GfxVertexShader* current_vs = nullptr;
 		GfxPixelShader* current_ps = nullptr;

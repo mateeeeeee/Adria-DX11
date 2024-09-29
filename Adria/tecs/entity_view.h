@@ -4,8 +4,6 @@
 #include <array>
 #include <algorithm>
 
-//move to template util
-
 namespace adria::tecs
 {
 

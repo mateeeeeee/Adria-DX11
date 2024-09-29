@@ -8,7 +8,7 @@ namespace adria
 {
 	static inline void ReportLiveObjects()
 	{
-		ArcPtr<IDXGIDebug1> dxgi_debug;
+		Ref<IDXGIDebug1> dxgi_debug;
 		if (SUCCEEDED(DXGIGetDebugInterface1(0, IID_PPV_ARGS(dxgi_debug.GetAddressOf()))))
 		{
 			dxgi_debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_FLAGS(DXGI_DEBUG_RLO_SUMMARY | DXGI_DEBUG_RLO_IGNORE_INTERNAL));
@@ -66,11 +66,11 @@ namespace adria
 		command_context->Create(context);
 		
 #if defined(_DEBUG)
-		ArcPtr<ID3D11Debug> d3d_debug;
+		Ref<ID3D11Debug> d3d_debug;
 		hr = device.As(&d3d_debug);
 		if (SUCCEEDED(hr))
 		{
-			ArcPtr<ID3D11InfoQueue> d3d_info_queue;
+			Ref<ID3D11InfoQueue> d3d_info_queue;
 			hr = d3d_debug.As(&d3d_info_queue);
 			if (SUCCEEDED(hr))
 			{
@@ -143,7 +143,7 @@ namespace adria
 		if (backbuffer_rtv) backbuffer_rtv->Release();
 		GFX_CHECK_HR(swapchain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0));
 
-		ArcPtr<ID3D11Texture2D> p_buffer = nullptr;
+		Ref<ID3D11Texture2D> p_buffer = nullptr;
 		GFX_CHECK_HR(swapchain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)p_buffer.GetAddressOf()));
 		GFX_CHECK_HR(device->CreateRenderTargetView(p_buffer.Get(), nullptr, backbuffer_rtv.GetAddressOf()));
 

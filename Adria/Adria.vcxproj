@@ -323,7 +323,8 @@
     <None Include="Resources\Shaders\Util\ShadowUtil.hlsli" />
     <None Include="Resources\Shaders\Util\ToneMapUtil.hlsli" />
     <None Include="Resources\Shaders\Util\VoxelUtil.hlsli" />
-    <None Include="scene.json" />
+    <None Include="Saved\Scenes\brutalism.json" />
+    <None Include="Saved\Scenes\sponza.json" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\Shaders\GBuffer\Decal.hlsl">

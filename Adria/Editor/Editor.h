@@ -10,7 +10,7 @@ namespace adria
 {
     struct Material;
     struct WindowEventData;
-    struct EditorLogger;
+    class EditorLogger;
     
 	struct EditorInit
 	{

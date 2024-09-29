@@ -214,7 +214,7 @@ namespace adria
 	private:
 		GfxDevice* gfx;
 		GfxBufferDesc desc;
-		ArcPtr<ID3D11Buffer> resource;
+		Ref<ID3D11Buffer> resource;
 		std::vector<GfxArcShaderResourceRO> srvs;
 		std::vector<GfxArcShaderResourceRW> uavs;
 
@@ -255,7 +255,7 @@ namespace adria
 					srv_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / stride;
 				}
 
-				ArcPtr<ID3D11ShaderResourceView> srv;
+				Ref<ID3D11ShaderResourceView> srv;
 				hr = device->CreateShaderResourceView(resource.Get(), &srv_desc, srv.GetAddressOf());
 
 				if (SUCCEEDED(hr))
@@ -302,7 +302,7 @@ namespace adria
 					uav_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / stride;
 				}
 
-				ArcPtr<ID3D11UnorderedAccessView> uav;
+				Ref<ID3D11UnorderedAccessView> uav;
 				hr = device->CreateUnorderedAccessView(resource.Get(), &uav_desc, uav.GetAddressOf());
 
 				if (SUCCEEDED(hr))

@@ -68,6 +68,9 @@
     <Filter Include="Utilities">
       <UniqueIdentifier>{9aa33f13-72ca-4cae-b98b-33ce9f2852a9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Scenes">
+      <UniqueIdentifier>{a2e8f493-42de-4e1f-83dc-410168eb9f92}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
@@ -501,7 +504,6 @@
     <None Include="Resources\Shaders\Util\VoxelUtil.hlsli">
       <Filter>Shaders\Util</Filter>
     </None>
-    <None Include="scene.json" />
     <None Include="..\README.md" />
     <None Include="..\ThirdParty\SimpleMath\SimpleMath.inl">
       <Filter>External\SimpleMath</Filter>
@@ -520,6 +522,12 @@
     </None>
     <None Include="Resources\Shaders\Particles\ParticleUtil.hlsli">
       <Filter>Shaders\Particles</Filter>
+    </None>
+    <None Include="Saved\Scenes\sponza.json">
+      <Filter>Scenes</Filter>
+    </None>
+    <None Include="Saved\Scenes\brutalism.json">
+      <Filter>Scenes</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

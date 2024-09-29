@@ -37,7 +37,7 @@ namespace adria
 		operator ID3D11VertexShader*() const { return vs.Get(); }
 
 	private:
-		ArcPtr<ID3D11VertexShader> vs = nullptr;
+		Ref<ID3D11VertexShader> vs = nullptr;
 	};
 
 	class GfxPixelShader final : public GfxShader
@@ -49,7 +49,7 @@ namespace adria
 		operator ID3D11PixelShader* () const { return ps.Get(); }
 
 	private:
-		ArcPtr<ID3D11PixelShader> ps = nullptr;
+		Ref<ID3D11PixelShader> ps = nullptr;
 	};
 
 	class GfxGeometryShader final : public GfxShader
@@ -61,7 +61,7 @@ namespace adria
 		operator ID3D11GeometryShader* () const { return gs.Get(); }
 
 	private:
-		ArcPtr<ID3D11GeometryShader> gs = nullptr;
+		Ref<ID3D11GeometryShader> gs = nullptr;
 	};
 
 	class GfxDomainShader final : public GfxShader
@@ -73,7 +73,7 @@ namespace adria
 		operator ID3D11DomainShader* () const { return ds.Get(); }
 
 	private:
-		ArcPtr<ID3D11DomainShader> ds = nullptr;
+		Ref<ID3D11DomainShader> ds = nullptr;
 	};
 
 	class GfxHullShader final : public GfxShader
@@ -85,7 +85,7 @@ namespace adria
 		operator ID3D11HullShader* () const { return hs.Get(); }
 
 	private:
-		ArcPtr<ID3D11HullShader> hs = nullptr;
+		Ref<ID3D11HullShader> hs = nullptr;
 	};
 
 	class GfxComputeShader final : public GfxShader
@@ -97,7 +97,7 @@ namespace adria
 		operator ID3D11ComputeShader* () const { return cs.Get(); }
 
 	private:
-		ArcPtr<ID3D11ComputeShader> cs = nullptr;
+		Ref<ID3D11ComputeShader> cs = nullptr;
 	};
 
 	struct GfxShaderProgram

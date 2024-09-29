@@ -468,35 +468,33 @@ namespace adria
 	void Renderer::LoadTextures()
 	{
 		TextureHandle tex_handle{};
-		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare0.jpg");
+		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "lensflare/flare0.jpg");
 		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare1.jpg");
+		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "lensflare/flare1.jpg");
 		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare2.jpg");
+		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "lensflare/flare2.jpg");
 		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare3.jpg");
+		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "lensflare/flare3.jpg");
 		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare4.jpg");
+		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "lensflare/flare4.jpg");
 		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare5.jpg");
+		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "lensflare/flare5.jpg");
 		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
 
-		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "lensflare/flare6.jpg");
+		tex_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "lensflare/flare6.jpg");
 		lens_flare_textures.push_back(g_TextureManager.GetTextureView(tex_handle));
-
-
 
 		clouds_textures.resize(3);
 
 		ID3D11Device* device = gfx->GetDevice();
 		ID3D11DeviceContext* context = gfx->GetContext();
 
-		std::wstring cloud_textures_path = ToWideString(paths::TexturesDir() + "clouds/");
+		std::wstring cloud_textures_path = ToWideString(paths::TexturesDir + "clouds/");
 		std::wstring weather = cloud_textures_path + L"weather.dds";
 		std::wstring cloud = cloud_textures_path   + L"cloud.dds";
 		std::wstring worley = cloud_textures_path + L"worley.dds";
@@ -507,15 +505,15 @@ namespace adria
 		hr = CreateDDSTextureFromFile(device, context, worley.c_str(), nullptr, &clouds_textures[2]);
 		GFX_CHECK_HR(hr);
 
-		foam_handle		= g_TextureManager.LoadTexture(paths::TexturesDir() + "foam.jpg");
-		perlin_handle	= g_TextureManager.LoadTexture(paths::TexturesDir() + "perlin.dds");
+		foam_handle		= g_TextureManager.LoadTexture(paths::TexturesDir + "foam.jpg");
+		perlin_handle	= g_TextureManager.LoadTexture(paths::TexturesDir + "perlin.dds");
 
-		hex_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Hex.dds");
-		oct_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Oct.dds");
-		circle_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Circle.dds");
-		cross_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "bokeh/Bokeh_Cross.dds");
+		hex_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "bokeh/Bokeh_Hex.dds");
+		oct_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "bokeh/Bokeh_Oct.dds");
+		circle_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "bokeh/Bokeh_Circle.dds");
+		cross_bokeh_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "bokeh/Bokeh_Cross.dds");
 
-		lut_tony_mcmapface_handle = g_TextureManager.LoadTexture(paths::TexturesDir() + "tony_mc_mapface.dds");
+		lut_tony_mcmapface_handle = g_TextureManager.LoadTexture(paths::TexturesDir + "tony_mc_mapface.dds");
 	}
 	void Renderer::CreateBuffers()
 	{

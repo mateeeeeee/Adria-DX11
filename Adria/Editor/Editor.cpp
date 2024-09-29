@@ -399,11 +399,11 @@ namespace adria
 
 					params.terrain_grid = std::move(terrain_params);
                     params.layer_params = layer_params;
-					params.grass_texture = paths::TexturesDir() + "Terrain/grass2.dds";
-					params.rock_texture =  paths::TexturesDir() + "Terrain/rock.dds";
-					params.base_texture =  paths::TexturesDir() + "Terrain/darkdirt.dds";
-					params.sand_texture =  paths::TexturesDir() + "Terrain/sand2.jpg";
-					params.layer_texture = paths::TexturesDir() + "Terrain/layer.tga";
+					params.grass_texture = paths::TexturesDir + "Terrain/grass2.dds";
+					params.rock_texture =  paths::TexturesDir + "Terrain/rock.dds";
+					params.base_texture =  paths::TexturesDir + "Terrain/darkdirt.dds";
+					params.sand_texture =  paths::TexturesDir + "Terrain/sand2.jpg";
+					params.layer_texture = paths::TexturesDir + "Terrain/layer.tga";
 
 					engine->model_importer->LoadTerrain(params);
 				}
@@ -447,18 +447,18 @@ namespace adria
 					if (ImGui::Button("Add Foliage"))
 					{
 						static std::string foliage_textures[] = {
-							paths::TexturesDir() + "Foliage/foliage.png",
-                            paths::TexturesDir() + "Foliage/foliage2.png",
-							paths::TexturesDir() + "Foliage/foliage3.png",
-							paths::TexturesDir() + "Foliage/foliage4.png",
-							paths::TexturesDir() + "Foliage/grass_flower_type1.png",
-							paths::TexturesDir() + "Foliage/grass_flower_type3.png",
-							paths::TexturesDir() + "Foliage/grass_flower_type10.png",
-							paths::TexturesDir() + "Foliage/grass_type1.png",
-							paths::TexturesDir() + "Foliage/grass_type2.png",
-							paths::TexturesDir() + "Foliage/grass_type3.png",
-							paths::TexturesDir() + "Foliage/grass_type4.png",
-							paths::TexturesDir() + "Foliage/grass_type6.png",
+							paths::TexturesDir + "Foliage/foliage.png",
+                            paths::TexturesDir + "Foliage/foliage2.png",
+							paths::TexturesDir + "Foliage/foliage3.png",
+							paths::TexturesDir + "Foliage/foliage4.png",
+							paths::TexturesDir + "Foliage/grass_flower_type1.png",
+							paths::TexturesDir + "Foliage/grass_flower_type3.png",
+							paths::TexturesDir + "Foliage/grass_flower_type10.png",
+							paths::TexturesDir + "Foliage/grass_type1.png",
+							paths::TexturesDir + "Foliage/grass_type2.png",
+							paths::TexturesDir + "Foliage/grass_type3.png",
+							paths::TexturesDir + "Foliage/grass_type4.png",
+							paths::TexturesDir + "Foliage/grass_type6.png",
 						};
 						static IntRandomGenerator<uint64> index(0ll, ARRAYSIZE(foliage_textures) - 1);
 

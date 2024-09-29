@@ -3,20 +3,19 @@
 
 namespace adria::paths
 {
-	std::string MainDir();
-	std::string ResourcesDir();
-	std::string SavedDir();
-	std::string ConfigDir();
-	std::string ToolsDir();
-
-	std::string FontsDir();
-	std::string IconsDir();
-	std::string ShaderDir();
-	std::string TexturesDir();
-	std::string ModelsDir();
-
-	std::string LogDir();
-	std::string ScreenshotsDir();
-	std::string ShaderCacheDir();
-	std::string IniDir();
+	extern std::string const MainDir;
+	extern std::string const ResourcesDir;
+	extern std::string const SavedDir;
+	extern std::string const ConfigDir;
+	extern std::string const ToolsDir;
+	extern std::string const FontsDir;
+	extern std::string const IconsDir;
+	extern std::string const ShaderDir;
+	extern std::string const TexturesDir;
+	extern std::string const ModelsDir;
+	extern std::string const LogDir;
+	extern std::string const ScreenshotsDir;
+	extern std::string const ShaderCacheDir;
+	extern std::string const IniDir;
+	extern std::string const ScenesDir;
 }

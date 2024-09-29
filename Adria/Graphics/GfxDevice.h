@@ -35,11 +35,11 @@ namespace adria
 	private:
 		Window* window;
 		uint32 width, height;
-		ArcPtr<ID3D11Device3> device = nullptr;
-		ArcPtr<IDXGISwapChain> swapchain = nullptr;
+		Ref<ID3D11Device3> device = nullptr;
+		Ref<IDXGISwapChain> swapchain = nullptr;
 		std::unique_ptr<GfxCommandContext> command_context;
-		ArcPtr<ID3D11Texture2D> backbuffer = nullptr;
-		ArcPtr<ID3D11RenderTargetView> backbuffer_rtv = nullptr;
+		Ref<ID3D11Texture2D> backbuffer = nullptr;
+		Ref<ID3D11RenderTargetView> backbuffer_rtv = nullptr;
 
 	private:
 

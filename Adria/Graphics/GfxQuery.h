@@ -25,7 +25,7 @@ namespace adria
 		}
 
 	private:
-		ArcPtr<ID3D11Query> query;
+		Ref<ID3D11Query> query;
 	};
 
 	struct QueryDataTimestampDisjoint

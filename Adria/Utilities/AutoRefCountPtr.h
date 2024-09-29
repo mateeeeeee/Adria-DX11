@@ -223,5 +223,5 @@ namespace adria
 	};    // AutoRefCountPtr
 
 	template <typename T>
-	using ArcPtr = AutoRefCountPtr<T>;
+	using Ref = AutoRefCountPtr<T>;
 }

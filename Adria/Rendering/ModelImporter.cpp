@@ -715,7 +715,7 @@ namespace adria
 						aabb.light_visible = true;
 						aabb.camera_visible = true;
 						aabb.UpdateBuffer(gfx);
-						reg.add<AABB>(e, aabb);
+						reg.emplace<AABB>(e, aabb);
 						reg.emplace<Transform>(e, model, model);
 					}
 				}
@@ -808,7 +808,7 @@ namespace adria
             if (params.light_texture.has_value())
                 material.albedo_texture = g_TextureManager.LoadTexture(params.light_texture.value()); //
             else if(params.light_data.type == LightType::Directional)
-                material.albedo_texture = g_TextureManager.LoadTexture(paths::TexturesDir() + "sun.png");
+                material.albedo_texture = g_TextureManager.LoadTexture(paths::TexturesDir + "sun.png");
 
             if (params.light_data.type == LightType::Directional)
                 material.shader = ShaderProgram::Sun;
@@ -974,16 +974,16 @@ namespace adria
 		switch (params.mesh_texture_pair.first)
 		{
 		case FoliageMesh::SingleQuad:
-			foliages = LoadObjMesh(paths::ModelsDir() + "Foliage/foliagequad_single.obj");
+			foliages = LoadObjMesh(paths::ModelsDir + "Foliage/foliagequad_single.obj");
 			break;
 		case FoliageMesh::DoubleQuad:
-			foliages = LoadObjMesh(paths::ModelsDir() + "Foliage/foliagequad_double.obj");
+			foliages = LoadObjMesh(paths::ModelsDir + "Foliage/foliagequad_double.obj");
 			break;
 		case FoliageMesh::TripleQuad:
-			foliages = LoadObjMesh(paths::ModelsDir() + "Foliage/foliagequad_triple.obj");
+			foliages = LoadObjMesh(paths::ModelsDir + "Foliage/foliagequad_triple.obj");
 			break;
 		default:
-			foliages = LoadObjMesh(paths::ModelsDir() + "Foliage/foliagequad_single.obj");
+			foliages = LoadObjMesh(paths::ModelsDir + "Foliage/foliagequad_single.obj");
 			break;
 		}
 		ADRIA_ASSERT(foliages.size() == 1);
@@ -1054,13 +1054,13 @@ namespace adria
         switch (params.tree_type)
         {
         case TreeType::Tree01:
-            trees = LoadObjMesh(paths::ModelsDir() + "Trees/Tree01/tree01.obj", &diffuse_textures);
-            texture_path = paths::ModelsDir() + "Trees/Tree01/";
+            trees = LoadObjMesh(paths::ModelsDir + "Trees/Tree01/tree01.obj", &diffuse_textures);
+            texture_path = paths::ModelsDir + "Trees/Tree01/";
             break;
         case TreeType::Tree02:
         default:
-            trees = LoadObjMesh(paths::ModelsDir() + "Trees/Tree02/tree02.obj", &diffuse_textures);
-            texture_path = paths::ModelsDir() + "Trees/Tree02/";
+            trees = LoadObjMesh(paths::ModelsDir + "Trees/Tree02/tree02.obj", &diffuse_textures);
+            texture_path = paths::ModelsDir + "Trees/Tree02/";
         }
 
         ADRIA_ASSERT(diffuse_textures.size() == trees.size());

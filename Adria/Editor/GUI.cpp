@@ -18,7 +18,7 @@ namespace adria
 		ImGui::StyleColorsDark();
 
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
-		ini_file = paths::IniDir() + "imgui.ini";
+		ini_file = paths::IniDir + "imgui.ini";
 		io.IniFilename = ini_file.c_str();
 
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -28,11 +28,11 @@ namespace adria
 		io.ConfigViewportsNoTaskBarIcon = true;
 
 		ImFontConfig font_config{};
-		std::string font_path = paths::FontsDir() + "roboto/Roboto-Light.ttf";
+		std::string font_path = paths::FontsDir + "roboto/Roboto-Light.ttf";
 		io.Fonts->AddFontFromFileTTF(font_path.c_str(), 16.0f, &font_config);
 		font_config.MergeMode = true;
 		ImWchar const icon_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
-		std::string icon_path = paths::FontsDir() + FONT_ICON_FILE_NAME_FA;
+		std::string icon_path = paths::FontsDir + FONT_ICON_FILE_NAME_FA;
 		io.Fonts->AddFontFromFileTTF(icon_path.c_str(), 15.0f, &font_config, icon_ranges);
 		io.Fonts->Build();
 

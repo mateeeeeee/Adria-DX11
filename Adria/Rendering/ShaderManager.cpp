@@ -518,7 +518,7 @@ namespace adria
 #else
 			input.flags = GfxShaderCompilerFlagBit_None;
 #endif
-			input.source_file = paths::ShaderDir() + GetShaderSource(shader);
+			input.source_file = paths::ShaderDir + GetShaderSource(shader);
 			input.stage = GetStage(shader);
 			input.macros = GetShaderMacros(shader);
 
@@ -685,7 +685,7 @@ namespace adria
 		device = _device;
 		file_watcher = std::make_unique<FileWatcher>();
 		CompileAllShaders();
-		file_watcher->AddPathToWatch(paths::ShaderDir());
+		file_watcher->AddPathToWatch(paths::ShaderDir);
 		std::ignore = file_watcher->GetFileModifiedEvent().Add(OnShaderFileChanged);
 	}
 	void ShaderManager::Destroy()

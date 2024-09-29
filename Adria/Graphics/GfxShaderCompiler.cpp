@@ -12,9 +12,6 @@ namespace adria
 {
 	namespace 
 	{
-		inline static std::string shaders_cache_directory = paths::ShaderCacheDir();
-		inline static std::string shaders_common_directory = paths::ShaderDir();
-
 		class CShaderInclude : public ID3DInclude
 		{
 		public:
@@ -34,7 +31,7 @@ namespace adria
 					final_path = fs::path(shader_dir) / fs::path(filename);
 					break;
 				case D3D_INCLUDE_SYSTEM: 
-					final_path = fs::path(shaders_common_directory) / fs::path(filename);
+					final_path = fs::path(paths::ShaderDir) / fs::path(filename);
 					break;
 				default:
 					return E_FAIL;
@@ -108,7 +105,7 @@ namespace adria
 
 		void GetBytecodeFromCompiledShader(char const* filename, GfxShaderBytecode& blob)
 		{
-			ArcPtr<ID3DBlob> bytecode_blob;
+			Ref<ID3DBlob> bytecode_blob;
 
 			std::wstring wide_filename = ToWideString(std::string(filename));
 			HRESULT hr = D3DReadFileToBlob(wide_filename.c_str(), bytecode_blob.GetAddressOf());
@@ -164,7 +161,7 @@ namespace adria
 
 			std::string build_string = input.flags & GfxShaderCompilerFlagBit_Debug ? "debug" : "release";
 			char cache_path[256];
-			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", shaders_cache_directory.c_str(),
+			sprintf_s(cache_path, "%s%s_%s_%llx_%s.bin", paths::ShaderCacheDir.c_str(),
 				GetFilenameWithoutExtension(input.source_file).c_str(), default_entrypoint.c_str(), macro_hash, build_string.c_str());
 
 			if (CheckCache(cache_path, input, output)) return true;
@@ -187,8 +184,8 @@ namespace adria
 			}
 			defines.push_back({ NULL,NULL });
 
-			ArcPtr<ID3DBlob> bytecode_blob = nullptr;
-			ArcPtr<ID3DBlob> error_blob = nullptr;
+			Ref<ID3DBlob> bytecode_blob = nullptr;
+			Ref<ID3DBlob> error_blob = nullptr;
 
 			CShaderInclude includer(GetParentPath(input.source_file).c_str());
 			HRESULT hr = D3DCompileFromFile(ToWideString(input.source_file).c_str(), defines.data(),
@@ -230,7 +227,7 @@ namespace adria
 
 		void FillInputLayoutDesc(GfxShaderBytecode const& blob, GfxInputLayoutDesc& input_desc)
 		{
-			ArcPtr<ID3D11ShaderReflection> vertex_shader_reflection = nullptr;
+			Ref<ID3D11ShaderReflection> vertex_shader_reflection = nullptr;
 			GFX_CHECK_HR(D3DReflect(blob.GetPointer(), blob.GetLength(), IID_ID3D11ShaderReflection, (void**)vertex_shader_reflection.GetAddressOf()));
 
 			D3D11_SHADER_DESC shader_desc;

@@ -38,6 +38,6 @@ namespace adria
 			return input_layout.Get();
 		}
 	private:
-		ArcPtr<ID3D11InputLayout> input_layout;
+		Ref<ID3D11InputLayout> input_layout;
 	};
 }

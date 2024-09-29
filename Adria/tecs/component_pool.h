@@ -60,7 +60,6 @@ public:
     template<typename... Args>
     void emplace(entity e, Args&&... args)
     {
-        assert(!contains(e));
         if constexpr (std::is_aggregate_v<component_type>)  components.push_back(component_type{ std::forward<Args>(args)... });
         else components.emplace_back(std::forward<Args>(args)...);
         base_type::emplace(e);

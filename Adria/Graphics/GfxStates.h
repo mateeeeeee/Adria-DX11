@@ -180,7 +180,7 @@ namespace adria
 		GfxRasterizerState(GfxDevice* gfx, GfxRasterizerStateDesc const& desc);
 
 	private:
-		ArcPtr<ID3D11RasterizerState> rasterizer_state;
+		Ref<ID3D11RasterizerState> rasterizer_state;
 
 	private:
 		operator ID3D11RasterizerState* () const
@@ -195,7 +195,7 @@ namespace adria
 		GfxDepthStencilState(GfxDevice* gfx, GfxDepthStencilStateDesc const& desc);
 
 	private:
-		ArcPtr<ID3D11DepthStencilState> depth_stencil_state;
+		Ref<ID3D11DepthStencilState> depth_stencil_state;
 
 	private:
 		operator ID3D11DepthStencilState* () const
@@ -210,7 +210,7 @@ namespace adria
 		GfxBlendState(GfxDevice* gfx, GfxBlendStateDesc const& desc);
 
 	private:
-		ArcPtr<ID3D11BlendState> blend_state;
+		Ref<ID3D11BlendState> blend_state;
 
 	private:
 		operator ID3D11BlendState* () const
@@ -290,7 +290,7 @@ namespace adria
 			return sampler.Get();
 		}
 	private:
-		ArcPtr<ID3D11SamplerState> sampler;
+		Ref<ID3D11SamplerState> sampler;
 	};
 
 	inline GfxBlendStateDesc OpaqueBlendStateDesc()
