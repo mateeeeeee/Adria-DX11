@@ -1,5 +1,6 @@
 
 <img align="left" src="Adria/Resources/Icons/adria_logo.png" width="120px"/>
+<br/><br/>
 
 # Adria-DX11
 Graphics engine written in C++/DirectX11.
