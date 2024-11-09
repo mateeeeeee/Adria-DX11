@@ -35,25 +35,25 @@ namespace adria
 		void Flush();
 		void WaitForGPU();
 
-		void Draw(uint32 vertex_count, uint32 instance_count = 1, uint32 start_vertex_location = 0, uint32 start_instance_location = 0);
-		void DrawIndexed(uint32 index_count, uint32 instance_count = 1, uint32 index_offset = 0, uint32 base_vertex_location = 0, uint32 start_instance_location = 0);
-		void Dispatch(uint32 group_count_x, uint32 group_count_y, uint32 group_count_z = 1);
-		void DrawIndirect(GfxBuffer const& buffer, uint32 offset);
-		void DrawIndexedIndirect(GfxBuffer const& buffer, uint32 offset);
-		void DispatchIndirect(GfxBuffer const& buffer, uint32 offset);
+		void Draw(Uint32 vertex_count, Uint32 instance_count = 1, Uint32 start_vertex_location = 0, Uint32 start_instance_location = 0);
+		void DrawIndexed(Uint32 index_count, Uint32 instance_count = 1, Uint32 index_offset = 0, Uint32 base_vertex_location = 0, Uint32 start_instance_location = 0);
+		void Dispatch(Uint32 group_count_x, Uint32 group_count_y, Uint32 group_count_z = 1);
+		void DrawIndirect(GfxBuffer const& buffer, Uint32 offset);
+		void DrawIndexedIndirect(GfxBuffer const& buffer, Uint32 offset);
+		void DispatchIndirect(GfxBuffer const& buffer, Uint32 offset);
 		
 		void CopyBuffer(GfxBuffer& dst, GfxBuffer const& src);
-		void CopyBuffer(GfxBuffer& dst, uint32 dst_offset, GfxBuffer const& src, uint32 src_offset, uint32 size);
+		void CopyBuffer(GfxBuffer& dst, Uint32 dst_offset, GfxBuffer const& src, Uint32 src_offset, Uint32 size);
 		void CopyTexture(GfxTexture& dst, GfxTexture const& src);
-		void CopyTexture(GfxTexture& dst, uint32 dst_mip, uint32 dst_array, GfxTexture const& src, uint32 src_mip, uint32 src_array);
+		void CopyTexture(GfxTexture& dst, Uint32 dst_mip, Uint32 dst_array, GfxTexture const& src, Uint32 src_mip, Uint32 src_array);
 
-		void CopyStructureCount(GfxBuffer* dst_buffer, uint32 dst_buffer_offset, GfxShaderResourceRW src_view);
+		void CopyStructureCount(GfxBuffer* dst_buffer, Uint32 dst_buffer_offset, GfxShaderResourceRW src_view);
 
 		GfxMappedSubresource MapBuffer(GfxBuffer* buffer, GfxMapType map_type);
 		void UnmapBuffer(GfxBuffer* buffer);
-		GfxMappedSubresource MapTexture(GfxTexture* texture, GfxMapType map_type, uint32 subresource = 0);
-		void UnmapTexture(GfxTexture* texture, uint32 subresource = 0);
-		void UpdateBuffer(GfxBuffer* buffer, void const* data, uint32 data_size);
+		GfxMappedSubresource MapTexture(GfxTexture* texture, GfxMapType map_type, Uint32 subresource = 0);
+		void UnmapTexture(GfxTexture* texture, Uint32 subresource = 0);
+		void UpdateBuffer(GfxBuffer* buffer, void const* data, Uint32 data_size);
 		template<typename T>
 		void UpdateBuffer(GfxBuffer* buffer, T const& data)
 		{
@@ -64,21 +64,21 @@ namespace adria
 		void EndRenderPass();
 
 		void SetTopology(GfxPrimitiveTopology topology);
-		void SetIndexBuffer(GfxBuffer* index_buffer, uint32 offset = 0);
-		void SetVertexBuffer(GfxBuffer* vertex_buffer, uint32 slot = 0);
-		void SetVertexBuffers(std::span<GfxBuffer*> vertex_buffers, uint32 start_slot = 0);
-		void SetViewport(uint32 x, uint32 y, uint32 width, uint32 height);
-		void SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height);
+		void SetIndexBuffer(GfxBuffer* index_buffer, Uint32 offset = 0);
+		void SetVertexBuffer(GfxBuffer* vertex_buffer, Uint32 slot = 0);
+		void SetVertexBuffers(std::span<GfxBuffer*> vertex_buffers, Uint32 start_slot = 0);
+		void SetViewport(Uint32 x, Uint32 y, Uint32 width, Uint32 height);
+		void SetScissorRect(Uint32 x, Uint32 y, Uint32 width, Uint32 height);
 
-		void ClearReadWriteDescriptorFloat(GfxShaderResourceRW descriptor, const float v[4]);
-		void ClearReadWriteDescriptorUint(GfxShaderResourceRW descriptor, const uint32 v[4]);
-		void ClearRenderTarget(GfxRenderTarget rtv, float const* clear_color);
-		void ClearDepth(GfxDepthTarget dsv, float depth = 1.0f, uint8 stencil = 0, bool clear_stencil = false);
+		void ClearReadWriteDescriptorFloat(GfxShaderResourceRW descriptor, const Float v[4]);
+		void ClearReadWriteDescriptorUint(GfxShaderResourceRW descriptor, const Uint32 v[4]);
+		void ClearRenderTarget(GfxRenderTarget rtv, Float const* clear_color);
+		void ClearDepth(GfxDepthTarget dsv, Float depth = 1.0f, Uint8 stencil = 0, Bool clear_stencil = false);
 		
 		void SetInputLayout(GfxInputLayout* il);
-		void SetDepthStencilState(GfxDepthStencilState* dss, uint32 stencil_ref);
+		void SetDepthStencilState(GfxDepthStencilState* dss, Uint32 stencil_ref);
 		void SetRasterizerState(GfxRasterizerState* rs);
-		void SetBlendState(GfxBlendState* bs, float* blend_factors = nullptr, uint32 mask = 0xffffffff);
+		void SetBlendState(GfxBlendState* bs, Float* blend_factors = nullptr, Uint32 mask = 0xffffffff);
 		void SetVertexShader(GfxVertexShader* shader);
 		void SetPixelShader(GfxPixelShader* shader);
 		void SetHullShader(GfxHullShader* shader);
@@ -86,37 +86,37 @@ namespace adria
 		void SetGeometryShader(GfxGeometryShader* shader);
 		void SetComputeShader(GfxComputeShader* shader);
 
-		void SetConstantBuffer(GfxShaderStage stage, uint32 slot, GfxBuffer* buffer);
-		void SetConstantBuffers(GfxShaderStage stage, uint32 start, std::span<GfxBuffer*> buffers);
-		void SetSampler(GfxShaderStage stage, uint32 start, GfxSampler* sampler);
-		void SetSamplers(GfxShaderStage stage, uint32 start, std::span<GfxSampler*> samplers);
-		void SetShaderResourceRO(GfxShaderStage stage, uint32 slot, GfxShaderResourceRO srv);
-		void SetShaderResourcesRO(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRO> srvs);
-		void UnsetShaderResourcesRO(GfxShaderStage stage, uint32 start, uint32 count);
-		void SetShaderResourceRW(uint32 slot, GfxShaderResourceRW uav);
-		void SetShaderResourcesRW(uint32 start, std::span<GfxShaderResourceRW> uavs);
-		void SetShaderResourcesRW(uint32 start, std::span<GfxShaderResourceRW> uavs, std::span<uint32> initial_counts);
-		void UnsetShaderResourcesRW(uint32 start, uint32 count);
+		void SetConstantBuffer(GfxShaderStage stage, Uint32 slot, GfxBuffer* buffer);
+		void SetConstantBuffers(GfxShaderStage stage, Uint32 start, std::span<GfxBuffer*> buffers);
+		void SetSampler(GfxShaderStage stage, Uint32 start, GfxSampler* sampler);
+		void SetSamplers(GfxShaderStage stage, Uint32 start, std::span<GfxSampler*> samplers);
+		void SetShaderResourceRO(GfxShaderStage stage, Uint32 slot, GfxShaderResourceRO srv);
+		void SetShaderResourcesRO(GfxShaderStage stage, Uint32 start, std::span<GfxShaderResourceRO> srvs);
+		void UnsetShaderResourcesRO(GfxShaderStage stage, Uint32 start, Uint32 count);
+		void SetShaderResourceRW(Uint32 slot, GfxShaderResourceRW uav);
+		void SetShaderResourcesRW(Uint32 start, std::span<GfxShaderResourceRW> uavs);
+		void SetShaderResourcesRW(Uint32 start, std::span<GfxShaderResourceRW> uavs, std::span<Uint32> initial_counts);
+		void UnsetShaderResourcesRW(Uint32 start, Uint32 count);
 
 		void SetRenderTarget(GfxRenderTarget rtv, GfxDepthTarget dsv = nullptr);
 		void SetRenderTargets(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv = nullptr);
 
 		void SetRenderTargetsAndShaderResourcesRW(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv,
-			uint32 start_slot, std::span<GfxShaderResourceRW> uavs, std::span<uint32> initial_counts = {});
+			Uint32 start_slot, std::span<GfxShaderResourceRW> uavs, std::span<Uint32> initial_counts = {});
 
 		void GenerateMips(GfxShaderResourceRO srv);
 
 		void BeginQuery(GfxQuery* query);
 		void EndQuery(GfxQuery* query);
-		bool GetQueryData(GfxQuery* query, void* data, uint32 data_size);
+		Bool GetQueryData(GfxQuery* query, void* data, Uint32 data_size);
 
-		void BeginEvent(char const* event_name);
+		void BeginEvent(Char const* event_name);
 		void EndEvent();
 
 		ID3D11DeviceContext4* GetNative() const { return command_context.Get(); }
 	private:
 		GfxDevice* gfx = nullptr;
-		uint32 frame_count = 0;
+		Uint32 frame_count = 0;
 		Ref<ID3D11DeviceContext4> command_context = nullptr;
 		Ref<ID3DUserDefinedAnnotation> annotation = nullptr;
 

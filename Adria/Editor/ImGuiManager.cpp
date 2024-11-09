@@ -1,4 +1,4 @@
-#include "GUI.h"
+#include "ImGuiManager.h"
 #include "IconsFontAwesome4.h"
 #include "Core/Window.h"
 #include "Core/pATHS.h"
@@ -11,7 +11,7 @@ IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARA
 
 namespace adria
 {
-	GUI::GUI(GfxDevice* gfx)
+	ImGuiManager::ImGuiManager(GfxDevice* gfx)
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -54,20 +54,20 @@ namespace adria
 		style.Alpha = 1.0f;
 
 	}
-	GUI::~GUI()
+	ImGuiManager::~ImGuiManager()
 	{
 		ImGui_ImplDX11_Shutdown();
 		ImGui_ImplWin32_Shutdown();
 		ImGui::DestroyContext();
 	}
-	void GUI::Begin() const
+	void ImGuiManager::Begin() const
 	{
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 		ImGuizmo::BeginFrame();
 	}
-	void GUI::End() const
+	void ImGuiManager::End() const
 	{
 		ImGui::Render();
 		if (visible)
@@ -82,15 +82,15 @@ namespace adria
 		}
 
 	}
-	void GUI::HandleWindowMessage(WindowEventData const& data) const
+	void ImGuiManager::HandleWindowMessage(WindowEventData const& data) const
 	{
 		ImGui_ImplWin32_WndProcHandler(static_cast<HWND>(data.handle), data.msg, data.wparam, data.lparam);
 	}
-	void GUI::ToggleVisibility()
+	void ImGuiManager::ToggleVisibility()
 	{
 		visible = !visible;
 	}
-	bool GUI::IsVisible() const
+	Bool ImGuiManager::IsVisible() const
 	{
 		return visible;
 	}

@@ -8,11 +8,11 @@ namespace adria
 	{
 		std::wstring out{};
 		out.reserve(in.length());
-		const char* ptr = in.data();
-		const char* const end = in.data() + in.length();
+		const Char* ptr = in.data();
+		const Char* const end = in.data() + in.length();
 
 		mbstate_t state{};
-		wchar_t wc;
+		Wchar wc;
 		while (size_t len = mbrtowc(&wc, ptr, end - ptr, &state))
 		{
 			if (len == static_cast<size_t>(-1)) // bad encoding
@@ -30,9 +30,9 @@ namespace adria
 		out.reserve(MB_CUR_MAX * in.length());
 
 		mbstate_t state{};
-		for (wchar_t wc : in)
+		for (Wchar wc : in)
 		{
-			char mb[8]{}; // ensure null-terminated for UTF-8 (maximum 4 byte)
+			Char mb[8]{}; // ensure null-terminated for UTF-8 (maximum 4 byte)
 			const auto len = wcrtomb(mb, wc, &state);
 			out += std::string_view{ mb, len };
 		}
@@ -42,20 +42,20 @@ namespace adria
 	std::string ToLower(std::string const& in)
 	{
 		std::string out; out.resize(in.size());
-		std::transform(std::begin(in), std::end(in), std::begin(out), [](char c) {return std::tolower(c); });
+		std::transform(std::begin(in), std::end(in), std::begin(out), [](Char c) {return std::tolower(c); });
 		return out;
 	}
 	std::string ToUpper(std::string const& in)
 	{
 		std::string out; out.resize(in.size());
-		std::transform(std::begin(in), std::end(in), std::begin(out), [](char c) {return std::toupper(c); });
+		std::transform(std::begin(in), std::end(in), std::begin(out), [](Char c) {return std::toupper(c); });
 		return out;
 	}
 
-	bool FromCString(const char* in, int& out)
+	Bool FromCString(const Char* in, int& out)
 	{
 		size_t idx = 0;
-		char sign = 1;
+		Char sign = 1;
 		out = 0;
 		while (*in != '\0')
 		{
@@ -79,11 +79,11 @@ namespace adria
 		out *= sign;
 		return true;
 	}
-	bool FromCString(const char* in, float& out)
+	Bool FromCString(const Char* in, Float& out)
 	{
 		size_t idx = 0;
-		char sign = 1;
-		char comma = 0;
+		Char sign = 1;
+		Char comma = 0;
 		int divisor = 1;
 		out = 0.0f;
 		while (*in != '\0')
@@ -121,12 +121,12 @@ namespace adria
 		out /= divisor;
 		return true;
 	}
-	bool FromCString(const char* in, const char*& out)
+	Bool FromCString(const Char* in, const Char*& out)
 	{
 		out = in;
 		return true;
 	}
-	bool FromCString(const char* in, bool& out)
+	Bool FromCString(const Char* in, Bool& out)
 	{
 		if (*in == '0' || !strcmp(in, "false"))
 		{
@@ -145,20 +145,20 @@ namespace adria
 	{
 		return std::to_string(val);
 	}
-	std::string FloatToString(float val)
+	std::string FloatToString(Float val)
 	{
 		return std::to_string(val);
 	}
-	std::string CStrToString(char const* val)
+	std::string CStrToString(Char const* val)
 	{
 		return val;
 	}
-	std::string BoolToString(bool val)
+	std::string BoolToString(Bool val)
 	{
 		return val ? "true" : "false";
 	}
 
-	std::vector<std::string> SplitString(const std::string& text, char delimeter)
+	std::vector<std::string> SplitString(const std::string& text, Char delimeter)
 	{
 		std::vector<std::string> tokens;
 		size_t start = 0, end = 0;

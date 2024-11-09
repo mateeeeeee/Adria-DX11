@@ -7,7 +7,7 @@
 
 namespace adria
 {
-	enum GfxTextureType : uint8
+	enum GfxTextureType : Uint8
 	{
 		TextureType_1D,
 		TextureType_2D,
@@ -17,12 +17,12 @@ namespace adria
 	struct GfxTextureDesc
 	{
 		GfxTextureType type = TextureType_2D;
-		uint32 width = 0;
-		uint32 height = 0;
-		uint32 depth = 0;
-		uint32 array_size = 1;
-		uint32 mip_levels = 1;
-		uint32 sample_count = 1;
+		Uint32 width = 0;
+		Uint32 height = 0;
+		Uint32 depth = 0;
+		Uint32 array_size = 1;
+		Uint32 mip_levels = 1;
+		Uint32 sample_count = 1;
 		GfxResourceUsage usage = GfxResourceUsage::Default;
 		GfxBindFlag bind_flags = GfxBindFlag::None;
 		GfxTextureMiscFlag misc_flags = GfxTextureMiscFlag::None;
@@ -33,10 +33,10 @@ namespace adria
 
 	struct GfxTextureSubresourceDesc
 	{
-		uint32 first_slice = 0;
-		uint32 slice_count = static_cast<uint32>(-1);
-		uint32 first_mip = 0;
-		uint32 mip_count = static_cast<uint32>(-1);
+		Uint32 first_slice = 0;
+		Uint32 slice_count = static_cast<Uint32>(-1);
+		Uint32 first_mip = 0;
+		Uint32 mip_count = static_cast<Uint32>(-1);
 
 		std::strong_ordering operator<=>(GfxTextureSubresourceDesc const& other) const = default;
 	};
@@ -127,7 +127,7 @@ namespace adria
 
 			if (desc.mip_levels == 0)
 			{
-				const_cast<GfxTextureDesc&>(desc).mip_levels = (uint32)log2(std::max(desc.width, desc.height)) + 1;
+				const_cast<GfxTextureDesc&>(desc).mip_levels = (Uint32)log2(std::max(desc.width, desc.height)) + 1;
 			}
 
 			if (HasAnyFlag(desc.bind_flags, GfxBindFlag::RenderTarget)) CreateRTV();
@@ -141,31 +141,31 @@ namespace adria
 		GfxTexture& operator=(GfxTexture&&) = delete;
 		~GfxTexture() = default;
 
-		[[maybe_unused]] uint64 CreateSRV(GfxTextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] Uint64 CreateSRV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 			return CreateDescriptor(GfxSubresourceType_SRV, _desc);
 		}
-		[[maybe_unused]] uint64 CreateUAV(GfxTextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] Uint64 CreateUAV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 			return CreateDescriptor(GfxSubresourceType_UAV, _desc);
 		}
-		[[maybe_unused]] uint64 CreateRTV(GfxTextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] Uint64 CreateRTV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 			return CreateDescriptor(GfxSubresourceType_RTV, _desc);
 		}
-		[[maybe_unused]] uint64 CreateDSV(GfxTextureSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] Uint64 CreateDSV(GfxTextureSubresourceDesc const* desc = nullptr)
 		{
 			GfxTextureSubresourceDesc _desc = desc ? *desc : GfxTextureSubresourceDesc{};
 			return CreateDescriptor(GfxSubresourceType_DSV, _desc);
 		}
 
-		GfxShaderResourceRO	SRV(uint64 i = 0) const { return srvs[i].Get(); }
-		GfxShaderResourceRW	UAV(uint64 i = 0) const { return uavs[i].Get(); }
-		GfxRenderTarget		RTV(uint64 i = 0) const { return rtvs[i].Get(); }
-		GfxDepthTarget		DSV(uint64 i = 0) const { return dsvs[i].Get(); }
+		GfxShaderResourceRO	SRV(Uint64 i = 0) const { return srvs[i].Get(); }
+		GfxShaderResourceRW	UAV(Uint64 i = 0) const { return uavs[i].Get(); }
+		GfxRenderTarget		RTV(Uint64 i = 0) const { return rtvs[i].Get(); }
+		GfxDepthTarget		DSV(Uint64 i = 0) const { return dsvs[i].Get(); }
 
 		ID3D11Resource* GetNative() const { return resource.Get(); }
 		ID3D11Resource* Detach() { return resource.Detach(); }
@@ -175,18 +175,18 @@ namespace adria
 		GfxDevice* gfx;
 		Ref<ID3D11Resource> resource;
 		GfxTextureDesc desc;
-		std::vector<GfxArcShaderResourceRO> srvs;
-		std::vector<GfxArcShaderResourceRW> uavs;
-		std::vector<GfxArcRenderTarget> rtvs;
-		std::vector<GfxArcDepthTarget> dsvs;
+		std::vector<GfxShaderResourceRORef> srvs;
+		std::vector<GfxShaderResourceRWRef> uavs;
+		std::vector<GfxRenderTargetRef> rtvs;
+		std::vector<GfxDepthTargetRef> dsvs;
 
 	private:
-		[[maybe_unused]] uint64 CreateDescriptor(GfxSubresourceType type, GfxTextureSubresourceDesc const& view_desc)
+		[[maybe_unused]] Uint64 CreateDescriptor(GfxSubresourceType type, GfxTextureSubresourceDesc const& view_desc)
 		{
-			uint32 first_slice = view_desc.first_slice;
-			uint32 slice_count = view_desc.slice_count;
-			uint32 first_mip = view_desc.first_mip;
-			uint32 mip_count = view_desc.mip_count;
+			Uint32 first_slice = view_desc.first_slice;
+			Uint32 slice_count = view_desc.slice_count;
+			Uint32 first_mip = view_desc.first_mip;
+			Uint32 mip_count = view_desc.mip_count;
 
 			ID3D11Device* device = gfx->GetDevice();
 			DXGI_FORMAT format = ConvertGfxFormat(desc.format);

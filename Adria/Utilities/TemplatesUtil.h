@@ -25,15 +25,15 @@ namespace adria
 	{};
 
 	template<typename Base, typename Derived>
-	inline constexpr bool is_derived_from_v = is_derived_from<Base, Derived>::value;
+	inline constexpr Bool is_derived_from_v = is_derived_from<Base, Derived>::value;
 
 
 	template <typename T, typename... Ts>
-	constexpr bool Contains = (std::is_same<T, Ts>{} || ...);
+	constexpr Bool Contains = (std::is_same<T, Ts>{} || ...);
 	template <typename Subset, typename Set>
-	constexpr bool IsSubsetOf = false;
+	constexpr Bool IsSubsetOf = false;
 	template <typename... Ts, typename... Us>
-	constexpr bool IsSubsetOf<std::tuple<Ts...>, std::tuple<Us...>>
+	constexpr Bool IsSubsetOf<std::tuple<Ts...>, std::tuple<Us...>>
 		= (Contains<Ts, Us...> && ...);
 
 

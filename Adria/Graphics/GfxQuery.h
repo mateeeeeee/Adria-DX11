@@ -30,22 +30,22 @@ namespace adria
 
 	struct QueryDataTimestampDisjoint
 	{
-		uint64 frequency;
-		bool32 disjoint;
+		Uint64 frequency;
+		Bool32 disjoint;
 	};
 
 	struct QueryDataPipelineStatistics
 	{
-		uint64 IAVertices;
-		uint64 IAPrimitives;
-		uint64 VSInvocations;
-		uint64 GSInvocations;
-		uint64 GSPrimitives;
-		uint64 CInvocations;
-		uint64 CPrimitives;
-		uint64 PSInvocations;
-		uint64 HSInvocations;
-		uint64 DSInvocations;
-		uint64 CSInvocations;
+		Uint64 IAVertices;
+		Uint64 IAPrimitives;
+		Uint64 VSInvocations;
+		Uint64 GSInvocations;
+		Uint64 GSPrimitives;
+		Uint64 CInvocations;
+		Uint64 CPrimitives;
+		Uint64 PSInvocations;
+		Uint64 HSInvocations;
+		Uint64 DSInvocations;
+		Uint64 CSInvocations;
 	};
 }

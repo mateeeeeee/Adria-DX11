@@ -9,17 +9,17 @@ namespace adria
 {
 	struct GfxBufferDesc
 	{
-		uint64 size = 0;
+		Uint64 size = 0;
 		GfxResourceUsage resource_usage = GfxResourceUsage::Default;
 		GfxCpuAccess cpu_access = GfxCpuAccess::None;
 		GfxBindFlag bind_flags = GfxBindFlag::None;
 		GfxBufferMiscFlag misc_flags = GfxBufferMiscFlag::None;
-		uint32 stride = 0;
+		Uint32 stride = 0;
 		GfxFormat format = GfxFormat::UNKNOWN;
 		std::strong_ordering operator<=>(GfxBufferDesc const& other) const = default;
 	};
 
-	static GfxBufferDesc VertexBufferDesc(uint64 vertex_count, uint32 stride)
+	static GfxBufferDesc VertexBufferDesc(Uint64 vertex_count, Uint32 stride)
 	{
 		GfxBufferDesc desc{};
 		desc.bind_flags = GfxBindFlag::VertexBuffer;
@@ -30,7 +30,7 @@ namespace adria
 		desc.misc_flags = GfxBufferMiscFlag::None;
 		return desc;
 	}
-	static GfxBufferDesc IndexBufferDesc(uint64 index_count, bool small_indices)
+	static GfxBufferDesc IndexBufferDesc(Uint64 index_count, Bool small_indices)
 	{
 		GfxBufferDesc desc{};
 		desc.bind_flags = GfxBindFlag::IndexBuffer;
@@ -44,7 +44,7 @@ namespace adria
 	}
 
 	template<typename T>
-	static GfxBufferDesc StructuredBufferDesc(uint64 count, bool uav = true, bool dynamic = false)
+	static GfxBufferDesc StructuredBufferDesc(Uint64 count, Bool uav = true, Bool dynamic = false)
 	{
 		GfxBufferDesc desc{};
 		desc.resource_usage = (uav || !dynamic) ? GfxResourceUsage::Default : GfxResourceUsage::Dynamic;
@@ -56,7 +56,7 @@ namespace adria
 		desc.size = desc.stride * count;
 		return desc;
 	}
-	static GfxBufferDesc AppendBufferDesc(uint64 count, uint32 stride)
+	static GfxBufferDesc AppendBufferDesc(Uint64 count, Uint32 stride)
 	{
 		GfxBufferDesc desc{};
 		desc.bind_flags = GfxBindFlag::UnorderedAccess;
@@ -66,7 +66,7 @@ namespace adria
 		desc.size = count * stride;
 		return desc;
 	}
-	static GfxBufferDesc IndirectArgsBufferDesc(uint64 size)
+	static GfxBufferDesc IndirectArgsBufferDesc(Uint64 size)
 	{
 		GfxBufferDesc desc{};
 		desc.bind_flags = GfxBindFlag::UnorderedAccess;
@@ -77,7 +77,7 @@ namespace adria
 		return desc;
 	}
 
-	enum FlagsUAV : uint8
+	enum FlagsUAV : Uint8
 	{
 		UAV_None = 0x0,
 		UAV_Raw = 0x1,
@@ -85,9 +85,9 @@ namespace adria
 		UAV_Counter = 0x4
 	};
 	DEFINE_ENUM_BIT_OPERATORS(FlagsUAV);
-	inline constexpr uint32 ParseBufferUAVFlags(FlagsUAV flags)
+	inline constexpr Uint32 ParseBufferUAVFlags(FlagsUAV flags)
 	{
-		uint32 _flags = 0;
+		Uint32 _flags = 0;
 		if (HasAnyFlag(flags, UAV_Raw)) _flags |= D3D11_BUFFER_UAV_FLAG_RAW;
 		if (HasAnyFlag(flags, UAV_Append)) _flags |= D3D11_BUFFER_UAV_FLAG_APPEND;
 		if (HasAnyFlag(flags, UAV_Counter)) _flags |= D3D11_BUFFER_UAV_FLAG_COUNTER;
@@ -96,8 +96,8 @@ namespace adria
 
 	struct GfxBufferSubresourceDesc
 	{
-		uint64 offset = 0;
-		uint64 size = uint64(-1);
+		Uint64 offset = 0;
+		Uint64 size = Uint64(-1);
 		FlagsUAV uav_flags = UAV_None;
 		std::strong_ordering operator<=>(GfxBufferSubresourceDesc const& other) const = default;
 	};
@@ -110,7 +110,7 @@ namespace adria
 			: gfx(gfx), desc(desc)
 		{
 			D3D11_BUFFER_DESC buffer_desc{};
-			buffer_desc.ByteWidth = (uint32)desc.size;
+			buffer_desc.ByteWidth = (Uint32)desc.size;
 			buffer_desc.Usage = ConvertUsage(desc.resource_usage);
 			buffer_desc.BindFlags = ParseBindFlags(desc.bind_flags);
 			buffer_desc.CPUAccessFlags = ParseCPUAccessFlags(desc.cpu_access);
@@ -121,7 +121,7 @@ namespace adria
 			if (initial_data != nullptr)
 			{
 				data.pSysMem = initial_data;
-				data.SysMemPitch = (uint32)desc.size;
+				data.SysMemPitch = (Uint32)desc.size;
 				data.SysMemSlicePitch = 0;
 			}
 			ID3D11Device* device = gfx->GetDevice();
@@ -133,15 +133,15 @@ namespace adria
 		GfxBuffer& operator=(GfxBuffer const&) = delete;
 		~GfxBuffer() = default;
 
-		GfxShaderResourceRO SRV(uint64 i = 0) const { return srvs[i].Get(); }
-		GfxShaderResourceRW UAV(uint64 i = 0) const { return uavs[i].Get(); }
+		GfxShaderResourceRO SRV(Uint64 i = 0) const { return srvs[i].Get(); }
+		GfxShaderResourceRW UAV(Uint64 i = 0) const { return uavs[i].Get(); }
 
-		[[maybe_unused]] uint64 CreateSRV(GfxBufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] Uint64 CreateSRV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
 			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 			return CreateDescriptor(GfxSubresourceType_SRV, _desc);
 		}
-		[[maybe_unused]] uint64 CreateUAV(GfxBufferSubresourceDesc const* desc = nullptr)
+		[[maybe_unused]] Uint64 CreateUAV(GfxBufferSubresourceDesc const* desc = nullptr)
 		{
 			GfxBufferSubresourceDesc _desc = desc ? *desc : GfxBufferSubresourceDesc{};
 			return CreateDescriptor(GfxSubresourceType_UAV, _desc);
@@ -154,10 +154,10 @@ namespace adria
 		}
 
 		GfxBufferDesc const& GetDesc() const { return desc; }
-		uint32 GetCount() const
+		Uint32 GetCount() const
 		{
 			ADRIA_ASSERT(desc.stride != 0);
-			return static_cast<uint32>(desc.size / desc.stride);
+			return static_cast<Uint32>(desc.size / desc.stride);
 		}
 
 		[[maybe_unused]] void* Map()
@@ -191,7 +191,7 @@ namespace adria
 			ID3D11DeviceContext* ctx = gfx->GetContext();
 			ctx->Unmap(resource.Get(), 0);
 		}
-		void Update(void const* src_data, uint64 data_size)
+		void Update(void const* src_data, Uint64 data_size)
 		{
 			ID3D11DeviceContext* ctx = gfx->GetContext();
 			if (desc.resource_usage == GfxResourceUsage::Dynamic)
@@ -215,11 +215,11 @@ namespace adria
 		GfxDevice* gfx;
 		GfxBufferDesc desc;
 		Ref<ID3D11Buffer> resource;
-		std::vector<GfxArcShaderResourceRO> srvs;
-		std::vector<GfxArcShaderResourceRW> uavs;
+		std::vector<GfxShaderResourceRORef> srvs;
+		std::vector<GfxShaderResourceRWRef> uavs;
 
 	private:
-		uint64 CreateDescriptor(GfxSubresourceType type, GfxBufferSubresourceDesc const& subresource_desc)
+		Uint64 CreateDescriptor(GfxSubresourceType type, GfxBufferSubresourceDesc const& subresource_desc)
 		{
 			HRESULT hr = E_FAIL;
 			ID3D11Device* device = gfx->GetDevice();
@@ -235,7 +235,7 @@ namespace adria
 					srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
 					srv_desc.BufferEx.Flags = D3D11_BUFFEREX_SRV_FLAG_RAW;
 					srv_desc.BufferEx.FirstElement = (UINT)subresource_desc.offset / sizeof(uint32_t);
-					srv_desc.BufferEx.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(uint32);
+					srv_desc.BufferEx.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(Uint32);
 				}
 				else if (HasAnyFlag(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
 				{
@@ -248,7 +248,7 @@ namespace adria
 				else
 				{
 					// This is a Typed Buffer
-					uint32 stride = GetGfxFormatStride(desc.format);
+					Uint32 stride = GetGfxFormatStride(desc.format);
 					srv_desc.Format = ConvertGfxFormat(desc.format);
 					srv_desc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 					srv_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / stride;
@@ -276,8 +276,8 @@ namespace adria
 					// This is a Raw Buffer
 					uav_desc.Format = DXGI_FORMAT_R32_TYPELESS; 
 					uav_desc.Buffer.Flags = D3D11_BUFFER_UAV_FLAG_RAW;
-					uav_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / sizeof(uint32);
-					uav_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(uint32);
+					uav_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / sizeof(Uint32);
+					uav_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(Uint32);
 				}
 				else if (HasAnyFlag(desc.misc_flags, GfxBufferMiscFlag::BufferStructured))
 				{
@@ -290,13 +290,13 @@ namespace adria
 				{
 					// This is a Indirect Args Buffer
 					uav_desc.Format = DXGI_FORMAT_R32_UINT;
-					uav_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / sizeof(uint32);
-					uav_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(uint32);
+					uav_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / sizeof(Uint32);
+					uav_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / sizeof(Uint32);
 				}
 				else
 				{
 					// This is a Typed Buffer
-					uint32 stride = GetGfxFormatStride(desc.format);
+					Uint32 stride = GetGfxFormatStride(desc.format);
 					uav_desc.Format = ConvertGfxFormat(desc.format);
 					uav_desc.Buffer.FirstElement = (UINT)subresource_desc.offset / stride;
 					uav_desc.Buffer.NumElements = (UINT)std::min(subresource_desc.size, desc.size - subresource_desc.offset) / stride;
@@ -320,14 +320,14 @@ namespace adria
 		}
 	};
 
-	static void BindIndexBuffer(ID3D11DeviceContext* ctx,GfxBuffer* ib, uint32 offset = 0)
+	static void BindIndexBuffer(ID3D11DeviceContext* ctx,GfxBuffer* ib, Uint32 offset = 0)
 	{
 		ctx->IASetIndexBuffer(ib->GetNative(), ConvertGfxFormat(ib->GetDesc().format), offset);
 	}
-	static void BindVertexBuffer(ID3D11DeviceContext* ctx, GfxBuffer* vb, uint32 slot = 0, uint32 offset = 0)
+	static void BindVertexBuffer(ID3D11DeviceContext* ctx, GfxBuffer* vb, Uint32 slot = 0, Uint32 offset = 0)
 	{
 		ID3D11Buffer* const vbs[] = { vb->GetNative() };
-		uint32 strides[] = { vb->GetDesc().stride };
+		Uint32 strides[] = { vb->GetDesc().stride };
 		ctx->IASetVertexBuffers(slot, 1u, vbs, strides, &offset);
 	}
 	static void BindNullVertexBuffer(ID3D11DeviceContext* ctx)

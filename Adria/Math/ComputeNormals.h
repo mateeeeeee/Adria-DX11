@@ -21,7 +21,7 @@ namespace adria
             void ComputeNormalsEqualWeight(
                 std::vector<vertex_t>& vertices,
                 std::vector<index_t> const& indices,
-                bool cw = false
+                Bool cw = false
         )
         {
             std::vector<XMVECTOR> normals(vertices.size());
@@ -84,7 +84,7 @@ namespace adria
         void ComputeNormalsWeightedByAngle(
             std::vector<vertex_t>& vertices,
             std::vector<index_t> const& indices,
-            bool cw = false)
+            Bool cw = false)
         {
             std::vector<XMVECTOR> normals(vertices.size());
 
@@ -165,7 +165,7 @@ namespace adria
         void ComputeNormalsWeightedByArea(
             std::vector<vertex_t>& vertices,
             std::vector<index_t> indices,
-            bool cw = false) 
+            Bool cw = false) 
         {
             std::vector<XMVECTOR> normals(vertices.size());
 
@@ -249,7 +249,7 @@ namespace adria
         ENormalCalculation normal_type,
         std::vector<vertex_t>& vertices,
         std::vector<index_t> indices,
-        bool cw = false)
+        Bool cw = false)
     {
         switch (normal_type)
         {

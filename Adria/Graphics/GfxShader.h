@@ -19,13 +19,13 @@ namespace adria
 		CS,
 		StageCount
 	};
-	using GfxShaderBlob = std::vector<uint8>;
+	using GfxShaderBlob = std::vector<Uint8>;
 
 	struct GfxShaderBytecode
 	{
 		GfxShaderBlob bytecode;
 
-		void SetBytecode(void* data, uint32 data_size)
+		void SetBytecode(void* data, Uint32 data_size)
 		{
 			bytecode.resize(data_size);
 			memcpy(bytecode.data(), data, data_size);
@@ -34,9 +34,9 @@ namespace adria
 		{
 			return (void*)bytecode.data();
 		}
-		uint32 GetLength() const
+		Uint32 GetLength() const
 		{
-			return (uint32)bytecode.size();
+			return (Uint32)bytecode.size();
 		}
 	};
 
@@ -53,6 +53,6 @@ namespace adria
 		std::string source_file = "";
 		std::string entrypoint = "";
 		std::vector<GfxShaderMacro> macros;
-		uint64 flags = GfxShaderCompilerFlagBit_None;
+		Uint64 flags = GfxShaderCompilerFlagBit_None;
 	};
 }

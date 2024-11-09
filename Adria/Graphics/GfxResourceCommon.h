@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	enum GfxSubresourceType : uint8
+	enum GfxSubresourceType : Uint8
 	{
 		GfxSubresourceType_SRV,
 		GfxSubresourceType_UAV,
@@ -12,7 +12,7 @@ namespace adria
 		GfxSubresourceType_Invalid
 	};
 
-	enum class GfxBindFlag : uint32
+	enum class GfxBindFlag : Uint32
 	{
 		None = 0,
 		ShaderResource = 1 << 0,
@@ -25,9 +25,9 @@ namespace adria
 	};
 	DEFINE_ENUM_BIT_OPERATORS(GfxBindFlag);
 
-	inline constexpr uint32 ParseBindFlags(GfxBindFlag flags)
+	inline constexpr Uint32 ParseBindFlags(GfxBindFlag flags)
 	{
-		uint32 result = 0;
+		Uint32 result = 0;
 		if (HasAnyFlag(flags, GfxBindFlag::VertexBuffer))
 			result |= D3D11_BIND_VERTEX_BUFFER;
 		if (HasAnyFlag(flags, GfxBindFlag::IndexBuffer))
@@ -45,7 +45,7 @@ namespace adria
 		return result;
 	}
 
-	enum class GfxResourceUsage : uint8
+	enum class GfxResourceUsage : Uint8
 	{
 		Default,
 		Immutable,
@@ -74,7 +74,7 @@ namespace adria
 		return D3D11_USAGE_DEFAULT;
 	}
 
-	enum class GfxCpuAccess : uint8
+	enum class GfxCpuAccess : Uint8
 	{
 		None = 0b00,
 		Write = 0b01,
@@ -83,9 +83,9 @@ namespace adria
 	};
 	DEFINE_ENUM_BIT_OPERATORS(GfxCpuAccess);
 
-	inline constexpr uint32 ParseCPUAccessFlags(GfxCpuAccess value)
+	inline constexpr Uint32 ParseCPUAccessFlags(GfxCpuAccess value)
 	{
-		uint32 result = 0;
+		Uint32 result = 0;
 		if (HasAnyFlag(value, GfxCpuAccess::Write))
 			result |= D3D11_CPU_ACCESS_WRITE;
 		if (HasAnyFlag(value, GfxCpuAccess::Read))
@@ -93,7 +93,7 @@ namespace adria
 		return result;
 	}
 
-	enum class GfxTextureMiscFlag : uint32
+	enum class GfxTextureMiscFlag : Uint32
 	{
 		None = 0,
 		TextureCube = 1 << 0,
@@ -101,9 +101,9 @@ namespace adria
 	};
 	DEFINE_ENUM_BIT_OPERATORS(GfxTextureMiscFlag);
 
-	inline constexpr uint32 ParseMiscFlags(GfxTextureMiscFlag value)
+	inline constexpr Uint32 ParseMiscFlags(GfxTextureMiscFlag value)
 	{
-		uint32 result = 0;
+		Uint32 result = 0;
 		if (HasAnyFlag(value, GfxTextureMiscFlag::TextureCube))
 			result |= D3D11_RESOURCE_MISC_TEXTURECUBE;
 		if (HasAnyFlag(value, GfxTextureMiscFlag::GenerateMips))
@@ -111,7 +111,7 @@ namespace adria
 		return result;
 	}
 
-	enum class GfxBufferMiscFlag : uint32
+	enum class GfxBufferMiscFlag : Uint32
 	{
 		None,
 		IndirectArgs = 1 << 0,
@@ -120,9 +120,9 @@ namespace adria
 	};
 	DEFINE_ENUM_BIT_OPERATORS(GfxBufferMiscFlag);
 
-	inline constexpr uint32 ParseMiscFlags(GfxBufferMiscFlag value)
+	inline constexpr Uint32 ParseMiscFlags(GfxBufferMiscFlag value)
 	{
-		uint32 result = 0;
+		Uint32 result = 0;
 		if (HasAnyFlag(value, GfxBufferMiscFlag::IndirectArgs))
 			result |= D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS;
 		if (HasAnyFlag(value, GfxBufferMiscFlag::BufferRaw))
@@ -132,7 +132,7 @@ namespace adria
 		return result;
 	}
 
-	enum class GfxMapType : uint32 
+	enum class GfxMapType : Uint32 
 	{
 		Read = 1,
 		Write = 2,
@@ -163,7 +163,7 @@ namespace adria
 	struct GfxMappedSubresource
 	{
 		void* p_data;
-		uint32 row_pitch;
-		uint32 depth_pitch;
+		Uint32 row_pitch;
+		Uint32 depth_pitch;
 	};
 }

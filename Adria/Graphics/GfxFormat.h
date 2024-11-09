@@ -484,7 +484,7 @@ namespace adria
 		}
 		return GfxFormat::UNKNOWN;
 	}
-	inline constexpr uint32 GetGfxFormatStride(GfxFormat _format)
+	inline constexpr Uint32 GetGfxFormatStride(GfxFormat _format)
 	{
 		DXGI_FORMAT format = ConvertGfxFormat(_format);
 		switch (format)
@@ -569,7 +569,7 @@ namespace adria
 		}
 		return 16u;
 	}
-	inline constexpr uint32 GetFormatStride(DXGI_FORMAT format)
+	inline constexpr Uint32 GetFormatStride(DXGI_FORMAT format)
 	{
 		switch (format)
 		{

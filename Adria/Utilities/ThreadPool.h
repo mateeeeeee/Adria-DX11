@@ -13,14 +13,14 @@ namespace adria
 
 	public:
 
-		void Initialize(uint32 pool_size = std::thread::hardware_concurrency() - 1)
+		void Initialize(Uint32 pool_size = std::thread::hardware_concurrency() - 1)
 		{
 			done = false;
-			static const uint32 max_threads = std::thread::hardware_concurrency();
-			uint16 const num_threads = pool_size == 0 ? max_threads - 1 : (std::min)(max_threads - 1, pool_size);
+			static const Uint32 max_threads = std::thread::hardware_concurrency();
+			Uint16 const num_threads = pool_size == 0 ? max_threads - 1 : (std::min)(max_threads - 1, pool_size);
 
 			threads.reserve(num_threads);
-			for (uint16 i = 0; i < num_threads; ++i)
+			for (Uint16 i = 0; i < num_threads; ++i)
 			{
 				threads.emplace_back(std::bind(&ThreadPool::ThreadWork, this));
 			}
@@ -34,7 +34,7 @@ namespace adria
 				done = true;
 				cond_var.notify_all();
 			}
-			for (uint16 i = 0; i < threads.size(); ++i) if (threads[i].joinable())  threads[i].join();
+			for (Uint16 i = 0; i < threads.size(); ++i) if (threads[i].joinable())  threads[i].join();
 		}
 
 		ThreadPool(ThreadPool const&) = delete;
@@ -59,7 +59,7 @@ namespace adria
 	private:
 		std::vector<std::thread> threads;
 		ConcurrentQueue<std::function<void()>> task_queue;
-		bool done = false;
+		Bool done = false;
 		std::condition_variable cond_var;
 		std::mutex cond_mutex;
 
@@ -69,7 +69,7 @@ namespace adria
 		void ThreadWork()
 		{
 			std::function <void()> task;
-			bool pop_success;
+			Bool pop_success;
 
 			while (true)
 			{

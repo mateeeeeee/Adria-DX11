@@ -10,10 +10,10 @@
 namespace adria
 {
 	#define DECLARE_DELEGATE(name, ...) \
-	using name = Delegate<void(__VA_ARGS__)>
+	using name = Delegate<void(__VA_ARGS__)>;
 
 	#define DECLARE_DELEGATE_RETVAL(name, retval, ...) \
-	using name = Delegate<retval(__VA_ARGS__)>
+	using name = Delegate<retval(__VA_ARGS__)>;
 
 	#define DECLARE_MULTICAST_DELEGATE(name, ...) \
 	using name = MultiCastDelegate<__VA_ARGS__>; \
@@ -70,7 +70,7 @@ namespace adria
 			return callback(std::forward<Args>(args)...);
 		}
 
-		bool IsBound() const { return callback != nullptr; }
+		Bool IsBound() const { return callback != nullptr; }
 
 	private:
 		DelegateType callback = nullptr;
@@ -95,22 +95,22 @@ namespace adria
 			return *this;
 		}
 
-		operator bool() const
+		operator Bool() const
 		{
 			return IsValid();
 		}
 
-		bool operator==(DelegateHandle const& that) const
+		Bool operator==(DelegateHandle const& that) const
 		{
 			return id == that.id;
 		}
 
-		bool operator<(DelegateHandle const& that) const
+		Bool operator<(DelegateHandle const& that) const
 		{
 			return id < that.id;
 		}
 
-		bool IsValid() const
+		Bool IsValid() const
 		{
 			return id != INVALID_ID;
 		}
@@ -175,12 +175,12 @@ namespace adria
 			return Add(std::forward<F>(callable));
 		}
 
-		[[maybe_unused]] bool operator-=(DelegateHandle& handle)
+		[[maybe_unused]] Bool operator-=(DelegateHandle& handle)
 		{
 			return Remove(handle);
 		}
 
-		[[maybe_unused]] bool Remove(DelegateHandle& handle)
+		[[maybe_unused]] Bool Remove(DelegateHandle& handle)
 		{
 			if (handle.IsValid())
 			{
@@ -211,7 +211,7 @@ namespace adria
 			}
 		}
 
-		bool IsHandleBound(DelegateHandle const& handle) const
+		Bool IsHandleBound(DelegateHandle const& handle) const
 		{
 			if (handle.IsValid())
 			{

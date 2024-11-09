@@ -29,8 +29,8 @@
 #include "ImGui/ImGuizmo.h"
 
 //
-#include "Core/CoreTypes.h"
-#include "Core/Defines.h"
+#include "Core/Types.h"
+#include "Core/Macros.h"
 #include "Math/MathTypes.h"
-#include "Graphics/GfxDefines.h"
-#include "Utilities/AutoRefCountPtr.h"
+#include "Graphics/GfxMacros.h"
+#include "Utilities/Ref.h"

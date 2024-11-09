@@ -3,7 +3,7 @@
 
 namespace adria
 {
-	enum class GfxPrimitiveTopology : uint8
+	enum class GfxPrimitiveTopology : Uint8
 	{
 		Undefined,
 		TriangleList,
@@ -44,7 +44,7 @@ namespace adria
 		PatchList31,
 		PatchList32
 	};
-	enum class GfxComparisonFunc : uint8
+	enum class GfxComparisonFunc : Uint8
 	{
 		Never,
 		Less,
@@ -56,12 +56,12 @@ namespace adria
 		Always,
 	};
 
-	enum class GfxDepthWriteMask : uint8
+	enum class GfxDepthWriteMask : Uint8
 	{
 		Zero,
 		All,
 	};
-	enum class GfxStencilOp : uint8
+	enum class GfxStencilOp : Uint8
 	{
 		Keep,
 		Zero,
@@ -72,7 +72,7 @@ namespace adria
 		Incr,
 		Decr,
 	};
-	enum class GfxBlend : uint8
+	enum class GfxBlend : Uint8
 	{
 		Zero,
 		One,
@@ -92,7 +92,7 @@ namespace adria
 		Src1Alpha,
 		InvSrc1Alpha,
 	};
-	enum class GfxBlendOp : uint8
+	enum class GfxBlendOp : Uint8
 	{
 		Add,
 		Subtract,
@@ -100,18 +100,18 @@ namespace adria
 		Min,
 		Max,
 	};
-	enum class GfxFillMode : uint8
+	enum class GfxFillMode : Uint8
 	{
 		Wireframe,
 		Solid,
 	};
-	enum class GfxCullMode : uint8
+	enum class GfxCullMode : Uint8
 	{
 		None,
 		Front,
 		Back,
 	};
-	enum class GfxColorWrite : uint8
+	enum class GfxColorWrite : Uint8
 	{
 		Disable = 0,
 		EnableRed = 1 << 0,
@@ -125,24 +125,24 @@ namespace adria
 	{
 		GfxFillMode fill_mode = GfxFillMode::Solid;
 		GfxCullMode cull_mode = GfxCullMode::Back;
-		bool front_counter_clockwise = false;
-		int32 depth_bias = 0;
-		float depth_bias_clamp = 0.0f;
-		float slope_scaled_depth_bias = 0.0f;
-		bool depth_clip_enable = true;
-		bool multisample_enable = false;
-		bool antialiased_line_enable = false;
-		bool conservative_rasterization_enable = false;
-		uint32 forced_sample_count = 0;
+		Bool front_counter_clockwise = false;
+		Sint32 depth_bias = 0;
+		Float depth_bias_clamp = 0.0f;
+		Float slope_scaled_depth_bias = 0.0f;
+		Bool depth_clip_enable = true;
+		Bool multisample_enable = false;
+		Bool antialiased_line_enable = false;
+		Bool conservative_rasterization_enable = false;
+		Uint32 forced_sample_count = 0;
 	};
 	struct GfxDepthStencilStateDesc
 	{
-		bool depth_enable = true;
+		Bool depth_enable = true;
 		GfxDepthWriteMask depth_write_mask = GfxDepthWriteMask::All;
 		GfxComparisonFunc depth_func = GfxComparisonFunc::Less;
-		bool stencil_enable = false;
-		uint8 stencil_read_mask = 0xff;
-		uint8 stencil_write_mask = 0xff;
+		Bool stencil_enable = false;
+		Uint8 stencil_read_mask = 0xff;
+		Uint8 stencil_write_mask = 0xff;
 		struct GfxDepthStencilOp
 		{
 			GfxStencilOp stencil_fail_op = GfxStencilOp::Keep;
@@ -155,11 +155,11 @@ namespace adria
 	};
 	struct GfxBlendStateDesc
 	{
-		bool alpha_to_coverage_enable = false;
-		bool independent_blend_enable = false;
+		Bool alpha_to_coverage_enable = false;
+		Bool independent_blend_enable = false;
 		struct GfxRenderTargetBlendState
 		{
-			bool blend_enable = false;
+			Bool blend_enable = false;
 			GfxBlend src_blend = GfxBlend::One;
 			GfxBlend dest_blend = GfxBlend::Zero;
 			GfxBlendOp blend_op = GfxBlendOp::Add;
@@ -226,7 +226,7 @@ namespace adria
 		Clamp,
 		Border,
 	};
-	enum class GfxFilter : uint32
+	enum class GfxFilter : Uint32
 	{
 		MIN_MAG_MIP_POINT,
 		MIN_MAG_POINT_MIP_LINEAR,
@@ -272,12 +272,12 @@ namespace adria
 		GfxTextureAddressMode addressU = GfxTextureAddressMode::Clamp;
 		GfxTextureAddressMode addressV = GfxTextureAddressMode::Clamp;
 		GfxTextureAddressMode addressW = GfxTextureAddressMode::Clamp;
-		float mip_lod_bias = 0.0f;
-		uint32 max_anisotropy = 0;
+		Float mip_lod_bias = 0.0f;
+		Uint32 max_anisotropy = 0;
 		GfxComparisonFunc comparison_func = GfxComparisonFunc::Never;
-		float border_color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-		float min_lod = 0.0f;
-		float max_lod = FLT_MAX;
+		Float border_color[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+		Float min_lod = 0.0f;
+		Float max_lod = FLT_MAX;
 	};
 	class GfxSampler
 	{

@@ -24,10 +24,10 @@ namespace adria
 
 	namespace
 	{
-		constexpr uint32 SHADOW_MAP_SIZE = 2048;
-		constexpr uint32 SHADOW_CUBE_SIZE = 512;
-		constexpr uint32 SHADOW_CASCADE_SIZE = 2048;
-		constexpr uint32 CASCADE_COUNT = 4;
+		constexpr Uint32 SHADOW_MAP_SIZE = 2048;
+		constexpr Uint32 SHADOW_CUBE_SIZE = 512;
+		constexpr Uint32 SHADOW_CASCADE_SIZE = 2048;
+		constexpr Uint32 CASCADE_COUNT = 4;
 
 		std::pair<Matrix, Matrix> LightViewProjection_Directional(Light const& light, Camera const& camera, BoundingBox& cull_box)
 		{
@@ -39,16 +39,16 @@ namespace adria
 			BoundingSphere::CreateFromFrustum(frustum_sphere, frustum);
 
 			Vector3 frustum_center(0, 0, 0);
-			for (uint32 i = 0; i < corners.size(); ++i)
+			for (Uint32 i = 0; i < corners.size(); ++i)
 			{
 				frustum_center = frustum_center + corners[i];
 			}
-			frustum_center /= static_cast<float>(corners.size());
+			frustum_center /= static_cast<Float>(corners.size());
 
-			float radius = 0.0f;
+			Float radius = 0.0f;
 			for (Vector3 const& corner : corners)
 			{
-				float distance = Vector3::Distance(corner, frustum_center);
+				Float distance = Vector3::Distance(corner, frustum_center);
 				radius = std::max(radius, distance);
 			}
 			radius = std::ceil(radius * 8.0f) / 8.0f;
@@ -60,12 +60,12 @@ namespace adria
 			Vector4 light_dir = light.direction; light_dir.Normalize();
 			Matrix V = XMMatrixLookAtLH(frustum_center, frustum_center + 1.0f * light_dir * radius, Vector3::Up);
 
-			float l = min_extents.x;
-			float b = min_extents.y;
-			float n = min_extents.z;
-			float r = max_extents.x;
-			float t = max_extents.y;
-			float f = max_extents.z * 1.5f;
+			Float l = min_extents.x;
+			Float b = min_extents.y;
+			Float n = min_extents.z;
+			Float r = max_extents.x;
+			Float t = max_extents.y;
+			Float f = max_extents.z * 1.5f;
 
 			Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 			Matrix VP = V * P;
@@ -94,8 +94,8 @@ namespace adria
 			Vector3 target_pos = light_pos + light_dir * light.range;
 
 			Matrix V = XMMatrixLookAtLH(light_pos, target_pos, Vector3::Up);
-			static const float shadow_near = 0.5f;
-			float fov_angle = 2.0f * acos(light.outer_cosine);
+			static const Float shadow_near = 0.5f;
+			Float fov_angle = 2.0f * acos(light.outer_cosine);
 			Matrix P = XMMatrixPerspectiveFovLH(fov_angle, 1.0f, shadow_near, light.range);
 
 			cull_frustum = BoundingFrustum(P);
@@ -103,9 +103,9 @@ namespace adria
 
 			return { V,P };
 		}
-		std::pair<Matrix, Matrix> LightViewProjection_Point(Light const& light, uint32 face_index, BoundingFrustum& cull_frustum)
+		std::pair<Matrix, Matrix> LightViewProjection_Point(Light const& light, Uint32 face_index, BoundingFrustum& cull_frustum)
 		{
-			static float const shadow_near = 0.5f;
+			static Float const shadow_near = 0.5f;
 			Matrix P = XMMatrixPerspectiveFovLH(XMConvertToRadians(90.0f), 1.0f, shadow_near, light.range);
 
 			Vector3 light_pos = Vector3(light.position);
@@ -153,8 +153,8 @@ namespace adria
 		}
 		std::pair<Matrix, Matrix> LightViewProjection_Cascades(Light const& light, Camera const& camera, Matrix const& projection_matrix, BoundingBox& cull_box)
 		{
-			static float const far_factor = 1.5f;
-			static float const light_distance_factor = 1.0f;
+			static Float const far_factor = 1.5f;
+			static Float const light_distance_factor = 1.0f;
 
 			BoundingFrustum frustum(projection_matrix);
 			frustum.Transform(frustum, camera.View().Invert());
@@ -166,12 +166,12 @@ namespace adria
 			{
 				frustum_center = frustum_center + corner;
 			}
-			frustum_center /= static_cast<float>(corners.size());
+			frustum_center /= static_cast<Float>(corners.size());
 
-			float radius = 0.0f;
+			Float radius = 0.0f;
 			for (Vector3 const& corner : corners)
 			{
-				float distance = Vector3::Distance(corner, frustum_center);
+				Float distance = Vector3::Distance(corner, frustum_center);
 				radius = std::max(radius, distance);
 			}
 			radius = std::ceil(radius * 8.0f) / 8.0f;
@@ -183,12 +183,12 @@ namespace adria
 			Vector3 light_dir = XMVector3Normalize(light.direction);
 			Matrix V = XMMatrixLookAtLH(frustum_center, frustum_center + light_distance_factor * light_dir * radius, Vector3::Up);
 
-			float l = min_extents.x;
-			float b = min_extents.y;
-			float n = min_extents.z - far_factor * radius;
-			float r = max_extents.x;
-			float t = max_extents.y;
-			float f = max_extents.z * far_factor;
+			Float l = min_extents.x;
+			Float b = min_extents.y;
+			Float n = min_extents.z - far_factor * radius;
+			Float r = max_extents.x;
+			Float t = max_extents.y;
+			Float f = max_extents.z * far_factor;
 
 			Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 			Matrix VP = V * P;
@@ -217,12 +217,12 @@ namespace adria
 			Matrix V = XMMatrixLookAtLH(light_pos, target_pos, Vector3::Up);
 			Vector3 sphere_centerLS = Vector3::Transform(target_pos, V);
 
-			float l = sphere_centerLS.x - scene_bounding_sphere.Radius;
-			float b = sphere_centerLS.y - scene_bounding_sphere.Radius;
-			float n = sphere_centerLS.z - scene_bounding_sphere.Radius;
-			float r = sphere_centerLS.x + scene_bounding_sphere.Radius;
-			float t = sphere_centerLS.y + scene_bounding_sphere.Radius;
-			float f = sphere_centerLS.z + scene_bounding_sphere.Radius;
+			Float l = sphere_centerLS.x - scene_bounding_sphere.Radius;
+			Float b = sphere_centerLS.y - scene_bounding_sphere.Radius;
+			Float n = sphere_centerLS.z - scene_bounding_sphere.Radius;
+			Float r = sphere_centerLS.x + scene_bounding_sphere.Radius;
+			Float t = sphere_centerLS.y + scene_bounding_sphere.Radius;
+			Float f = sphere_centerLS.z + scene_bounding_sphere.Radius;
 
 			Matrix P = XMMatrixOrthographicOffCenterLH(l, r, b, t, n, f);
 
@@ -232,44 +232,44 @@ namespace adria
 			return { V,P };
 		}
 
-		std::array<Matrix, CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, float split_lambda, std::array<float, CASCADE_COUNT>& split_distances)
+		std::array<Matrix, CASCADE_COUNT> RecalculateProjectionMatrices(Camera const& camera, Float split_lambda, std::array<Float, CASCADE_COUNT>& split_distances)
 		{
-			float camera_near = camera.Near();
-			float camera_far = camera.Far();
-			float fov = camera.Fov();
-			float ar = camera.AspectRatio();
-			float f = 1.0f / CASCADE_COUNT;
-			for (uint32 i = 0; i < split_distances.size(); i++)
+			Float camera_near = camera.Near();
+			Float camera_far = camera.Far();
+			Float fov = camera.Fov();
+			Float ar = camera.AspectRatio();
+			Float f = 1.0f / CASCADE_COUNT;
+			for (Uint32 i = 0; i < split_distances.size(); i++)
 			{
-				float fi = (i + 1) * f;
-				float l = camera_near * pow(camera_far / camera_near, fi);
-				float u = camera_near + (camera_far - camera_near) * fi;
+				Float fi = (i + 1) * f;
+				Float l = camera_near * pow(camera_far / camera_near, fi);
+				Float u = camera_near + (camera_far - camera_near) * fi;
 				split_distances[i] = l * split_lambda + u * (1.0f - split_lambda);
 			}
 
 			std::array<Matrix, CASCADE_COUNT> projectionMatrices{};
 			projectionMatrices[0] = XMMatrixPerspectiveFovLH(fov, ar, camera_near, split_distances[0]);
-			for (uint32 i = 1; i < projectionMatrices.size(); ++i)
+			for (Uint32 i = 1; i < projectionMatrices.size(); ++i)
 				projectionMatrices[i] = XMMatrixPerspectiveFovLH(fov, ar, split_distances[i - 1], split_distances[i]);
 			return projectionMatrices;
 		}
 
-		float GaussianDistribution(float x, float sigma)
+		Float GaussianDistribution(Float x, Float sigma)
 		{
-			static const float square_root_of_two_pi = sqrt(pi_times_2<float>);
+			static const Float square_root_of_two_pi = sqrt(pi_times_2<Float>);
 			return expf((-x * x) / (2 * sigma * sigma)) / (sigma * square_root_of_two_pi);
 		}
-		template<int16 N>
-		std::array<float, 2 * N + 1> GaussKernel(float sigma)
+		template<Sint16 N>
+		std::array<Float, 2 * N + 1> GaussKernel(Float sigma)
 		{
-			std::array<float, 2 * N + 1> gauss{};
-			float sum = 0.0f;
-			for (int16 i = -N; i <= N; ++i)
+			std::array<Float, 2 * N + 1> gauss{};
+			Float sum = 0.0f;
+			for (Sint16 i = -N; i <= N; ++i)
 			{
 				gauss[i + N] = GaussianDistribution(i * 1.0f, sigma);
 				sum += gauss[i + N];
 			}
-			for (int16 i = -N; i <= N; ++i)
+			for (Sint16 i = -N; i <= N; ++i)
 			{
 				gauss[i + N] /= sum;
 			}
@@ -279,7 +279,7 @@ namespace adria
 
 	}
 
-	Renderer::Renderer(registry& reg, GfxDevice* gfx, uint32 width, uint32 height)
+	Renderer::Renderer(registry& reg, GfxDevice* gfx, Uint32 width, Uint32 height)
 		: width(width), height(height), reg(reg), gfx(gfx), particle_renderer(gfx), picker(gfx)
 	{
 		g_GfxProfiler.Initialize(gfx);
@@ -297,7 +297,7 @@ namespace adria
 		g_GfxProfiler.Destroy();
 	}
 
-	void Renderer::Update(float dt)
+	void Renderer::Update(Float dt)
 	{
 		current_dt = dt;
 		UpdateLights();
@@ -386,7 +386,7 @@ namespace adria
 			command_context->EndRenderPass();
 		}
 	}
-	void Renderer::OnResize(uint32 w, uint32 h)
+	void Renderer::OnResize(Uint32 w, Uint32 h)
 	{
 		width = w, height = h;
 		if (width != 0 || height != 0)
@@ -414,8 +414,8 @@ namespace adria
 		camera = _camera;
 		frame_cbuf_data.global_ambient = Vector4{ renderer_settings.ambient_color[0], renderer_settings.ambient_color[1], renderer_settings.ambient_color[2], 1.0f };
 
-		static uint32 frame_index = 0;
-		float jitter_x = 0.0f, jitter_y = 0.0f;
+		static Uint32 frame_index = 0;
+		Float jitter_x = 0.0f, jitter_y = 0.0f;
 		if (HasAllFlags(renderer_settings.anti_aliasing, AntiAliasing_TAA))
 		{
 			constexpr HaltonSequence<16, 2> x;
@@ -438,8 +438,8 @@ namespace adria
 		frame_cbuf_data.inverse_view = camera->View().Invert();
 		frame_cbuf_data.inverse_projection = camera->Proj().Invert();
 		frame_cbuf_data.inverse_view_projection = camera->ViewProj().Invert();
-		frame_cbuf_data.screen_resolution_x = (float)width;
-		frame_cbuf_data.screen_resolution_y = (float)height;
+		frame_cbuf_data.screen_resolution_x = (Float)width;
+		frame_cbuf_data.screen_resolution_y = (Float)height;
 		frame_cbuf_data.mouse_normalized_coords_x = (current_scene_viewport.mouse_position_x - current_scene_viewport.scene_viewport_pos_x) / current_scene_viewport.scene_viewport_size_x;
 		frame_cbuf_data.mouse_normalized_coords_y = (current_scene_viewport.mouse_position_y - current_scene_viewport.scene_viewport_pos_y) / current_scene_viewport.scene_viewport_size_y;
 
@@ -529,16 +529,16 @@ namespace adria
 		terrain_cbuffer = std::make_unique<GfxConstantBuffer<TerrainCBuffer>>(gfx);
 
 		GfxBufferDesc bokeh_indirect_draw_buffer_desc{};
-		bokeh_indirect_draw_buffer_desc.size = 4 * sizeof(uint32);
+		bokeh_indirect_draw_buffer_desc.size = 4 * sizeof(Uint32);
 		bokeh_indirect_draw_buffer_desc.misc_flags = GfxBufferMiscFlag::IndirectArgs;
-		uint32 buffer_init[4] = { 0, 1, 0, 0 };
+		Uint32 buffer_init[4] = { 0, 1, 0, 0 };
 		bokeh_indirect_draw_buffer = std::make_unique<GfxBuffer>(gfx, bokeh_indirect_draw_buffer_desc, buffer_init);
 
-		static constexpr uint32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
+		static constexpr Uint32 CLUSTER_COUNT = CLUSTER_SIZE_X * CLUSTER_SIZE_Y * CLUSTER_SIZE_Z;
 		voxels = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<VoxelType>(VOXEL_RESOLUTION * VOXEL_RESOLUTION * VOXEL_RESOLUTION));
 		clusters = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<ClusterAABB>(CLUSTER_COUNT));
-		light_counter = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<uint32>(1));
-		light_list = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS));
+		light_counter = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<Uint32>(1));
+		light_list = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<Uint32>(CLUSTER_COUNT * CLUSTER_MAX_LIGHTS));
 		light_grid = std::make_unique<GfxBuffer>(gfx, StructuredBufferDesc<LightGrid>(CLUSTER_COUNT));
 
 		voxels->CreateSRV();
@@ -564,7 +564,7 @@ namespace adria
 			Vector3{ -0.5f,  0.5f, -0.5f }
 		};
 
-		const uint16 cube_indices[] = 
+		const Uint16 cube_indices[] = 
 		{
 			0, 1, 2,
 			2, 3, 0,
@@ -583,7 +583,7 @@ namespace adria
 		cube_vb = std::make_unique<GfxBuffer>(gfx, VertexBufferDesc(ARRAYSIZE(cube_vertices), sizeof(SimpleVertex)), cube_vertices);
 		cube_ib = std::make_unique<GfxBuffer>(gfx, IndexBufferDesc(ARRAYSIZE(cube_indices), true), cube_indices);
 
-		const uint16 aabb_indices[] = {
+		const Uint16 aabb_indices[] = {
 			0, 1,
 			1, 2,
 			2, 3,
@@ -639,7 +639,7 @@ namespace adria
 		wireframe = std::make_unique<GfxRasterizerState>(gfx, WireframeDesc());
 	}
 
-	void Renderer::CreateResolutionDependentResources(uint32 width, uint32 height)
+	void Renderer::CreateResolutionDependentResources(Uint32 width, Uint32 height)
 	{
 		CreateBokehViews(width, height);
 		CreateRenderTargets(width, height);
@@ -666,7 +666,7 @@ namespace adria
 			depth_cubemap_desc.bind_flags = GfxBindFlag::DepthStencil | GfxBindFlag::ShaderResource;
 			depth_cubemap_desc.misc_flags = GfxTextureMiscFlag::TextureCube;
 			shadow_depth_cubemap = std::make_unique<GfxTexture>(gfx, depth_cubemap_desc);
-			for (uint32 i = 0; i < 6; ++i)
+			for (Uint32 i = 0; i < 6; ++i)
 			{
 				GfxTextureSubresourceDesc dsv_desc{};
 				dsv_desc.first_mip = 0;
@@ -688,7 +688,7 @@ namespace adria
 				GfxTextureSubresourceDesc dsv_desc{};
 				dsv_desc.first_mip = 0;
 				dsv_desc.slice_count = 1;
-				dsv_desc.first_slice = (uint32)i;
+				dsv_desc.first_slice = (Uint32)i;
 				size_t j = shadow_cascade_maps->CreateDSV(&dsv_desc);
 				ADRIA_ASSERT(j == i + 1);
 			}
@@ -696,21 +696,21 @@ namespace adria
 
 		//ao random
 		{
-			std::vector<float> random_texture_data;
+			std::vector<Float> random_texture_data;
 			random_texture_data.reserve(AO_NOISE_DIM * AO_NOISE_DIM * 4);
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
-			for (uint32 i = 0; i < ssao_kernel.size(); i++)
+			for (Uint32 i = 0; i < ssao_kernel.size(); i++)
 			{
 				Vector4 offset(2 * rand_float() - 1, 2 * rand_float() - 1, rand_float(), 0.0f);
 				offset.Normalize();
 				offset *= rand_float();
-				float scale = static_cast<float>(i) / ssao_kernel.size();
+				Float scale = static_cast<Float>(i) / ssao_kernel.size();
 				scale = std::lerp(0.1f, 1.0f, scale * scale);
 				offset *= scale;
 				ssao_kernel[i] = offset;
 			}
 
-			for (int32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
+			for (Sint32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
 			{
 				random_texture_data.push_back(rand_float());
 				random_texture_data.push_back(rand_float());
@@ -726,14 +726,14 @@ namespace adria
 
 			GfxTextureInitialData init_data{};
 			init_data.pSysMem = (void*)random_texture_data.data();
-			init_data.SysMemPitch = AO_NOISE_DIM * 4 * sizeof(float);
+			init_data.SysMemPitch = AO_NOISE_DIM * 4 * sizeof(Float);
 			ssao_random_texture = std::make_unique<GfxTexture>(gfx, random_tex_desc, &init_data);
 			ssao_random_texture->CreateSRV();
 
 			random_texture_data.clear();
-			for (int32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
+			for (Sint32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
 			{
-				float rand = rand_float() * pi<float> *2.0f;
+				Float rand = rand_float() * pi<Float> *2.0f;
 				random_texture_data.push_back(sin(rand));
 				random_texture_data.push_back(cos(rand));
 				random_texture_data.push_back(rand_float());
@@ -753,14 +753,14 @@ namespace adria
 			desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 			ocean_initial_spectrum = std::make_unique<GfxTexture>(gfx, desc);
 
-			std::vector<float> ping_array(RESOLUTION * RESOLUTION);
+			std::vector<Float> ping_array(RESOLUTION * RESOLUTION);
 			RealRandomGenerator rand_float{ 0.0f, 1.0f };
-			for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float() * 2.f * pi<float>;
+			for (size_t i = 0; i < ping_array.size(); ++i) ping_array[i] = rand_float() * 2.f * pi<Float>;
 			ping_pong_phase_textures[!pong_phase] = std::make_unique<GfxTexture>(gfx, desc);
 
 			GfxTextureInitialData init_data{};
 			init_data.pSysMem = ping_array.data();
-			init_data.SysMemPitch = RESOLUTION * sizeof(float);
+			init_data.SysMemPitch = RESOLUTION * sizeof(Float);
 			ping_pong_phase_textures[pong_phase] = std::make_unique<GfxTexture>(gfx, desc, &init_data);
 
 			desc.format = GfxFormat::R32G32B32A32_FLOAT;
@@ -786,12 +786,12 @@ namespace adria
 		}
 	}
 
-	void Renderer::CreateBokehViews(uint32 width, uint32 height)
+	void Renderer::CreateBokehViews(Uint32 width, Uint32 height)
 	{
-		uint32 const max_bokeh = width * height;
+		Uint32 const max_bokeh = width * height;
 
 		GfxBufferDesc bokeh_buffer_desc{};
-		bokeh_buffer_desc.stride = 8 * sizeof(float);
+		bokeh_buffer_desc.stride = 8 * sizeof(Float);
 		bokeh_buffer_desc.size = bokeh_buffer_desc.stride * max_bokeh;
 		bokeh_buffer_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::UnorderedAccess;
 		bokeh_buffer_desc.misc_flags = GfxBufferMiscFlag::BufferStructured;
@@ -804,7 +804,7 @@ namespace adria
 		bokeh_buffer->CreateUAV(&uav_desc);
 		bokeh_buffer->CreateSRV();
 	}
-	void Renderer::CreateRenderTargets(uint32 width, uint32 height)
+	void Renderer::CreateRenderTargets(Uint32 width, Uint32 height)
 	{
 		GfxTextureDesc render_target_desc{};
 		render_target_desc.width = width;
@@ -858,7 +858,7 @@ namespace adria
 		velocity_buffer_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 		velocity_buffer = std::make_unique<GfxTexture>(gfx, velocity_buffer_desc);
 	}
-	void Renderer::CreateGBuffer(uint32 width, uint32 height)
+	void Renderer::CreateGBuffer(Uint32 width, Uint32 height)
 	{
 		gbuffer.clear();
 		
@@ -867,13 +867,13 @@ namespace adria
 		render_target_desc.height = height;
 		render_target_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 		
-		for (uint32 i = 0; i < GBufferSlot_Count; ++i)
+		for (Uint32 i = 0; i < GBufferSlot_Count; ++i)
 		{
 			render_target_desc.format = GBUFFER_FORMAT[i];
 			gbuffer.push_back(std::make_unique<GfxTexture>(gfx, render_target_desc));
 		}
 	}
-	void Renderer::CreateAOTexture(uint32 width, uint32 height)
+	void Renderer::CreateAOTexture(Uint32 width, Uint32 height)
 	{
 		GfxTextureDesc ao_tex_desc{};
 		ao_tex_desc.width = width;
@@ -882,9 +882,9 @@ namespace adria
 		ao_tex_desc.bind_flags = GfxBindFlag::ShaderResource | GfxBindFlag::RenderTarget;
 		ao_texture = std::make_unique<GfxTexture>(gfx, ao_tex_desc);
 	}
-	void Renderer::CreateRenderPasses(uint32 width, uint32 height)
+	void Renderer::CreateRenderPasses(Uint32 width, Uint32 height)
 	{
-		static constexpr float clear_black[4] = {0.0f,0.0f,0.0f,0.0f};
+		static constexpr Float clear_black[4] = {0.0f,0.0f,0.0f,0.0f};
 
 		GfxColorAttachmentDesc gbuffer_normal_attachment{};
 		gbuffer_normal_attachment.view = gbuffer[GBufferSlot_NormalMetallic]->RTV();
@@ -1040,7 +1040,7 @@ namespace adria
 
 		//shadow cubemap pass
 		{
-			for (uint32 i = 0; i < 6; ++i)
+			for (Uint32 i = 0; i < 6; ++i)
 			{
 				GfxDepthAttachmentDesc shadow_cubemap_attachment{};
 				shadow_cubemap_attachment.view = shadow_depth_cubemap->DSV(i + 1);
@@ -1058,7 +1058,7 @@ namespace adria
 		//cascade shadow pass
 		{
 			cascade_shadow_pass.clear();
-			for (uint32 i = 0; i < CASCADE_COUNT; ++i)
+			for (Uint32 i = 0; i < CASCADE_COUNT; ++i)
 			{
 				GfxDepthAttachmentDesc cascade_shadow_map_attachment{};
 				cascade_shadow_map_attachment.view = shadow_cascade_maps->DSV(i + 1);
@@ -1129,7 +1129,7 @@ namespace adria
 			velocity_buffer_pass = render_pass_desc;
 		}
 	}
-	void Renderer::CreateComputeTextures(uint32 width, uint32 height)
+	void Renderer::CreateComputeTextures(Uint32 width, Uint32 height)
 	{
 		GfxTextureDesc desc{};
 		desc.width = width;
@@ -1151,7 +1151,7 @@ namespace adria
 
 	void Renderer::BindGlobals()
 	{
-		static bool called = false;
+		static Bool called = false;
 
 		if (!called)
 		{
@@ -1213,7 +1213,7 @@ namespace adria
 
 	}
 
-	void Renderer::UpdateCBuffers(float dt)
+	void Renderer::UpdateCBuffers(Float dt)
 	{
 		compute_cbuf_data.bokeh_blur_threshold = renderer_settings.bokeh_blur_threshold;
 		compute_cbuf_data.bokeh_lum_threshold = renderer_settings.bokeh_lum_threshold;
@@ -1222,13 +1222,13 @@ namespace adria
 		compute_cbuf_data.bokeh_color_scale = renderer_settings.bokeh_color_scale;
 		compute_cbuf_data.bokeh_fallout = renderer_settings.bokeh_fallout;
 
-		compute_cbuf_data.visualize_tiled = static_cast<int32>(renderer_settings.visualize_tiled);
+		compute_cbuf_data.visualize_tiled = static_cast<Sint32>(renderer_settings.visualize_tiled);
 		compute_cbuf_data.visualize_max_lights = renderer_settings.visualize_max_lights;
 
 		compute_cbuf_data.threshold = renderer_settings.bloom_threshold;
 		compute_cbuf_data.bloom_scale = renderer_settings.bloom_scale;
 
-		std::array<float, 9> coeffs{};
+		std::array<Float, 9> coeffs{};
 		coeffs.fill(1.0f / 9);
 		compute_cbuf_data.gauss_coeff1 = coeffs[0];
 		compute_cbuf_data.gauss_coeff2 = coeffs[1];
@@ -1249,7 +1249,7 @@ namespace adria
 
 		compute_cbuffer->Update(gfx->GetCommandContext(), compute_cbuf_data);
 	}
-	void Renderer::UpdateOcean(float dt)
+	void Renderer::UpdateOcean(Float dt)
 	{
 		if (reg.size<Ocean>() == 0) return;
 		GfxCommandContext* command_context = gfx->GetCommandContext();
@@ -1307,8 +1307,8 @@ namespace adria
 		{
 			struct FFTCBuffer
 			{
-				uint32 seq_count;
-				uint32 subseq_count;
+				Uint32 seq_count;
+				Uint32 subseq_count;
 			};
 			static FFTCBuffer fft_cbuf_data{ .seq_count = RESOLUTION };
 			static GfxConstantBuffer<FFTCBuffer> fft_cbuffer(gfx);
@@ -1316,7 +1316,7 @@ namespace adria
 			fft_cbuffer.Bind(command_context, GfxShaderStage::CS, 10);
 			{
 				ShaderManager::GetShaderProgram(ShaderProgram::OceanFFT_Horizontal)->Bind(command_context);
-				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
+				for (Uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 
 					GfxShaderResourceRO  srv[] = { ping_pong_spectrum_textures[!pong_spectrum]->SRV()};
@@ -1336,7 +1336,7 @@ namespace adria
 			//fft vertical
 			{
 				ShaderManager::GetShaderProgram(ShaderProgram::OceanFFT_Vertical)->Bind(command_context);
-				for (uint32 p = 1; p < RESOLUTION; p <<= 1)
+				for (Uint32 p = 1; p < RESOLUTION; p <<= 1)
 				{
 					GfxShaderResourceRO  srv[]  = { ping_pong_spectrum_textures[!pong_spectrum]->SRV() };
 					GfxShaderResourceRW uav[]  = { ping_pong_spectrum_textures[pong_spectrum]->UAV() };
@@ -1368,9 +1368,9 @@ namespace adria
 			command_context->SetShaderResourceRW(0, nullptr);
 		}
 	}
-	void Renderer::UpdateWeather(float dt)
+	void Renderer::UpdateWeather(Float dt)
 	{
-		static float total_time = 0.0f;
+		static Float total_time = 0.0f;
 		total_time += dt;
 
 		auto lights = reg.view<Light>();
@@ -1417,7 +1417,7 @@ namespace adria
 
 		weather_cbuffer->Update(gfx->GetCommandContext(), weather_cbuf_data);
 	}
-	void Renderer::UpdateParticles(float dt)
+	void Renderer::UpdateParticles(Float dt)
 	{
 		auto emitters = reg.view<Emitter>();
 		for (auto emitter : emitters)
@@ -1429,9 +1429,9 @@ namespace adria
 
 	void Renderer::UpdateLights()
 	{
-		uint32 current_light_count = (uint32)reg.size<Light>();
-		static uint32 light_count = 0;
-		bool light_count_changed = current_light_count != light_count;
+		Uint32 current_light_count = (Uint32)reg.size<Light>();
+		static Uint32 light_count = 0;
+		Bool light_count_changed = current_light_count != light_count;
 		if (light_count_changed)
 		{
 			light_count = current_light_count;
@@ -1452,7 +1452,7 @@ namespace adria
 			light_data.position  = Vector4::Transform(light.position, camera->View());
 			light_data.direction = Vector4::Transform(light.direction, camera->View());
 			light_data.range = light.range;
-			light_data.type = static_cast<int32>(light.type);
+			light_data.type = static_cast<Sint32>(light.type);
 			light_data.inner_cosine = light.inner_cosine;
 			light_data.outer_cosine = light.outer_cosine;
 			light_data.active = light.active;
@@ -1471,7 +1471,7 @@ namespace adria
 	}
 	void Renderer::UpdateVoxelData()
 	{
-		float const f = 0.05f / renderer_settings.voxel_size;
+		Float const f = 0.05f / renderer_settings.voxel_size;
 
 		Vector3 cam_pos = camera->Position();
 		Vector3 center(floorf(cam_pos.x * f) / f, floorf(cam_pos.y * f) / f, floorf(cam_pos.z * f) / f);
@@ -1546,11 +1546,11 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "GBuffer Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "GBuffer Pass");
 
-		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, (uint32)gbuffer.size() + 1);
+		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, (Uint32)gbuffer.size() + 1);
 		struct BatchParams
 		{
 			ShaderProgram shader_program;
-			bool double_sided;
+			Bool double_sided;
 			auto operator<=>(BatchParams const&) const = default;
 		};
 		std::map<BatchParams, std::vector<entity>> batched_entities;
@@ -1709,8 +1709,8 @@ namespace adria
 
 		struct DecalCBuffer
 		{
-			int32 decal_type;
-			bool32 modify_gbuffer_normals;
+			Sint32 decal_type;
+			Bool32 modify_gbuffer_normals;
 		};
 
 		static GfxConstantBuffer<DecalCBuffer> decal_cbuffer(gfx);
@@ -1731,7 +1731,7 @@ namespace adria
 				decal.modify_gbuffer_normals 
 					? ShaderManager::GetShaderProgram(ShaderProgram::Decals_ModifyNormals)->Bind(command_context) 
 					: ShaderManager::GetShaderProgram(ShaderProgram::Decals)->Bind(command_context);
-				decal_cbuf_data.decal_type = static_cast<int32>(decal.decal_type);
+				decal_cbuf_data.decal_type = static_cast<Sint32>(decal.decal_type);
 				decal_cbuffer.Update(command_context, decal_cbuf_data);
 
 				object_cbuf_data.model = decal.decal_model_matrix;
@@ -1757,8 +1757,8 @@ namespace adria
 
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 7, 1);
 		{
-			for (uint32 i = 0; i < ssao_kernel.size(); ++i) postprocess_cbuf_data.samples[i] = ssao_kernel[i];
-			postprocess_cbuf_data.noise_scale = Vector2((float)width / 8, (float)height / 8);
+			for (Uint32 i = 0; i < ssao_kernel.size(); ++i) postprocess_cbuf_data.samples[i] = ssao_kernel[i];
+			postprocess_cbuf_data.noise_scale = Vector2((Float)width / 8, (Float)height / 8);
 			postprocess_cbuf_data.ssao_power = renderer_settings.ssao_power;
 			postprocess_cbuf_data.ssao_radius = renderer_settings.ssao_radius;
 			postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
@@ -1787,9 +1787,9 @@ namespace adria
 
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 7, 1);
 		{
-			postprocess_cbuf_data.noise_scale = Vector2((float)width / 8, (float)height / 8);
+			postprocess_cbuf_data.noise_scale = Vector2((Float)width / 8, (Float)height / 8);
 			postprocess_cbuf_data.hbao_r2 = renderer_settings.hbao_radius * renderer_settings.hbao_radius;
-			postprocess_cbuf_data.hbao_radius_to_screen = renderer_settings.hbao_radius * 0.5f * float(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
+			postprocess_cbuf_data.hbao_radius_to_screen = renderer_settings.hbao_radius * 0.5f * Float(height) / (tanf(camera->Fov() * 0.5f) * 2.0f);
 			postprocess_cbuf_data.hbao_power = renderer_settings.hbao_power;
 			postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
 		}
@@ -1830,7 +1830,7 @@ namespace adria
 		command_context->SetTopology(GfxPrimitiveTopology::TriangleStrip);
 
 		if (!ibl_textures_generated) renderer_settings.ibl = false;
-		bool has_ao = renderer_settings.ambient_occlusion != AmbientOcclusion::None;
+		Bool has_ao = renderer_settings.ambient_occlusion != AmbientOcclusion::None;
 		if (has_ao && renderer_settings.ibl) ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR_AO_IBL)->Bind(command_context);
 		else if (has_ao && !renderer_settings.ibl) ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR_AO)->Bind(command_context);
 		else if (!has_ao && renderer_settings.ibl) ShaderManager::GetShaderProgram(ShaderProgram::AmbientPBR_IBL)->Bind(command_context);
@@ -1867,7 +1867,7 @@ namespace adria
 				light_cbuf_data.outer_cosine = light_data.outer_cosine;
 				light_cbuf_data.position = light_data.position;
 				light_cbuf_data.range = light_data.range;
-				light_cbuf_data.type = static_cast<int32>(light_data.type);
+				light_cbuf_data.type = static_cast<Sint32>(light_data.type);
 				light_cbuf_data.use_cascades = light_data.use_cascades;
 				light_cbuf_data.volumetric_strength = light_data.volumetric_strength;
 				light_cbuf_data.sscs = light_data.screen_space_contact_shadows;
@@ -1948,7 +1948,7 @@ namespace adria
 		}
 
 		ShaderManager::GetShaderProgram(ShaderProgram::TiledLighting)->Bind(command_context);
-		command_context->Dispatch((uint32)std::ceil(width * 1.0f / 16), (uint32)std::ceil(height * 1.0f / 16), 1);
+		command_context->Dispatch((Uint32)std::ceil(width * 1.0f / 16), (Uint32)std::ceil(height * 1.0f / 16), 1);
 
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 4);
 		command_context->UnsetShaderResourcesRW(0, 1);
@@ -1969,7 +1969,7 @@ namespace adria
 			command_context->SetBlendState(nullptr);
 		}
 		
-		float black[4] = { 0.0f,0.0f,0.0f,0.0f };
+		Float black[4] = { 0.0f,0.0f,0.0f,0.0f };
 		command_context->ClearReadWriteDescriptorFloat(debug_uav, black);
 		command_context->ClearReadWriteDescriptorFloat(texture_uav, black);
 
@@ -2138,7 +2138,7 @@ namespace adria
 			if (light.type == LightType::Directional && light.casts_shadows && renderer_settings.voxel_debug)
 				PassShadowMapDirectional(light);
 		}
-		lights->Update(_lights.data(), std::min<uint64>(_lights.size(), VOXELIZE_MAX_LIGHTS) * sizeof(LightSBuffer));
+		lights->Update(_lights.data(), std::min<Uint64>(_lights.size(), VOXELIZE_MAX_LIGHTS) * sizeof(LightSBuffer));
 
 		auto voxel_view = reg.view<Mesh, Transform, Material, Deferred, AABB>();
 
@@ -2435,7 +2435,7 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Point Shadow Map Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Point Shadow Map Pass");
 
-		for (uint32 i = 0; i < shadow_cubemap_pass.size(); ++i)
+		for (Uint32 i = 0; i < shadow_cubemap_pass.size(); ++i)
 		{
 			auto const& [V, P] = LightViewProjection_Point(light, i, light_bounding_frustum);
 			shadow_cbuf_data.lightviewprojection = V * P;
@@ -2463,14 +2463,14 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Cascades Shadow Map Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Cascades Shadow Map Pass");
 
-		std::array<float, CASCADE_COUNT> split_distances;
+		std::array<Float, CASCADE_COUNT> split_distances;
 		std::array<Matrix, CASCADE_COUNT> proj_matrices = RecalculateProjectionMatrices(*camera, renderer_settings.split_lambda, split_distances);
 		std::array<Matrix, CASCADE_COUNT> light_view_projections{};
 
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, TEXTURE_SLOT_SHADOWARRAY, 1);
 		command_context->SetRasterizerState(shadow_depth_bias.get());
 		
-		for (uint32 i = 0; i < CASCADE_COUNT; ++i)
+		for (Uint32 i = 0; i < CASCADE_COUNT; ++i)
 		{
 			auto const& [V, P] = LightViewProjection_Cascades(light, *camera, proj_matrices[i], light_bounding_box);
 			light_view_projections[i] = V * P;
@@ -2500,7 +2500,7 @@ namespace adria
 		shadow_cbuf_data.split2 = split_distances[2];
 		shadow_cbuf_data.split3 = split_distances[3];
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
-		shadow_cbuf_data.visualize = static_cast<int32>(false);
+		shadow_cbuf_data.visualize = static_cast<Sint32>(false);
 		shadow_cbuffer->Update(gfx->GetCommandContext(), shadow_cbuf_data);
 	}
 	void Renderer::PassShadowMapCommon()
@@ -2786,7 +2786,7 @@ namespace adria
 		}
 	}
 
-	void Renderer::PassForwardCommon(bool transparent)
+	void Renderer::PassForwardCommon(Bool transparent)
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		auto forward_view = reg.view<Mesh, Transform, AABB, Material, Forward>();
@@ -2942,9 +2942,9 @@ namespace adria
 			}
 			light_cbuf_data.screenspace_position = light_ss;
 
-			static float const max_light_dist = 1.3f;
+			static Float const max_light_dist = 1.3f;
 
-			float f_max_dist = std::max(abs(light_cbuf_data.screenspace_position.x), abs(light_cbuf_data.screenspace_position.y));
+			Float f_max_dist = std::max(abs(light_cbuf_data.screenspace_position.x), abs(light_cbuf_data.screenspace_position.y));
 			if (f_max_dist >= 1.0f) light_cbuf_data.color = Vector4::Transform(light_cbuf_data.color, Matrix::CreateScale((max_light_dist - f_max_dist), (max_light_dist - f_max_dist), (max_light_dist - f_max_dist)));
 
 			light_cbuffer->Update(gfx->GetCommandContext(), light_cbuf_data);
@@ -2974,11 +2974,11 @@ namespace adria
 		{
 			ShaderManager::GetShaderProgram(ShaderProgram::BokehGenerate)->Bind(command_context);
 			GfxShaderResourceRO srv_array[2] = { postprocess_textures[!postprocess_index]->SRV(), depth_target->SRV() };
-			uint32 initial_count[] = { 0 };
+			Uint32 initial_count[] = { 0 };
 			GfxShaderResourceRW bokeh_uav[] = { bokeh_buffer->UAV() };
 			command_context->SetShaderResourcesRW(0, bokeh_uav, initial_count);
 			command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srv_array);
-			command_context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
+			command_context->Dispatch((Uint32)std::ceil(width / 32.0f), (Uint32)std::ceil(height / 32.0f), 1);
 
 			command_context->UnsetShaderResourcesRW(0, 1);
 			command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, 2);
@@ -3052,7 +3052,7 @@ namespace adria
 		command_context->SetShaderResourcesRW(0, uav);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::BloomExtract)->Bind(command_context);
-		command_context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
+		command_context->Dispatch((Uint32)std::ceil(width / 32.0f), (Uint32)std::ceil(height / 32.0f), 1);
 
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srv));
 		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uav));
@@ -3065,7 +3065,7 @@ namespace adria
 		command_context->SetShaderResourcesRW(0, uav2);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::BloomCombine)->Bind(command_context);
-		command_context->Dispatch((uint32)std::ceil(width / 32.0f), (uint32)std::ceil(height / 32.0f), 1);
+		command_context->Dispatch((Uint32)std::ceil(width / 32.0f), (Uint32)std::ceil(height / 32.0f), 1);
 
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srv2));
 		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uav2));
@@ -3118,7 +3118,7 @@ namespace adria
 
 		postprocess_cbuf_data.fog_falloff = renderer_settings.fog_falloff;
 		postprocess_cbuf_data.fog_density = renderer_settings.fog_density;
-		postprocess_cbuf_data.fog_type = static_cast<int32>(renderer_settings.fog_type);
+		postprocess_cbuf_data.fog_type = static_cast<Sint32>(renderer_settings.fog_type);
 		postprocess_cbuf_data.fog_start = renderer_settings.fog_start;
 		postprocess_cbuf_data.fog_color = Vector4(renderer_settings.fog_color[0], renderer_settings.fog_color[1], renderer_settings.fog_color[2], 1);
 		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);
@@ -3139,10 +3139,10 @@ namespace adria
 		AdriaGfxProfileCondScope(command_context, "Film Effects Pass", profiling_enabled);
 		AdriaGfxScopedAnnotation(command_context, "Film Effects Pass");
 
-		auto GetFilmGrainSeed = [](float dt, float seed_update_rate)
+		auto GetFilmGrainSeed = [](Float dt, Float seed_update_rate)
 		{
-			static uint32 seed_counter = 0;
-			static float time_counter = 0.0;
+			static Uint32 seed_counter = 0;
+			static Float time_counter = 0.0;
 			time_counter += dt;
 			if (time_counter >= seed_update_rate)
 			{
@@ -3253,7 +3253,7 @@ namespace adria
 		GfxRenderTarget rtv = sun_target->RTV();
 		GfxDepthTarget  dsv = depth_target->DSV();
 		
-		float black[4] = { 0.0f };
+		Float black[4] = { 0.0f };
 		command_context->ClearRenderTarget(rtv, black);
 		command_context->SetRenderTarget(rtv, dsv);
 		command_context->SetBlendState(alpha_blend.get());
@@ -3293,15 +3293,15 @@ namespace adria
 		GfxShaderResourceRW blur_uav[1] = { nullptr };
 		GfxShaderResourceRO blur_srv[1] = { nullptr };
 
-		uint32 width = src->GetDesc().width;
-		uint32 height = src->GetDesc().height;
+		Uint32 width = src->GetDesc().width;
+		Uint32 height = src->GetDesc().height;
 		
 		GfxShaderResourceRO src_srv = src->SRV();
 
 		command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, src_srv);
 		command_context->SetShaderResourceRW(0, uavs[0]);
 		ShaderManager::GetShaderProgram(ShaderProgram::Blur_Horizontal)->Bind(command_context);
-		command_context->Dispatch((uint32)std::ceil(width * 1.0f / 1024), height, 1);
+		command_context->Dispatch((Uint32)std::ceil(width * 1.0f / 1024), height, 1);
 
 		command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, nullptr);
 		command_context->SetShaderResourceRW(0, nullptr);
@@ -3310,7 +3310,7 @@ namespace adria
 		command_context->SetShaderResourceRW(0, uavs[1]);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::Blur_Vertical)->Bind(command_context);
-		command_context->Dispatch(width, (uint32)std::ceil(height * 1.0f / 1024), 1);
+		command_context->Dispatch(width, (Uint32)std::ceil(height * 1.0f / 1024), 1);
 		
 		command_context->SetShaderResourceRO(GfxShaderStage::CS, 0, nullptr);
 		command_context->SetShaderResourceRW(0, nullptr);
@@ -3340,7 +3340,7 @@ namespace adria
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::PS, 0, ARRAYSIZE(srv));		
 	}
 
-	void Renderer::ResolveCustomRenderState(RenderState const& state, bool reset)
+	void Renderer::ResolveCustomRenderState(RenderState const& state, Bool reset)
 	{
 		GfxCommandContext* context = gfx->GetCommandContext();
 

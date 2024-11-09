@@ -8,14 +8,14 @@ namespace adria
 	{
 		GfxShaderBytecode shader_bytecode;
 		std::vector<std::string> includes;
-		uint64 hash;
+		Uint64 hash;
 	};
 	
 	struct GfxInputLayoutDesc;
 	namespace GfxShaderCompiler
 	{
-		bool CompileShader(GfxShaderDesc const& input, GfxShaderCompileOutput& output);
-		void GetBytecodeFromCompiledShader(char const* filename, GfxShaderBytecode& blob);
+		Bool CompileShader(GfxShaderDesc const& input, GfxShaderCompileOutput& output);
+		void GetBytecodeFromCompiledShader(Char const* filename, GfxShaderBytecode& blob);
 		void FillInputLayoutDesc(GfxShaderBytecode const& blob, GfxInputLayoutDesc& input_desc);
 	}
 }

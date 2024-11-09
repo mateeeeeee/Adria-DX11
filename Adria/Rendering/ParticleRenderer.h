@@ -16,26 +16,26 @@ namespace adria
 
 	class ParticleRenderer
 	{
-		static constexpr uint32 MAX_PARTICLES = 400 * 1024;
+		static constexpr Uint32 MAX_PARTICLES = 400 * 1024;
 
 		struct GPUParticleA
 		{
 			Vector4		TintAndAlpha;
-			float		Rotation;					
-			uint32		IsSleeping;					
+			Float		Rotation;					
+			Uint32		IsSleeping;					
 		};
 		struct GPUParticleB
 		{
 			Vector3		Position;
-			float		Mass;						
+			Float		Mass;						
 
 			Vector3		Velocity;
-			float		Lifespan;					
+			Float		Lifespan;					
 
-			float		DistanceToEye;				
-			float		Age;						
-			float		StartSize;					
-			float		EndSize;					
+			Float		DistanceToEye;				
+			Float		Age;						
+			Float		StartSize;					
+			Float		EndSize;					
 		};
 		struct EmitterCBuffer
 		{
@@ -43,36 +43,36 @@ namespace adria
 			Vector4	EmitterVelocity;
 			Vector4	PositionVariance;
 
-			int32	MaxParticlesThisFrame;
-			float	ParticleLifeSpan;
-			float	StartSize;
-			float	EndSize;
+			Sint32	MaxParticlesThisFrame;
+			Float	ParticleLifeSpan;
+			Float	StartSize;
+			Float	EndSize;
 			
-			float	VelocityVariance;
-			float	Mass;
-			float	ElapsedTime;
-			int32 Collisions;
+			Float	VelocityVariance;
+			Float	Mass;
+			Float	ElapsedTime;
+			Sint32 Collisions;
 
-			int32 CollisionThickness;
+			Sint32 CollisionThickness;
 		};
 		struct IndexBufferElement
 		{
-			float	distance;	
-			float	index;		
+			Float	distance;	
+			Float	index;		
 		};
 		struct ViewSpacePositionRadius
 		{
 			Vector3 viewspace_position;
-			float radius;
+			Float radius;
 		};
 		struct SortDispatchInfo
 		{
-			int32 x, y, z, w;
+			Sint32 x, y, z, w;
 		};
 	public:
 		explicit ParticleRenderer(GfxDevice* gfx);
 
-		void Update(float dt, Emitter& emitter_params);
+		void Update(Float dt, Emitter& emitter_params);
 
 		void Render(Emitter const& emitter_params,
 					GfxShaderResourceRO depth_srv, 
@@ -88,8 +88,8 @@ namespace adria
 		GfxBuffer view_space_positions_buffer;
 		GfxBuffer alive_index_buffer;
 
-		GfxConstantBuffer<uint32> dead_list_count_cbuffer;
-		GfxConstantBuffer<uint32> active_list_count_cbuffer;
+		GfxConstantBuffer<Uint32> dead_list_count_cbuffer;
+		GfxConstantBuffer<Uint32> active_list_count_cbuffer;
 		GfxConstantBuffer<EmitterCBuffer> emitter_cbuffer;
 		GfxConstantBuffer<SortDispatchInfo> sort_dispatch_info_cbuffer;
 
@@ -109,7 +109,7 @@ namespace adria
 		void Rasterize(Emitter const& emitter_params, GfxShaderResourceRO depth_srv, GfxShaderResourceRO particle_srv);
 		void Sort();
 		
-		bool SortInitial();
-		bool SortIncremental(uint32 presorted);
+		Bool SortInitial();
+		Bool SortIncremental(Uint32 presorted);
 	};
 }

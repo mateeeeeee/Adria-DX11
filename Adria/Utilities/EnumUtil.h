@@ -16,14 +16,14 @@ namespace adria
 	inline ENUMTYPE& operator^=(ENUMTYPE& a, ENUMTYPE b) { return (ENUMTYPE &)(((ENUMTYPE##UnderlyingType&)a) ^= ((ENUMTYPE##UnderlyingType)b)); }
 
 	template<typename Enum> requires std::is_enum_v<Enum>
-	inline constexpr bool HasAllFlags(Enum value, Enum flags)
+	inline constexpr Bool HasAllFlags(Enum value, Enum flags)
 	{
 		using T = std::underlying_type_t<Enum>;
 		return (((T)value) & (T)flags) == ((T)flags);
 	}
 
 	template<typename Enum> requires std::is_enum_v<Enum>
-	inline constexpr bool HasAnyFlag(Enum value, Enum flags)
+	inline constexpr Bool HasAnyFlag(Enum value, Enum flags)
 	{
 		using T = std::underlying_type_t<Enum>;
 		return (((T)value) & (T)flags) != 0;

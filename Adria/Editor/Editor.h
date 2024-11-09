@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "GUI.h"
+#include "ImGuiManager.h"
 #include "Core/Engine.h"
 #include "Rendering/RendererSettings.h"
 #include "Rendering/SceneViewport.h"
@@ -43,16 +43,16 @@ namespace adria
 
 	private:
         std::unique_ptr<Engine> engine;
-		std::unique_ptr<GUI> gui;
+		std::unique_ptr<ImGuiManager> gui;
         EditorLogger* editor_logger;
         tecs::entity selected_entity = tecs::null_entity;
-        bool gizmo_enabled = false;
-        bool scene_focused = false;
+        Bool gizmo_enabled = false;
+        Bool scene_focused = false;
         ImGuizmo::OPERATION gizmo_op = ImGuizmo::TRANSLATE;
         RendererSettings renderer_settings{};
         SceneViewport scene_viewport_data;
 
-        std::array<bool, Flag_Count> window_flags = { false };
+        std::array<Bool, Flag_Count> window_flags = { false };
 	private:
 
         void SetStyle();

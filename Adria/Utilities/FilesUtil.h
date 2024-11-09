@@ -22,7 +22,7 @@ namespace adria
 		fs::path p(complete_path);
 		return p.filename().replace_extension().string();
 	}
-	inline bool FileExists(std::string const& file_path)
+	inline Bool FileExists(std::string const& file_path)
 	{
 		fs::path p(file_path);
 		return fs::exists(p);
@@ -39,7 +39,7 @@ namespace adria
 	}
 	inline void NormalizePathInline(std::string& file_path)
 	{
-		for (char& c : file_path)
+		for (Char& c : file_path)
 		{
 			if (c == '\\')
 			{
@@ -57,7 +57,7 @@ namespace adria
 		NormalizePathInline(output);
 		return output;
 	}
-	inline bool ResolveRelativePaths(std::string& path)
+	inline Bool ResolveRelativePaths(std::string& path)
 	{
 		while(true)
 		{

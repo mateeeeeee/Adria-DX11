@@ -3,7 +3,7 @@
 #include <array>
 #include <unordered_map>
 #include <d3d11.h>
-#include "GfxDefines.h"
+#include "GfxMacros.h"
 #include "Utilities/Singleton.h"
 
 namespace adria
@@ -11,7 +11,7 @@ namespace adria
 	struct Timestamp
 	{
 		std::string name;
-		float time_in_ms;
+		Float time_in_ms;
 	};
 
 	class GfxDevice;
@@ -22,14 +22,14 @@ namespace adria
 	{
 		friend class Singleton<GfxProfiler>;
 
-		static constexpr uint64 FRAME_COUNT = GFX_BACKBUFFER_COUNT;
-		static constexpr uint64 MAX_QUERIES = 256;
+		static constexpr Uint64 FRAME_COUNT = GFX_BACKBUFFER_COUNT;
+		static constexpr Uint64 MAX_QUERIES = 256;
 		struct QueryData
 		{
 			std::unique_ptr<GfxQuery> disjoint_query;
 			std::unique_ptr<GfxQuery> timestamp_query_start;
 			std::unique_ptr<GfxQuery> timestamp_query_end;
-			bool begin_called = false, end_called = false;
+			Bool begin_called = false, end_called = false;
 		};
 
 	public:
@@ -37,16 +37,16 @@ namespace adria
 		void Destroy();
 		void NewFrame();
 
-		void BeginProfileScope(GfxCommandContext* context, char const* name);
-		void EndProfileScope(GfxCommandContext* context, char const* name);
+		void BeginProfileScope(GfxCommandContext* context, Char const* name);
+		void EndProfileScope(GfxCommandContext* context, Char const* name);
 		std::vector<Timestamp> GetProfilingResults();
 
 	private:
 		GfxDevice* gfx = nullptr;
-		uint64 current_frame = 0;
+		Uint64 current_frame = 0;
 		std::array<std::array<QueryData, MAX_QUERIES>, FRAME_COUNT> queries;
-		std::unordered_map<std::string, uint32> name_to_index_map;
-		uint32 scope_counter = 0;
+		std::unordered_map<std::string, Uint32> name_to_index_map;
+		Uint32 scope_counter = 0;
 
 	private:
 		GfxProfiler();
@@ -57,7 +57,7 @@ namespace adria
 #if GFX_PROFILING
 	struct GfxProfileScope
 	{
-		GfxProfileScope(GfxCommandContext* context, char const* name, bool active = true)
+		GfxProfileScope(GfxCommandContext* context, Char const* name, Bool active = true)
 			: name{ name }, context{ context }, active{ active }
 		{
 			if (active) g_GfxProfiler.BeginProfileScope(context, name);
@@ -70,8 +70,8 @@ namespace adria
 		}
 
 		GfxCommandContext* context;
-		char const* name;
-		bool active;
+		Char const* name;
+		Bool active;
 	};
 	#define AdriaGfxProfileScope(context, name) GfxProfileScope ADRIA_CONCAT(gfx_profile, __COUNTER__)(context, name)
 	#define AdriaGfxProfileCondScope(context, name, cond) GfxProfileScope ADRIA_CONCAT(gfx_profile, __COUNTER__)(context, name, cond)

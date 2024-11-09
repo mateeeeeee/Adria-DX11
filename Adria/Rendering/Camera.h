@@ -5,12 +5,12 @@ namespace adria
 {
 	struct CameraParameters
 	{
-		float aspect_ratio;
-		float near_plane;
-		float far_plane;
-		float fov;
-		float speed;
-		float sensitivity;
+		Float aspect_ratio;
+		Float near_plane;
+		Float far_plane;
+		Float fov;
+		Float speed;
+		Float sensitivity;
 		Vector3 position;
 		Vector3 look_at;
 	};
@@ -43,20 +43,20 @@ namespace adria
 			return look_vector;
 		}
 
-		float Near() const;
-		float Far() const;
-		float Fov() const;
-		float AspectRatio() const;
+		Float Near() const;
+		Float Far() const;
+		Float Fov() const;
+		Float AspectRatio() const;
 
 		void SetPosition(Vector3 const& pos);
-		void SetNearAndFar(float n, float f);
-		void SetAspectRatio(float ar);
-		void SetFov(float fov);
+		void SetNearAndFar(Float n, Float f);
+		void SetAspectRatio(Float ar);
+		void SetFov(Float fov);
 
-		void Zoom(int32 increment);
-		void OnResize(uint32 w, uint32 h);
-		void Tick(float dt);
-		void Enable(bool _enabled) { enabled = _enabled; }
+		void Zoom(Sint32 increment);
+		void OnResize(Uint32 w, Uint32 h);
+		void Tick(Float dt);
+		void Enable(Bool _enabled) { enabled = _enabled; }
 	private:
 
 		Vector3 position;
@@ -66,21 +66,21 @@ namespace adria
 		Matrix view_matrix;
 		Matrix projection_matrix;
 
-		float aspect_ratio;
-		float fov;
-		float near_plane, far_plane;
-		float speed;
-		float sensitivity;
-		bool  enabled;
+		Float aspect_ratio;
+		Float fov;
+		Float near_plane, far_plane;
+		Float speed;
+		Float sensitivity;
+		Bool  enabled;
 
 	private:
 		void UpdateViewMatrix();
-		void Strafe(float dt);
-		void Walk(float dt);
-		void Jump(float dt);
-		void Pitch(int64 dy);
-		void Yaw(int64 dx);
-		void SetLens(float fov, float aspect, float zn, float zf);
+		void Strafe(Float dt);
+		void Walk(Float dt);
+		void Jump(Float dt);
+		void Pitch(Sint64 dy);
+		void Yaw(Sint64 dx);
+		void SetLens(Float fov, Float aspect, Float zn, Float zf);
 		void SetView();
 	};
 

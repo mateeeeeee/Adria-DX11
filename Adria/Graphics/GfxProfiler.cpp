@@ -30,7 +30,7 @@ namespace adria
 		name_to_index_map.clear();
 		scope_counter = 0;
 
-		uint64 i = current_frame % FRAME_COUNT;
+		Uint64 i = current_frame % FRAME_COUNT;
 		for (auto& block : queries[i])
 		{
 			block.begin_called = false;
@@ -40,10 +40,10 @@ namespace adria
 	}
 
 
-	void GfxProfiler::BeginProfileScope(GfxCommandContext* context, char const* name)
+	void GfxProfiler::BeginProfileScope(GfxCommandContext* context, Char const* name)
 	{
-		uint64 i = current_frame % FRAME_COUNT;
-		uint32 profile_index = scope_counter++;
+		Uint64 i = current_frame % FRAME_COUNT;
+		Uint32 profile_index = scope_counter++;
 		name_to_index_map[name] = profile_index;
 
 		QueryData& query_data = queries[i][profile_index];
@@ -53,12 +53,12 @@ namespace adria
 		context->EndQuery(query_data.timestamp_query_start.get());
 		query_data.begin_called = true;
 	}
-	void GfxProfiler::EndProfileScope(GfxCommandContext* context, char const* name)
+	void GfxProfiler::EndProfileScope(GfxCommandContext* context, Char const* name)
 	{
-		uint64 i = current_frame % FRAME_COUNT;
-		uint32 profile_index = -1;
+		Uint64 i = current_frame % FRAME_COUNT;
+		Uint32 profile_index = -1;
 		profile_index = name_to_index_map[name];
-		ADRIA_ASSERT(profile_index != uint32(-1));
+		ADRIA_ASSERT(profile_index != Uint32(-1));
 
 		QueryData& query_data = queries[i][profile_index];
 		ADRIA_ASSERT(query_data.begin_called);
@@ -76,10 +76,10 @@ namespace adria
 			return {};
 		}
 
-		uint64 old_index = (current_frame - FRAME_COUNT + 1) % FRAME_COUNT;
+		Uint64 old_index = (current_frame - FRAME_COUNT + 1) % FRAME_COUNT;
 		auto& old_queries = queries[old_index];
 
-		bool hr = true;
+		Bool hr = true;
 		QueryDataTimestampDisjoint disjoint_ts{};
 
 		std::vector<Timestamp> results{};
@@ -102,17 +102,17 @@ namespace adria
 				}
 				else
 				{
-					uint64 begin_ts = 0;
-					uint64 end_ts = 0;
-					hr = context->GetQueryData(query.timestamp_query_start.get(), &begin_ts, sizeof(uint64));
+					Uint64 begin_ts = 0;
+					Uint64 end_ts = 0;
+					hr = context->GetQueryData(query.timestamp_query_start.get(), &begin_ts, sizeof(Uint64));
 					while (!context->GetQueryData(query.timestamp_query_end.get(), nullptr, 0))
 					{
 						ADRIA_LOG(INFO, "Waiting for disjoint timestamp of %s in frame %llu", name.c_str(), current_frame);
 						std::this_thread::sleep_for(std::chrono::nanoseconds(500));
 					}
-					hr = context->GetQueryData(query.timestamp_query_end.get(), &end_ts, sizeof(uint64));
+					hr = context->GetQueryData(query.timestamp_query_end.get(), &end_ts, sizeof(Uint64));
 
-					float time_ms = (end_ts - begin_ts) * 1000.0f / disjoint_ts.frequency;
+					Float time_ms = (end_ts - begin_ts) * 1000.0f / disjoint_ts.frequency;
 					std::string time_ms_string = std::to_string(time_ms);
 					std::string result = name + " time: " + time_ms_string + "ms";
 

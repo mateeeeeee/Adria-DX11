@@ -28,36 +28,36 @@ namespace adria
 {
     namespace
     {
-		void GenerateTerrainLayerTexture(char const* texture_name, Terrain* terrain, TerrainTextureLayerParameters const& params)
+		void GenerateTerrainLayerTexture(Char const* texture_name, Terrain* terrain, TerrainTextureLayerParameters const& params)
 		{
 			auto [width, depth] = terrain->TileCounts();
 			auto [tile_size_x, tile_size_z] = terrain->TileSizes();
 
 			std::vector<BYTE> temp_layer_data(width * depth * 4);
 			std::vector<BYTE> layer_data(width * depth * 4);
-			for (uint64 j = 0; j < depth; ++j)
+			for (Uint64 j = 0; j < depth; ++j)
 			{
-				for (uint64 i = 0; i < width; ++i)
+				for (Uint64 i = 0; i < width; ++i)
 				{
-					float x = i * tile_size_x;
-					float z = j * tile_size_z;
+					Float x = i * tile_size_x;
+					Float z = j * tile_size_z;
 
-					float height = terrain->HeightAt(x, z);
-					float normal_y = terrain->NormalAt(x, z).y;
+					Float height = terrain->HeightAt(x, z);
+					Float normal_y = terrain->NormalAt(x, z).y;
 
 					if (height > params.terrain_rocks_start)
 					{
-						float mix_multiplier = std::max(
+						Float mix_multiplier = std::max(
 							(height - params.terrain_rocks_start) / params.height_mix_zone,
 							1.0f
 						);
-						float rock_slope_multiplier = std::clamp((normal_y - params.terrain_slope_rocks_start) / params.slope_mix_zone, 0.0f, 1.0f);
+						Float rock_slope_multiplier = std::clamp((normal_y - params.terrain_slope_rocks_start) / params.slope_mix_zone, 0.0f, 1.0f);
 						temp_layer_data[(j * width + i) * 4 + 0] = (BYTE) (BYTE_MAX * mix_multiplier * rock_slope_multiplier);
 					}
 
 					if (height > params.terrain_sand_start && height <= params.terrain_sand_end)
 					{
-                        float mix_multiplier = std::min(
+                        Float mix_multiplier = std::min(
                             (height-params.terrain_sand_start) / params.height_mix_zone,
                             (params.terrain_sand_end - height) / params.height_mix_zone
 						);
@@ -66,16 +66,16 @@ namespace adria
 
 					if (height > params.terrain_grass_start && height <= params.terrain_grass_end)
 					{
-						float mix_multiplier = std::min(
+						Float mix_multiplier = std::min(
 							(height - params.terrain_grass_start) / params.height_mix_zone,
 							(params.terrain_grass_end - height) / params.height_mix_zone
 						);
 
-						float grass_slope_multiplier = std::clamp((normal_y - params.terrain_slope_grass_start) / params.slope_mix_zone, 0.0f, 1.0f);
+						Float grass_slope_multiplier = std::clamp((normal_y - params.terrain_slope_grass_start) / params.slope_mix_zone, 0.0f, 1.0f);
                         temp_layer_data[(j * width + i) * 4 + 2] = (BYTE)(BYTE_MAX * mix_multiplier * grass_slope_multiplier);
 					}
 
-					uint32 sum = temp_layer_data[(j * width + i) * 4 + 0]
+					Uint32 sum = temp_layer_data[(j * width + i) * 4 + 0]
 						+ temp_layer_data[(j * width + i) * 4 + 1] + temp_layer_data[(j * width + i) * 4 + 2] + 1;
 
 					temp_layer_data[(j * width + i) * 4 + 0] = (BYTE)((temp_layer_data[(j * width + i) * 4 + 0] * 1.0f / sum) * BYTE_MAX);
@@ -90,14 +90,14 @@ namespace adria
 			{
 				for (size_t i = 2; i < width - 2; ++i)
 				{
-					int32 n1 = 0, n2 = 0, n3 = 0, n4 = 0;
-					for (int32 k = -2; k <= 2; ++k)
+					Sint32 n1 = 0, n2 = 0, n3 = 0, n4 = 0;
+					for (Sint32 k = -2; k <= 2; ++k)
 					{
-						for (int32 l = -2; l <= 2; ++l)
+						for (Sint32 l = -2; l <= 2; ++l)
 						{
-							n1 += (int32)temp_layer_data[((j + k) * width + i + l) * 4 + 0];
-							n2 += (int32)temp_layer_data[((j + k) * width + i + l) * 4 + 1];
-							n3 += (int32)temp_layer_data[((j + k) * width + i + l) * 4 + 2];
+							n1 += (Sint32)temp_layer_data[((j + k) * width + i + l) * 4 + 0];
+							n2 += (Sint32)temp_layer_data[((j + k) * width + i + l) * 4 + 1];
+							n3 += (Sint32)temp_layer_data[((j + k) * width + i + l) * 4 + 2];
 						}
 					}
             
@@ -107,7 +107,7 @@ namespace adria
 				}
 			}
 
-			WriteImageTGA(texture_name, layer_data, (int32)width, (int32)depth);
+			WriteImageTGA(texture_name, layer_data, (Sint32)width, (Sint32)depth);
 		}
     }
 
@@ -123,13 +123,13 @@ namespace adria
 
         std::vector<entity> chunks;
         std::vector<TexturedNormalVertex> vertices{};
-        for (uint64 j = 0; j <= params.tile_count_z; j++)
+        for (Uint64 j = 0; j <= params.tile_count_z; j++)
         {
-            for (uint64 i = 0; i <= params.tile_count_x; i++)
+            for (Uint64 i = 0; i <= params.tile_count_x; i++)
             {
                 TexturedNormalVertex vertex{};
 
-                float height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
+                Float height = params.heightmap ? params.heightmap->HeightAt(i, j) : 0.0f;
 
                 vertex.position = Vector3(i * params.tile_size_x + params.grid_offset.x, 
                     height + params.grid_offset.y, j * params.tile_size_z + params.grid_offset.z);
@@ -141,12 +141,12 @@ namespace adria
 
         if (!params.split_to_chunks)
         {
-            std::vector<uint32> indices{};
-            uint32 i1 = 0;
-            uint32 i2 = 1;
-            uint32 i3 = static_cast<uint32>(i1 + params.tile_count_x + 1);
-            uint32 i4 = static_cast<uint32>(i2 + params.tile_count_x + 1);
-            for (uint64 i = 0; i < params.tile_count_x * params.tile_count_z; ++i)
+            std::vector<Uint32> indices{};
+            Uint32 i1 = 0;
+            Uint32 i2 = 1;
+            Uint32 i3 = static_cast<Uint32>(i1 + params.tile_count_x + 1);
+            Uint32 i4 = static_cast<Uint32>(i2 + params.tile_count_x + 1);
+            for (Uint64 i = 0; i < params.tile_count_x * params.tile_count_z; ++i)
             {
                 indices.push_back(i1);
                 indices.push_back(i3);
@@ -176,7 +176,7 @@ namespace adria
             Mesh mesh{};
 			mesh.vertex_buffer = std::make_shared<GfxBuffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedNormalVertex)), vertices.data());
 			mesh.index_buffer = std::make_shared<GfxBuffer>(gfx, IndexBufferDesc(indices.size(), false), indices.data());
-            mesh.indices_count = (uint32)indices.size();
+            mesh.indices_count = (Uint32)indices.size();
  
             reg.emplace<Mesh>(grid, mesh);
             reg.emplace<Transform>(grid);
@@ -192,23 +192,23 @@ namespace adria
         }
         else
         {
-            std::vector<uint32> indices{};
+            std::vector<Uint32> indices{};
             for (size_t j = 0; j < params.tile_count_z; j += params.chunk_count_z)
             {
                 for (size_t i = 0; i < params.tile_count_x; i += params.chunk_count_x)
                 {
                     entity chunk = reg.create();
-                    uint32 const indices_count = static_cast<uint32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
-                    uint32 const indices_offset = static_cast<uint32>(indices.size());
+                    Uint32 const indices_count = static_cast<Uint32>(params.chunk_count_z * params.chunk_count_x * 3 * 2);
+                    Uint32 const indices_offset = static_cast<Uint32>(indices.size());
                     std::vector<TexturedNormalVertex> chunk_vertices_aabb{};
                     for (size_t k = j; k < j + params.chunk_count_z; ++k)
                     {
                         for (size_t m = i; m < i + params.chunk_count_x; ++m)
                         {
-                            uint32 i1 = static_cast<uint32>(k * (params.tile_count_x + 1) + m);
-                            uint32 i2 = static_cast<uint32>(i1 + 1);
-                            uint32 i3 = static_cast<uint32>((k + 1) * (params.tile_count_x + 1) + m);
-                            uint32 i4 = static_cast<uint32>(i3 + 1);
+                            Uint32 i1 = static_cast<Uint32>(k * (params.tile_count_x + 1) + m);
+                            Uint32 i2 = static_cast<Uint32>(i1 + 1);
+                            Uint32 i3 = static_cast<Uint32>((k + 1) * (params.tile_count_x + 1) + m);
+                            Uint32 i4 = static_cast<Uint32>(i3 + 1);
 
                             indices.push_back(i1);
                             indices.push_back(i3);
@@ -336,7 +336,7 @@ namespace adria
 
 			Mesh mesh_component{};
 			mesh_component.base_vertex_location = 0;
-			mesh_component.vertex_count = static_cast<uint32>(vertices.size());
+			mesh_component.vertex_count = static_cast<Uint32>(vertices.size());
             mesh_component.vertex_buffer = vb;
 			reg.emplace<Mesh>(e, mesh_component);
 
@@ -364,7 +364,7 @@ namespace adria
 		tinygltf::Model model;
 		std::string err;
 		std::string warn;
-		bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, params.model_path);
+		Bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, params.model_path);
 
 		std::string model_name = GetFilename(params.model_path);
 		if (!warn.empty())
@@ -383,7 +383,7 @@ namespace adria
 		}
 
 		std::vector<CompleteVertex> vertices{};
-		std::vector<uint32> indices{};
+		std::vector<Uint32> indices{};
 		std::vector<entity> entities{};
 		HashMap<std::string, std::vector<entity>> mesh_name_to_entities_map;
 		for (auto& mesh : model.meshes)
@@ -407,7 +407,7 @@ namespace adria
 					tinygltf::Image const& base_image = model.images[base_texture.source];
 					std::string texbase = params.textures_path + base_image.uri;
 					material.albedo_texture = g_TextureManager.LoadTexture(ToWideString(texbase));
-					material.albedo_factor = (float)pbr_metallic_roughness.baseColorFactor[0];
+					material.albedo_factor = (Float)pbr_metallic_roughness.baseColorFactor[0];
 				}
 				if (pbr_metallic_roughness.metallicRoughnessTexture.index >= 0)
 				{
@@ -415,8 +415,8 @@ namespace adria
 					tinygltf::Image const& metallic_roughness_image = model.images[metallic_roughness_texture.source];
 					std::string texmetallicroughness = params.textures_path + metallic_roughness_image.uri;
 					material.metallic_roughness_texture = g_TextureManager.LoadTexture(ToWideString(texmetallicroughness));
-					material.metallic_factor = (float)pbr_metallic_roughness.metallicFactor;
-					material.roughness_factor = (float)pbr_metallic_roughness.roughnessFactor;
+					material.metallic_factor = (Float)pbr_metallic_roughness.metallicFactor;
+					material.roughness_factor = (Float)pbr_metallic_roughness.roughnessFactor;
 				}
 				if (gltf_material.normalTexture.index >= 0)
 				{
@@ -431,10 +431,10 @@ namespace adria
 					tinygltf::Image const& emissive_image = model.images[emissive_texture.source];
 					std::string texemissive = params.textures_path + emissive_image.uri;
 					material.emissive_texture = g_TextureManager.LoadTexture(ToWideString(texemissive));
-					material.emissive_factor = (float)gltf_material.emissiveFactor[0];
+					material.emissive_factor = (Float)gltf_material.emissiveFactor[0];
 				}
 				material.shader = ShaderProgram::GBufferPBR;
-				material.alpha_cutoff = (float)gltf_material.alphaCutoff;
+				material.alpha_cutoff = (Float)gltf_material.alphaCutoff;
 				material.double_sided = gltf_material.doubleSided;
 				if (gltf_material.alphaMode == "OPAQUE")
 				{
@@ -456,9 +456,9 @@ namespace adria
 				reg.emplace<Deferred>(e);
 
 				Mesh mesh_component{};
-				mesh_component.indices_count = static_cast<uint32>(index_accessor.count);
-				mesh_component.start_index_location = static_cast<uint32>(indices.size());
-				mesh_component.base_vertex_location = static_cast<uint32>(vertices.size());
+				mesh_component.indices_count = static_cast<Uint32>(index_accessor.count);
+				mesh_component.start_index_location = static_cast<Uint32>(indices.size());
+				mesh_component.base_vertex_location = static_cast<Uint32>(vertices.size());
 				switch (primitive.mode)
 				{
 				case TINYGLTF_MODE_POINTS:
@@ -485,9 +485,9 @@ namespace adria
 				tinygltf::Buffer const& buffer = model.buffers[bufferView.buffer];
 
 				int stride = accessor.ByteStride(bufferView);
-				uint32 vertex_offset = mesh_component.base_vertex_location;
-				uint32 index_count = mesh_component.indices_count;
-				uint32 index_offset = mesh_component.start_index_location;
+				Uint32 vertex_offset = mesh_component.base_vertex_location;
+				Uint32 index_count = mesh_component.indices_count;
+				Uint32 index_offset = mesh_component.start_index_location;
 				indices.reserve(indices.size() + index_count);
 				unsigned char const* data = buffer.data.data() + accessor.byteOffset + bufferView.byteOffset;
 				if (stride == 1)
@@ -503,18 +503,18 @@ namespace adria
 				{
 					for (size_t i = 0; i < index_count; i += 3)
 					{
-						indices.push_back(((uint16*)data)[i + 0]);
-						indices.push_back(((uint16*)data)[i + 1]);
-						indices.push_back(((uint16*)data)[i + 2]);
+						indices.push_back(((Uint16*)data)[i + 0]);
+						indices.push_back(((Uint16*)data)[i + 1]);
+						indices.push_back(((Uint16*)data)[i + 2]);
 					}
 				}
 				else if (stride == 4)
 				{
 					for (size_t i = 0; i < index_count; i += 3)
 					{
-						indices.push_back(((uint32*)data)[i + 0]);
-						indices.push_back(((uint32*)data)[i + 1]);
-						indices.push_back(((uint32*)data)[i + 2]);
+						indices.push_back(((Uint32*)data)[i + 0]);
+						indices.push_back(((Uint32*)data)[i + 1]);
+						indices.push_back(((Uint32*)data)[i + 2]);
 					}
 				}
 				else ADRIA_ASSERT(false);
@@ -523,7 +523,7 @@ namespace adria
 				std::vector<Vector3> normals;
 				std::vector<Vector2> uvs;
 				std::vector<Vector3> tangents;
-				std::vector<float>    tangent_handness;
+				std::vector<Float>    tangent_handness;
 				std::vector<Vector3>  bitangents;
 				for (auto& attr : primitive.attributes)
 				{
@@ -586,8 +586,8 @@ namespace adria
 						{
 							for (size_t i = 0; i < vertex_count; ++i)
 							{
-								uint8 const& s = *(uint8*)((size_t)data + i * stride + 0 * sizeof(uint8));
-								uint8 const& t = *(uint8*)((size_t)data + i * stride + 1 * sizeof(uint8));
+								Uint8 const& s = *(Uint8*)((size_t)data + i * stride + 0 * sizeof(Uint8));
+								Uint8 const& t = *(Uint8*)((size_t)data + i * stride + 1 * sizeof(Uint8));
 								uvs.push_back(Vector2(s / 255.0f, 1.0f - t / 255.0f));
 							}
 						}
@@ -595,26 +595,26 @@ namespace adria
 						{
 							for (size_t i = 0; i < vertex_count; ++i)
 							{
-								uint16 const& s = *(uint16*)((size_t)data + i * stride + 0 * sizeof(uint16));
-								uint16 const& t = *(uint16*)((size_t)data + i * stride + 1 * sizeof(uint16));
+								Uint16 const& s = *(Uint16*)((size_t)data + i * stride + 0 * sizeof(Uint16));
+								Uint16 const& t = *(Uint16*)((size_t)data + i * stride + 1 * sizeof(Uint16));
 								uvs.push_back(Vector2(s / 65535.0f, 1.0f - t / 65535.0f));
 							}
 						}
 					}
 				}
-				bool has_tangents = !tangents.empty();
+				Bool has_tangents = !tangents.empty();
 				ADRIA_ASSERT(tangent_handness.size() == tangents.size());
-				uint64 vertex_count = positions.size();
+				Uint64 vertex_count = positions.size();
 				if (normals.size() != vertex_count) normals.resize(vertex_count);
 				if (uvs.size() != vertex_count) uvs.resize(vertex_count);
 				if (tangents.size() != vertex_count) tangents.resize(vertex_count);
 				if (bitangents.size() != vertex_count) bitangents.resize(vertex_count);
 
-				mesh_component.vertex_count = (uint32)vertex_count;
+				mesh_component.vertex_count = (Uint32)vertex_count;
 				reg.emplace<Mesh>(e, mesh_component);
 				if (has_tangents)
 				{
-					for (uint64 i = 0; i < vertex_count; ++i)
+					for (Uint64 i = 0; i < vertex_count; ++i)
 					{
 						Vector3 bitangent = normals[i].Cross(tangents[i]) * tangent_handness[i];
 						bitangent.Normalize();
@@ -629,7 +629,7 @@ namespace adria
 				}
 
 				vertices.reserve(vertices.size() + vertex_count);
-				for (uint64 i = 0; i < vertex_count; ++i)
+				for (Uint64 i = 0; i < vertex_count; ++i)
 				{
 					vertices.emplace_back(
 						positions[i],
@@ -653,7 +653,7 @@ namespace adria
 					Vector3 scale_local = Vector3(1.0f, 1.0f, 1.0f);
 					Vector3 translation_local = Vector3(0.0f, 0.0f, 0.0f);
 					Matrix world = Matrix::Identity;
-					bool update = true;
+					Bool update = true;
 					void Update()
 					{
 						if (update)
@@ -667,34 +667,34 @@ namespace adria
 
 				if (!node.scale.empty())
 				{
-					transforms.scale_local = Vector3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
+					transforms.scale_local = Vector3((Float)node.scale[0], (Float)node.scale[1], (Float)node.scale[2]);
 				}
 				if (!node.rotation.empty())
 				{
-					transforms.rotation_local = Vector4((float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2], (float)node.rotation[3]);
+					transforms.rotation_local = Vector4((Float)node.rotation[0], (Float)node.rotation[1], (Float)node.rotation[2], (Float)node.rotation[3]);
 				}
 				if (!node.translation.empty())
 				{
-					transforms.translation_local = Vector3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
+					transforms.translation_local = Vector3((Float)node.translation[0], (Float)node.translation[1], (Float)node.translation[2]);
 				}
 				if (!node.matrix.empty())
 				{
-					transforms.world._11 = (float)node.matrix[0];
-					transforms.world._12 = (float)node.matrix[1];
-					transforms.world._13 = (float)node.matrix[2];
-					transforms.world._14 = (float)node.matrix[3];
-					transforms.world._21 = (float)node.matrix[4];
-					transforms.world._22 = (float)node.matrix[5];
-					transforms.world._23 = (float)node.matrix[6];
-					transforms.world._24 = (float)node.matrix[7];
-					transforms.world._31 = (float)node.matrix[8];
-					transforms.world._32 = (float)node.matrix[9];
-					transforms.world._33 = (float)node.matrix[10];
-					transforms.world._34 = (float)node.matrix[11];
-					transforms.world._41 = (float)node.matrix[12];
-					transforms.world._42 = (float)node.matrix[13];
-					transforms.world._43 = (float)node.matrix[14];
-					transforms.world._44 = (float)node.matrix[15];
+					transforms.world._11 = (Float)node.matrix[0];
+					transforms.world._12 = (Float)node.matrix[1];
+					transforms.world._13 = (Float)node.matrix[2];
+					transforms.world._14 = (Float)node.matrix[3];
+					transforms.world._21 = (Float)node.matrix[4];
+					transforms.world._22 = (Float)node.matrix[5];
+					transforms.world._23 = (Float)node.matrix[6];
+					transforms.world._24 = (Float)node.matrix[7];
+					transforms.world._31 = (Float)node.matrix[8];
+					transforms.world._32 = (Float)node.matrix[9];
+					transforms.world._33 = (Float)node.matrix[10];
+					transforms.world._34 = (Float)node.matrix[11];
+					transforms.world._41 = (Float)node.matrix[12];
+					transforms.world._42 = (Float)node.matrix[13];
+					transforms.world._43 = (Float)node.matrix[14];
+					transforms.world._44 = (Float)node.matrix[15];
 					transforms.update = false;
 				}
 				transforms.Update();
@@ -735,7 +735,7 @@ namespace adria
 		reg.emplace<Transform>(root);
 		reg.emplace<Tag>(root, model_name);
 		Relationship relationship;
-		relationship.children_count = (uint32)entities.size();
+		relationship.children_count = (Uint32)entities.size();
 		ADRIA_ASSERT(relationship.children_count <= Relationship::MAX_CHILDREN);
 		for (size_t i = 0; i < relationship.children_count; ++i)
 		{
@@ -782,7 +782,7 @@ namespace adria
 
         if (params.mesh_type == LightMesh::Quad)
         {
-            uint32 const size = params.mesh_size;
+            Uint32 const size = params.mesh_size;
             std::vector<TexturedVertex> const vertices =
             {
                 { {-0.5f * size, -0.5f * size, 0.0f}, {0.0f, 0.0f}},
@@ -790,7 +790,7 @@ namespace adria
                 { { 0.5f * size,  0.5f * size, 0.0f}, {1.0f, 1.0f}},
                 { {-0.5f * size,  0.5f * size, 0.0f}, {0.0f, 1.0f}}
             };
-            std::vector<uint16> const indices =
+            std::vector<Uint16> const indices =
             {
                     0, 2, 1, 2, 0, 3
             };
@@ -798,7 +798,7 @@ namespace adria
 			Mesh mesh{};
 			mesh.vertex_buffer = std::make_shared<GfxBuffer>(gfx, VertexBufferDesc(vertices.size(), sizeof(TexturedVertex)), vertices.data());
 			mesh.index_buffer = std::make_shared<GfxBuffer>(gfx, IndexBufferDesc(indices.size(), true), indices.data());
-            mesh.indices_count = static_cast<uint32>(indices.size());
+            mesh.indices_count = static_cast<Uint32>(indices.size());
 
             reg.emplace<Mesh>(light, mesh);
 
@@ -840,7 +840,7 @@ namespace adria
 			   Vector3{ -1.0,  1.0, -1.0 }
 			};
 
-			const uint16 cube_indices[36] = {
+			const Uint16 cube_indices[36] = {
 				// front
 				0, 1, 2,
 				2, 3, 0,
@@ -957,17 +957,17 @@ namespace adria
 	}
 	entity ModelImporter::LoadFoliage(FoliageParameters const& params)
 	{
-		const float size = params.foliage_scale;
+		const Float size = params.foliage_scale;
 		
 		struct FoliageInstance
 		{
 			Vector3 position;
-            float rotation_y;
+            Float rotation_y;
 		};
 
-		RealRandomGenerator<float> random_x(params.foliage_center.x - params.foliage_extents.x, params.foliage_center.x + params.foliage_extents.x);
-		RealRandomGenerator<float> random_z(params.foliage_center.y - params.foliage_extents.y, params.foliage_center.y + params.foliage_extents.y);
-        RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<float>);
+		RealRandomGenerator<Float> random_x(params.foliage_center.x - params.foliage_extents.x, params.foliage_center.x + params.foliage_extents.x);
+		RealRandomGenerator<Float> random_z(params.foliage_center.y - params.foliage_extents.y, params.foliage_center.y + params.foliage_extents.y);
+        RealRandomGenerator<Float> random_angle(0.0f, 2.0f * pi<Float>);
 
 		std::vector<entity> foliages;
 
@@ -990,12 +990,12 @@ namespace adria
 		entity foliage = foliages[0];
 
 		std::vector<FoliageInstance> instance_data{};
-		for (int32 i = 0; i < params.foliage_count; ++i)
+		for (Sint32 i = 0; i < params.foliage_count; ++i)
 		{
-            static const uint32 MAX_ITERATIONS = 5;
+            static const Uint32 MAX_ITERATIONS = 5;
 			Vector3 position{};
 			Vector3 normal{};
-			uint32 iteration = 0;
+			Uint32 iteration = 0;
 			do
 			{
                 if (iteration > MAX_ITERATIONS) break;
@@ -1013,7 +1013,7 @@ namespace adria
 		auto& mesh_component = reg.get<Mesh>(foliage);
 		mesh_component.instance_buffer = std::make_shared<GfxBuffer>(gfx, VertexBufferDesc(instance_data.size(), sizeof(FoliageInstance)), instance_data.data());
 		mesh_component.start_instance_location = 0;
-		mesh_component.instance_count = (uint32)instance_data.size();
+		mesh_component.instance_count = (Uint32)instance_data.size();
 
 		Material material{};
 		material.albedo_texture = g_TextureManager.LoadTexture(params.mesh_texture_pair.second);
@@ -1035,17 +1035,17 @@ namespace adria
 	}
     std::vector<entity> ModelImporter::LoadTrees(TreeParameters const& params)
 	{
-		const float size = params.tree_scale;
+		const Float size = params.tree_scale;
 
 		struct TreeInstance
 		{
 			Vector3 position;
-			float rotation_y;
+			Float rotation_y;
 		};
 
-		RealRandomGenerator<float> random_x(params.tree_center.x - params.tree_extents.x, params.tree_center.x + params.tree_extents.x);
-		RealRandomGenerator<float> random_z(params.tree_center.y - params.tree_extents.y, params.tree_center.y + params.tree_extents.y);
-		RealRandomGenerator<float> random_angle(0.0f, 2.0f * pi<float>);
+		RealRandomGenerator<Float> random_x(params.tree_center.x - params.tree_extents.x, params.tree_center.x + params.tree_extents.x);
+		RealRandomGenerator<Float> random_z(params.tree_center.y - params.tree_extents.y, params.tree_center.y + params.tree_extents.y);
+		RealRandomGenerator<Float> random_angle(0.0f, 2.0f * pi<Float>);
 
         std::vector<std::string> diffuse_textures{};
         std::vector<entity> trees;
@@ -1066,12 +1066,12 @@ namespace adria
         ADRIA_ASSERT(diffuse_textures.size() == trees.size());
 
 		std::vector<TreeInstance> instance_data{};
-		for (int32 i = 0; i < params.tree_count; ++i)
+		for (Sint32 i = 0; i < params.tree_count; ++i)
 		{
-			static const uint32 MAX_ITERATIONS = 5;
+			static const Uint32 MAX_ITERATIONS = 5;
 			Vector3 position{};
 			Vector3 normal{};
-			uint32 iteration = 0;
+			Uint32 iteration = 0;
 			do
 			{
 				if (iteration > MAX_ITERATIONS) break;
@@ -1086,14 +1086,14 @@ namespace adria
 			if (iteration < MAX_ITERATIONS) instance_data.emplace_back(position, random_angle());
 		}
 
-        for (uint64 i = 0; i < trees.size(); ++i)
+        for (Uint64 i = 0; i < trees.size(); ++i)
         {
             auto tree = trees[i];
 			auto& mesh_component = reg.get<Mesh>(tree);
 
 			mesh_component.instance_buffer = std::make_shared<GfxBuffer>(gfx, VertexBufferDesc(instance_data.size(), sizeof(TreeInstance)), instance_data.data());
 			mesh_component.start_instance_location = 0;
-			mesh_component.instance_count = (uint32)instance_data.size();
+			mesh_component.instance_count = (Uint32)instance_data.size();
 			
 			Material material{};
 			material.albedo_texture = g_TextureManager.LoadTexture(texture_path + diffuse_textures[i]);

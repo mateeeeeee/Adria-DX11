@@ -510,7 +510,7 @@ namespace adria
 			}
 		}
 
-		void CompileShader(ShaderId shader, bool first_compile = false)
+		void CompileShader(ShaderId shader, Bool first_compile = false)
 		{
 			GfxShaderDesc input{ .entrypoint = GetEntryPoint(shader) };
 #if _DEBUG
@@ -523,7 +523,7 @@ namespace adria
 			input.macros = GetShaderMacros(shader);
 
 			GfxShaderCompileOutput output{};
-			bool result = GfxShaderCompiler::CompileShader(input, output);
+			Bool result = GfxShaderCompiler::CompileShader(input, output);
 			if (!result) return;
 
 			switch (input.stage)
@@ -711,7 +711,7 @@ namespace adria
 	}
 	GfxShaderProgram* ShaderManager::GetShaderProgram(ShaderProgram shader_program)
 	{
-		bool is_gfx_program = gfx_shader_program_map.contains(shader_program);
+		Bool is_gfx_program = gfx_shader_program_map.contains(shader_program);
 		if (is_gfx_program) return &gfx_shader_program_map[shader_program];
 		else return &compute_shader_program_map[shader_program];
 	}

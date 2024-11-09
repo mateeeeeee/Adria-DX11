@@ -7,7 +7,7 @@ namespace adria
 	static inline void ConvertInputLayout(GfxInputLayoutDesc const& input_layout, std::vector<D3D11_INPUT_ELEMENT_DESC>& element_descs)
 	{
 		element_descs.resize(input_layout.elements.size());
-		for (uint32 i = 0; i < element_descs.size(); ++i)
+		for (Uint32 i = 0; i < element_descs.size(); ++i)
 		{
 			GfxInputLayoutDesc::GfxInputElement const& element = input_layout.elements[i];
 			D3D11_INPUT_ELEMENT_DESC desc{};
@@ -35,7 +35,7 @@ namespace adria
 	{
 		std::vector<D3D11_INPUT_ELEMENT_DESC> d3d11_desc{};
 		ConvertInputLayout(desc, d3d11_desc);
-		GFX_CHECK_HR(gfx->GetDevice()->CreateInputLayout(d3d11_desc.data(), (uint32)d3d11_desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(), input_layout.GetAddressOf()));
+		GFX_CHECK_HR(gfx->GetDevice()->CreateInputLayout(d3d11_desc.data(), (Uint32)d3d11_desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(), input_layout.GetAddressOf()));
 	}
 
 	GfxInputLayout::GfxInputLayout(GfxDevice* gfx, GfxShaderBytecode const& vs_blob)
@@ -44,7 +44,7 @@ namespace adria
 		GfxShaderCompiler::FillInputLayoutDesc(vs_blob, desc);
 		std::vector<D3D11_INPUT_ELEMENT_DESC> d3d11_desc{};
 		ConvertInputLayout(desc, d3d11_desc); 
-		GFX_CHECK_HR(gfx->GetDevice()->CreateInputLayout(d3d11_desc.data(), (uint32)d3d11_desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(), input_layout.GetAddressOf()));
+		GFX_CHECK_HR(gfx->GetDevice()->CreateInputLayout(d3d11_desc.data(), (Uint32)d3d11_desc.size(), vs_blob.GetPointer(), vs_blob.GetLength(), input_layout.GetAddressOf()));
 	}
 
 }

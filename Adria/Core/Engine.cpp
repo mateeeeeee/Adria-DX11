@@ -3,7 +3,7 @@
 #include "Math/Constants.h"
 #include "Core/Logger.h"
 #include "Core/Paths.h"
-#include "Editor/GUI.h"
+#include "Editor/ImGuiManager.h"
 #include "Graphics/GfxDevice.h"
 #include "Rendering/Renderer.h"
 #include "Rendering/ModelImporter.h"
@@ -61,16 +61,16 @@ namespace adria
 				}
 				std::string tex_path = model_params.FindOr<std::string>("tex_path", GetParentPath(path) + "\\");
 
-				float position[3] = { 0.0f, 0.0f, 0.0f };
+				Float position[3] = { 0.0f, 0.0f, 0.0f };
 				model_params.FindArray("translation", position);
 				Matrix translation = XMMatrixTranslation(position[0], position[1], position[2]);
 
-				float angles[3] = { 0.0f, 0.0f, 0.0f };
+				Float angles[3] = { 0.0f, 0.0f, 0.0f };
 				model_params.FindArray("rotation", angles);
 				std::transform(std::begin(angles), std::end(angles), std::begin(angles), XMConvertToRadians);
 				Matrix rotation = XMMatrixRotationX(angles[0]) * XMMatrixRotationY(angles[1]) * XMMatrixRotationZ(angles[2]);
 
-				float scale_factors[3] = { 1.0f, 1.0f, 1.0f };
+				Float scale_factors[3] = { 1.0f, 1.0f, 1.0f };
 				model_params.FindArray("scale", scale_factors);
 				Matrix scale = XMMatrixScaling(scale_factors[0], scale_factors[1], scale_factors[2]);
 				Matrix transform = rotation * scale * translation;
@@ -89,38 +89,38 @@ namespace adria
 				}
 
 				LightParameters light{};
-				float position[3] = { 0.0f, 0.0f, 0.0f };
+				Float position[3] = { 0.0f, 0.0f, 0.0f };
 				light_params.FindArray("position", position);
 				light.light_data.position = XMVectorSet(position[0], position[1], position[2], 1.0f);
 
-				float direction[3] = { 0.0f, -1.0f, 0.0f };
+				Float direction[3] = { 0.0f, -1.0f, 0.0f };
 				light_params.FindArray("direction", direction);
 				light.light_data.direction = XMVectorSet(direction[0], direction[1], direction[2], 0.0f);
 
-				float color[3] = { 1.0f, 1.0f, 1.0f };
+				Float color[3] = { 1.0f, 1.0f, 1.0f };
 				light_params.FindArray("color", color);
 				light.light_data.color = XMVectorSet(color[0], color[1], color[2], 1.0f);
 
-				light.light_data.energy = light_params.FindOr<float>("energy", 1.0f);
-				light.light_data.range = light_params.FindOr<float>("range", 100.0f);
+				light.light_data.energy = light_params.FindOr<Float>("energy", 1.0f);
+				light.light_data.range = light_params.FindOr<Float>("range", 100.0f);
 
-				light.light_data.outer_cosine = std::cos(XMConvertToRadians(light_params.FindOr<float>("outer_angle", 45.0f)));
-				light.light_data.inner_cosine = std::cos(XMConvertToRadians(light_params.FindOr<float>("outer_angle", 22.5f)));
+				light.light_data.outer_cosine = std::cos(XMConvertToRadians(light_params.FindOr<Float>("outer_angle", 45.0f)));
+				light.light_data.inner_cosine = std::cos(XMConvertToRadians(light_params.FindOr<Float>("outer_angle", 22.5f)));
 
-				light.light_data.casts_shadows = light_params.FindOr<bool>("shadows", true);
-				light.light_data.use_cascades = light_params.FindOr<bool>("cascades", false);
+				light.light_data.casts_shadows = light_params.FindOr<Bool>("shadows", true);
+				light.light_data.use_cascades = light_params.FindOr<Bool>("cascades", false);
 
-				light.light_data.active = light_params.FindOr<bool>("active", true);
-				light.light_data.volumetric = light_params.FindOr<bool>("volumetric", false);
-				light.light_data.volumetric_strength = light_params.FindOr<float>("volumetric_strength", 0.03f);
+				light.light_data.active = light_params.FindOr<Bool>("active", true);
+				light.light_data.volumetric = light_params.FindOr<Bool>("volumetric", false);
+				light.light_data.volumetric_strength = light_params.FindOr<Float>("volumetric_strength", 0.03f);
 
-				light.light_data.lens_flare = light_params.FindOr<bool>("lens_flare", false);
-				light.light_data.god_rays = light_params.FindOr<bool>("god_rays", false);
+				light.light_data.lens_flare = light_params.FindOr<Bool>("lens_flare", false);
+				light.light_data.god_rays = light_params.FindOr<Bool>("god_rays", false);
 
-				light.light_data.godrays_decay = light_params.FindOr<float>("godrays_decay", 0.825f);
-				light.light_data.godrays_exposure = light_params.FindOr<float>("godrays_exposure", 2.0f);
-				light.light_data.godrays_density = light_params.FindOr<float>("godrays_density", 0.975f);
-				light.light_data.godrays_weight = light_params.FindOr<float>("godrays_weight", 0.25f);
+				light.light_data.godrays_decay = light_params.FindOr<Float>("godrays_decay", 0.825f);
+				light.light_data.godrays_exposure = light_params.FindOr<Float>("godrays_exposure", 2.0f);
+				light.light_data.godrays_density = light_params.FindOr<Float>("godrays_density", 0.975f);
+				light.light_data.godrays_weight = light_params.FindOr<Float>("godrays_weight", 0.25f);
 
 				light.mesh_type = LightMesh::NoMesh;
 				std::string mesh = light_params.FindOr<std::string>("mesh", "");
@@ -132,7 +132,7 @@ namespace adria
 				{
 					light.mesh_type = LightMesh::Quad;
 				}
-				light.mesh_size = light_params.FindOr<uint32>("size", 100u);
+				light.mesh_size = light_params.FindOr<Uint32>("size", 100u);
 				light.light_texture = light_params.FindOr<std::string>("texture", "");
 				if (light.light_texture.has_value() && light.light_texture->empty()) light.light_texture = std::nullopt;
 
@@ -157,17 +157,17 @@ namespace adria
 			}
 
 			JsonParams camera_params(camera);
-			config.camera_params.near_plane = camera_params.FindOr<float>("near", 1.0f);
-			config.camera_params.far_plane  = camera_params.FindOr<float>("far", 3000.0f);
-			config.camera_params.fov = XMConvertToRadians(camera_params.FindOr<float>("fov", 90.0f));
-			config.camera_params.sensitivity = camera_params.FindOr<float>("sensitivity", 0.3f);
-			config.camera_params.speed = camera_params.FindOr<float>("speed", 25.0f);
+			config.camera_params.near_plane = camera_params.FindOr<Float>("near", 1.0f);
+			config.camera_params.far_plane  = camera_params.FindOr<Float>("far", 3000.0f);
+			config.camera_params.fov = XMConvertToRadians(camera_params.FindOr<Float>("fov", 90.0f));
+			config.camera_params.sensitivity = camera_params.FindOr<Float>("sensitivity", 0.3f);
+			config.camera_params.speed = camera_params.FindOr<Float>("speed", 25.0f);
 
-			float position[3] = { 0.0f, 0.0f, 0.0f };
+			Float position[3] = { 0.0f, 0.0f, 0.0f };
 			camera_params.FindArray("position", position);
 			config.camera_params.position = Vector3(position);
 
-			float look_at[3] = { 0.0f, 0.0f, 10.0f };
+			Float look_at[3] = { 0.0f, 0.0f, 10.0f };
 			camera_params.FindArray("look_at", look_at);
 			config.camera_params.look_at = Vector3(look_at);
 
@@ -215,14 +215,14 @@ namespace adria
 
 		std::ignore = input_events.window_resized_event.AddMember(&GfxDevice::ResizeBackbuffer, *gfx);
 		std::ignore = input_events.window_resized_event.AddMember(&Renderer::OnResize, *renderer);
-		std::ignore = input_events.left_mouse_clicked.Add([this](int32 mx, int32 my) { renderer->OnLeftMouseClicked(); });
+		std::ignore = input_events.left_mouse_clicked.Add([this](Sint32 mx, Sint32 my) { renderer->OnLeftMouseClicked(); });
 		std::ignore = input_events.f5_pressed_event.Add(ShaderManager::CheckIfShadersHaveChanged);
 
 		std::optional<SceneConfig> scene_config = ParseSceneConfig(init.scene_file);
 		if (scene_config.has_value())
 		{
 			InitializeScene(scene_config.value());
-			scene_config.value().camera_params.aspect_ratio = static_cast<float>(window->Width()) / window->Height();
+			scene_config.value().camera_params.aspect_ratio = static_cast<Float>(window->Width()) / window->Height();
 			camera = std::make_unique<Camera>(scene_config.value().camera_params);
 		}
 		else window->Quit(1);
@@ -249,7 +249,7 @@ namespace adria
 	void Engine::Run(RendererSettings const& settings)
 	{
 		static AdriaTimer timer;
-		float const dt = timer.MarkInSeconds();
+		Float const dt = timer.MarkInSeconds();
 
 		g_Input.Tick();
 		if (window->IsActive())
@@ -259,7 +259,7 @@ namespace adria
 		}
 	}
 
-	void Engine::Update(float dt)
+	void Engine::Update(Float dt)
 	{
 		camera->Tick(dt);
 		renderer->SetSceneViewportData(scene_viewport_data);
@@ -295,10 +295,10 @@ namespace adria
 			scene_viewport_data.mouse_position_x = g_Input.GetMousePositionX();
 			scene_viewport_data.mouse_position_y = g_Input.GetMousePositionY();
 			
-			scene_viewport_data.scene_viewport_pos_x = static_cast<float>(window->PositionX());
-			scene_viewport_data.scene_viewport_pos_y = static_cast<float>(window->PositionY());
-			scene_viewport_data.scene_viewport_size_x = static_cast<float>(window->Width());
-			scene_viewport_data.scene_viewport_size_y = static_cast<float>(window->Height());
+			scene_viewport_data.scene_viewport_pos_x = static_cast<Float>(window->PositionX());
+			scene_viewport_data.scene_viewport_pos_y = static_cast<Float>(window->PositionY());
+			scene_viewport_data.scene_viewport_size_x = static_cast<Float>(window->Width());
+			scene_viewport_data.scene_viewport_size_y = static_cast<Float>(window->Height());
 		}
 	}
 

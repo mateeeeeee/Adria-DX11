@@ -8,20 +8,20 @@ namespace adria
 	template<typename CBuffer>
 	class GfxConstantBuffer
 	{
-		static constexpr uint32 GetCBufferSize(uint32 buffer_size)
+		static constexpr Uint32 GetCBufferSize()
 		{
-			return (buffer_size + (64 - 1)) & ~(64 - 1);
+			return (sizeof(CBuffer) + (64 - 1)) & ~(64 - 1);
 		}
 
 	public:
 
-		GfxConstantBuffer(GfxDevice* gfx, bool dynamic = true);
-		GfxConstantBuffer(GfxDevice* gfx, CBuffer const& initialdata, bool dynamic = true);
+		GfxConstantBuffer(GfxDevice* gfx, Bool dynamic = true);
+		GfxConstantBuffer(GfxDevice* gfx, CBuffer const& initialdata, Bool dynamic = true);
 
-		void Update(GfxCommandContext* context, void const* data, uint32 data_size);
+		void Update(GfxCommandContext* context, void const* data, Uint32 data_size);
 		void Update(GfxCommandContext* context, CBuffer const& buffer_data);
 
-		void Bind(GfxCommandContext* context, GfxShaderStage stage, uint32 slot) const;
+		void Bind(GfxCommandContext* context, GfxShaderStage stage, Uint32 slot) const;
 		GfxBuffer* Buffer() const
 		{
 			return buffer.get();
@@ -29,16 +29,16 @@ namespace adria
 
 	private:
 		std::unique_ptr<GfxBuffer> buffer = nullptr;
-		bool dynamic;
+		Bool dynamic;
 	};
 
 
 	template<typename CBuffer>
-	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(GfxDevice* gfx, CBuffer const& initialdata, bool dynamic /*= true*/) : dynamic{ dynamic }
+	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(GfxDevice* gfx, CBuffer const& initialdata, Bool dynamic) : dynamic{ dynamic }
 	{
 		GfxBufferDesc desc{};
 		desc.resource_usage = dynamic ? GfxResourceUsage::Dynamic : GfxResourceUsage::Default;
-		desc.size = GetCBufferSize(sizeof(CBuffer));
+		desc.size = GetCBufferSize();
 		desc.bind_flags = GfxBindFlag::ConstantBuffer;
 		desc.cpu_access = dynamic ? GfxCpuAccess::Write : GfxCpuAccess::None;
 
@@ -47,11 +47,11 @@ namespace adria
 	}
 
 	template<typename CBuffer>
-	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(GfxDevice* gfx, bool dynamic /*= true*/) : dynamic{ dynamic }
+	GfxConstantBuffer<CBuffer>::GfxConstantBuffer(GfxDevice* gfx, Bool dynamic) : dynamic{ dynamic }
 	{
 		GfxBufferDesc desc{};
 		desc.resource_usage = dynamic ? GfxResourceUsage::Dynamic : GfxResourceUsage::Default;
-		desc.size = GetCBufferSize(sizeof(CBuffer));
+		desc.size = GetCBufferSize();
 		desc.bind_flags = GfxBindFlag::ConstantBuffer;
 		desc.cpu_access = dynamic ? GfxCpuAccess::Write : GfxCpuAccess::None;
 
@@ -59,7 +59,7 @@ namespace adria
 	}
 
 	template<typename CBuffer>
-	void GfxConstantBuffer<CBuffer>::Update(GfxCommandContext* context, void const* data, uint32 data_size)
+	void GfxConstantBuffer<CBuffer>::Update(GfxCommandContext* context, void const* data, Uint32 data_size)
 	{
 		context->UpdateBuffer(buffer.get(), data, data_size);
 	}
@@ -71,7 +71,7 @@ namespace adria
 	}
 
 	template<typename CBuffer>
-	void GfxConstantBuffer<CBuffer>::Bind(GfxCommandContext* context, GfxShaderStage stage, uint32 slot) const
+	void GfxConstantBuffer<CBuffer>::Bind(GfxCommandContext* context, GfxShaderStage stage, Uint32 slot) const
 	{
 		context->SetConstantBuffer(stage, slot, buffer.get());
 	}

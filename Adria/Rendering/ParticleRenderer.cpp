@@ -7,13 +7,13 @@
 namespace adria
 {
 	ParticleRenderer::ParticleRenderer(GfxDevice* gfx) : gfx{ gfx },
-		dead_list_buffer(gfx, AppendBufferDesc(MAX_PARTICLES, sizeof(uint32))),
+		dead_list_buffer(gfx, AppendBufferDesc(MAX_PARTICLES, sizeof(Uint32))),
 		particle_bufferA(gfx, StructuredBufferDesc<GPUParticleA>(MAX_PARTICLES)),
 		particle_bufferB(gfx, StructuredBufferDesc<GPUParticleB>(MAX_PARTICLES)),
 		view_space_positions_buffer(gfx, StructuredBufferDesc<ViewSpacePositionRadius>(MAX_PARTICLES)),
 		alive_index_buffer(gfx, StructuredBufferDesc<IndexBufferElement>(MAX_PARTICLES)),
-		indirect_render_args_buffer(gfx, IndirectArgsBufferDesc(5 * sizeof(uint32))),
-		indirect_sort_args_buffer(gfx, IndirectArgsBufferDesc(4 * sizeof(uint32))),
+		indirect_render_args_buffer(gfx, IndirectArgsBufferDesc(5 * sizeof(Uint32))),
+		indirect_sort_args_buffer(gfx, IndirectArgsBufferDesc(4 * sizeof(Uint32))),
 		dead_list_count_cbuffer(gfx, false),
 		active_list_count_cbuffer(gfx, false),
 		emitter_cbuffer(gfx, true),
@@ -24,7 +24,7 @@ namespace adria
 		CreateIndexBuffer();
 	}
 
-	void ParticleRenderer::Update(float dt, Emitter& emitter_params)
+	void ParticleRenderer::Update(Float dt, Emitter& emitter_params)
 	{
 		emitter_params.elapsed_time += dt;
 		if (emitter_params.particles_per_second > 0.0f)
@@ -32,10 +32,10 @@ namespace adria
 			emitter_params.accumulation += emitter_params.particles_per_second * dt;
 			if (emitter_params.accumulation > 1.0f)
 			{
-				double integer_part = 0.0;
-				float fraction = (float)modf(emitter_params.accumulation, &integer_part);
+				Float64 integer_part = 0.0;
+				Float fraction = (Float)modf(emitter_params.accumulation, &integer_part);
 
-				emitter_params.number_to_emit = (int32)integer_part;
+				emitter_params.number_to_emit = (Sint32)integer_part;
 				emitter_params.accumulation = fraction;
 			}
 		}
@@ -79,10 +79,10 @@ namespace adria
 
 	void ParticleRenderer::CreateIndexBuffer()
 	{
-		std::vector<uint32> indices(MAX_PARTICLES * 6);
-		uint32 base = 0;
-		uint32 offset = 0;
-		for (uint32 i = 0; i < MAX_PARTICLES; i++)
+		std::vector<Uint32> indices(MAX_PARTICLES * 6);
+		Uint32 base = 0;
+		Uint32 offset = 0;
+		for (Uint32 i = 0; i < MAX_PARTICLES; i++)
 		{
 			indices[offset + 0] = base + 0;
 			indices[offset + 1] = base + 1;
@@ -107,9 +107,9 @@ namespace adria
 		desc.usage = GfxResourceUsage::Immutable;
 		desc.bind_flags = GfxBindFlag::ShaderResource;
 
-		std::vector<float> random_texture_data;
+		std::vector<Float> random_texture_data;
 		RealRandomGenerator rand_float{ 0.0f, 1.0f };
-		for (uint32 i = 0; i < desc.width * desc.height; i++)
+		for (Uint32 i = 0; i < desc.width * desc.height; i++)
 		{
 			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
 			random_texture_data.push_back(2.0f * rand_float() - 1.0f);
@@ -118,7 +118,7 @@ namespace adria
 		}
 		GfxTextureInitialData init_data{};
 		init_data.pSysMem = (void*)random_texture_data.data();
-		init_data.SysMemPitch = desc.width * 4 * sizeof(float);
+		init_data.SysMemPitch = desc.width * 4 * sizeof(Float);
 
 		random_texture = std::make_unique<GfxTexture>(gfx, desc, &init_data);
 		random_texture->CreateSRV();
@@ -128,12 +128,12 @@ namespace adria
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		
-		uint32 initial_count[] = { 0 };
+		Uint32 initial_count[] = { 0 };
 		GfxShaderResourceRW dead_list_uavs[] = { dead_list_buffer.UAV() };
 		command_context->SetShaderResourcesRW(0, dead_list_uavs, initial_count);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleInitDeadList)->Bind(command_context);
-		command_context->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+		command_context->Dispatch((Uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleInitDeadList)->Unbind(command_context);
 
 		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(dead_list_uavs));
@@ -144,11 +144,11 @@ namespace adria
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		
 		GfxShaderResourceRW uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV() };
-		uint32 initial_counts[] = { (uint32)-1, (uint32)-1 };
+		Uint32 initial_counts[] = { (Uint32)-1, (Uint32)-1 };
 		command_context->SetShaderResourcesRW(0, uavs, initial_counts);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleReset)->Bind(command_context);
-		command_context->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+		command_context->Dispatch((Uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleReset)->Unbind(command_context);
 
 		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uavs));
@@ -164,7 +164,7 @@ namespace adria
 			ShaderManager::GetShaderProgram(ShaderProgram::ParticleEmit)->Bind(command_context);
 
 			GfxShaderResourceRW uavs[] = { particle_bufferA.UAV(), particle_bufferB.UAV(), dead_list_buffer.UAV() };
-			uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1 };
+			Uint32 initial_counts[] = { (Uint32)-1, (Uint32)-1, (Uint32)-1 };
 			command_context->SetShaderResourcesRW(0, uavs, initial_counts);
 
 			GfxShaderResourceRO srvs[] = { random_texture->SRV() };
@@ -189,7 +189,7 @@ namespace adria
 			emitter_cbuffer.Bind(command_context, GfxShaderStage::CS, 13);
 
 			command_context->CopyStructureCount(dead_list_count_cbuffer.Buffer(), 0, dead_list_buffer.UAV());
-			uint32 thread_groups_x = (uint32)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
+			Uint32 thread_groups_x = (Uint32)std::ceil(emitter_params.number_to_emit * 1.0f / 1024);
 			command_context->Dispatch(thread_groups_x, 1, 1);
 
 			command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
@@ -208,14 +208,14 @@ namespace adria
 			particle_bufferA.UAV(), particle_bufferB.UAV(),
 			dead_list_buffer.UAV(), alive_index_buffer.UAV(),
 			view_space_positions_buffer.UAV(), indirect_render_args_buffer.UAV() };
-		uint32 initial_counts[] = { (uint32)-1, (uint32)-1, (uint32)-1, 0, (uint32)-1, (uint32)-1 };
+		Uint32 initial_counts[] = { (Uint32)-1, (Uint32)-1, (Uint32)-1, 0, (Uint32)-1, (Uint32)-1 };
 		command_context->SetShaderResourcesRW(0, uavs, initial_counts);
 
 		GfxShaderResourceRO srvs[] = { depth_srv };
 		command_context->SetShaderResourcesRO(GfxShaderStage::CS, 0, srvs);
 
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleSimulate)->Bind(command_context);
-		command_context->Dispatch((uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
+		command_context->Dispatch((Uint32)std::ceil(MAX_PARTICLES * 1.0f / 256), 1, 1);
 
 		command_context->UnsetShaderResourcesRO(GfxShaderStage::CS, 0, ARRAYSIZE(srvs));
 		command_context->UnsetShaderResourcesRW(0, ARRAYSIZE(uavs));
@@ -263,8 +263,8 @@ namespace adria
 		GfxShaderResourceRW uav = alive_index_buffer.UAV();
 		command_context->SetShaderResourceRW(0, uav);
 
-		bool done = SortInitial();
-		uint32 presorted = 512;
+		Bool done = SortInitial();
+		Uint32 presorted = 512;
 		while (!done)
 		{
 			done = SortIncremental(presorted);
@@ -276,35 +276,35 @@ namespace adria
 
 	}
 
-	bool ParticleRenderer::SortInitial()
+	Bool ParticleRenderer::SortInitial()
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
-		bool done = true;
-		uint32 numThreadGroups = ((MAX_PARTICLES - 1) >> 9) + 1;
+		Bool done = true;
+		Uint32 numThreadGroups = ((MAX_PARTICLES - 1) >> 9) + 1;
 		if (numThreadGroups > 1) done = false;
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleSort512)->Bind(command_context);
 		command_context->DispatchIndirect(indirect_sort_args_buffer, 0);
 		return done;
 	}
 
-	bool ParticleRenderer::SortIncremental(uint32 presorted)
+	Bool ParticleRenderer::SortIncremental(Uint32 presorted)
 	{
 		GfxCommandContext* command_context = gfx->GetCommandContext();
 		
-		bool done = true;
+		Bool done = true;
 		ShaderManager::GetShaderProgram(ShaderProgram::ParticleBitonicSortStep)->Bind(command_context);
 
-		uint32 num_thread_groups = 0;
+		Uint32 num_thread_groups = 0;
 		if (MAX_PARTICLES > presorted)
 		{
 			if (MAX_PARTICLES > presorted * 2) done = false;
-			uint32 pow2 = presorted;
+			Uint32 pow2 = presorted;
 			while (pow2 < MAX_PARTICLES) pow2 *= 2;
 			num_thread_groups = pow2 >> 9;
 		}
 
-		uint32 merge_size = presorted * 2;
-		for (uint32 merge_subsize = merge_size >> 1; merge_subsize > 256; merge_subsize = merge_subsize >> 1)
+		Uint32 merge_size = presorted * 2;
+		for (Uint32 merge_subsize = merge_size >> 1; merge_subsize > 256; merge_subsize = merge_subsize >> 1)
 		{
 
 			SortDispatchInfo sort_dispatch_info{};

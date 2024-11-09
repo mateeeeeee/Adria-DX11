@@ -14,11 +14,11 @@ namespace adria
 	class GfxDevice;
 	class Renderer;
 	class ModelImporter;
-	class GUI;
+	class ImGuiManager;
 
 	struct EngineInit
 	{
-		bool vsync = false;
+		Bool vsync = false;
 		Window* window = nullptr;
 		std::string scene_file = "scene.json";
 	};
@@ -50,14 +50,14 @@ namespace adria
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<ModelImporter> model_importer;
 
-		bool vsync;
-		bool editor_active = true;
+		Bool vsync;
+		Bool editor_active = true;
 		SceneViewport scene_viewport_data;
 
 	private:
 
 		void InitializeScene(SceneConfig const& config);
-		void Update(float dt);
+		void Update(Float dt);
 		void Render(RendererSettings const& settings);
 		void SetSceneViewportData(std::optional<SceneViewport> viewport_data);
 	};

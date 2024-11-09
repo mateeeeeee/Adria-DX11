@@ -175,7 +175,7 @@
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Editor\Editor.cpp" />
     <ClCompile Include="Editor\EditorLogger.cpp" />
-    <ClCompile Include="Editor\GUI.cpp" />
+    <ClCompile Include="Editor\ImGuiManager.cpp" />
     <ClCompile Include="Graphics\GfxCommandContext.cpp" />
     <ClCompile Include="Graphics\GfxDevice.cpp" />
     <ClCompile Include="Graphics\GfxInputLayout.cpp" />
@@ -219,9 +219,9 @@
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_textedit.h" />
     <ClInclude Include="..\ThirdParty\ImGui\ImGui\imstb_truetype.h" />
     <ClInclude Include="..\ThirdParty\SimpleMath\SimpleMath.h" />
-    <ClInclude Include="Core\CoreTypes.h" />
+    <ClInclude Include="Core\Types.h" />
     <ClInclude Include="Core\Engine.h" />
-    <ClInclude Include="Core\Defines.h" />
+    <ClInclude Include="Core\Macros.h" />
     <ClInclude Include="Core\Input.h" />
     <ClInclude Include="Core\Logger.h" />
     <ClInclude Include="Core\Paths.h" />
@@ -229,11 +229,11 @@
     <ClInclude Include="Core\Windows.h" />
     <ClInclude Include="Editor\Editor.h" />
     <ClInclude Include="Editor\EditorLogger.h" />
-    <ClInclude Include="Editor\GUI.h" />
+    <ClInclude Include="Editor\ImGuiManager.h" />
     <ClInclude Include="Graphics\GfxBuffer.h" />
     <ClInclude Include="Graphics\GfxCommandContext.h" />
     <ClInclude Include="Graphics\GfxConstantBuffer.h" />
-    <ClInclude Include="Graphics\GfxDefines.h" />
+    <ClInclude Include="Graphics\GfxMacros.h" />
     <ClInclude Include="Graphics\GfxView.h" />
     <ClInclude Include="Graphics\GfxDevice.h" />
     <ClInclude Include="Graphics\GfxFormat.h" />
@@ -276,7 +276,7 @@
     <ClInclude Include="tecs\registry.h" />
     <ClInclude Include="tecs\sparse_set.h" />
     <ClInclude Include="Utilities\AllocatorUtil.h" />
-    <ClInclude Include="Utilities\AutoRefCountPtr.h" />
+    <ClInclude Include="Utilities\Ref.h" />
     <ClInclude Include="Utilities\CLIParser.h" />
     <ClInclude Include="Utilities\ConcurrentQueue.h" />
     <ClInclude Include="Utilities\Delegate.h" />

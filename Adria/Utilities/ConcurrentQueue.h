@@ -1,5 +1,4 @@
 #pragma once
-
 #include <queue>
 #include <mutex>
 #include <condition_variable>
@@ -44,7 +43,7 @@ namespace adria
             queue.pop();
         }
 
-        bool TryPop(T& value)
+        Bool TryPop(T& value)
         {
             std::lock_guard<std::mutex> lock(mutex);
             if (queue.empty()) return false;
@@ -54,7 +53,7 @@ namespace adria
             return true;
         }
 
-        bool Empty() const
+        Bool Empty() const
         {
             std::lock_guard<std::mutex> lock(mutex);
             return queue.empty();

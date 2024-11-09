@@ -34,7 +34,7 @@ namespace adria
     {
         Light light_data;
         LightMesh mesh_type = LightMesh::NoMesh;
-        uint32 mesh_size = 0u;
+        Uint32 mesh_size = 0u;
         std::optional<std::string> light_texture = std::nullopt;
     };
 	struct ModelParameters
@@ -50,15 +50,15 @@ namespace adria
     };
     struct GridParameters
     {
-        uint64 tile_count_x;
-        uint64 tile_count_z;
-        float tile_size_x;
-        float tile_size_z;
-        float texture_scale_x;
-        float texture_scale_z;
-        uint64 chunk_count_x;
-        uint64 chunk_count_z;
-        bool split_to_chunks = false;
+        Uint64 tile_count_x;
+        Uint64 tile_count_z;
+        Float tile_size_x;
+        Float tile_size_z;
+        Float texture_scale_x;
+        Float texture_scale_z;
+        Uint64 chunk_count_x;
+        Uint64 chunk_count_z;
+        Bool split_to_chunks = false;
         ENormalCalculation normal_type = ENormalCalculation::None;
         std::unique_ptr<Heightmap> heightmap = nullptr;
         Vector3 grid_offset = Vector3(0,0,0);
@@ -70,36 +70,36 @@ namespace adria
     struct FoliageParameters
     {
         std::pair<FoliageMesh, std::string> mesh_texture_pair;
-        int32 foliage_count;
-        float foliage_scale;
+        Sint32 foliage_count;
+        Float foliage_scale;
 		Vector2 foliage_center;
 		Vector2 foliage_extents;
-        float foliage_height_start;
-		float foliage_height_end;
-		float foliage_slope_start;
+        Float foliage_height_start;
+		Float foliage_height_end;
+		Float foliage_slope_start;
     };
     struct TreeParameters
     {
         TreeType tree_type;
-		int32 tree_count;
-		float tree_scale;
+		Sint32 tree_count;
+		Float tree_scale;
 		Vector2 tree_center;
 		Vector2 tree_extents;
-        float tree_height_start;
-		float tree_height_end;
-		float tree_slope_start;
+        Float tree_height_start;
+		Float tree_height_end;
+		Float tree_slope_start;
     };
 	struct TerrainTextureLayerParameters
 	{
-		float terrain_sand_start = -100.0f;
-		float terrain_sand_end = 0.0f;
-		float terrain_grass_start = 0.0f;
-		float terrain_grass_end = 300.0f;
-		float terrain_slope_grass_start = 0.92f;
-		float terrain_slope_rocks_start = 0.85f;
-		float terrain_rocks_start = 50.0f;
-        float height_mix_zone = 50.0f;
-        float slope_mix_zone = 0.025f;
+		Float terrain_sand_start = -100.0f;
+		Float terrain_sand_end = 0.0f;
+		Float terrain_grass_start = 0.0f;
+		Float terrain_grass_end = 300.0f;
+		Float terrain_slope_grass_start = 0.92f;
+		Float terrain_slope_rocks_start = 0.85f;
+		Float terrain_rocks_start = 50.0f;
+        Float height_mix_zone = 50.0f;
+        Float slope_mix_zone = 0.025f;
 	};
 	struct TerrainParameters
 	{
@@ -114,30 +114,30 @@ namespace adria
     struct EmitterParameters
     {
         std::string name = "Emitter";
-        float position[3] = { 50.0f, 10.0f, 0.0f};
-        float velocity[3] = { 0.0f, 7.0f, 0.0f};
-        float position_variance[3] = {4.0f, 0.0f, 4.0f};
-        float velocity_variance = { 0.6f };
-        float lifespan = 50.0f;
-        float start_size = 22.0f;
-        float end_size = 5.0f;
-        float mass = 0.0003f;
-        float particles_per_second = 100.0f;
+        Float position[3] = { 50.0f, 10.0f, 0.0f};
+        Float velocity[3] = { 0.0f, 7.0f, 0.0f};
+        Float position_variance[3] = {4.0f, 0.0f, 4.0f};
+        Float velocity_variance = { 0.6f };
+        Float lifespan = 50.0f;
+        Float start_size = 22.0f;
+        Float end_size = 5.0f;
+        Float mass = 0.0003f;
+        Float particles_per_second = 100.0f;
         std::string texture_path = paths::TexturesDir + "Particles/fire.png";
-        bool blend = true;
-        bool collisions = false;
-        int32 collision_thickness = 40;
-        bool sort = false;
+        Bool blend = true;
+        Bool collisions = false;
+        Sint32 collision_thickness = 40;
+        Bool sort = false;
     };
     struct DecalParameters
     {
         std::string name = "Decal";
         std::string albedo_texture_path = paths::TexturesDir + "Decals/Decal_00_Albedo.tga";
         std::string normal_texture_path = paths::TexturesDir + "Decals/Decal_00_Normal.png";
-        float rotation = 0.0f;
-        float size = 50.0f;
+        Float rotation = 0.0f;
+        Float size = 50.0f;
         DecalType decal_type = DecalType::Project_XY;
-        bool modify_gbuffer_normals = false;
+        Bool modify_gbuffer_normals = false;
         Vector3 position;
         Vector3 normal;
     };

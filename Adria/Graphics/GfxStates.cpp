@@ -167,9 +167,9 @@ namespace adria
 				return D3D11_BLEND_OP_ADD;
 			}
 		}
-		constexpr uint32 ParseColorWriteMask(GfxColorWrite value)
+		constexpr Uint32 ParseColorWriteMask(GfxColorWrite value)
 		{
-			uint32 _flag = 0;
+			Uint32 _flag = 0;
 			if (value == GfxColorWrite::EnableAll)
 			{
 				return D3D11_COLOR_WRITE_ENABLE_ALL;
@@ -317,7 +317,7 @@ namespace adria
 			D3D11_BLEND_DESC bd{};
 			bd.AlphaToCoverageEnable = _bd.alpha_to_coverage_enable;
 			bd.IndependentBlendEnable = _bd.independent_blend_enable;
-			for (int32 i = 0; i < 8; ++i)
+			for (Sint32 i = 0; i < 8; ++i)
 			{
 				bd.RenderTarget[i].BlendEnable = _bd.render_target[i].blend_enable;
 				bd.RenderTarget[i].SrcBlend = ConvertBlend(_bd.render_target[i].src_blend);
@@ -337,7 +337,7 @@ namespace adria
 			d3d11_desc.AddressU = ConvertTextureAddressMode(desc.addressU);
 			d3d11_desc.AddressV = ConvertTextureAddressMode(desc.addressV);
 			d3d11_desc.AddressW = ConvertTextureAddressMode(desc.addressW);
-			memcpy(d3d11_desc.BorderColor, desc.border_color, sizeof(float[4]));
+			memcpy(d3d11_desc.BorderColor, desc.border_color, sizeof(Float[4]));
 			d3d11_desc.ComparisonFunc = ConvertComparisonFunc(desc.comparison_func);
 			d3d11_desc.MinLOD = desc.min_lod;
 			d3d11_desc.MaxLOD = desc.max_lod;

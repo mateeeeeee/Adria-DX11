@@ -34,9 +34,9 @@ namespace adria
 			XMFLOAT3 e1(p1.x - p0.x, p1.y - p0.y, p1.z - p0.z);
 			XMFLOAT3 e2(p2.x - p0.x, p2.y - p0.y, p2.z - p0.z);
 			
-			float x1 = w1.x - w0.x, x2 = w2.x - w0.x;
-			float y1 = w1.y - w0.y, y2 = w2.y - w0.y;
-			float r = 1.0F / (x1 * y2 - x2 * y1);
+			Float x1 = w1.x - w0.x, x2 = w2.x - w0.x;
+			Float y1 = w1.y - w0.y, y2 = w2.y - w0.y;
+			Float r = 1.0F / (x1 * y2 - x2 * y1);
 
 			XMVECTOR _e1 = XMLoadFloat3(&e1);
 			XMVECTOR _e2 = XMLoadFloat3(&e2);
@@ -79,7 +79,7 @@ namespace adria
 			XMVECTOR _out_tangent = XMVector3Normalize(XMVectorSubtract(XMLoadFloat3(&t), XMVector3Dot(XMLoadFloat3(&n), XMLoadFloat3(&t))));
 			XMStoreFloat3(out_tangents + i, _out_tangent);
 			// Calculate handedness
-			float tangent_w = (XMVectorGetX(XMVector3Dot(XMVector3Cross(XMLoadFloat3(&n), XMLoadFloat3(&t)), XMLoadFloat3(&b))) < 0.0F) ? -1.0F : 1.0F;
+			Float tangent_w = (XMVectorGetX(XMVector3Dot(XMVector3Cross(XMLoadFloat3(&n), XMLoadFloat3(&t)), XMLoadFloat3(&b))) < 0.0F) ? -1.0F : 1.0F;
 			XMVECTOR _bitangent = XMVectorScale(XMVector3Cross(XMLoadFloat3(&n), XMLoadFloat3(out_tangents + i)), tangent_w);
 			XMStoreFloat3(out_bitangents + i, XMVector3Normalize(_bitangent));
 		}

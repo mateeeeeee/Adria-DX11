@@ -60,9 +60,9 @@ namespace adria
 		{
 			return GetTextureFormat(ToString(path));
 		}
-		constexpr uint32 MipmapLevels(uint32 width, uint32 height)
+		constexpr Uint32 MipmapLevels(Uint32 width, Uint32 height)
 		{
-			uint32 levels = 1U;
+			Uint32 levels = 1U;
 			while ((width | height) >> levels) ++levels;
 			return levels;
 		}
@@ -252,7 +252,7 @@ TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cube
 
 	std::vector<Image> images{};
 	std::vector<D3D11_SUBRESOURCE_DATA> subresource_data_array;
-	for (uint32 i = 0; i < cubemap_textures.size(); ++i)
+	for (Uint32 i = 0; i < cubemap_textures.size(); ++i)
 	{
 		images.emplace_back(cubemap_textures[i], 4);
 
@@ -271,7 +271,7 @@ TextureHandle TextureManager::LoadCubeMap(std::array<std::string, 6> const& cube
 	if (mipmaps)
 	{
 		GFX_CHECK_HR(device->CreateTexture2D(&desc, nullptr, tex_ptr.GetAddressOf()));
-		for (uint32 i = 0; i < cubemap_textures.size(); ++i)
+		for (Uint32 i = 0; i < cubemap_textures.size(); ++i)
 			context->UpdateSubresource(tex_ptr.Get(), D3D11CalcSubresource(0, i, desc.MipLevels), nullptr,
 								subresource_data_array[i].pSysMem, subresource_data_array[i].SysMemPitch, 1);
 	}
@@ -301,7 +301,7 @@ GfxShaderResourceRO TextureManager::GetTextureView(TextureHandle tex_handle) con
 	else return nullptr;
 }
 
-void TextureManager::SetMipMaps(bool _mipmaps)
+void TextureManager::SetMipMaps(Bool _mipmaps)
 {
 	mipmaps = _mipmaps;
 }
@@ -313,7 +313,7 @@ TextureHandle TextureManager::LoadDDSTexture(std::wstring const& name)
 	if (auto it = loaded_textures.find(name); it == loaded_textures.end())
 	{
 		++handle;
-		GfxArcShaderResourceRO view_ptr;
+		GfxShaderResourceRORef view_ptr;
 		ID3D11Texture2D* tex_ptr = nullptr;
 		if (mipmaps)
 		{

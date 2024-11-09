@@ -19,11 +19,11 @@ namespace adria
 		};
 		struct GfxClearColor
 		{
-			GfxClearColor(float r = 0.0f, float g = 0.0f, float b = 0.0f, float a = 0.0f)
+			GfxClearColor(Float r = 0.0f, Float g = 0.0f, Float b = 0.0f, Float a = 0.0f)
 				: color{ r, g, b, a }
 			{
 			}
-			GfxClearColor(const float(&_color)[4])
+			GfxClearColor(const Float(&_color)[4])
 				: color{ _color[0], _color[1], _color[2], _color[3] }
 			{
 			}
@@ -32,30 +32,30 @@ namespace adria
 			{
 			}
 
-			bool operator==(GfxClearColor const& other) const
+			Bool operator==(GfxClearColor const& other) const
 			{
 				return memcmp(color, other.color, sizeof(color)) == 0;
 			}
 
-			float color[4];
+			Float color[4];
 		};
 		struct GfxClearDepthStencil
 		{
-			GfxClearDepthStencil(float depth = 0.0f, uint8 stencil = 1)
+			GfxClearDepthStencil(Float depth = 0.0f, Uint8 stencil = 1)
 				: depth(depth), stencil(stencil)
 			{}
-			float depth;
-			uint8 stencil;
+			Float depth;
+			Uint8 stencil;
 		};
 
 		GfxClearValue() : active_member(GfxActiveMember::None), depth_stencil{} {}
 
-		GfxClearValue(float r, float g, float b, float a)
+		GfxClearValue(Float r, Float g, Float b, Float a)
 			: active_member(GfxActiveMember::Color), color(r, g, b, a)
 		{
 		}
 
-		GfxClearValue(float(&_color)[4])
+		GfxClearValue(Float(&_color)[4])
 			: active_member(GfxActiveMember::Color), color{ _color }
 		{
 		}
@@ -64,7 +64,7 @@ namespace adria
 			: active_member(GfxActiveMember::Color), color(color)
 		{}
 
-		GfxClearValue(float depth, uint8 stencil)
+		GfxClearValue(Float depth, Uint8 stencil)
 			: active_member(GfxActiveMember::DepthStencil), depth_stencil(depth, stencil)
 		{}
 		GfxClearValue(GfxClearDepthStencil const& depth_stencil)
@@ -88,7 +88,7 @@ namespace adria
 			return *this;
 		}
 
-		bool operator==(GfxClearValue const& other) const
+		Bool operator==(GfxClearValue const& other) const
 		{
 			if (active_member != other.active_member) return false;
 			else if (active_member == GfxActiveMember::Color)
@@ -107,7 +107,7 @@ namespace adria
 			GfxClearDepthStencil depth_stencil;
 		};
 	};
-	enum class GfxLoadAccessOp : uint8
+	enum class GfxLoadAccessOp : Uint8
 	{
 		Load,
 		Clear,
@@ -132,7 +132,7 @@ namespace adria
 	{
 		std::vector<GfxColorAttachmentDesc> rtv_attachments;
 		std::optional<GfxDepthAttachmentDesc> dsv_attachment;
-		uint32 width, height;
+		Uint32 width, height;
 	};
 }
 

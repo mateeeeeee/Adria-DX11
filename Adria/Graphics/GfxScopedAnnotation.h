@@ -6,7 +6,7 @@ namespace adria
 	class GfxScopedAnnotation
 	{
 	public:
-		GfxScopedAnnotation(GfxCommandContext* context, char const* name);
+		GfxScopedAnnotation(GfxCommandContext* context, Char const* name);
 
 		~GfxScopedAnnotation();
 

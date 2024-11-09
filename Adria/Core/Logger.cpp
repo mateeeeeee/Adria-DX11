@@ -1,9 +1,7 @@
-#include "Logger.h"
 #include <chrono>
 #include <ctime>   
 #include <iostream>
-
-#include "Core/Defines.h"
+#include "Logger.h"
 #include "Core/Windows.h"
 #include "Core/Paths.h"
 
@@ -33,7 +31,7 @@ namespace adria
 		time_str.pop_back();
 		return "[" + time_str + "]";
 	}
-	std::string LineInfoToString(char const* file, uint32_t line)
+	std::string LineInfoToString(Char const* file, uint32_t line)
 	{
 		return "[File: " + std::string(file) + "  Line: " + std::to_string(line) + "]";
 	}
@@ -52,13 +50,13 @@ namespace adria
 		loggers.emplace_back(logger);
 	}
 
-	void LogManager::Log(LogLevel level, char const* str, char const* filename, uint32_t line)
+	void LogManager::Log(LogLevel level, Char const* str, Char const* filename, uint32_t line)
 	{
 		QueueEntry entry{ level, str, filename, line };
 		log_queue.Push(std::move(entry));
 	}
 
-	void LogManager::Log(LogLevel level, char const* str, std::source_location location /*= std::source_location::current()*/)
+	void LogManager::Log(LogLevel level, Char const* str, std::source_location location /*= std::source_location::current()*/)
 	{
 		Log(level, str, location.file_name(), location.line());
 	}
@@ -68,7 +66,7 @@ namespace adria
 		QueueEntry entry{};
 		while (true)
 		{
-			bool success = log_queue.TryPop(entry);
+			Bool success = log_queue.TryPop(entry);
 			if (success)
 			{
 				for (auto&& logger : loggers) if (logger) logger->Log(entry.level, entry.str.c_str(), entry.filename.c_str(), entry.line);
@@ -77,7 +75,7 @@ namespace adria
 		}
 	}
 
-	FileLogger::FileLogger(char const* log_file, LogLevel logger_level) : log_stream{ paths::LogDir + log_file, std::ios::out }, logger_level{ logger_level }
+	FileLogger::FileLogger(Char const* log_file, LogLevel logger_level) : log_stream{ paths::LogDir + log_file, std::ios::out }, logger_level{ logger_level }
 	{}
 
 	FileLogger::~FileLogger()
@@ -85,14 +83,14 @@ namespace adria
 		log_stream.close();
 	}
 
-	void FileLogger::Log(LogLevel level, char const* entry, char const* file, uint32_t line)
+	void FileLogger::Log(LogLevel level, Char const* entry, Char const* file, uint32_t line)
 	{
 		if (level < logger_level) return;
 		//log_stream << GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) << "\n";
 		log_stream << std::string(entry) << "\n";
 	}
 
-	OutputStreamLogger::OutputStreamLogger(bool use_cerr /*= false*/, LogLevel logger_level /*= ELogLevel::LOG_DEBUG*/)
+	OutputStreamLogger::OutputStreamLogger(Bool use_cerr /*= false*/, LogLevel logger_level /*= ELogLevel::LOG_DEBUG*/)
 		: use_cerr{ use_cerr }, logger_level{ logger_level }
 	{
 	}
@@ -101,7 +99,7 @@ namespace adria
 	{
 	}
 
-	void OutputStreamLogger::Log(LogLevel level, char const* entry, char const* file, uint32_t line)
+	void OutputStreamLogger::Log(LogLevel level, Char const* entry, Char const* file, uint32_t line)
 	{
 		if (level < logger_level) return;
 		(use_cerr ? std::cerr : std::cout) << GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) << "\n";
@@ -115,7 +113,7 @@ namespace adria
 	OutputDebugStringLogger::~OutputDebugStringLogger()
 	{}
 
-	void OutputDebugStringLogger::Log(LogLevel level, char const* entry, char const* file, uint32_t line)
+	void OutputDebugStringLogger::Log(LogLevel level, Char const* entry, Char const* file, uint32_t line)
 	{
 		std::string log = GetLogTime() + LineInfoToString(file, line) + LevelToString(level) + std::string(entry) + "\n";
 		OutputDebugStringA(log.c_str());

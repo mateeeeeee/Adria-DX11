@@ -3,6 +3,11 @@
 #include "GfxCommandContext.h"
 #include "Core/Window.h"
 
+#pragma comment(lib, "dxcompiler.lib")
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "D3DCompiler.lib")
+#pragma comment(lib, "dxguid.lib")
 
 namespace adria
 {
@@ -21,7 +26,7 @@ namespace adria
 		height	= window->Height();
 
 		std::atexit(ReportLiveObjects);
-		uint32 swapchain_create_flags = 0;
+		Uint32 swapchain_create_flags = 0;
 #if defined(_DEBUG) 
 		swapchain_create_flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
@@ -95,7 +100,7 @@ namespace adria
 	{
 		WaitForGPU();
 	}
-	void GfxDevice::ResizeBackbuffer(uint32 w, uint32 h)
+	void GfxDevice::ResizeBackbuffer(Uint32 w, Uint32 h)
 	{
 		if ((width != w || height != h) && w > 0 && h > 0)
 		{
@@ -107,10 +112,10 @@ namespace adria
 	void GfxDevice::ClearBackbuffer()
 	{
 		command_context->Begin();
-		float clear_color[] = { 0.0f,0.0f, 0.0f,0.0f };
+		Float clear_color[] = { 0.0f,0.0f, 0.0f,0.0f };
 		command_context->ClearRenderTarget(backbuffer_rtv.Get(), clear_color);
 	}
-	void GfxDevice::SwapBuffers(bool vsync)
+	void GfxDevice::SwapBuffers(Bool vsync)
 	{
 		GFX_CHECK_HR(swapchain->Present(vsync, 0));
 		command_context->End();
@@ -134,7 +139,7 @@ namespace adria
 	{
 		command_context->WaitForGPU();
 	}
-	void GfxDevice::CreateBackBufferResources(uint32 w, uint32 h)
+	void GfxDevice::CreateBackBufferResources(Uint32 w, Uint32 h)
 	{
 		GfxRenderTarget null_views[] = { nullptr };
 		command_context->SetRenderTargets(null_views);

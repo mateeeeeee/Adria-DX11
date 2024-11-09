@@ -36,17 +36,17 @@ namespace adria
 			return elapsed;
 		}
 
-		float ElapsedInSeconds() const
+		Float ElapsedInSeconds() const
 		{
 			return Elapsed() / DurationSecondRatio;
 		}
 
-		float PeekInSeconds() const
+		Float PeekInSeconds() const
 		{
 			return Peek() / DurationSecondRatio;
 		}
 
-		float MarkInSeconds()
+		Float MarkInSeconds()
 		{
 			return Mark() / DurationSecondRatio;
 		}
@@ -56,7 +56,7 @@ namespace adria
 		tp t1;
 	private:
 
-		static constexpr float DurationSecondRatio = std::chrono::seconds(1) * 1.0f / Duration(1);
+		static constexpr Float DurationSecondRatio = std::chrono::seconds(1) * 1.0f / Duration(1);
 	};
 
 	using AdriaTimer = Timer<>;

@@ -29,33 +29,33 @@ namespace adria
 
 	class Renderer
 	{
-		static constexpr uint32 AO_NOISE_DIM = 8;
-		static constexpr uint32 SSAO_KERNEL_SIZE = 16;
-		static constexpr uint32 RESOLUTION = 512;
-		static constexpr uint32 VOXEL_RESOLUTION = 128;
-		static constexpr uint32 VOXELIZE_MAX_LIGHTS = 8;
-		static constexpr uint32 CLUSTER_SIZE_X = 16;
-		static constexpr uint32 CLUSTER_SIZE_Y = 16;
-		static constexpr uint32 CLUSTER_SIZE_Z = 16;
-		static constexpr uint32 CLUSTER_MAX_LIGHTS = 128;
+		static constexpr Uint32 AO_NOISE_DIM = 8;
+		static constexpr Uint32 SSAO_KERNEL_SIZE = 16;
+		static constexpr Uint32 RESOLUTION = 512;
+		static constexpr Uint32 VOXEL_RESOLUTION = 128;
+		static constexpr Uint32 VOXELIZE_MAX_LIGHTS = 8;
+		static constexpr Uint32 CLUSTER_SIZE_X = 16;
+		static constexpr Uint32 CLUSTER_SIZE_Y = 16;
+		static constexpr Uint32 CLUSTER_SIZE_Z = 16;
+		static constexpr Uint32 CLUSTER_MAX_LIGHTS = 128;
 		static constexpr GfxFormat GBUFFER_FORMAT[GBufferSlot_Count] = { GfxFormat::R8G8B8A8_UNORM, GfxFormat::R8G8B8A8_UNORM, GfxFormat::R8G8B8A8_UNORM };
 
 	public:
 
-		Renderer(tecs::registry& reg, GfxDevice* gfx, uint32 width, uint32 height); 
+		Renderer(tecs::registry& reg, GfxDevice* gfx, Uint32 width, Uint32 height); 
 		~Renderer();
 
 		void Tick(Camera const*);
-		void Update(float dt);
+		void Update(Float dt);
 		
-		void SetProfiling(bool profiling) { profiling_enabled = profiling; }
+		void SetProfiling(Bool profiling) { profiling_enabled = profiling; }
 		void SetSceneViewportData(SceneViewport const&);
 		void Render(RendererSettings const&);
 
 		void ResolveToOffscreenTexture();
 		void ResolveToBackbuffer();
 
-		void OnResize(uint32 width, uint32 height);
+		void OnResize(Uint32 width, Uint32 height);
 		void OnLeftMouseClicked();
 
 		GfxTexture const* GetOffscreenTexture() const;
@@ -63,19 +63,19 @@ namespace adria
 		std::vector<Timestamp> GetProfilerResults();
 
 	private:
-		uint32 width, height;
+		Uint32 width, height;
 		tecs::registry& reg;
 		GfxDevice* gfx;
 		Camera const* camera;
 		RendererSettings renderer_settings;
 		ParticleRenderer particle_renderer;
-		bool profiling_enabled = false;
+		Bool profiling_enabled = false;
 
 		SceneViewport current_scene_viewport;
-		bool pick_in_current_frame = false;
+		Bool pick_in_current_frame = false;
 		Picker picker;
 		PickingData last_picking_data;
-		float current_dt = 0.0f;
+		Float current_dt = 0.0f;
 
 		//textures
 		std::vector<std::unique_ptr<GfxTexture>> gbuffer;
@@ -98,12 +98,12 @@ namespace adria
 		std::unique_ptr<GfxTexture> blur_texture_final;
 		std::unique_ptr<GfxTexture> bloom_extract_texture;
 		std::array<std::unique_ptr<GfxTexture>, 2> postprocess_textures;
-		bool postprocess_index = false;
+		Bool postprocess_index = false;
 
 		std::array<std::unique_ptr<GfxTexture>, 2> ping_pong_phase_textures;
-		bool pong_phase = false;
+		Bool pong_phase = false;
 		std::array<std::unique_ptr<GfxTexture>, 2> ping_pong_spectrum_textures;
-		bool pong_spectrum = false;
+		Bool pong_spectrum = false;
 		std::unique_ptr<GfxTexture> ocean_normal_map;
 		std::unique_ptr<GfxTexture> ocean_initial_spectrum;
 
@@ -137,11 +137,11 @@ namespace adria
 		
 		//other
 		//////////////////////////////////////////////////////////////////
-		bool ibl_textures_generated = false;
-		bool recreate_clusters = true;
-		GfxArcShaderResourceRO env_srv;
-		GfxArcShaderResourceRO irmap_srv;
-		GfxArcShaderResourceRO brdf_srv;
+		Bool ibl_textures_generated = false;
+		Bool recreate_clusters = true;
+		GfxShaderResourceRORef env_srv;
+		GfxShaderResourceRORef irmap_srv;
+		GfxShaderResourceRORef brdf_srv;
 		BoundingBox light_bounding_box;
 		BoundingFrustum light_bounding_frustum;
 		std::optional<BoundingSphere> scene_bounding_sphere = std::nullopt;
@@ -180,9 +180,9 @@ namespace adria
 		TerrainCBuffer terrain_cbuf_data{};
 		std::unique_ptr<GfxConstantBuffer<TerrainCBuffer>> terrain_cbuffer = nullptr;
 
-		std::unique_ptr<GfxBuffer> lights = nullptr;
+		std::unique_ptr<GfxBuffer>  lights = nullptr;
 		std::unique_ptr<GfxBuffer>	voxels = nullptr;
-		std::unique_ptr<GfxBuffer> clusters = nullptr;
+		std::unique_ptr<GfxBuffer>  clusters = nullptr;
 		std::unique_ptr<GfxBuffer>	light_counter = nullptr;
 		std::unique_ptr<GfxBuffer>	light_list = nullptr;
 		std::unique_ptr<GfxBuffer>	light_grid = nullptr;
@@ -191,7 +191,6 @@ namespace adria
 		std::unique_ptr<GfxBuffer> cube_ib;
 		std::unique_ptr<GfxBuffer> aabb_wireframe_ib;
 
-		
 		//samplers
 		std::unique_ptr<GfxSampler>			linear_wrap_sampler;
 		std::unique_ptr<GfxSampler>			point_wrap_sampler;
@@ -215,23 +214,23 @@ namespace adria
 		void CreateBuffers();
 		void CreateSamplers();
 		void CreateRenderStates();
-		void CreateResolutionDependentResources(uint32 width, uint32 height);
+		void CreateResolutionDependentResources(Uint32 width, Uint32 height);
 		void CreateOtherResources();
 
-		void CreateBokehViews(uint32 width, uint32 height);
-		void CreateRenderTargets(uint32 width, uint32 height);
-		void CreateGBuffer(uint32 width, uint32 height);
-		void CreateAOTexture(uint32 width, uint32 height);
-		void CreateRenderPasses(uint32 width, uint32 height);
-		void CreateComputeTextures(uint32 width, uint32 height);
+		void CreateBokehViews(Uint32 width, Uint32 height);
+		void CreateRenderTargets(Uint32 width, Uint32 height);
+		void CreateGBuffer(Uint32 width, Uint32 height);
+		void CreateAOTexture(Uint32 width, Uint32 height);
+		void CreateRenderPasses(Uint32 width, Uint32 height);
+		void CreateComputeTextures(Uint32 width, Uint32 height);
 		void CreateIBLTextures();
 
 		void BindGlobals();
 
-		void UpdateCBuffers(float dt);
-		void UpdateOcean(float dt);
-		void UpdateWeather(float dt);
-		void UpdateParticles(float dt);
+		void UpdateCBuffers(Float dt);
+		void UpdateOcean(Float dt);
+		void UpdateWeather(Float dt);
+		void UpdateParticles(Float dt);
 		void UpdateLights();
 		void UpdateTerrainData();
 		void UpdateVoxelData();
@@ -264,7 +263,7 @@ namespace adria
 		void PassOcean();
 		void PassParticles();
 		void PassAABB();
-		void PassForwardCommon(bool transparent);
+		void PassForwardCommon(Bool transparent);
 		
 		void PassLensFlare(Light const& light);
 		void PassVolumetricClouds();
@@ -289,6 +288,6 @@ namespace adria
 		//result is in currently set render target
 		void AddTextures(GfxTexture const* src1, GfxTexture const* src2);
 
-		void ResolveCustomRenderState(RenderState const&, bool);
+		void ResolveCustomRenderState(RenderState const&, Bool);
 	};
 }

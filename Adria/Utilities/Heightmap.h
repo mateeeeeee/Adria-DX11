@@ -22,34 +22,34 @@ namespace adria
 	};
 	struct NoiseDesc
 	{
-		uint32 width;
-		uint32 depth;
-		uint32 max_height;
+		Uint32 width;
+		Uint32 depth;
+		Uint32 max_height;
 		FractalType fractal_type = FractalType::None;
 		NoiseType noise_type = NoiseType::Perlin;
-		int32 seed = 1337;
-		float frequency = 0.01f;
-		float persistence = 0.5f;
-		float lacunarity = 2.0f;
-		int32 octaves = 3;
-		float noise_scale = 10;
+		Sint32 seed = 1337;
+		Float frequency = 0.01f;
+		Float persistence = 0.5f;
+		Float lacunarity = 2.0f;
+		Sint32 octaves = 3;
+		Float noise_scale = 10;
 	};
 
 
 	struct ThermalErosionDesc
 	{
-		int32 iterations;
-		float c;
-		float talus;
+		Sint32 iterations;
+		Float c;
+		Float talus;
 	};
 
 	
 	struct HydraulicErosionDesc
 	{
-		int32 iterations;
-		int32 drops;
-		float carrying_capacity;
-		float deposition_speed;
+		Sint32 iterations;
+		Sint32 drops;
+		Float carrying_capacity;
+		Float deposition_speed;
 	};
 
 	class Heightmap
@@ -57,17 +57,17 @@ namespace adria
 	public:
 		
 		explicit Heightmap(NoiseDesc const& desc);
-		Heightmap(std::string_view heightmap_path, uint32 max_height);
+		Heightmap(std::string_view heightmap_path, Uint32 max_height);
 
-		float HeightAt(uint64 x, uint64 z) const;
-		uint64 Width() const;
-		uint64 Depth() const;
+		Float HeightAt(Uint64 x, Uint64 z) const;
+		Uint64 Width() const;
+		Uint64 Depth() const;
 
 		void ApplyThermalErosion(ThermalErosionDesc const& desc);
 		void ApplyHydraulicErosion(HydraulicErosionDesc const& desc);
 
 	private:
-		std::vector<std::vector<float>> hm;
+		std::vector<std::vector<Float>> hm;
 	};
 }
 

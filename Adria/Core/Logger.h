@@ -21,21 +21,21 @@ namespace adria
 	
 	std::string LevelToString(LogLevel type);
 	std::string GetLogTime();
-	std::string LineInfoToString(char const* file, uint32_t line);
+	std::string LineInfoToString(Char const* file, uint32_t line);
 
 	class ILogger
 	{
 	public:
 		virtual ~ILogger() = default;
-		virtual void Log(LogLevel level, char const* entry, char const* file, uint32_t line) = 0;
+		virtual void Log(LogLevel level, Char const* entry, Char const* file, uint32_t line) = 0;
 	};
 
 	class FileLogger : public ILogger
 	{
 	public:
-		FileLogger(char const* log_file, LogLevel logger_level = LogLevel::LOG_DEBUG);
+		FileLogger(Char const* log_file, LogLevel logger_level = LogLevel::LOG_DEBUG);
 		virtual ~FileLogger() override;
-		virtual void Log(LogLevel level, char const* entry, char const* file, uint32_t line) override;
+		virtual void Log(LogLevel level, Char const* entry, Char const* file, uint32_t line) override;
 	private:
 		std::ofstream log_stream;
 		LogLevel const logger_level;
@@ -44,11 +44,11 @@ namespace adria
 	class OutputStreamLogger : public ILogger
 	{
 	public:
-		OutputStreamLogger(bool use_cerr = false, LogLevel logger_level = LogLevel::LOG_DEBUG);
+		OutputStreamLogger(Bool use_cerr = false, LogLevel logger_level = LogLevel::LOG_DEBUG);
 		virtual ~OutputStreamLogger() override;
-		virtual void Log(LogLevel level, char const* entry, char const* file, uint32_t line) override;
+		virtual void Log(LogLevel level, Char const* entry, Char const* file, uint32_t line) override;
 	private:
-		bool const use_cerr;
+		Bool const use_cerr;
 		LogLevel const logger_level;
 	};
 
@@ -57,7 +57,7 @@ namespace adria
 	public:
 		OutputDebugStringLogger(LogLevel logger_level = LogLevel::LOG_DEBUG);
 		virtual ~OutputDebugStringLogger() override;
-		virtual void Log(LogLevel level, char const* entry, char const* file, uint32_t line) override;
+		virtual void Log(LogLevel level, Char const* entry, Char const* file, uint32_t line) override;
 	private:
 		LogLevel const logger_level;
 	};
@@ -80,8 +80,8 @@ namespace adria
 		~LogManager();
 
 		void RegisterLogger(ILogger* logger);
-		void Log(LogLevel level, char const* str, char const* file, uint32_t line);
-		void Log(LogLevel level, char const* str, std::source_location location = std::source_location::current());
+		void Log(LogLevel level, Char const* str, Char const* file, uint32_t line);
+		void Log(LogLevel level, Char const* str, std::source_location location = std::source_location::current());
 
 	private:
 		std::vector<std::unique_ptr<ILogger>> loggers;

@@ -5,7 +5,7 @@ namespace adria
 {
 
 
-	GfxScopedAnnotation::GfxScopedAnnotation(GfxCommandContext* context, char const* name) : context(context)
+	GfxScopedAnnotation::GfxScopedAnnotation(GfxCommandContext* context, Char const* name) : context(context)
 	{
 		if (context) context->BeginEvent(name);
 	}

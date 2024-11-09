@@ -2,8 +2,8 @@
 
 namespace adria
 {
-	#define DECLARE_CBUFFER_SLOT(name, slot) static constexpr uint16 CBUFFER_SLOT_##name = slot
-	#define DECLARE_TEXTURE_SLOT(name, slot) static constexpr uint16 TEXTURE_SLOT_##name = slot
+	#define DECLARE_CBUFFER_SLOT(name, slot) static constexpr Uint16 CBUFFER_SLOT_##name = slot
+	#define DECLARE_TEXTURE_SLOT(name, slot) static constexpr Uint16 TEXTURE_SLOT_##name = slot
 
 	DECLARE_CBUFFER_SLOT(FRAME, 0);
 	DECLARE_CBUFFER_SLOT(OBJECT, 1);
@@ -32,7 +32,7 @@ namespace adria
 	DECLARE_TEXTURE_SLOT(SAND, 3);
 	DECLARE_TEXTURE_SLOT(LAYER, 4);
 
-	enum ShaderId : uint8
+	enum ShaderId : Uint8
 	{
 		VS_Sky,
 		PS_Skybox,
@@ -126,7 +126,7 @@ namespace adria
 		ShaderId_Count
 	};
 
-	enum class ShaderProgram : uint8 
+	enum class ShaderProgram : Uint8 
 	{
 		Skybox,
 		UniformColorSky,
@@ -207,7 +207,7 @@ namespace adria
 		Unknown
 	};
 
-	enum class ToneMap : uint8
+	enum class ToneMap : Uint8
 	{
 		Reinhard,
 		Hable,
@@ -215,27 +215,27 @@ namespace adria
 		TonyMcMapface
 	};
 
-	enum class LightType : int32
+	enum class LightType : Sint32
 	{
 		Directional,
 		Point,
 		Spot
 	};
 
-	enum class FogType : int32
+	enum class FogType : Sint32
 	{
 		Exponential, 
 		ExponentialHeight
 	};
 
-	enum class AmbientOcclusion : uint8
+	enum class AmbientOcclusion : Uint8
 	{
 		None,
 		SSAO,
 		HBAO
 	};
 
-	enum class BokehType : uint8
+	enum class BokehType : Uint8
 	{
 		Hex,
 		Oct,
@@ -243,7 +243,7 @@ namespace adria
 		Cross
 	};
 
-	enum class SkyType : uint8
+	enum class SkyType : Uint8
 	{
 		UniformColor,
 		Skybox,
@@ -269,14 +269,14 @@ namespace adria
 		NoCulling
 	};
 
-	enum AntiAliasing : uint8
+	enum AntiAliasing : Uint8
 	{
 		AntiAliasing_None = 0x0,
 		AntiAliasing_FXAA = 0x1,
 		AntiAliasing_TAA = 0x2
 	};
 
-	enum GBufferSlot : uint8
+	enum GBufferSlot : Uint8
 	{
 		GBufferSlot_NormalMetallic,
 		GBufferSlot_DiffuseRoughness,
@@ -284,14 +284,14 @@ namespace adria
 		GBufferSlot_Count
 	};
 
-	enum class DecalType : uint8 
+	enum class DecalType : Uint8 
 	{
 		Project_XY,
 		Project_YZ,
 		Project_XZ
 	};
 
-	enum class MaterialAlphaMode : uint8
+	enum class MaterialAlphaMode : Uint8
 	{
 		Opaque,
 		Blend,

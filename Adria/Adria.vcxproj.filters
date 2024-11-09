@@ -92,7 +92,7 @@
     <ClCompile Include="Rendering\Camera.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="Editor\GUI.cpp">
+    <ClCompile Include="Editor\ImGuiManager.cpp">
       <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="Editor\Editor.cpp">
@@ -197,7 +197,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Core\CoreTypes.h">
+    <ClInclude Include="Core\Types.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\Window.h">
@@ -215,7 +215,7 @@
     <ClInclude Include="Graphics\GfxVertexFormat.h">
       <Filter>Graphics</Filter>
     </ClInclude>
-    <ClInclude Include="Core\Defines.h">
+    <ClInclude Include="Core\Macros.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
@@ -260,7 +260,7 @@
     <ClInclude Include="tecs\sparse_set.h">
       <Filter>tecs</Filter>
     </ClInclude>
-    <ClInclude Include="Editor\GUI.h">
+    <ClInclude Include="Editor\ImGuiManager.h">
       <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="Editor\Editor.h">
@@ -345,7 +345,7 @@
     <ClInclude Include="..\ThirdParty\gfx-external\DDSTextureLoader.h">
       <Filter>External\TextureLoaders</Filter>
     </ClInclude>
-    <ClInclude Include="Graphics\GfxDefines.h">
+    <ClInclude Include="Graphics\GfxMacros.h">
       <Filter>Graphics</Filter>
     </ClInclude>
     <ClInclude Include="..\ThirdParty\SimpleMath\SimpleMath.h">
@@ -399,7 +399,7 @@
     <ClInclude Include="Utilities\AllocatorUtil.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\AutoRefCountPtr.h">
+    <ClInclude Include="Utilities\Ref.h">
       <Filter>Utilities</Filter>
     </ClInclude>
     <ClInclude Include="Utilities\CLIParser.h">

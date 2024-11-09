@@ -8,38 +8,35 @@ namespace adria
 	class Terrain
 	{
 	public:
-		Terrain(std::vector<TexturedNormalVertex> const& terrain_vertices, float tx, float tz, uint64 xcount, uint64 zcount);
+		Terrain(std::vector<TexturedNormalVertex> const& terrain_vertices, Float tx, Float tz, Uint64 xcount, Uint64 zcount);
 
-		float HeightAt(float x, float z) const;
-		
-		Vector3 NormalAt(float x, float z) const;
-
-		std::pair<float, float> TileSizes() const 
+		Float HeightAt(Float x, Float z) const;
+		Vector3 NormalAt(Float x, Float z) const;
+		std::pair<Float, Float> TileSizes() const 
 		{
 			return { tile_size_x, tile_size_z };
 		}
-
-		std::pair<uint64, uint64> TileCounts() const
+		std::pair<Uint64, Uint64> TileCounts() const
 		{
 			return { tile_count_x, tile_count_z };
 		}
 
 	private:
 		std::vector<TexturedNormalVertex> terrain_vertices;
-		float tile_size_x;
-		float tile_size_z;
-		uint64 tile_count_x;
-		uint64 tile_count_z;
+		Float tile_size_x;
+		Float tile_size_z;
+		Uint64 tile_count_x;
+		Uint64 tile_count_z;
 		Vector3 offset;
 
 	private:
 
-		uint64 GetIndex(uint64 x_, uint64 z_) const
+		Uint64 GetIndex(Uint64 x_, Uint64 z_) const
 		{
 			return x_ + z_ * (tile_count_x + 1);
 		}
 
-		bool CheckIndex(uint64 i) const
+		Bool CheckIndex(Uint64 i) const
 		{
 			return i >= 0 && i < terrain_vertices.size();
 		}

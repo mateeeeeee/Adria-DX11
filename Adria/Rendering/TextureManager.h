@@ -8,8 +8,8 @@
 
 namespace adria
 {
-	using TextureHandle = uint64;
-	inline constexpr TextureHandle const INVALID_TEXTURE_HANDLE = uint64(-1);
+	using TextureHandle = Uint64;
+	inline constexpr TextureHandle const INVALID_TEXTURE_HANDLE = Uint64(-1);
 
 	class TextureManager : public Singleton<TextureManager>
 	{
@@ -25,13 +25,13 @@ namespace adria
 		ADRIA_NODISCARD TextureHandle LoadCubeMap(std::array<std::string, 6> const& cubemap_textures);
 
 		GfxShaderResourceRO GetTextureView(TextureHandle tex_handle) const;
-		void SetMipMaps(bool mipmaps);
+		void SetMipMaps(Bool mipmaps);
 
 	private:
 		GfxDevice* gfx;
-		bool mipmaps = true;
+		Bool mipmaps = true;
 		TextureHandle handle = INVALID_TEXTURE_HANDLE;
-		std::unordered_map<TextureHandle, GfxArcShaderResourceRO> texture_map{};
+		std::unordered_map<TextureHandle, GfxShaderResourceRORef> texture_map{};
 		std::unordered_map<std::wstring, TextureHandle> loaded_textures{};
 
 	private:

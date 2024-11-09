@@ -1,9 +1,4 @@
 #pragma once
-#pragma comment(lib, "dxcompiler.lib")
-#pragma comment(lib, "d3d11.lib")
-#pragma comment(lib, "dxgi.lib")
-#pragma comment(lib, "D3DCompiler.lib")
-#pragma comment(lib, "dxguid.lib")
 #include <d3d11_4.h>
 
 
@@ -22,9 +17,9 @@ namespace adria
 		GfxDevice& operator=(GfxDevice&&) = default;
 		~GfxDevice();
 
-		void ResizeBackbuffer(uint32 w, uint32 h);
+		void ResizeBackbuffer(Uint32 w, Uint32 h);
 		void ClearBackbuffer();
-		void SwapBuffers(bool vsync);
+		void SwapBuffers(Bool vsync);
 		void SetBackbuffer();
 
 		ID3D11Device3* GetDevice() const;
@@ -34,7 +29,7 @@ namespace adria
 
 	private:
 		Window* window;
-		uint32 width, height;
+		Uint32 width, height;
 		Ref<ID3D11Device3> device = nullptr;
 		Ref<IDXGISwapChain> swapchain = nullptr;
 		std::unique_ptr<GfxCommandContext> command_context;
@@ -44,6 +39,6 @@ namespace adria
 	private:
 
 		void WaitForGPU();
-		void CreateBackBufferResources(uint32 w, uint32 h);
+		void CreateBackBufferResources(Uint32 w, Uint32 h);
 	};
 }

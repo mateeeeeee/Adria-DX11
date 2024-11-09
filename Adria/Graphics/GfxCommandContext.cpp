@@ -29,7 +29,7 @@ namespace adria
 				return D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 			default:
 				if (topology >= GfxPrimitiveTopology::PatchList1 && topology <= GfxPrimitiveTopology::PatchList32)
-					return D3D_PRIMITIVE_TOPOLOGY(D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + ((uint32)topology - (uint32)GfxPrimitiveTopology::PatchList1));
+					return D3D_PRIMITIVE_TOPOLOGY(D3D_PRIMITIVE_TOPOLOGY_1_CONTROL_POINT_PATCHLIST + ((Uint32)topology - (Uint32)GfxPrimitiveTopology::PatchList1));
 				else return D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 			}
 		}
@@ -69,39 +69,39 @@ namespace adria
 		Flush();
 		GfxQuery query(gfx, QueryType::Event);
 		EndQuery(&query);
-		bool32 result = false;
+		Bool32 result = false;
 		while (!GetQueryData(&query, &result, sizeof(result)));
 		ADRIA_ASSERT(result != 0);
 	}
 
-	void GfxCommandContext::Draw(uint32 vertex_count, uint32 instance_count /*= 1*/, uint32 start_vertex_location /*= 0*/, uint32 start_instance_location /*= 0*/)
+	void GfxCommandContext::Draw(Uint32 vertex_count, Uint32 instance_count /*= 1*/, Uint32 start_vertex_location /*= 0*/, Uint32 start_instance_location /*= 0*/)
 	{
 		if(instance_count == 1) command_context->Draw(vertex_count, start_vertex_location);
 		else  command_context->DrawInstanced(vertex_count, instance_count, start_vertex_location, start_instance_location);
 	}
 
-	void GfxCommandContext::DrawIndexed(uint32 index_count, uint32 instance_count /*= 1*/, uint32 index_offset /*= 0*/, uint32 base_vertex_location /*= 0*/, uint32 start_instance_location /*= 0*/)
+	void GfxCommandContext::DrawIndexed(Uint32 index_count, Uint32 instance_count /*= 1*/, Uint32 index_offset /*= 0*/, Uint32 base_vertex_location /*= 0*/, Uint32 start_instance_location /*= 0*/)
 	{
 		if (instance_count == 1) command_context->DrawIndexed(index_count, index_offset, base_vertex_location);
 		else  command_context->DrawIndexedInstanced(index_count, instance_count, index_offset, base_vertex_location, start_instance_location);
 	}
 
-	void GfxCommandContext::Dispatch(uint32 group_count_x, uint32 group_count_y, uint32 group_count_z /*= 1*/)
+	void GfxCommandContext::Dispatch(Uint32 group_count_x, Uint32 group_count_y, Uint32 group_count_z /*= 1*/)
 	{
 		command_context->Dispatch(group_count_x, group_count_y, group_count_z);
 	}
 
-	void GfxCommandContext::DrawIndirect(GfxBuffer const& buffer, uint32 offset)
+	void GfxCommandContext::DrawIndirect(GfxBuffer const& buffer, Uint32 offset)
 	{
 		command_context->DrawInstancedIndirect(buffer.GetNative(), offset);
 	}
 
-	void GfxCommandContext::DrawIndexedIndirect(GfxBuffer const& buffer, uint32 offset)
+	void GfxCommandContext::DrawIndexedIndirect(GfxBuffer const& buffer, Uint32 offset)
 	{
 		command_context->DrawIndexedInstancedIndirect(buffer.GetNative(), offset);
 	}
 
-	void GfxCommandContext::DispatchIndirect(GfxBuffer const& buffer, uint32 offset)
+	void GfxCommandContext::DispatchIndirect(GfxBuffer const& buffer, Uint32 offset)
 	{
 		command_context->DispatchIndirect(buffer.GetNative(), offset);
 	}
@@ -111,7 +111,7 @@ namespace adria
 		command_context->CopyResource(dst.GetNative(), src.GetNative());
 	}
 
-	void GfxCommandContext::CopyBuffer(GfxBuffer& dst, uint32 dst_offset, GfxBuffer const& src, uint32 src_offset, uint32 size)
+	void GfxCommandContext::CopyBuffer(GfxBuffer& dst, Uint32 dst_offset, GfxBuffer const& src, Uint32 src_offset, Uint32 size)
 	{
 		D3D11_BOX box{ .left = src_offset, .right = src_offset + size };
 		command_context->CopySubresourceRegion(dst.GetNative(), 0, dst_offset, 0, 0, src.GetNative(), 0, &box);
@@ -122,7 +122,7 @@ namespace adria
 		command_context->CopyResource(dst.GetNative(), src.GetNative());
 	}
 
-	void GfxCommandContext::CopyTexture(GfxTexture& dst, uint32 dst_mip, uint32 dst_array, GfxTexture const& src, uint32 src_mip, uint32 src_array)
+	void GfxCommandContext::CopyTexture(GfxTexture& dst, Uint32 dst_mip, Uint32 dst_array, GfxTexture const& src, Uint32 src_mip, Uint32 src_array)
 	{
 		command_context->CopySubresourceRegion(dst.GetNative(), dst_mip + dst.GetDesc().mip_levels * dst_array, 0, 0, 0, src.GetNative(),
 			src_mip + src.GetDesc().mip_levels * src_array, nullptr);
@@ -131,12 +131,12 @@ namespace adria
 	void GfxCommandContext::BeginRenderPass(GfxRenderPassDesc const& desc)
 	{
 		std::vector<GfxRenderTarget> render_targets;
-		std::unordered_map<uint64, GfxClearValue> clear_values;
+		std::unordered_map<Uint64, GfxClearValue> clear_values;
 		GfxDepthTarget depth_target = nullptr;
-		bool depth_clear = false;
+		Bool depth_clear = false;
 		GfxClearValue depth_clear_value;
 
-		for (uint32 i = 0; i < desc.rtv_attachments.size(); ++i)
+		for (Uint32 i = 0; i < desc.rtv_attachments.size(); ++i)
 		{
 			GfxColorAttachmentDesc const& attachment = desc.rtv_attachments[i];
 			render_targets.push_back(attachment.view);
@@ -180,45 +180,45 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::SetIndexBuffer(GfxBuffer* index_buffer, uint32 offset)
+	void GfxCommandContext::SetIndexBuffer(GfxBuffer* index_buffer, Uint32 offset)
 	{
 		if (index_buffer) command_context->IASetIndexBuffer(index_buffer->GetNative(), ConvertGfxFormat(index_buffer->GetDesc().format), offset);
 		else command_context->IASetIndexBuffer(nullptr, DXGI_FORMAT_UNKNOWN, 0);
 	}
 
-	void GfxCommandContext::SetVertexBuffer(GfxBuffer* vertex_buffer, uint32 slot /*= 0*/)
+	void GfxCommandContext::SetVertexBuffer(GfxBuffer* vertex_buffer, Uint32 slot /*= 0*/)
 	{
 		GfxBuffer* vertex_buffers[1] = { vertex_buffer };
 		SetVertexBuffers(vertex_buffers, slot);
 	}
 
-	void GfxCommandContext::SetVertexBuffers(std::span<GfxBuffer*> vertex_buffers, uint32 start_slot /*= 0*/)
+	void GfxCommandContext::SetVertexBuffers(std::span<GfxBuffer*> vertex_buffers, Uint32 start_slot /*= 0*/)
 	{
 		std::vector<ID3D11Buffer*> d3d11_buffers(vertex_buffers.size());
-		std::vector<uint32> strides(vertex_buffers.size());
-		std::vector<uint32> offsets(vertex_buffers.size());
-		for (uint32 i = 0; i < vertex_buffers.size(); ++i)
+		std::vector<Uint32> strides(vertex_buffers.size());
+		std::vector<Uint32> offsets(vertex_buffers.size());
+		for (Uint32 i = 0; i < vertex_buffers.size(); ++i)
 		{
 			d3d11_buffers[i] = vertex_buffers[i] ? vertex_buffers[i]->GetNative() : nullptr;
 			strides[i] = vertex_buffers[i] ? vertex_buffers[i]->GetDesc().stride : 0;
 			offsets[i] = 0;
 		}
-		command_context->IASetVertexBuffers(start_slot, (uint32)vertex_buffers.size(), d3d11_buffers.data(), strides.data(), offsets.data());
+		command_context->IASetVertexBuffers(start_slot, (Uint32)vertex_buffers.size(), d3d11_buffers.data(), strides.data(), offsets.data());
 	}
 
-	void GfxCommandContext::SetViewport(uint32 x, uint32 y, uint32 width, uint32 height)
+	void GfxCommandContext::SetViewport(Uint32 x, Uint32 y, Uint32 width, Uint32 height)
 	{
 		D3D11_VIEWPORT vp{};
 		vp.MinDepth = 0.0f; 
 		vp.MaxDepth = 1.0f;
-		vp.TopLeftX = (float)x;
-		vp.TopLeftY = (float)y;
-		vp.Width = (float)width;
-		vp.Height = (float)height;
+		vp.TopLeftX = (Float)x;
+		vp.TopLeftY = (Float)y;
+		vp.Width = (Float)width;
+		vp.Height = (Float)height;
 		command_context->RSSetViewports(1, &vp);
 	}
 
-	void GfxCommandContext::SetScissorRect(uint32 x, uint32 y, uint32 width, uint32 height)
+	void GfxCommandContext::SetScissorRect(Uint32 x, Uint32 y, Uint32 width, Uint32 height)
 	{
 		D3D11_RECT rect{};
 		rect.left = x;
@@ -228,24 +228,24 @@ namespace adria
 		command_context->RSSetScissorRects(1, &rect);
 	}
 
-	void GfxCommandContext::ClearReadWriteDescriptorFloat(GfxShaderResourceRW descriptor, const float v[4])
+	void GfxCommandContext::ClearReadWriteDescriptorFloat(GfxShaderResourceRW descriptor, const Float v[4])
 	{
 		command_context->ClearUnorderedAccessViewFloat(descriptor, v);
 	}
 
-	void GfxCommandContext::ClearReadWriteDescriptorUint(GfxShaderResourceRW descriptor, const uint32 v[4])
+	void GfxCommandContext::ClearReadWriteDescriptorUint(GfxShaderResourceRW descriptor, const Uint32 v[4])
 	{
 		command_context->ClearUnorderedAccessViewUint(descriptor, v);
 	}
 
-	void GfxCommandContext::ClearRenderTarget(GfxRenderTarget rtv, float const* clear_color)
+	void GfxCommandContext::ClearRenderTarget(GfxRenderTarget rtv, Float const* clear_color)
 	{
 		command_context->ClearRenderTargetView(rtv, clear_color);
 	}
 
-	void GfxCommandContext::ClearDepth(GfxDepthTarget dsv, float depth /*= 1.0f*/, uint8 stencil /*= 0*/, bool clear_stencil /*= false*/)
+	void GfxCommandContext::ClearDepth(GfxDepthTarget dsv, Float depth /*= 1.0f*/, Uint8 stencil /*= 0*/, Bool clear_stencil /*= false*/)
 	{
-		uint32 flags = D3D11_CLEAR_DEPTH;
+		Uint32 flags = D3D11_CLEAR_DEPTH;
 		if (clear_stencil) flags |= D3D11_CLEAR_STENCIL;
 		command_context->ClearDepthStencilView(dsv, flags, depth, stencil);
 	}
@@ -260,7 +260,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::SetDepthStencilState(GfxDepthStencilState* dss, uint32 stencil_ref)
+	void GfxCommandContext::SetDepthStencilState(GfxDepthStencilState* dss, Uint32 stencil_ref)
 	{
 		if (current_depth_state != dss)
 		{
@@ -280,7 +280,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::SetBlendState(GfxBlendState* bs, float* blend_factors, uint32 mask /*= 0xffffffff*/)
+	void GfxCommandContext::SetBlendState(GfxBlendState* bs, Float* blend_factors, Uint32 mask /*= 0xffffffff*/)
 	{
 		if (current_blend_state != bs)
 		{
@@ -290,7 +290,7 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::CopyStructureCount(GfxBuffer* dst_buffer, uint32 dst_buffer_offset, GfxShaderResourceRW src_view)
+	void GfxCommandContext::CopyStructureCount(GfxBuffer* dst_buffer, Uint32 dst_buffer_offset, GfxShaderResourceRW src_view)
 	{
 		command_context->CopyStructureCount(dst_buffer->GetNative(), dst_buffer_offset, src_view);
 	}
@@ -310,7 +310,7 @@ namespace adria
 		command_context->Unmap(buffer->GetNative(), 0);
 	}
 
-	GfxMappedSubresource GfxCommandContext::MapTexture(GfxTexture* texture, GfxMapType map_type, uint32 subresource /*= 0*/)
+	GfxMappedSubresource GfxCommandContext::MapTexture(GfxTexture* texture, GfxMapType map_type, Uint32 subresource /*= 0*/)
 	{
 		D3D11_MAPPED_SUBRESOURCE mapped_subresource{};
 		GFX_CHECK_HR(command_context->Map(texture->GetNative(), subresource, ConvertMapType(map_type), 0, &mapped_subresource));
@@ -320,12 +320,12 @@ namespace adria
 		 .depth_pitch = mapped_subresource.DepthPitch };
 	}
 
-	void GfxCommandContext::UnmapTexture(GfxTexture* texture, uint32 subresource /*= 0*/)
+	void GfxCommandContext::UnmapTexture(GfxTexture* texture, Uint32 subresource /*= 0*/)
 	{
 		command_context->Unmap(texture->GetNative(), 0);
 	}
 
-	void GfxCommandContext::UpdateBuffer(GfxBuffer* buffer, void const* data, uint32 data_size)
+	void GfxCommandContext::UpdateBuffer(GfxBuffer* buffer, void const* data, Uint32 data_size)
 	{
 		GfxBufferDesc desc = buffer->GetDesc();
 
@@ -392,104 +392,104 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::SetConstantBuffer(GfxShaderStage stage, uint32 slot, GfxBuffer* buffer)
+	void GfxCommandContext::SetConstantBuffer(GfxShaderStage stage, Uint32 slot, GfxBuffer* buffer)
 	{
 		GfxBuffer* buffers[] = { buffer };
 		SetConstantBuffers(stage, slot, buffers);
 	}
 
-	void GfxCommandContext::SetConstantBuffers(GfxShaderStage stage, uint32 start, std::span<GfxBuffer*> buffers)
+	void GfxCommandContext::SetConstantBuffers(GfxShaderStage stage, Uint32 start, std::span<GfxBuffer*> buffers)
 	{
 		std::vector<ID3D11Buffer*> d3d11_buffers(buffers.size());
-		for (uint32 i = 0; i < buffers.size(); ++i) d3d11_buffers[i] = buffers[i] ?  buffers[i]->GetNative() : nullptr;
+		for (Uint32 i = 0; i < buffers.size(); ++i) d3d11_buffers[i] = buffers[i] ?  buffers[i]->GetNative() : nullptr;
 		switch (stage)
 		{
 		case GfxShaderStage::VS:
-			command_context->VSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			command_context->VSSetConstantBuffers(start, (Uint32)d3d11_buffers.size(), d3d11_buffers.data());
 			break;
 		case GfxShaderStage::PS:
-			command_context->PSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			command_context->PSSetConstantBuffers(start, (Uint32)d3d11_buffers.size(), d3d11_buffers.data());
 			break;
 		case GfxShaderStage::HS:
-			command_context->HSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			command_context->HSSetConstantBuffers(start, (Uint32)d3d11_buffers.size(), d3d11_buffers.data());
 			break;
 		case GfxShaderStage::DS:
-			command_context->DSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			command_context->DSSetConstantBuffers(start, (Uint32)d3d11_buffers.size(), d3d11_buffers.data());
 			break;
 		case GfxShaderStage::GS:
-			command_context->GSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			command_context->GSSetConstantBuffers(start, (Uint32)d3d11_buffers.size(), d3d11_buffers.data());
 			break;
 		case GfxShaderStage::CS:
-			command_context->CSSetConstantBuffers(start, (uint32)d3d11_buffers.size(), d3d11_buffers.data());
+			command_context->CSSetConstantBuffers(start, (Uint32)d3d11_buffers.size(), d3d11_buffers.data());
 			break;
 		}
 	}
 
-	void GfxCommandContext::SetSampler(GfxShaderStage stage, uint32 start, GfxSampler* sampler)
+	void GfxCommandContext::SetSampler(GfxShaderStage stage, Uint32 start, GfxSampler* sampler)
 	{
 		GfxSampler* samplers[1] = { sampler };
 		SetSamplers(stage, start, samplers);
 	}
 
-	void GfxCommandContext::SetSamplers(GfxShaderStage stage, uint32 start, std::span<GfxSampler*> samplers)
+	void GfxCommandContext::SetSamplers(GfxShaderStage stage, Uint32 start, std::span<GfxSampler*> samplers)
 	{
 		std::vector<ID3D11SamplerState*> d3d11_samplers(samplers.size());
-		for (uint32 i = 0; i < samplers.size(); ++i) d3d11_samplers[i] = *samplers[i];
+		for (Uint32 i = 0; i < samplers.size(); ++i) d3d11_samplers[i] = *samplers[i];
 		switch (stage)
 		{
 		case GfxShaderStage::VS:
-			command_context->VSSetSamplers(start, (uint32)d3d11_samplers.size(), d3d11_samplers.data());
+			command_context->VSSetSamplers(start, (Uint32)d3d11_samplers.size(), d3d11_samplers.data());
 			break;
 		case GfxShaderStage::PS:
-			command_context->PSSetSamplers(start, (uint32)d3d11_samplers.size(), d3d11_samplers.data());
+			command_context->PSSetSamplers(start, (Uint32)d3d11_samplers.size(), d3d11_samplers.data());
 			break;
 		case GfxShaderStage::HS:
-			command_context->HSSetSamplers(start, (uint32)d3d11_samplers.size(), d3d11_samplers.data());
+			command_context->HSSetSamplers(start, (Uint32)d3d11_samplers.size(), d3d11_samplers.data());
 			break;
 		case GfxShaderStage::DS:
-			command_context->DSSetSamplers(start, (uint32)d3d11_samplers.size(), d3d11_samplers.data());
+			command_context->DSSetSamplers(start, (Uint32)d3d11_samplers.size(), d3d11_samplers.data());
 			break;
 		case GfxShaderStage::GS:
-			command_context->GSSetSamplers(start, (uint32)d3d11_samplers.size(), d3d11_samplers.data());
+			command_context->GSSetSamplers(start, (Uint32)d3d11_samplers.size(), d3d11_samplers.data());
 			break;
 		case GfxShaderStage::CS:
-			command_context->CSSetSamplers(start, (uint32)d3d11_samplers.size(), d3d11_samplers.data());
+			command_context->CSSetSamplers(start, (Uint32)d3d11_samplers.size(), d3d11_samplers.data());
 			break;
 		}
 	}
 
-	void GfxCommandContext::SetShaderResourceRO(GfxShaderStage stage, uint32 slot, GfxShaderResourceRO descriptor)
+	void GfxCommandContext::SetShaderResourceRO(GfxShaderStage stage, Uint32 slot, GfxShaderResourceRO descriptor)
 	{
 		GfxShaderResourceRO descriptors[] = { descriptor };
 		SetShaderResourcesRO(stage, slot, descriptors);
 	}
 
-	void GfxCommandContext::SetShaderResourcesRO(GfxShaderStage stage, uint32 start, std::span<GfxShaderResourceRO> descriptors)
+	void GfxCommandContext::SetShaderResourcesRO(GfxShaderStage stage, Uint32 start, std::span<GfxShaderResourceRO> descriptors)
 	{
 		switch (stage)
 		{
 		case GfxShaderStage::VS:
-			command_context->VSSetShaderResources(start, (uint32)descriptors.size(), descriptors.data());
+			command_context->VSSetShaderResources(start, (Uint32)descriptors.size(), descriptors.data());
 			break;
 		case GfxShaderStage::PS:
-			command_context->PSSetShaderResources(start, (uint32)descriptors.size(), descriptors.data());
+			command_context->PSSetShaderResources(start, (Uint32)descriptors.size(), descriptors.data());
 			break;
 		case GfxShaderStage::HS:
-			command_context->HSSetShaderResources(start, (uint32)descriptors.size(), descriptors.data());
+			command_context->HSSetShaderResources(start, (Uint32)descriptors.size(), descriptors.data());
 			break;
 		case GfxShaderStage::DS:
-			command_context->DSSetShaderResources(start, (uint32)descriptors.size(), descriptors.data());
+			command_context->DSSetShaderResources(start, (Uint32)descriptors.size(), descriptors.data());
 			break;
 		case GfxShaderStage::GS:
-			command_context->GSSetShaderResources(start, (uint32)descriptors.size(), descriptors.data());
+			command_context->GSSetShaderResources(start, (Uint32)descriptors.size(), descriptors.data());
 			break;
 		case GfxShaderStage::CS:
-			command_context->CSSetShaderResources(start, (uint32)descriptors.size(), descriptors.data());
+			command_context->CSSetShaderResources(start, (Uint32)descriptors.size(), descriptors.data());
 			break;
 		}
 	}
 
-	void GfxCommandContext::UnsetShaderResourcesRO(GfxShaderStage stage, uint32 start, uint32 count)
+	void GfxCommandContext::UnsetShaderResourcesRO(GfxShaderStage stage, Uint32 start, Uint32 count)
 	{
 		switch (stage)
 		{
@@ -514,24 +514,24 @@ namespace adria
 		}
 	}
 
-	void GfxCommandContext::SetShaderResourceRW(uint32 slot, GfxShaderResourceRW descriptor)
+	void GfxCommandContext::SetShaderResourceRW(Uint32 slot, GfxShaderResourceRW descriptor)
 	{
 		GfxShaderResourceRW descriptors[] = { descriptor };
 		SetShaderResourcesRW(slot, descriptors);
 	}
 
-	void GfxCommandContext::SetShaderResourcesRW(uint32 start, std::span<GfxShaderResourceRW> descriptors)
+	void GfxCommandContext::SetShaderResourcesRW(Uint32 start, std::span<GfxShaderResourceRW> descriptors)
 	{
-		command_context->CSSetUnorderedAccessViews(start, (uint32)descriptors.size(), descriptors.data(), nullptr);
+		command_context->CSSetUnorderedAccessViews(start, (Uint32)descriptors.size(), descriptors.data(), nullptr);
 	}
 
-	void GfxCommandContext::SetShaderResourcesRW(uint32 start, std::span<GfxShaderResourceRW> descriptors, std::span<uint32> initial_counts)
+	void GfxCommandContext::SetShaderResourcesRW(Uint32 start, std::span<GfxShaderResourceRW> descriptors, std::span<Uint32> initial_counts)
 	{
 		ADRIA_ASSERT(descriptors.size() == initial_counts.size());
-		command_context->CSSetUnorderedAccessViews(start, (uint32)descriptors.size(), descriptors.data(), initial_counts.data());
+		command_context->CSSetUnorderedAccessViews(start, (Uint32)descriptors.size(), descriptors.data(), initial_counts.data());
 	}
 
-	void GfxCommandContext::UnsetShaderResourcesRW(uint32 start, uint32 count)
+	void GfxCommandContext::UnsetShaderResourcesRW(Uint32 start, Uint32 count)
 	{
 		command_context->CSSetUnorderedAccessViews(start, count, NULL_UAVS, nullptr);
 	}
@@ -544,13 +544,13 @@ namespace adria
 
 	void GfxCommandContext::SetRenderTargets(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv /*= nullptr*/)
 	{
-		command_context->OMSetRenderTargets((uint32)rtvs.size(), rtvs.data(), dsv);
+		command_context->OMSetRenderTargets((Uint32)rtvs.size(), rtvs.data(), dsv);
 	}
 
-	void GfxCommandContext::SetRenderTargetsAndShaderResourcesRW(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv, uint32 start_slot, std::span<GfxShaderResourceRW> uavs, std::span<uint32> initial_counts /*= {}*/)
+	void GfxCommandContext::SetRenderTargetsAndShaderResourcesRW(std::span<GfxRenderTarget> rtvs, GfxDepthTarget dsv, Uint32 start_slot, std::span<GfxShaderResourceRW> uavs, std::span<Uint32> initial_counts /*= {}*/)
 	{
-		command_context->OMSetRenderTargetsAndUnorderedAccessViews((uint32)rtvs.size(), rtvs.data(), dsv, start_slot,
-																   (uint32)uavs.size(), uavs.data(), initial_counts.data());
+		command_context->OMSetRenderTargetsAndUnorderedAccessViews((Uint32)rtvs.size(), rtvs.data(), dsv, start_slot,
+																   (Uint32)uavs.size(), uavs.data(), initial_counts.data());
 	}
 
 	void GfxCommandContext::GenerateMips(GfxShaderResourceRO srv)
@@ -568,12 +568,12 @@ namespace adria
 		command_context->End(*query);
 	}
 
-	bool GfxCommandContext::GetQueryData(GfxQuery* query, void* data, uint32 data_size)
+	Bool GfxCommandContext::GetQueryData(GfxQuery* query, void* data, Uint32 data_size)
 	{
 		return command_context->GetData(*query, data, data_size, 0) == S_OK;
 	}
 
-	void GfxCommandContext::BeginEvent(char const* event_name)
+	void GfxCommandContext::BeginEvent(Char const* event_name)
 	{
 		annotation->BeginEvent(ToWideString(event_name).c_str());
 	}
