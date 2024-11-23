@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <set>
 #include <memory>
 #include <string_view>
 #include <execution>
@@ -11,7 +12,6 @@
 #include "Graphics/GfxDevice.h"
 #include "Graphics/GfxInputLayout.h"
 #include "Utilities/Timer.h"
-#include "Utilities/HashMap.h"
 #include "Utilities/HashSet.h"
 #include "Utilities/FileWatcher.h"
 
@@ -25,17 +25,17 @@ namespace adria
 		std::unique_ptr<FileWatcher> file_watcher;
 		DelegateHandle file_modified_handle;
 
-		HashMap<ShaderId, std::unique_ptr<GfxVertexShader>>		vs_shader_map;
-		HashMap<ShaderId, std::unique_ptr<GfxPixelShader>>		ps_shader_map;
-		HashMap<ShaderId, std::unique_ptr<GfxHullShader>>		hs_shader_map;
-		HashMap<ShaderId, std::unique_ptr<GfxDomainShader>>		ds_shader_map;
-		HashMap<ShaderId, std::unique_ptr<GfxGeometryShader>>	gs_shader_map;
-		HashMap<ShaderId, std::unique_ptr<GfxComputeShader>>	cs_shader_map;
-		HashMap<ShaderId, std::unique_ptr<GfxInputLayout>>		input_layout_map;
-		HashMap<ShaderId, HashSet<fs::path>>					dependent_files_map;
+		std::unordered_map<ShaderId, std::unique_ptr<GfxVertexShader>>		vs_shader_map;
+		std::unordered_map<ShaderId, std::unique_ptr<GfxPixelShader>>		ps_shader_map;
+		std::unordered_map<ShaderId, std::unique_ptr<GfxHullShader>>		hs_shader_map;
+		std::unordered_map<ShaderId, std::unique_ptr<GfxDomainShader>>		ds_shader_map;
+		std::unordered_map<ShaderId, std::unique_ptr<GfxGeometryShader>>	gs_shader_map;
+		std::unordered_map<ShaderId, std::unique_ptr<GfxComputeShader>>		cs_shader_map;
+		std::unordered_map<ShaderId, std::unique_ptr<GfxInputLayout>>		input_layout_map;
+		std::unordered_map<fs::path, std::set<ShaderId>>					file_shader_map;
 
-		HashMap<ShaderProgram, GfxGraphicsShaderProgram>		gfx_shader_program_map;
-		HashMap<ShaderProgram, GfxComputeShaderProgram>			compute_shader_program_map;
+		std::unordered_map<ShaderProgram, GfxGraphicsShaderProgram>			gfx_shader_program_map;
+		std::unordered_map<ShaderProgram, GfxComputeShaderProgram>			compute_shader_program_map;
 
 		constexpr GfxShaderStage GetStage(ShaderId shader)
 		{
@@ -555,8 +555,12 @@ namespace adria
 			default:
 				ADRIA_ASSERT(false);
 			}
-			dependent_files_map[shader].clear();
-			dependent_files_map[shader].insert(output.includes.begin(), output.includes.end());
+
+			file_shader_map[fs::path(input.source_file)].insert(shader);
+			for (auto const& include : output.includes)
+			{
+				file_shader_map[fs::path(include)].insert(shader);
+			}
 		}
 		void CreateAllPrograms()
 		{
@@ -673,9 +677,9 @@ namespace adria
 		}
 		void OnShaderFileChanged(std::string const& filename)
 		{
-			for (auto const& [shader, files] : dependent_files_map)
+			for (ShaderId const& shader_id : file_shader_map[fs::path(filename)])
 			{
-				if (files.contains(fs::path(filename))) CompileShader(shader);
+				CompileShader(shader_id);
 			}
 		}
 	}

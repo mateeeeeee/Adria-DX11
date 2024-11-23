@@ -83,6 +83,14 @@ namespace adria
 			archive(output.includes);
 			Uint32 binary_size = 0;
 			archive(binary_size);
+
+			//check if the one of the includes was modified after the cache binary was generated
+			for (std::string const& include : output.includes)
+			{
+				if (GetFileLastWriteTime(cache_path) < GetFileLastWriteTime(include))
+					return false;
+			}
+
 			std::unique_ptr<Char[]> binary_data(new Char[binary_size]);
 			archive.loadBinary(binary_data.get(), binary_size);
 			output.shader_bytecode.SetBytecode(binary_data.get(), binary_size);

@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <chrono>
-#include "HashMap.h"
+#include <unordered_map>
 #include "Utilities/Delegate.h"
 
 namespace fs = std::filesystem;
@@ -60,7 +60,7 @@ namespace adria
 
 	private:
 		std::vector<std::string> paths_to_watch;
-		HashMap<std::string, fs::file_time_type> files_map;
+		std::unordered_map<std::string, fs::file_time_type> files_map;
 		FileModifiedEvent file_modified_event;
 	};
 }

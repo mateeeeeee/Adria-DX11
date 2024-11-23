@@ -20,7 +20,6 @@
 #include "Utilities/Random.h"
 #include "Utilities/Heightmap.h"
 #include "Utilities/Image.h"
-#include "Utilities/HashMap.h"
 #include "Utilities/StringUtil.h"
 
 using namespace DirectX;
@@ -385,7 +384,7 @@ namespace adria
 		std::vector<CompleteVertex> vertices{};
 		std::vector<Uint32> indices{};
 		std::vector<entity> entities{};
-		HashMap<std::string, std::vector<entity>> mesh_name_to_entities_map;
+		std::unordered_map<std::string, std::vector<entity>> mesh_name_to_entities_map;
 		for (auto& mesh : model.meshes)
 		{
 			std::vector<entity>& mesh_entities = mesh_name_to_entities_map[mesh.name];

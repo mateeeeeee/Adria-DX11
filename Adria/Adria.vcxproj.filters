@@ -420,9 +420,6 @@
     <ClInclude Include="Utilities\FileWatcher.h">
       <Filter>Utilities</Filter>
     </ClInclude>
-    <ClInclude Include="Utilities\HashMap.h">
-      <Filter>Utilities</Filter>
-    </ClInclude>
     <ClInclude Include="Utilities\HashSet.h">
       <Filter>Utilities</Filter>
     </ClInclude>

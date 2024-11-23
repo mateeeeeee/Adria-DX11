@@ -32,9 +32,7 @@ int APIENTRY wWinMain(
 	CLIArg& loglevel = parser.AddArg(true, "-loglvl", "--loglevel");
 	CLIArg& maximize = parser.AddArg(false, "-max", "--maximize");
 	CLIArg& vsync = parser.AddArg(false, "-vsync");
-	//MemoryDebugger::SetAllocHook(MemoryAllocHook);
-    //MemoryDebugger::SetBreak(275);
-	//MemoryDebugger::Checkpoint();
+
 	parser.Parse(lpCmdLine);
     {
 		std::string log_file = log.AsStringOr("adria.log");
@@ -67,7 +65,6 @@ int APIENTRY wWinMain(
             editor.Run();
         }
     }
-    //MemoryDebugger::CheckLeaks();
 }
 
 
