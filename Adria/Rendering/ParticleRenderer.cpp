@@ -35,7 +35,7 @@ namespace adria
 				Float64 integer_part = 0.0;
 				Float fraction = (Float)modf(emitter_params.accumulation, &integer_part);
 
-				emitter_params.number_to_emit = (Sint32)integer_part;
+				emitter_params.number_to_emit = (Int32)integer_part;
 				emitter_params.accumulation = fraction;
 			}
 		}

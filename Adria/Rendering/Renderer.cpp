@@ -259,17 +259,17 @@ namespace adria
 			static const Float square_root_of_two_pi = sqrt(pi_times_2<Float>);
 			return expf((-x * x) / (2 * sigma * sigma)) / (sigma * square_root_of_two_pi);
 		}
-		template<Sint16 N>
+		template<Int16 N>
 		std::array<Float, 2 * N + 1> GaussKernel(Float sigma)
 		{
 			std::array<Float, 2 * N + 1> gauss{};
 			Float sum = 0.0f;
-			for (Sint16 i = -N; i <= N; ++i)
+			for (Int16 i = -N; i <= N; ++i)
 			{
 				gauss[i + N] = GaussianDistribution(i * 1.0f, sigma);
 				sum += gauss[i + N];
 			}
-			for (Sint16 i = -N; i <= N; ++i)
+			for (Int16 i = -N; i <= N; ++i)
 			{
 				gauss[i + N] /= sum;
 			}
@@ -710,7 +710,7 @@ namespace adria
 				ssao_kernel[i] = offset;
 			}
 
-			for (Sint32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
+			for (Int32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
 			{
 				random_texture_data.push_back(rand_float());
 				random_texture_data.push_back(rand_float());
@@ -731,7 +731,7 @@ namespace adria
 			ssao_random_texture->CreateSRV();
 
 			random_texture_data.clear();
-			for (Sint32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
+			for (Int32 i = 0; i < AO_NOISE_DIM * AO_NOISE_DIM; i++)
 			{
 				Float rand = rand_float() * pi<Float> *2.0f;
 				random_texture_data.push_back(sin(rand));
@@ -1222,7 +1222,7 @@ namespace adria
 		compute_cbuf_data.bokeh_color_scale = renderer_settings.bokeh_color_scale;
 		compute_cbuf_data.bokeh_fallout = renderer_settings.bokeh_fallout;
 
-		compute_cbuf_data.visualize_tiled = static_cast<Sint32>(renderer_settings.visualize_tiled);
+		compute_cbuf_data.visualize_tiled = static_cast<Int32>(renderer_settings.visualize_tiled);
 		compute_cbuf_data.visualize_max_lights = renderer_settings.visualize_max_lights;
 
 		compute_cbuf_data.threshold = renderer_settings.bloom_threshold;
@@ -1452,7 +1452,7 @@ namespace adria
 			light_data.position  = Vector4::Transform(light.position, camera->View());
 			light_data.direction = Vector4::Transform(light.direction, camera->View());
 			light_data.range = light.range;
-			light_data.type = static_cast<Sint32>(light.type);
+			light_data.type = static_cast<Int32>(light.type);
 			light_data.inner_cosine = light.inner_cosine;
 			light_data.outer_cosine = light.outer_cosine;
 			light_data.active = light.active;
@@ -1709,7 +1709,7 @@ namespace adria
 
 		struct DecalCBuffer
 		{
-			Sint32 decal_type;
+			Int32 decal_type;
 			Bool32 modify_gbuffer_normals;
 		};
 
@@ -1731,7 +1731,7 @@ namespace adria
 				decal.modify_gbuffer_normals 
 					? ShaderManager::GetShaderProgram(ShaderProgram::Decals_ModifyNormals)->Bind(command_context) 
 					: ShaderManager::GetShaderProgram(ShaderProgram::Decals)->Bind(command_context);
-				decal_cbuf_data.decal_type = static_cast<Sint32>(decal.decal_type);
+				decal_cbuf_data.decal_type = static_cast<Int32>(decal.decal_type);
 				decal_cbuffer.Update(command_context, decal_cbuf_data);
 
 				object_cbuf_data.model = decal.decal_model_matrix;
@@ -1867,7 +1867,7 @@ namespace adria
 				light_cbuf_data.outer_cosine = light_data.outer_cosine;
 				light_cbuf_data.position = light_data.position;
 				light_cbuf_data.range = light_data.range;
-				light_cbuf_data.type = static_cast<Sint32>(light_data.type);
+				light_cbuf_data.type = static_cast<Int32>(light_data.type);
 				light_cbuf_data.use_cascades = light_data.use_cascades;
 				light_cbuf_data.volumetric_strength = light_data.volumetric_strength;
 				light_cbuf_data.sscs = light_data.screen_space_contact_shadows;
@@ -2500,7 +2500,7 @@ namespace adria
 		shadow_cbuf_data.split2 = split_distances[2];
 		shadow_cbuf_data.split3 = split_distances[3];
 		shadow_cbuf_data.softness = renderer_settings.shadow_softness;
-		shadow_cbuf_data.visualize = static_cast<Sint32>(false);
+		shadow_cbuf_data.visualize = static_cast<Int32>(false);
 		shadow_cbuffer->Update(gfx->GetCommandContext(), shadow_cbuf_data);
 	}
 	void Renderer::PassShadowMapCommon()
@@ -3118,7 +3118,7 @@ namespace adria
 
 		postprocess_cbuf_data.fog_falloff = renderer_settings.fog_falloff;
 		postprocess_cbuf_data.fog_density = renderer_settings.fog_density;
-		postprocess_cbuf_data.fog_type = static_cast<Sint32>(renderer_settings.fog_type);
+		postprocess_cbuf_data.fog_type = static_cast<Int32>(renderer_settings.fog_type);
 		postprocess_cbuf_data.fog_start = renderer_settings.fog_start;
 		postprocess_cbuf_data.fog_color = Vector4(renderer_settings.fog_color[0], renderer_settings.fog_color[1], renderer_settings.fog_color[2], 1);
 		postprocess_cbuffer->Update(gfx->GetCommandContext(), postprocess_cbuf_data);

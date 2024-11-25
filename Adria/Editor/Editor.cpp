@@ -250,10 +250,10 @@ namespace adria
             if (ImGui::TreeNodeEx("Terrain Generation", 0))
             {
 				static GridParameters terrain_params{};
-				static Sint32 tile_count[2] = { 600, 600 };
+				static Int32 tile_count[2] = { 600, 600 };
 				static Float tile_size[2] = { 2.0f, 2.0f };
 				static Float texture_scale[2] = { 200.0f, 200.0f };
-				static Sint32 chunk_count[2] = { 40, 40 };
+				static Int32 chunk_count[2] = { 40, 40 };
 				static Bool split_to_chunks = false;
 
 				ImGui::SliderInt2("Tile Count", tile_count, 32, 2048);
@@ -580,7 +580,7 @@ namespace adria
 		if (ImGui::Begin("Ocean", &window_flags[Flag_Ocean]))
         {
 			static GridParameters ocean_params{};
-			static Sint32 tile_count[2] = { 512, 512 };
+			static Int32 tile_count[2] = { 512, 512 };
 			static Float tile_size[2] = { 40.0f, 40.0f };
 			static Float texture_scale[2] = { 20.0f, 20.0f };
 
@@ -849,7 +849,7 @@ namespace adria
 			{
 				static RealRandomGenerator real(0.0f, 1.0f);
 
-				for (Sint32 i = 0; i < light_count_to_add; ++i)
+				for (Int32 i = 0; i < light_count_to_add; ++i)
 				{
 					LightParameters light_params{};
 					light_params.light_data.casts_shadows = false;
@@ -1390,7 +1390,7 @@ namespace adria
 					{
 						static RealRandomGenerator real(0.0f, 1.0f);
 
-						for (Sint32 i = 0; i < light_count_to_add; ++i)
+						for (Int32 i = 0; i < light_count_to_add; ++i)
 						{
 							LightParameters light_params{};
 							light_params.light_data.casts_shadows = false;
@@ -1639,7 +1639,7 @@ namespace adria
 				static constexpr Uint64 NUM_FRAMES = 128;
 				static Float FRAME_TIME_ARRAY[NUM_FRAMES] = { 0 };
 				static Float RECENT_HIGHEST_FRAME_TIME = 0.0f;
-				static constexpr Sint32 FRAME_TIME_GRAPH_MAX_FPS[] = { 800, 240, 120, 90, 65, 45, 30, 15, 10, 5, 4, 3, 2, 1 };
+				static constexpr Int32 FRAME_TIME_GRAPH_MAX_FPS[] = { 800, 240, 120, 90, 65, 45, 30, 15, 10, 5, 4, 3, 2, 1 };
 				static Float FRAME_TIME_GRAPH_MAX_VALUES[ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS)] = { 0 };
 				for (Uint64 i = 0; i < ARRAYSIZE(FRAME_TIME_GRAPH_MAX_FPS); ++i) { FRAME_TIME_GRAPH_MAX_VALUES[i] = 1000.f / FRAME_TIME_GRAPH_MAX_FPS[i]; }
 
@@ -1648,7 +1648,7 @@ namespace adria
 				for (Uint32 i = 0; i < NUM_FRAMES - 1; i++) FRAME_TIME_ARRAY[i] = FRAME_TIME_ARRAY[i + 1];
 				RECENT_HIGHEST_FRAME_TIME = std::max(RECENT_HIGHEST_FRAME_TIME, FRAME_TIME_ARRAY[NUM_FRAMES - 1]);
 				Float frameTime_ms = FRAME_TIME_ARRAY[NUM_FRAMES - 1];
-				const Sint32 fps = static_cast<Sint32>(1000.0f / frameTime_ms);
+				const Int32 fps = static_cast<Int32>(1000.0f / frameTime_ms);
 
 				ImGui::Text("FPS        : %d (%.2f ms)", fps, frameTime_ms);
 				if (ImGui::CollapsingHeader("Timings", ImGuiTreeNodeFlags_DefaultOpen))

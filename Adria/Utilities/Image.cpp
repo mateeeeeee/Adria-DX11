@@ -8,9 +8,9 @@
 namespace adria
 {
 
-	Image::Image(std::string_view image_file, Sint32 desired_channels /*= 4*/)
+	Image::Image(std::string_view image_file, Int32 desired_channels /*= 4*/)
 	{
-		Sint32 width, height, channels;
+		Int32 width, height, channels;
 
 		if (is_hdr = static_cast<Bool>(stbi_is_hdr(image_file.data())); is_hdr)
 		{

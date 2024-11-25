@@ -70,7 +70,7 @@ namespace adria
     struct FoliageParameters
     {
         std::pair<FoliageMesh, std::string> mesh_texture_pair;
-        Sint32 foliage_count;
+        Int32 foliage_count;
         Float foliage_scale;
 		Vector2 foliage_center;
 		Vector2 foliage_extents;
@@ -81,7 +81,7 @@ namespace adria
     struct TreeParameters
     {
         TreeType tree_type;
-		Sint32 tree_count;
+		Int32 tree_count;
 		Float tree_scale;
 		Vector2 tree_center;
 		Vector2 tree_extents;
@@ -126,7 +126,7 @@ namespace adria
         std::string texture_path = paths::TexturesDir + "Particles/fire.png";
         Bool blend = true;
         Bool collisions = false;
-        Sint32 collision_thickness = 40;
+        Int32 collision_thickness = 40;
         Bool sort = false;
     };
     struct DecalParameters

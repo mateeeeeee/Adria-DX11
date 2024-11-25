@@ -53,7 +53,7 @@ namespace adria
 		void SetAspectRatio(Float ar);
 		void SetFov(Float fov);
 
-		void Zoom(Sint32 increment);
+		void Zoom(Int32 increment);
 		void OnResize(Uint32 w, Uint32 h);
 		void Tick(Float dt);
 		void Enable(Bool _enabled) { enabled = _enabled; }
@@ -78,8 +78,8 @@ namespace adria
 		void Strafe(Float dt);
 		void Walk(Float dt);
 		void Jump(Float dt);
-		void Pitch(Sint64 dy);
-		void Yaw(Sint64 dx);
+		void Pitch(Int64 dy);
+		void Yaw(Int64 dx);
 		void SetLens(Float fov, Float aspect, Float zn, Float zf);
 		void SetView();
 	};

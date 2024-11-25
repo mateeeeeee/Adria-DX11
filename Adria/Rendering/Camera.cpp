@@ -54,12 +54,12 @@ namespace adria
 		{
 			Float dx = input.GetMouseDeltaX();
 			Float dy = input.GetMouseDeltaY();
-			Pitch((Sint64)dy);
-			Yaw((Sint64)dx);
+			Pitch((Int64)dy);
+			Yaw((Int64)dx);
 		}
 		UpdateViewMatrix();
 	}
-	void Camera::Zoom(Sint32 increment)
+	void Camera::Zoom(Int32 increment)
 	{
 		fov -= XMConvertToRadians(increment * 1.0f);
 		fov = std::clamp(fov, 0.00005f, pi_div_2<Float>);
@@ -131,13 +131,13 @@ namespace adria
 	{
 		position += dt * speed * up_vector;
 	}
-	void Camera::Pitch(Sint64 dy)
+	void Camera::Pitch(Int64 dy)
 	{
 		Matrix R = Matrix::CreateFromAxisAngle(right_vector, sensitivity * XMConvertToRadians((Float)dy));
 		up_vector = Vector3::TransformNormal(up_vector, R);
 		look_vector = Vector3::TransformNormal(look_vector, R);
 	}
-	void Camera::Yaw(Sint64 dx)
+	void Camera::Yaw(Int64 dx)
 	{
 		Matrix R = Matrix::CreateRotationY(sensitivity * XMConvertToRadians((Float)dx));
 

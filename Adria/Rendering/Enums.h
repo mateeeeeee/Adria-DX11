@@ -215,14 +215,14 @@ namespace adria
 		TonyMcMapface
 	};
 
-	enum class LightType : Sint32
+	enum class LightType : Int32
 	{
 		Directional,
 		Point,
 		Spot
 	};
 
-	enum class FogType : Sint32
+	enum class FogType : Int32
 	{
 		Exponential, 
 		ExponentialHeight

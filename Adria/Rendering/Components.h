@@ -42,7 +42,7 @@ namespace adria
 		//vb/ib
 		Uint32 indices_count = 0;
 		Uint32 start_index_location = 0; //The location of the first index read by the GPU from the index buffer
-		Sint32 base_vertex_location = 0;  //A value added to each index before reading a vertex from the vertex buffer
+		Int32 base_vertex_location = 0;  //A value added to each index before reading a vertex from the vertex buffer
 
 		//instancing
 		Uint32 instance_count = 1;
@@ -165,7 +165,7 @@ namespace adria
 		Vector4	position		  = Vector4(0, 0, 0, 0);
 		Vector4	velocity		  = Vector4(0, 5, 0, 0);
 		Vector4	position_variance = Vector4(0, 0, 0, 0);
-		Sint32					number_to_emit = 0;
+		Int32					number_to_emit = 0;
 		Float					particle_lifespan = 5.0f;
 		Float					start_size = 10.0f;
 		Float					end_size = 1.0f;
@@ -175,7 +175,7 @@ namespace adria
 		Float					accumulation = 0.0f;
 		Float					elapsed_time = 0.0f;
 		Bool				collisions_enabled = false;
-		Sint32					collision_thickness = 40;
+		Int32					collision_thickness = 40;
 		Bool				alpha_blended = true;
 		Bool				pause = false;
 		Bool				sort = false;

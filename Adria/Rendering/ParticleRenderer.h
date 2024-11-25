@@ -43,7 +43,7 @@ namespace adria
 			Vector4	EmitterVelocity;
 			Vector4	PositionVariance;
 
-			Sint32	MaxParticlesThisFrame;
+			Int32	MaxParticlesThisFrame;
 			Float	ParticleLifeSpan;
 			Float	StartSize;
 			Float	EndSize;
@@ -51,9 +51,9 @@ namespace adria
 			Float	VelocityVariance;
 			Float	Mass;
 			Float	ElapsedTime;
-			Sint32 Collisions;
+			Int32 Collisions;
 
-			Sint32 CollisionThickness;
+			Int32 CollisionThickness;
 		};
 		struct IndexBufferElement
 		{
@@ -67,7 +67,7 @@ namespace adria
 		};
 		struct SortDispatchInfo
 		{
-			Sint32 x, y, z, w;
+			Int32 x, y, z, w;
 		};
 	public:
 		explicit ParticleRenderer(GfxDevice* gfx);

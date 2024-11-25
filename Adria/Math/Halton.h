@@ -6,7 +6,7 @@ namespace adria
 	{
 		static constexpr int FloorConstExpr(const Float val)
 		{
-			const auto val_int = (Sint64)val;
+			const auto val_int = (Int64)val;
 			const Float fval_int = (Float)val_int;
 			return (int)(val >= (Float)0 ? fval_int : (val == fval_int ? val : fval_int - (Float)1));
 		}
@@ -33,7 +33,7 @@ namespace adria
 			for (Uint32 i = 0; i < SIZE; ++i) sequence[i] = generator(i + 1, BASE);
 		}
 
-		constexpr Float operator[](Sint32 index) const
+		constexpr Float operator[](Int32 index) const
 		{
 			return sequence[index % SIZE];
 		}

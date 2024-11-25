@@ -27,18 +27,18 @@ namespace adria
 		Uint32 max_height;
 		FractalType fractal_type = FractalType::None;
 		NoiseType noise_type = NoiseType::Perlin;
-		Sint32 seed = 1337;
+		Int32 seed = 1337;
 		Float frequency = 0.01f;
 		Float persistence = 0.5f;
 		Float lacunarity = 2.0f;
-		Sint32 octaves = 3;
+		Int32 octaves = 3;
 		Float noise_scale = 10;
 	};
 
 
 	struct ThermalErosionDesc
 	{
-		Sint32 iterations;
+		Int32 iterations;
 		Float c;
 		Float talus;
 	};
@@ -46,8 +46,8 @@ namespace adria
 	
 	struct HydraulicErosionDesc
 	{
-		Sint32 iterations;
-		Sint32 drops;
+		Int32 iterations;
+		Int32 drops;
 		Float carrying_capacity;
 		Float deposition_speed;
 	};

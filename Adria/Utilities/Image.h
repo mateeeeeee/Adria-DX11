@@ -8,7 +8,7 @@ namespace adria
 	class Image
 	{
 	public:
-		Image(std::string_view image_file, Sint32 desired_channels = 4);
+		Image(std::string_view image_file, Int32 desired_channels = 4);
 
 		Image(Image const&) = delete;
 		Image(Image&&) = default;

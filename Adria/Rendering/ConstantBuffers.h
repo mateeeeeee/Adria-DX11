@@ -38,13 +38,13 @@ namespace adria
 		Vector4 direction;
 		Vector4 color;
 		Float range;
-		Sint32   type;
+		Int32   type;
 		Float outer_cosine;
 		Float inner_cosine;
-		Sint32	casts_shadows;
-		Sint32   use_cascades;
+		Int32	casts_shadows;
+		Int32   use_cascades;
 		Float volumetric_strength;
-		Sint32   sscs;
+		Int32   sscs;
 		Float sscs_thickness;
 		Float sscs_max_ray_distance;
 		Float sscs_max_depth_distance;
@@ -85,8 +85,8 @@ namespace adria
 		Float split2;
 		Float split3;
 		Float softness;
-		Sint32 shadow_map_size;
-		Sint32 visualize;
+		Int32 shadow_map_size;
+		Int32 visualize;
 	};
 
 	DECLSPEC_ALIGN(16) struct PostprocessCBuffer
@@ -104,7 +104,7 @@ namespace adria
 		Float   fog_falloff;
 		Float   fog_density;
 		Float	fog_start;
-		Sint32	fog_type;
+		Int32	fog_type;
 		Float   hbao_r2;
 		Float   hbao_radius_to_screen;
 		Float   hbao_power;
@@ -145,14 +145,14 @@ namespace adria
 		Float bokeh_blur_threshold;			//bokeh
 		Float bokeh_lum_threshold;			//bokeh	
 
-		Sint32 ocean_size;					//ocean
-		Sint32 resolution;					//ocean
+		Int32 ocean_size;					//ocean
+		Int32 resolution;					//ocean
 		Float ocean_choppiness;			//ocean								
 		Float wind_direction_x;			//ocean
 		Float wind_direction_y;			//ocean
 		Float delta_time;					//ocean
-		Sint32 visualize_tiled;
-		Sint32 visualize_max_lights;
+		Int32 visualize_tiled;
+		Int32 visualize_max_lights;
 	};
 
 	DECLSPEC_ALIGN(16) struct WeatherCBuffer
@@ -231,14 +231,14 @@ namespace adria
 		Vector4 position;
 		Vector4 direction;
 		Vector4 color;
-		Sint32 active;
+		Int32 active;
 		Float range;
-		Sint32 type;
+		Int32 type;
 		Float outer_cosine;
 		Float inner_cosine;
-		Sint32 casts_shadows;
-		Sint32 use_cascades;
-		Sint32 padd;
+		Int32 casts_shadows;
+		Int32 use_cascades;
+		Int32 padd;
 	};
 	struct ClusterAABB
 	{

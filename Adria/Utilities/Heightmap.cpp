@@ -369,7 +369,7 @@ namespace adria
 
 			if (hm[Y][X] > 0.0f)
 			{
-				for (Sint32 iter = 0; iter < desc.iterations; iter++)
+				for (Int32 iter = 0; iter < desc.iterations; iter++)
 				{
 					Float val = hm[Y][X];
 					Float left = 1000.0f;
@@ -435,7 +435,7 @@ namespace adria
 					};
 					
 					Float minHeight = val;
-					Sint32 minIndex = CENTER;
+					Int32 minIndex = CENTER;
 
 					if (left < minHeight)
 					{

@@ -317,7 +317,7 @@ namespace adria
 			D3D11_BLEND_DESC bd{};
 			bd.AlphaToCoverageEnable = _bd.alpha_to_coverage_enable;
 			bd.IndependentBlendEnable = _bd.independent_blend_enable;
-			for (Sint32 i = 0; i < 8; ++i)
+			for (Int32 i = 0; i < 8; ++i)
 			{
 				bd.RenderTarget[i].BlendEnable = _bd.render_target[i].blend_enable;
 				bd.RenderTarget[i].SrcBlend = ConvertBlend(_bd.render_target[i].src_blend);

@@ -36,7 +36,7 @@ int APIENTRY wWinMain(
 	parser.Parse(lpCmdLine);
     {
 		std::string log_file = log.AsStringOr("adria.log");
-		Sint32 log_level = loglevel.AsIntOr(0);
+		Int32 log_level = loglevel.AsIntOr(0);
 		ADRIA_REGISTER_LOGGER(new FileLogger(log_file.c_str(), static_cast<LogLevel>(log_level)));
 		ADRIA_REGISTER_LOGGER(new OutputDebugStringLogger(static_cast<LogLevel>(log_level)));
 

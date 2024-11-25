@@ -89,14 +89,14 @@ namespace adria
 			{
 				for (size_t i = 2; i < width - 2; ++i)
 				{
-					Sint32 n1 = 0, n2 = 0, n3 = 0, n4 = 0;
-					for (Sint32 k = -2; k <= 2; ++k)
+					Int32 n1 = 0, n2 = 0, n3 = 0, n4 = 0;
+					for (Int32 k = -2; k <= 2; ++k)
 					{
-						for (Sint32 l = -2; l <= 2; ++l)
+						for (Int32 l = -2; l <= 2; ++l)
 						{
-							n1 += (Sint32)temp_layer_data[((j + k) * width + i + l) * 4 + 0];
-							n2 += (Sint32)temp_layer_data[((j + k) * width + i + l) * 4 + 1];
-							n3 += (Sint32)temp_layer_data[((j + k) * width + i + l) * 4 + 2];
+							n1 += (Int32)temp_layer_data[((j + k) * width + i + l) * 4 + 0];
+							n2 += (Int32)temp_layer_data[((j + k) * width + i + l) * 4 + 1];
+							n3 += (Int32)temp_layer_data[((j + k) * width + i + l) * 4 + 2];
 						}
 					}
             
@@ -106,7 +106,7 @@ namespace adria
 				}
 			}
 
-			WriteImageTGA(texture_name, layer_data, (Sint32)width, (Sint32)depth);
+			WriteImageTGA(texture_name, layer_data, (Int32)width, (Int32)depth);
 		}
     }
 
@@ -989,7 +989,7 @@ namespace adria
 		entity foliage = foliages[0];
 
 		std::vector<FoliageInstance> instance_data{};
-		for (Sint32 i = 0; i < params.foliage_count; ++i)
+		for (Int32 i = 0; i < params.foliage_count; ++i)
 		{
             static const Uint32 MAX_ITERATIONS = 5;
 			Vector3 position{};
@@ -1065,7 +1065,7 @@ namespace adria
         ADRIA_ASSERT(diffuse_textures.size() == trees.size());
 
 		std::vector<TreeInstance> instance_data{};
-		for (Sint32 i = 0; i < params.tree_count; ++i)
+		for (Int32 i = 0; i < params.tree_count; ++i)
 		{
 			static const Uint32 MAX_ITERATIONS = 5;
 			Vector3 position{};

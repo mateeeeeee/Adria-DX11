@@ -28,12 +28,12 @@ namespace adria
 			else return def;
 		}
 
-		Sint32 AsInt() const
+		Int32 AsInt() const
 		{
 			ADRIA_ASSERT(has_value);
-			return (Sint32)strtol(value.c_str(), nullptr, 10);
+			return (Int32)strtol(value.c_str(), nullptr, 10);
 		}
-		Sint32 AsIntOr(Sint32 def) const
+		Int32 AsIntOr(Int32 def) const
 		{
 			if (IsPresent()) return AsInt();
 			else return def;

@@ -74,7 +74,7 @@ namespace adria
 		//tiled deferred
 		Bool use_tiled_deferred = false;
 		Bool visualize_tiled = false;
-		Sint32 visualize_max_lights = 16;
+		Int32 visualize_max_lights = 16;
 		//clustered deferred
 		Bool use_clustered_deferred = false;
 		//voxel gi
@@ -85,7 +85,7 @@ namespace adria
 		Float voxel_center_x = 0;
 		Float voxel_center_y = 0;
 		Float voxel_center_z = 0;
-		Sint32 voxel_num_cones = 2;
+		Int32 voxel_num_cones = 2;
 		Float voxel_ray_step_distance = 0.75f;
 		Float voxel_max_distance = 20.0f;
 		Uint32 voxel_mips = 7;
